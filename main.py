@@ -1,4 +1,5 @@
 import ideas
+import proyectos
 print("===================================")
 print("        PROYECTO X - PX CORE")
 print("===================================")
@@ -13,8 +14,8 @@ print()
 while True:
     print()
     print("Menú")
-    print("1 - Ver ideas")
-    print("2 - Agregar idea")
+    print("1 - Ideas")
+    print("2 - Proyectos")
     print("3 - Registrar horas")
     print("4 - Salir")
 
@@ -23,13 +24,13 @@ while True:
     print()
 
     if opcion == "1":
-        ideas.ver_ideas()
+        ideas.menu()
 
     elif opcion == "2":
-        ideas.mostrar()
+        proyectos.menu()
 
     elif opcion == "3":
-        print("Aquí registrarás las horas.")
+        registrar_horas.menu()
 
     elif opcion == "4":
         print("Hasta luego", nombre)
