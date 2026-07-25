@@ -31,26 +31,22 @@ def menu():
         elif opcion == "5":
             break
 
-            lista_proyectos = contenido.split("\n")
-
-
-
-        elif opcion == "4":
-            eliminar_proyecto()
-
-        elif opcion == "5":
-            break
-
         else:
             print("Opción no válida.")
 
-
-def ver_proyectos():
-    archivo = open("proyectos.txt", "r")
+def leer_proyectos():
+    archivo = open("Datos/proyectos.txt", "r")
     contenido = archivo.read()
     archivo.close()
 
-    lista_proyectos = contenido.split("\n")
+    return contenido.split("\n")
+
+def guardar_proyectos(lista_proyectos):
+    with open("Datos/proyectos.txt", "w") as archivo:
+        archivo.write("\n".join(lista_proyectos))
+
+def ver_proyectos():
+    lista_proyectos = leer_proyectos()
 
     print()
     print("PROYECTOS REGISTRADOS")
@@ -75,20 +71,17 @@ def agregar_proyecto():
     nueva_descripcion = input("Escribí una descripción: ")
     nuevo_estado = input("Escribí el estado del proyecto: ")
 
-    archivo = open("proyectos.txt", "a")
-    archivo.write(nuevo_proyecto + "|" + nueva_descripcion + "|" + nuevo_estado + "\n")
-    archivo.close()
+    lista_proyectos = leer_proyectos()
+    lista_proyectos.append(nuevo_proyecto + "|" + nueva_descripcion + "|" + nuevo_estado)
+
+    guardar_proyectos(lista_proyectos)
 
     print()
     print("Proyecto agregado correctamente.")
 
 
 def eliminar_proyecto():
-    archivo = open("proyectos.txt", "r")
-    contenido = archivo.read()
-    archivo.close()
-
-    lista_proyectos = contenido.split("\n")
+    lista_proyectos = leer_proyectos()
 
     print()
     print("PROYECTOS REGISTRADOS")
@@ -113,9 +106,7 @@ def eliminar_proyecto():
             if 0 <= indice < len(lista_proyectos):
                 proyecto_eliminado = lista_proyectos[indice]
                 lista_proyectos.pop(indice)
-                archivo = open("proyectos.txt", "w")
-                archivo.write("\n".join(lista_proyectos))
-                archivo.close()
+                guardar_proyectos(lista_proyectos)
                 print()
                 print("Proyecto eliminado:", proyecto_eliminado)
             else:
@@ -126,11 +117,7 @@ def eliminar_proyecto():
         print("No hay proyectos para eliminar.")
 
 def modificar_proyecto():
-    archivo = open("proyectos.txt", "r")
-    contenido = archivo.read()
-    archivo.close()
-
-    lista_proyectos = contenido.split("\n")
+    lista_proyectos = leer_proyectos()
 
     print()
     print("ELEGIR PROYECTO PARA MODIFICAR")
@@ -173,9 +160,7 @@ def modificar_proyecto():
             proyecto_modificado = nombre_modificado + "|" + descripcion_modificada + "|" + estado_modificado
             lista_proyectos[indice] = proyecto_modificado
 
-            archivo = open("proyectos.txt", "w")
-            archivo.write("\n".join(lista_proyectos))
-            archivo.close()
+            guardar_proyectos(lista_proyectos)
 
             print()
             print("Proyecto modificado correctamente.")
@@ -184,3 +169,4 @@ def modificar_proyecto():
     except ValueError:
         print("Opción no válida.")
         return
+    
