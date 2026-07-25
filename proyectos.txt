@@ -1,1 +1,3 @@
-Catalogo web|Cargar 200 armazones|Pendiente
+Rodrigo|Cañiza|Tobi
+Sol|Blaires|GG
+Tobias|Jagua|Nero

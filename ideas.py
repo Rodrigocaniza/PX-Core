@@ -32,7 +32,7 @@ def menu():
 
 
 def ver_ideas():
-    archivo = open("ideas.txt", "r")
+    archivo = open("Datos/ideas.txt", "r")
     contenido = archivo.read()
     archivo.close()
 
@@ -57,14 +57,14 @@ def ver_ideas():
 def agregar_idea():
     nueva_idea = input("Escribí una idea: ")
 
-    archivo = open("ideas.txt", "a")
+    archivo = open("Datos/ideas.txt", "a")
     archivo.write(nueva_idea + "\n")
     archivo.close()
 
     print("Idea registrada:", nueva_idea)
 
 def eliminar_idea():
-    archivo = open("ideas.txt", "r")
+    archivo = open("Datos/ideas.txt", "r")
     contenido = archivo.read()
     archivo.close()
 
@@ -93,7 +93,7 @@ def eliminar_idea():
             if 0 <= indice < len(lista_ideas):
                 idea_eliminada = lista_ideas[indice]
                 lista_ideas.pop(indice)
-                archivo = open("ideas.txt", "w")
+                archivo = open("Datos/ideas.txt", "w")
                 archivo.write("\n".join(lista_ideas))
                 archivo.close()
                 print("Idea eliminada:", idea_eliminada)
