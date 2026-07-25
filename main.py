@@ -1,3 +1,4 @@
+from Movimientos import menu_movimientos
 import ideas
 import proyectos
 print("===================================")
@@ -16,7 +17,7 @@ while True:
     print("Menú")
     print("1 - Ideas")
     print("2 - Proyectos")
-    print("3 - Registrar horas")
+    print("3 - Movimientos")
     print("4 - Salir")
 
     opcion = input("Elegí una opción: ")
@@ -30,7 +31,7 @@ while True:
         proyectos.menu()
 
     elif opcion == "3":
-        registrar_horas.menu()
+        menu_movimientos()
 
     elif opcion == "4":
         print("Hasta luego", nombre)
@@ -38,3 +39,5 @@ while True:
 
     else:
         print("Opción no válida.")
+
+        

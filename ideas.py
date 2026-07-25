@@ -1,3 +1,4 @@
+from datos import leer_datos, guardar_datos
 def menu():
     
     while True:
@@ -30,13 +31,14 @@ def menu():
         else:
             print("Opción no válida.")
 
+def leer_ideas():
+    return leer_datos("Datos/ideas.txt")
+
+def guardar_ideas(lista_ideas):
+    guardar_datos("Datos/ideas.txt", lista_ideas)
 
 def ver_ideas():
-    archivo = open("Datos/ideas.txt", "r")
-    contenido = archivo.read()
-    archivo.close()
-
-    lista_ideas = contenido.split("\n")
+    lista_ideas = leer_ideas()
 
     print()
     print("IDEAS REGISTRADAS")
@@ -57,18 +59,14 @@ def ver_ideas():
 def agregar_idea():
     nueva_idea = input("Escribí una idea: ")
 
-    archivo = open("Datos/ideas.txt", "a")
-    archivo.write(nueva_idea + "\n")
-    archivo.close()
+    lista_ideas = leer_ideas()
+    lista_ideas.append(nueva_idea)
+    guardar_ideas(lista_ideas)
 
     print("Idea registrada:", nueva_idea)
 
 def eliminar_idea():
-    archivo = open("Datos/ideas.txt", "r")
-    contenido = archivo.read()
-    archivo.close()
-
-    lista_ideas = contenido.split("\n")
+    lista_ideas = leer_ideas()
 
     print()
     print("IDEAS REGISTRADAS")
@@ -93,9 +91,7 @@ def eliminar_idea():
             if 0 <= indice < len(lista_ideas):
                 idea_eliminada = lista_ideas[indice]
                 lista_ideas.pop(indice)
-                archivo = open("Datos/ideas.txt", "w")
-                archivo.write("\n".join(lista_ideas))
-                archivo.close()
+                guardar_ideas(lista_ideas)
                 print("Idea eliminada:", idea_eliminada)
             else:
                 print("Opción no válida.")
