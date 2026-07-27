@@ -1,0 +1,10 @@
+#CATALOGO_CONCEPTOS_V1
+Ingreso|Alquiler del consultorio
+Egreso|Alquiler - PC
+Egreso|Alquiler - P2
+Egreso|IPS
+Egreso|Systemsoft
+Egreso|SET
+Egreso|Porta - Marketing
+Egreso|Pago de tarjeta de crédito
+Egreso|Bancard

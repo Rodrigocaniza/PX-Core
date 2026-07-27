@@ -1,0 +1,2 @@
+Z | X | Reposo | 20-06-2026 | 15-07-2026 | 0 | Sí | amigdfalitis
+Z | X | Adelanto | 01-07-2026 | 01-07-2026 | 120000 | No | adeltnmaot 1

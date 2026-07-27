@@ -1,0 +1,13 @@
+Ingreso|22-07-2026|Externo|PC|200000|Si
+Egreso|22-07-2026|PC|Externo|450000|Si
+Transferencia interna|22-07-2026|PC|MVPC|200000|No
+Transferencia interna|22-07-2026|PC|P2|20000|No
+Transferencia interna|22-07-2026|PC|P2|30000|No
+Ingreso|22-07-2026|Externo|PC|40000|Si
+Ingreso|22-07-2026|Externo|P2|230000|Si
+Ingreso|22-07-2026|Externo|MVPC|120000|Si
+Cobro externo|23-07-2026|Ueno|P2|200000|Si
+Dep�sito interno|22-07-2026|PC|Ueno|500000|No
+Dep�sito interno|23-07-2026|Rodrigo|Conmtinental|1000000|No
+Ingreso|26-07-2026|Externo|PC|20000|Si
+Egreso|26-07-2026|PC|Externo|10000|Si
