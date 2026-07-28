@@ -1,0 +1,47 @@
+PX-CORE - INTERFAZ GRAFICA - FASE 8
+SOCIOS Y FONDO DE ESTABILIDAD
+
+INSTALACION
+
+1. Cerra la interfaz grafica de PX-Core.
+2. Copia solamente el archivo interfaz.py de esta carpeta.
+3. Pegalo dentro de tu carpeta PX-Core.
+4. Cuando Windows pregunte, elegi Reemplazar el archivo en el destino.
+5. No reemplaces ni borres la carpeta Datos.
+6. Abri iniciar_interfaz.bat.
+
+RUTA
+
+Socios
+
+FUNCIONES CONECTADAS
+
+- Registrar retiros de Sol o Rodrigo.
+- Calcular el resumen mensual de socios.
+- Ver sueldo, utilidad, total a cobrar, retiros y saldo.
+- Mostrar EXCESO RETIRADO cuando el saldo sea negativo.
+- Filtrar retiros por periodo y socio.
+- Mostrar 10 retiros por pagina.
+- Modificar o eliminar retiros.
+- Ver el fondo acumulado y sus registros mensuales.
+- Ajustar manualmente el fondo sin superar la utilidad positiva.
+- Restaurar un fondo manual al calculo automatico.
+
+REGLAS CONSERVADAS
+
+- Los retiros de socios no son egresos operativos.
+- Sueldo mensual de Sol: Gs. 8.000.000.
+- Sueldo mensual de Rodrigo: Gs. 8.000.000.
+- Participacion en la utilidad repartible: Sol 65% y Rodrigo 35%.
+- Fondo de estabilidad: 40% de la utilidad positiva.
+- Formula: sueldo + utilidad correspondiente - retiros.
+- Un fondo MANUAL no es reemplazado al volver a guardar el cierre.
+
+DATOS
+
+La interfaz utiliza los mismos archivos actuales:
+
+- Datos/retiros_socios.txt
+- Datos/fondo_estabilidad.txt
+
+No es necesario volver a cargar ningun dato.

@@ -1,0 +1,24 @@
+PX-CORE - INTERFAZ GRÁFICA, FASE 2
+
+1. Cerrá la interfaz gráfica.
+2. Copiá interfaz.py dentro de tu carpeta PX-Core.
+3. Cuando Windows pregunte, elegí Reemplazar el archivo.
+4. No borres ni reemplaces la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+RUTA DE LA FUNCIÓN NUEVA
+
+Movimientos
+→ Cargar día
+→ Abrir Cargar día
+
+Ya podés registrar desde la interfaz:
+
+- Ingresos
+- Egresos
+- Transferencias internas
+- Depósitos internos
+- Cobros externos
+
+La interfaz usa los mismos datos que la consola. No hay que cargar de nuevo
+ningún registro anterior.

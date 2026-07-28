@@ -11,3 +11,15 @@ Dep�sito interno|22-07-2026|PC|Ueno|500000|No
 Dep�sito interno|23-07-2026|Rodrigo|Conmtinental|1000000|No
 Ingreso|26-07-2026|Externo|PC|20000|Si
 Egreso|26-07-2026|PC|Externo|10000|Si
+Ingreso|27-07-2026|Externo|PC|10000000|Si
+Egreso|27-07-2026|PC|Externo|220000|Si
+Ingreso|01-01-2026|Externo|PC|5020000|Si
+Egreso|01-01-2026|PC|Externo|50000|Si
+Egreso|01-01-2026|MVPC|Externo|700000|Si
+Transferencia interna|01-01-2026|P2|ADMINISTRACIÓN|3950000|No
+Ingreso|01-01-2026|Externo|P2|390000|Si
+Ingreso|01-01-2026|Externo|MVPC|340000|Si
+Egreso|01-01-2026|P2|Externo|50000|Si
+Ingreso|28-07-2026|Externo|PC|100000|Si
+Egreso|28-07-2026|PC|Externo|20000|Si
+Egreso|28-07-2026|PC|Externo|10000000|Si

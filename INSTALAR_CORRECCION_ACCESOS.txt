@@ -1,0 +1,21 @@
+BC GESTIÓN - CORRECCIÓN DE ACCESOS REPETIDOS
+
+1. Cerrá BC Gestión.
+2. Copiá interfaz.py dentro de tu carpeta PX-Core.
+3. Elegí reemplazar el archivo existente.
+4. No reemplaces interfaz_rrhh.py si ya instalaste la Fase 9.
+5. No toques la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+NUEVOS RECORRIDOS
+
+Recursos Humanos
+-> Abrir Recursos Humanos
+-> Funcionarios | Novedades | Liquidaciones | Salario mínimo
+
+Socios
+-> Abrir Socios
+-> Registrar retiro | Resumen mensual | Gestionar retiros
+   | Fondo de estabilidad
+
+Las pantallas intermedias ya no repiten las cuatro funciones.

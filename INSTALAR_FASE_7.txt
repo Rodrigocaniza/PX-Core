@@ -1,0 +1,52 @@
+PX-CORE - INTERFAZ GRÁFICA - FASE 7
+CIERRE MENSUAL
+
+INSTALACIÓN
+
+1. Cerrá la interfaz gráfica de PX-Core.
+2. Copiá el archivo interfaz.py de este paquete.
+3. Pegalo dentro de tu carpeta PX-Core.
+4. Cuando Windows pregunte, elegí Reemplazar el archivo.
+5. No reemplaces ni modifiques la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+RUTA NUEVA
+
+Movimientos
+→ Cierre mensual
+→ Abrir cierre mensual
+
+FUNCIONES INCLUIDAS
+
+- Selección del período con formato MM-AAAA.
+- Vista previa que no modifica datos.
+- Guardado confirmado del cierre y del fondo de estabilidad.
+- Ingresos, egresos, utilidad y margen porcentual.
+- Resultado antes de los sueldos de socios.
+- Sueldos gerenciales de Sol y Rodrigo.
+- Fondo de estabilidad del 40%.
+- Utilidad repartible después del fondo.
+- Resultado separado por unidad.
+- Transferencias recibidas y enviadas por unidad.
+- Ingresos y egresos adicionales.
+- Cuotas de préstamos incluidas como egresos.
+- Sueldos liquidados de funcionarios incluidos como egresos.
+- Inversiones visibles solamente como información.
+- Detalle de cuotas y sueldos incluidos.
+- Fondo acumulado de todos los cierres guardados.
+- Conservación de ajustes manuales hechos desde Socios.
+
+REGLA DE LAS CUOTAS
+
+Cada cuota se incluye como egreso en el mes de su fecha de pago.
+El monto original del préstamo no vuelve a descontarse en el cierre.
+
+IMPORTANTE
+
+La vista previa no guarda el fondo. Para registrar o actualizar el cierre,
+usá el botón Guardar cierre y fondo.
+
+Si guardás el mes actual antes de que termine, podés volver a guardarlo
+más adelante. El cierre automático se actualizará con los nuevos datos.
+Si el fondo fue ajustado manualmente desde Socios, se actualiza el valor
+calculado pero se conserva el monto manual aplicado.

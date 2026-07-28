@@ -1,0 +1,51 @@
+PX-CORE - INTERFAZ GRÁFICA - FASE 4
+====================================
+
+Esta actualización conecta:
+
+Movimientos
+→ Ingresos y egresos adicionales
+
+Permite:
+
+- Registrar ingresos y egresos adicionales.
+- Elegir conceptos frecuentes o escribir otro concepto.
+- Cargar la observación de tarjetas de crédito.
+- Filtrar los registros por rango de fechas y tipo.
+- Ver 10 registros por página.
+- Modificar o eliminar un registro.
+- Agregar, modificar o eliminar conceptos frecuentes.
+- Conservar sin cambios los conceptos de los registros históricos.
+
+INSTALACIÓN
+-----------
+
+1. Cerrá completamente la interfaz de PX-Core.
+2. Copiá el archivo interfaz.py de esta carpeta.
+3. Pegalo dentro de tu carpeta PX-Core.
+4. Cuando Windows pregunte, elegí "Reemplazar el archivo en el destino".
+5. No copies, reemplaces ni elimines la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+RUTA PARA PROBAR
+----------------
+
+Movimientos
+→ Ingresos y egresos adicionales
+→ Abrir adicionales
+
+PRUEBAS RECOMENDADAS
+--------------------
+
+1. Registrá un ingreso o egreso adicional pequeño.
+2. Entrá en "Ver, modificar o eliminar" y verificá que aparezca.
+3. Modificá el registro y volvé a filtrarlo.
+4. Abrí "Administrar conceptos" y agregá un concepto de prueba.
+5. Si ya no lo necesitás, eliminalo: los movimientos anteriores no cambian.
+
+IMPORTANTE
+----------
+
+La observación se utiliza para "Pago de tarjeta de crédito".
+Para separar varias tarjetas usá una barra / o una coma.
+No uses el símbolo | porque es el separador interno de los datos.

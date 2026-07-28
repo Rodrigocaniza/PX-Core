@@ -1,0 +1,30 @@
+PX-CORE - INTERFAZ GRAFICA FASE 3
+================================
+
+NUEVA FUNCION
+
+Movimientos
+→ Gestionar movimientos
+→ Abrir movimientos
+
+Permite ver, filtrar, modificar y eliminar movimientos desde la interfaz.
+
+INSTALACION
+
+1. Cerrar completamente la interfaz grafica.
+2. Copiar interfaz.py dentro de la carpeta principal PX-Core.
+3. Elegir Reemplazar archivo.
+4. No copiar, borrar ni reemplazar la carpeta Datos.
+5. Abrir iniciar_interfaz.bat.
+
+ARCHIVO QUE SE REEMPLAZA
+
+- interfaz.py
+
+NO SE MODIFICAN
+
+- Datos
+- Movimientos.py
+- main.py
+- Socios.py
+- Recursos Humanos

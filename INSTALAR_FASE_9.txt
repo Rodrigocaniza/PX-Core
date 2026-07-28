@@ -1,0 +1,46 @@
+BC GESTIÓN EMPRESARIAL - FASE 9
+RECURSOS HUMANOS Y PREPARACIÓN PARA PRUEBA DIARIA
+
+INSTALACIÓN
+
+1. Cerrá la interfaz gráfica.
+2. Abrí este ZIP.
+3. Copiá estos dos archivos dentro de la carpeta principal PX-Core:
+
+   - interfaz.py
+   - interfaz_rrhh.py
+
+4. Elegí reemplazar interfaz.py cuando Windows lo pregunte.
+5. No copies, borres ni reemplaces la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+CAMBIOS DE ESTA VERSIÓN
+
+- Aprendizaje queda guardado, pero ya no aparece en el menú.
+- La aplicación se presenta como BC Gestión Empresarial.
+- Recursos Humanos funciona desde la interfaz gráfica:
+  - Registrar y modificar funcionarios.
+  - Ver activos, inactivos y todos.
+  - Desactivar o reactivar conservando el historial.
+  - Registrar, modificar, filtrar y eliminar novedades.
+  - Calcular y guardar liquidaciones.
+  - Recalcular o eliminar liquidaciones.
+  - Generar recibos de sueldo.
+  - Ver y registrar reajustes del salario mínimo.
+- Las liquidaciones guardadas siguen entrando como egreso en el cierre mensual.
+- Al abrir la aplicación se crea un respaldo diario en:
+
+  Respaldos/BC_Gestion_AAAA-MM-DD.zip
+
+PRUEBA RECOMENDADA
+
+Usá primero un registro pequeño o identificable como prueba.
+Después verificá:
+
+1. Inicio.
+2. Movimientos.
+3. Cierre mensual en vista previa.
+4. Socios.
+5. Recursos Humanos.
+
+No cargues dos veces una operación si ya fue registrada correctamente.
