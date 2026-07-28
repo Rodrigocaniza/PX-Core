@@ -1,0 +1,34 @@
+BC GESTIÓN - INFORMES VISUALES
+================================
+
+INSTALACIÓN
+-----------
+
+1. Cerrá BC Gestión.
+2. Copiá únicamente Informes.py dentro de PX-Core.
+3. Elegí reemplazar el archivo existente.
+4. No reemplaces ni modifiques la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+MEJORAS EN EXCEL
+----------------
+
+- Primera hoja convertida en tablero ejecutivo.
+- Tarjetas para ingresos, egresos, utilidad, margen, fondo,
+  inversiones, salida de dinero y retenciones.
+- Gráfica de dona con las cinco categorías principales y Otros.
+- Hojas de ingresos y egresos con monto y porcentaje del total.
+- Tablas con filtros, filas alternadas y encabezados inmovilizados.
+- Detalle dividido en columnas claras y preparado para imprimir.
+- Control automático entre el total de egresos y su desglose.
+
+MEJORAS EN PDF
+--------------
+
+- Primera página con resumen ejecutivo y gráfica de pastel.
+- Segunda sección con comparación por unidad y categorías.
+- Detalle agrupado por fecha.
+- Cada bloque diario muestra tipo, unidad, categoría, concepto y monto.
+- Encabezados repetidos, páginas numeradas y textos largos ajustados.
+
+Esta actualización no modifica cálculos ni archivos de Datos.

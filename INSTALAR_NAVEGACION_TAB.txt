@@ -1,0 +1,21 @@
+BC GESTIÓN EMPRESARIAL - NAVEGACIÓN CON TABULADOR
+
+1. Cerrá BC Gestión.
+2. Copiá interfaz.py e interfaz_rrhh.py dentro de la carpeta PX-Core.
+3. Cuando Windows pregunte, elegí Reemplazar los archivos.
+4. No copies, reemplaces ni elimines la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+FUNCIONAMIENTO
+
+- Tab avanza al siguiente campo editable visible.
+- Shift + Tab vuelve al campo anterior.
+- Los botones, tablas y campos ocultos no interrumpen el recorrido.
+- Enter conserva su función de aceptar o guardar.
+- Esc conserva su función de cancelar o volver.
+
+ARCHIVOS INCLUIDOS
+
+- interfaz.py
+- interfaz_rrhh.py
+

@@ -1,1 +1,11 @@
-Z | X | 06-2026 | 15 | 3044000 | 1522000 | 136980 | 1385020 | Proporcional | 0 | 0 | 0 | 0 | 0 | 0
+4789616 | Alucard Zacchino | 06-2026 | 30 | 2899048 | 2899048 | 0 | 2899048 | Mes completo | 0 | 0 | 0 | 0 | 0 | 0 | 0
+5511069 | Anayeli Gonzalez | 06-2026 | 30 | 2899048 | 2899048 | 0 | 3345008 | Mes completo | 0 | 0 | 0 | 0 | 0 | 0 | 445960
+5449164 | Dahiana Araceli Jousson Ayala | 06-2026 | 30 | 2899048 | 2899048 | 260914 | 2222389 | Mes completo | 0 | 0 | 0 | 0 | 900000 | 0 | 484255
+4858391 | Leticia Ines Rojas Olivero | 06-2026 | 30 | 2899048 | 2899048 | 260914 | 3412862 | Mes completo | 0 | 0 | 0 | 0 | 0 | 70000 | 844728
+5215474 | Liz Paola Olivero Toledo | 06-2026 | 30 | 2899048 | 2899048 | 260914 | 2398674 | Mes completo | 0 | 0 | 0 | 0 | 800000 | 0 | 560540
+4224327 | Nidia Beatriz Silva | 06-2026 | 30 | 2899048 | 2899048 | 260914 | 2503729 | Mes completo | 0 | 0 | 0 | 0 | 850000 | 62500 | 778095
+1 | Rodrigo Fernando Sarria Keim | 06-2026 | 0 | 2300000 | 2300000 | 0 | 2300000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
+11 | Raul Cañiza Bogado | 06-2026 | 0 | 1200000 | 1200000 | 0 | 1200000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
+111 | Fiamma Mencia | 06-2026 | 0 | 200000 | 200000 | 0 | 200000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
+6133468 | Sol Natalia Blaires Florentin | 06-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Mes completo | 0 | 0 | 0 | 0 | 0 | 0 | 0
+5201642 | Rodrigo David Cañiza Villalba | 06-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Mes completo | 0 | 0 | 0 | 0 | 0 | 0 | 0

@@ -16,13 +16,13 @@ SOCIOS = [
     {
         "id": "SOL",
         "nombre": "Sol",
-        "sueldo": 8000000,
+        "cedula": "6133468",
         "porcentaje_utilidad": 65,
     },
     {
         "id": "RODRIGO",
         "nombre": "Rodrigo",
-        "sueldo": 8000000,
+        "cedula": "5201642",
         "porcentaje_utilidad": 35,
     },
 ]
@@ -195,14 +195,9 @@ def distribuir_utilidad(utilidad_distribuible):
 
 def calcular_resumen_periodo(mes, anio):
     fecha_desde, fecha_hasta = limites_periodo(mes, anio)
-    total_sueldos_socios = sum(
-        socio["sueldo"]
-        for socio in SOCIOS
-    )
     indicadores = Movimientos.calcular_indicadores_cierre(
         fecha_desde,
         fecha_hasta,
-        total_sueldos_socios
     )
     periodo = f"{mes:02d}-{anio}"
     registro_fondo = Movimientos.obtener_registro_fondo(
@@ -222,6 +217,10 @@ def calcular_resumen_periodo(mes, anio):
     utilidades_socios = distribuir_utilidad(
         utilidad_distribuible
     )
+    _, detalle_nomina = Movimientos.resumen_nomina_liquidada(
+        fecha_desde,
+        fecha_hasta,
+    )
 
     resumen_socios = []
 
@@ -232,12 +231,18 @@ def calcular_resumen_periodo(mes, anio):
             anio
         )
         utilidad = utilidades_socios[socio["id"]]
-        total_a_cobrar = socio["sueldo"] + utilidad
+        sueldo_liquidado = sum(
+            liquidacion["egreso_planilla"]
+            for liquidacion in detalle_nomina
+            if liquidacion["cedula"] == socio["cedula"]
+        )
+        total_a_cobrar = sueldo_liquidado + utilidad
         saldo = total_a_cobrar - retirado
 
         resumen_socios.append(
             {
                 **socio,
+                "sueldo_liquidado": sueldo_liquidado,
                 "utilidad": utilidad,
                 "total_a_cobrar": total_a_cobrar,
                 "retirado": retirado,
@@ -248,13 +253,12 @@ def calcular_resumen_periodo(mes, anio):
     return {
         "ingresos": indicadores["ingresos"],
         "egresos": indicadores["egresos"],
-        "resultado_antes_socios": (
-            indicadores["resultado_antes_socios"]
-        ),
-        "total_sueldos_socios": total_sueldos_socios,
+        "resultado_antes_socios": indicadores["utilidad_mes"],
+        "total_sueldos_socios": 0,
         "resultado_despues_sueldos": (
             indicadores["utilidad_mes"]
         ),
+        "utilidad_mes": indicadores["utilidad_mes"],
         "margen_porcentual": (
             indicadores["margen_porcentual"]
         ),
@@ -369,21 +373,9 @@ def ver_resumen_mensual():
 
     print()
     print(
-        "Resultado antes de sueldos de socios:",
+        "Utilidad del mes:",
         Movimientos.formatear_monto(
-            resumen["resultado_antes_socios"]
-        )
-    )
-    print(
-        "Sueldos de socios:",
-        Movimientos.formatear_monto(
-            resumen["total_sueldos_socios"]
-        )
-    )
-    print(
-        "Resultado después de sueldos:",
-        Movimientos.formatear_monto(
-            resumen["resultado_despues_sueldos"]
+            resumen["utilidad_mes"]
         )
     )
     print(
@@ -408,7 +400,7 @@ def ver_resumen_mensual():
     if resumen["resultado_despues_sueldos"] < 0:
         print(
             "No se distribuye utilidad porque el resultado "
-            "después de sueldos es negativo."
+            "del mes es negativo."
         )
 
     if resumen["fondo_modo"] == "MANUAL":
@@ -433,15 +425,17 @@ def ver_resumen_mensual():
         print(socio["nombre"].upper())
         print("------------------------------------")
         print(
-            "Sueldo:",
-            Movimientos.formatear_monto(socio["sueldo"])
+            "Sueldo liquidado en RR. HH.:",
+            Movimientos.formatear_monto(
+                socio["sueldo_liquidado"]
+            )
         )
         print(
             f"Utilidad ({socio['porcentaje_utilidad']}%):",
             Movimientos.formatear_monto(socio["utilidad"])
         )
         print(
-            "Total del mes:",
+            "Utilidad asignada:",
             Movimientos.formatear_monto(
                 socio["total_a_cobrar"]
             )

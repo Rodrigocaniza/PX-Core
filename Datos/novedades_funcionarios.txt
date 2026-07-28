@@ -1,2 +1,18 @@
-Z | X | Reposo | 20-06-2026 | 15-07-2026 | 0 | Sí | amigdfalitis
-Z | X | Adelanto | 01-07-2026 | 01-07-2026 | 120000 | No | adeltnmaot 1
+4858391 | Leticia Ines Rojas Olivero | Comisión | 30-06-2026 | 30-06-2026 | 663108 | No | Comisión individual
+4858391 | Leticia Ines Rojas Olivero | Comisión | 30-06-2026 | 30-06-2026 | 181620 | No | Horas extra
+5215474 | Liz Paola Olivero Toledo | Adelanto | 15-06-2026 | 15-06-2026 | 800000 | No | Adelanto
+5511069 | Anayeli Gonzalez | Comisión | 30-06-2026 | 30-06-2026 | 181620 | No | Horas extra
+5215474 | Liz Paola Olivero Toledo | Comisión | 30-06-2026 | 30-06-2026 | 500000 | No | Limpieza y desinfección
+5215474 | Liz Paola Olivero Toledo | Comisión | 30-06-2026 | 30-06-2026 | 60540 | No | Horas extra
+4224327 | Nidia Beatriz Silva | Comisión | 30-06-2026 | 30-06-2026 | 452423 | No | Comisión individual
+4224327 | Nidia Beatriz Silva | Comisión | 30-06-2026 | 30-06-2026 | 80720 | No | Horas extra
+4224327 | Nidia Beatriz Silva | Comisión | 30-06-2026 | 30-06-2026 | 144952 | No | Bonificación familiar
+5449164 | Dahiana Araceli Jousson Ayala | Comisión | 30-06-2026 | 30-06-2026 | 103535 | No | Comisión individual
+5449164 | Dahiana Araceli Jousson Ayala | Adelanto | 15-06-2026 | 15-06-2026 | 900000 | No | Adelantos
+5449164 | Dahiana Araceli Jousson Ayala | Comisión | 30-06-2026 | 30-06-2026 | 100000 | No | Comisión grupal
+5449164 | Dahiana Araceli Jousson Ayala | Comisión | 30-06-2026 | 30-06-2026 | 200000 | No | Composturas
+5449164 | Dahiana Araceli Jousson Ayala | Comisión | 30-06-2026 | 30-06-2026 | 80720 | No | Horas extra
+4858391 | Leticia Ines Rojas Olivero | Otro descuento | 30-06-2026 | 30-06-2026 | 70000 | No | Guardapolvo 1/2
+4224327 | Nidia Beatriz Silva | Adelanto | 15-06-2026 | 15-06-2026 | 850000 | No | Adelantos
+4224327 | Nidia Beatriz Silva | Otro descuento | 30-06-2026 | 30-06-2026 | 62500 | No | Guardapolvo 1/2
+4224327 | Nidia Beatriz Silva | Comisión | 30-06-2026 | 30-06-2026 | 100000 | No | Comisión grupal

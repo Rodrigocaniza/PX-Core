@@ -1,0 +1,62 @@
+BC GESTIÓN - TECLADO Y EXPORTACIÓN DE INFORMES
+================================================
+
+INSTALACIÓN
+-----------
+
+1. Cerrá BC Gestión.
+2. Copiá estos cinco archivos dentro de PX-Core:
+   - interfaz.py
+   - interfaz_rrhh.py
+   - Informes.py
+   - requirements.txt
+   - iniciar_interfaz.bat
+3. Elegí reemplazar los archivos existentes.
+4. No reemplaces ni modifiques la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+La primera apertura puede tardar un momento porque el sistema instalará
+automáticamente los componentes para crear Excel y PDF.
+
+NAVEGACIÓN CON TECLADO
+----------------------
+
+- Tab: avanza al siguiente control.
+- Al llegar al último control, Tab vuelve automáticamente al primero.
+- Shift + Tab sigue funcionando, pero ya no es necesario para volver.
+- Flechas arriba y abajo: recorren filas de tablas y opciones.
+- Flechas izquierda y derecha: desplazan tablas, cambian opciones o
+  cambian de pestaña cuando el foco está sobre el selector de pestañas.
+- Dentro de un campo de texto, las flechas siguen moviendo el cursor.
+- Enter: acepta, guarda o genera según la pantalla.
+- Esc: cancela o vuelve.
+
+EXPORTACIÓN DE INFORMES
+-----------------------
+
+1. Entrá en Informes.
+2. Elegí el período y la vista.
+3. Presioná Generar informe.
+4. Elegí:
+   - Descargar Excel.
+   - Descargar PDF.
+5. Seleccioná dónde guardar el archivo.
+
+Atajos dentro de Informes:
+
+- Ctrl + E: descargar Excel.
+- Ctrl + P: descargar PDF.
+
+El Excel contiene:
+
+- Resumen.
+- Egresos por categoría.
+- Ingresos por categoría.
+- Comparación por unidad.
+- Detalle verificable.
+- Control automático del total.
+
+El PDF contiene el resumen, la comparación, las categorías y el detalle
+completo en páginas consecutivas.
+
+Esta actualización no modifica cálculos ni archivos de Datos.

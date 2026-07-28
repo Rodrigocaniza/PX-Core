@@ -1,15 +1,15 @@
 @echo off
 cd /d "%~dp0"
 
-py -c "import customtkinter" >nul 2>&1
+py -c "import customtkinter, openpyxl, reportlab" >nul 2>&1
 
 if errorlevel 1 (
-    echo Instalando la interfaz grafica por primera vez...
+    echo Instalando o actualizando componentes de BC Gestion...
     py -m pip install -r requirements.txt
 
     if errorlevel 1 (
         echo.
-        echo No se pudo instalar CustomTkinter.
+        echo No se pudieron instalar los componentes necesarios.
         echo Revisa la conexion a internet e intenta nuevamente.
         pause
         exit /b 1

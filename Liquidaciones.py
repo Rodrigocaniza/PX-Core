@@ -47,6 +47,7 @@ def crear_linea_liquidacion(datos):
         str(datos.get("descuento_reposos", 0)),
         str(datos.get("adelantos", 0)),
         str(datos.get("otros_descuentos", 0)),
+        str(datos.get("comisiones", 0)),
     ]
 
     return " | ".join(campos)
@@ -58,7 +59,7 @@ def separar_liquidacion(linea):
         for parte in linea.split("|")
     ]
 
-    if len(partes) not in [9, 15]:
+    if len(partes) not in [9, 15, 16]:
         return None
 
     try:
@@ -74,7 +75,7 @@ def separar_liquidacion(linea):
             "tipo_liquidacion": partes[8],
         }
 
-        if len(partes) == 15:
+        if len(partes) in [15, 16]:
             liquidacion.update(
                 {
                     "dias_ausencia": int(partes[9]),
@@ -83,6 +84,11 @@ def separar_liquidacion(linea):
                     "descuento_reposos": int(partes[12]),
                     "adelantos": int(partes[13]),
                     "otros_descuentos": int(partes[14]),
+                    "comisiones": (
+                        int(partes[15])
+                        if len(partes) == 16
+                        else 0
+                    ),
                 }
             )
         else:
@@ -94,6 +100,7 @@ def separar_liquidacion(linea):
                     "descuento_reposos": 0,
                     "adelantos": 0,
                     "otros_descuentos": 0,
+                    "comisiones": 0,
                 }
             )
 
@@ -141,6 +148,8 @@ def obtener_novedades_del_periodo(cedula, fecha_periodo):
     reposos = set()
     adelantos = 0
     otros_descuentos = 0
+    comisiones = 0
+    detalle_comisiones = []
     novedades_encontradas = []
 
     for linea in leer_datos(RUTA_NOVEDADES):
@@ -197,6 +206,16 @@ def obtener_novedades_del_periodo(cedula, fecha_periodo):
         elif novedad["tipo"] == "Otro descuento":
             otros_descuentos += novedad["monto"]
 
+        elif novedad["tipo"] == "Comisión":
+            comisiones += novedad["monto"]
+            detalle_comisiones.append(
+                {
+                    "concepto": novedad["motivo"],
+                    "monto": novedad["monto"],
+                    "fecha": novedad["fecha_inicio"],
+                }
+            )
+
     # Una misma fecha no puede descontarse como reposo y ausencia.
     ausencias -= reposos
 
@@ -205,6 +224,8 @@ def obtener_novedades_del_periodo(cedula, fecha_periodo):
         "dias_reposo": len(reposos),
         "adelantos": adelantos,
         "otros_descuentos": otros_descuentos,
+        "comisiones": comisiones,
+        "detalle_comisiones": detalle_comisiones,
         "novedades": novedades_encontradas,
     }
 
@@ -443,28 +464,61 @@ def generar_liquidacion():
     if resultado is None:
         return
 
-    sueldo_bruto = resultado["sueldo_bruto"]
-    dias_liquidados = resultado["dias_liquidados"]
-    es_proporcional = resultado["es_proporcional"]
+    liquidacion_manual = (
+        funcionario["modalidad"] in ("Diario", "Semanal")
+    )
+
+    if liquidacion_manual:
+        while True:
+            valor = input(
+                "Monto base total efectivamente liquidado: "
+            ).strip().replace(".", "").replace(",", "")
+
+            try:
+                monto_base_manual = int(valor)
+            except ValueError:
+                print("Ingresá un monto válido usando números.")
+                continue
+
+            if monto_base_manual <= 0:
+                print("El monto debe ser mayor que cero.")
+                continue
+
+            break
+
+        sueldo_mensual = monto_base_manual
+        sueldo_bruto = monto_base_manual
+        dias_liquidados = 0
+        es_proporcional = False
+    else:
+        sueldo_bruto = resultado["sueldo_bruto"]
+        dias_liquidados = resultado["dias_liquidados"]
+        es_proporcional = resultado["es_proporcional"]
 
     novedades = obtener_novedades_del_periodo(
         funcionario["cedula"],
         fecha_periodo
     )
 
-    dias_reposo = min(
-        novedades["dias_reposo"],
-        dias_liquidados
-    )
-    dias_disponibles = dias_liquidados - dias_reposo
-    dias_ausencia = min(
-        novedades["dias_ausencia"],
-        dias_disponibles
-    )
+    if liquidacion_manual:
+        dias_reposo = novedades["dias_reposo"]
+        dias_ausencia = novedades["dias_ausencia"]
+        descuento_reposos = 0
+        descuento_ausencias = 0
+    else:
+        dias_reposo = min(
+            novedades["dias_reposo"],
+            dias_liquidados
+        )
+        dias_disponibles = dias_liquidados - dias_reposo
+        dias_ausencia = min(
+            novedades["dias_ausencia"],
+            dias_disponibles
+        )
 
-    valor_dia = sueldo_mensual // 30
-    descuento_reposos = valor_dia * dias_reposo
-    descuento_ausencias = valor_dia * dias_ausencia
+        valor_dia = sueldo_mensual // 30
+        descuento_reposos = valor_dia * dias_reposo
+        descuento_ausencias = valor_dia * dias_ausencia
 
     sueldo_bruto_empresa = max(
         0,
@@ -480,10 +534,12 @@ def generar_liquidacion():
 
     adelantos = novedades["adelantos"]
     otros_descuentos = novedades["otros_descuentos"]
+    comisiones = novedades["comisiones"]
 
     neto_cobrar = max(
         0,
         sueldo_bruto_empresa
+        + comisiones
         - descuento_ips
         - adelantos
         - otros_descuentos
@@ -519,7 +575,12 @@ def generar_liquidacion():
         funcionario["ips"]
     )
 
-    if es_proporcional:
+    if liquidacion_manual:
+        print(
+            "Liquidación:",
+            "Monto base manual del período"
+        )
+    elif es_proporcional:
         print(
             "Días liquidados:",
             f"{dias_liquidados} de 30"
@@ -540,7 +601,11 @@ def generar_liquidacion():
 
     print()
     print(
-        "Salario mensual de referencia:",
+        (
+            "Monto base manual:"
+            if liquidacion_manual
+            else "Salario mensual de referencia:"
+        ),
         formatear_monto(sueldo_mensual),
         "Gs."
     )
@@ -576,6 +641,15 @@ def generar_liquidacion():
         formatear_monto(sueldo_bruto_empresa),
         "Gs."
     )
+
+    if comisiones > 0:
+        print(
+            "Comisiones:",
+            "+",
+            formatear_monto(comisiones),
+            "Gs."
+        )
+
     print(
         f"Descuento IPS ({PORCENTAJE_IPS}%):",
         formatear_monto(descuento_ips),
@@ -626,7 +700,9 @@ def generar_liquidacion():
 
         break
 
-    if es_proporcional:
+    if liquidacion_manual:
+        tipo_liquidacion = "Monto manual"
+    elif es_proporcional:
         tipo_liquidacion = "Proporcional"
     else:
         tipo_liquidacion = "Mes completo"
@@ -647,6 +723,7 @@ def generar_liquidacion():
         "descuento_reposos": descuento_reposos,
         "adelantos": adelantos,
         "otros_descuentos": otros_descuentos,
+        "comisiones": comisiones,
     }
 
     liquidaciones = leer_datos(
@@ -888,6 +965,15 @@ def ver_liquidaciones_guardadas():
             ),
             "Gs."
         )
+
+        if liquidacion["comisiones"] > 0:
+            print(
+                "Comisiones:",
+                formatear_monto(
+                    liquidacion["comisiones"]
+                ),
+                "Gs."
+            )
 
         if liquidacion["dias_ausencia"] > 0:
             print(
@@ -1141,6 +1227,15 @@ def modificar_liquidacion_guardada():
         liquidacion["sueldo_bruto"]
     )
 
+    fecha_nuevo_periodo = datetime.strptime(
+        nuevo_periodo,
+        "%m-%Y"
+    )
+    nuevas_comisiones = obtener_novedades_del_periodo(
+        liquidacion["cedula"],
+        fecha_nuevo_periodo
+    )["comisiones"]
+
     nuevo_descuento_ips = pedir_numero_entero(
         "Descuento IPS",
         liquidacion["descuento_ips"]
@@ -1161,6 +1256,7 @@ def modificar_liquidacion_guardada():
 
     nuevo_neto = (
         nuevo_sueldo_bruto
+        + nuevas_comisiones
         - nuevo_descuento_ips
         - liquidacion["descuento_ausencias"]
         - liquidacion["descuento_reposos"]
@@ -1192,6 +1288,7 @@ def modificar_liquidacion_guardada():
         "otros_descuentos": (
             liquidacion["otros_descuentos"]
         ),
+        "comisiones": nuevas_comisiones,
     }
 
     print()
@@ -1217,6 +1314,13 @@ def modificar_liquidacion_guardada():
         "Descuento IPS:",
         formatear_monto(
             nuevos_datos["descuento_ips"]
+        ),
+        "Gs."
+    )
+    print(
+        "Comisiones:",
+        formatear_monto(
+            nuevos_datos["comisiones"]
         ),
         "Gs."
     )
@@ -1608,8 +1712,12 @@ def crear_contenido_recibo(liquidacion, fecha_recibo):
         "HABERES",
         "------------------------------------------------------------",
         (
-            "Sueldo: "
-            f"{formatear_monto(liquidacion['sueldo_bruto'])} Gs."
+            (
+                "Monto base liquidado: "
+                if liquidacion["tipo_liquidacion"] == "Monto manual"
+                else "Sueldo: "
+            )
+            + f"{formatear_monto(liquidacion['sueldo_bruto'])} Gs."
         ),
     ]
 
@@ -1639,14 +1747,14 @@ def crear_contenido_recibo(liquidacion, fecha_recibo):
         ]
     )
 
-    if liquidacion["dias_ausencia"] > 0:
+    if liquidacion["descuento_ausencias"] > 0:
         lineas.append(
             "Ausencias "
             f"({liquidacion['dias_ausencia']} día/s): "
             f"{formatear_monto(liquidacion['descuento_ausencias'])} Gs."
         )
 
-    if liquidacion["dias_reposo"] > 0:
+    if liquidacion["descuento_reposos"] > 0:
         lineas.append(
             "Reposos "
             f"({liquidacion['dias_reposo']} día/s): "
@@ -1687,7 +1795,7 @@ def crear_contenido_recibo(liquidacion, fecha_recibo):
         ]
     )
 
-    if liquidacion["dias_reposo"] > 0:
+    if liquidacion["descuento_reposos"] > 0:
         lineas.extend(
             [
                 "",

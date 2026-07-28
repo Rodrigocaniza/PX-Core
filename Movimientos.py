@@ -18,7 +18,6 @@ RUTA_LIQUIDACIONES = (
     / "liquidaciones.txt"
 )
 PORCENTAJE_FONDO_ESTABILIDAD = 40
-TOTAL_SUELDOS_SOCIOS = 16000000
 UNIDADES = ["PC", "MVPC", "P2", "MVP2", "ADMINISTRACIÓN"]
 CONCEPTOS_INGRESO_ADICIONAL = [
     "Alquiler del consultorio",
@@ -2417,8 +2416,22 @@ def resumen_cuotas(fecha_desde, fecha_hasta):
     return total, detalle
 
 
-def resumen_sueldos_liquidados(fecha_desde, fecha_hasta):
-    total = 0
+def resumen_nomina_liquidada(fecha_desde, fecha_hasta):
+    resumen = {
+        "sueldo_bruto": 0,
+        "descuento_ausencias": 0,
+        "descuento_reposos": 0,
+        "sueldo_bruto_ajustado": 0,
+        "comisiones": 0,
+        "remuneracion_bruta": 0,
+        "descuento_ips": 0,
+        "adelantos": 0,
+        "otros_descuentos": 0,
+        "neto_cobrar": 0,
+        "salida_caja": 0,
+        "egreso_planilla": 0,
+        "diferencia_con_salida_caja": 0,
+    }
     detalle = []
 
     for linea in leer_datos(RUTA_LIQUIDACIONES):
@@ -2427,7 +2440,7 @@ def resumen_sueldos_liquidados(fecha_desde, fecha_hasta):
             for parte in linea.split("|")
         ]
 
-        if len(partes) not in [9, 15]:
+        if len(partes) not in [9, 15, 16]:
             continue
 
         try:
@@ -2435,7 +2448,26 @@ def resumen_sueldos_liquidados(fecha_desde, fecha_hasta):
                 partes[2],
                 "%m-%Y"
             )
+            sueldo_bruto = int(partes[5])
+            descuento_ips = int(partes[6])
             neto_cobrar = int(partes[7])
+
+            if len(partes) in [15, 16]:
+                descuento_ausencias = int(partes[11])
+                descuento_reposos = int(partes[12])
+                adelantos = int(partes[13])
+                otros_descuentos = int(partes[14])
+                comisiones = (
+                    int(partes[15])
+                    if len(partes) == 16
+                    else 0
+                )
+            else:
+                descuento_ausencias = 0
+                descuento_reposos = 0
+                adelantos = 0
+                otros_descuentos = 0
+                comisiones = 0
         except ValueError:
             continue
 
@@ -2448,16 +2480,59 @@ def resumen_sueldos_liquidados(fecha_desde, fecha_hasta):
         ):
             continue
 
-        total += neto_cobrar
+        sueldo_bruto_ajustado = max(
+            0,
+            sueldo_bruto
+            - descuento_ausencias
+            - descuento_reposos,
+        )
+        remuneracion_bruta = (
+            sueldo_bruto_ajustado + comisiones
+        )
+        salida_caja = neto_cobrar + adelantos
+        egreso_planilla = remuneracion_bruta
+        diferencia_con_salida_caja = (
+            egreso_planilla - salida_caja
+        )
+        valores = {
+            "sueldo_bruto": sueldo_bruto,
+            "descuento_ausencias": descuento_ausencias,
+            "descuento_reposos": descuento_reposos,
+            "sueldo_bruto_ajustado": sueldo_bruto_ajustado,
+            "comisiones": comisiones,
+            "remuneracion_bruta": remuneracion_bruta,
+            "descuento_ips": descuento_ips,
+            "adelantos": adelantos,
+            "otros_descuentos": otros_descuentos,
+            "neto_cobrar": neto_cobrar,
+            "salida_caja": salida_caja,
+            "egreso_planilla": egreso_planilla,
+            "diferencia_con_salida_caja": (
+                diferencia_con_salida_caja
+            ),
+        }
+
+        for concepto, monto_concepto in valores.items():
+            resumen[concepto] += monto_concepto
+
         detalle.append(
             {
+                "cedula": partes[0],
                 "nombre": partes[1],
                 "periodo": partes[2],
-                "neto_cobrar": neto_cobrar,
+                **valores,
             }
         )
 
-    return total, detalle
+    return resumen, detalle
+
+
+def resumen_sueldos_liquidados(fecha_desde, fecha_hasta):
+    resumen, detalle = resumen_nomina_liquidada(
+        fecha_desde,
+        fecha_hasta,
+    )
+    return resumen["egreso_planilla"], detalle
 
 
 def calcular_totales_generales(fecha_desde, fecha_hasta):
@@ -2487,9 +2562,18 @@ def calcular_totales_generales(fecha_desde, fecha_hasta):
         fecha_desde,
         fecha_hasta
     )
-    total_sueldos, _ = resumen_sueldos_liquidados(
+    nomina, _ = resumen_nomina_liquidada(
         fecha_desde,
         fecha_hasta
+    )
+    total_sueldos = nomina["egreso_planilla"]
+    egresos_sin_nomina = (
+        total_egresos
+        + egresos_adicionales
+        + total_cuotas
+    )
+    salida_caja_total = (
+        egresos_sin_nomina + nomina["salida_caja"]
     )
 
     total_ingresos += ingresos_adicionales
@@ -2507,22 +2591,25 @@ def calcular_totales_generales(fecha_desde, fecha_hasta):
         "egresos_adicionales": egresos_adicionales,
         "cuotas": total_cuotas,
         "sueldos_funcionarios": total_sueldos,
+        "nomina": nomina,
+        "egresos_sin_nomina": egresos_sin_nomina,
+        "salida_caja_total": salida_caja_total,
+        "diferencia_egreso_caja": (
+            total_egresos - salida_caja_total
+        ),
     }
 
 
 def calcular_indicadores_cierre(
     fecha_desde,
     fecha_hasta,
-    total_sueldos_socios=TOTAL_SUELDOS_SOCIOS
+    total_sueldos_socios=0
 ):
     totales = calcular_totales_generales(
         fecha_desde,
         fecha_hasta
     )
-    resultado_antes_socios = totales["resultado"]
-    utilidad_mes = (
-        resultado_antes_socios - total_sueldos_socios
-    )
+    utilidad_mes = totales["resultado"]
     utilidad_positiva = max(utilidad_mes, 0)
     margen_porcentual = 0
 
@@ -2539,8 +2626,11 @@ def calcular_indicadores_cierre(
 
     return {
         **totales,
-        "resultado_antes_socios": resultado_antes_socios,
-        "total_sueldos_socios": total_sueldos_socios,
+        # Se conservan estas claves con valor neutro para que versiones
+        # anteriores de la interfaz sigan abriendo. Los sueldos de Sol y
+        # Rodrigo se registran como liquidaciones normales en RR. HH.
+        "resultado_antes_socios": utilidad_mes,
+        "total_sueldos_socios": 0,
         "utilidad_mes": utilidad_mes,
         "margen_porcentual": margen_porcentual,
         "fondo_calculado": fondo_calculado,
@@ -2691,12 +2781,13 @@ def ver_cierre_mensual():
         fecha_desde,
         fecha_hasta
     )
-    total_sueldos, detalle_sueldos = (
-        resumen_sueldos_liquidados(
+    nomina, detalle_sueldos = (
+        resumen_nomina_liquidada(
             fecha_desde,
             fecha_hasta
         )
     )
+    total_sueldos = nomina["egreso_planilla"]
 
     print()
     print("====================================")
@@ -2791,15 +2882,47 @@ def ver_cierre_mensual():
             print(
                 f"{sueldo['periodo']} | "
                 f"{sueldo['nombre']} | "
-                f"{formatear_monto(sueldo['neto_cobrar'])}"
+                f"Neto {formatear_monto(sueldo['neto_cobrar'])} | "
+                f"Adelantos {formatear_monto(sueldo['adelantos'])} | "
+                f"Salida {formatear_monto(sueldo['salida_caja'])}"
             )
 
     print(
-        "TOTAL SUELDOS:",
-        formatear_monto(total_sueldos)
+        "REMUNERACIÓN BRUTA:",
+        formatear_monto(nomina["remuneracion_bruta"])
     )
     print(
-        "Se incluye el neto a cobrar de cada liquidación."
+        "DESCUENTO IPS:",
+        formatear_monto(nomina["descuento_ips"])
+    )
+    print(
+        "OTROS DESCUENTOS:",
+        formatear_monto(nomina["otros_descuentos"])
+    )
+    print(
+        "ADELANTOS YA PAGADOS:",
+        formatear_monto(nomina["adelantos"])
+    )
+    print(
+        "NETO PAGADO AL LIQUIDAR:",
+        formatear_monto(nomina["neto_cobrar"])
+    )
+    print(
+        "TOTAL NÓMINA INCLUIDA EN EGRESOS:",
+        formatear_monto(nomina["egreso_planilla"])
+    )
+    print(
+        "SALIDA REAL DE CAJA POR NÓMINA:",
+        formatear_monto(nomina["salida_caja"])
+    )
+    print(
+        "El total de egresos usa la remuneración bruta para "
+        "coincidir con la planilla. No vuelvas a cargar sueldos "
+        "o adelantos como movimientos."
+    )
+    print(
+        "El pago de IPS se cuenta por separado cuando está "
+        "registrado en movimientos adicionales."
     )
 
     print()
@@ -2844,18 +2967,6 @@ def ver_cierre_mensual():
     print("====================================")
     print("TOTAL INGRESOS:", formatear_monto(total_ingresos))
     print("TOTAL EGRESOS:", formatear_monto(total_egresos))
-    print(
-        "RESULTADO ANTES DE SUELDOS DE SOCIOS:",
-        formatear_monto(
-            indicadores["resultado_antes_socios"]
-        )
-    )
-    print(
-        "SUELDOS DE SOCIOS:",
-        formatear_monto(
-            indicadores["total_sueldos_socios"]
-        )
-    )
     print(
         "UTILIDAD DEL MES:",
         formatear_monto(indicadores["utilidad_mes"])

@@ -1,1 +1,3 @@
-1|Armazones|Ueno|01-01-2026|10000000|15000000|10
+1|Compra de armazones|Ueno Bank|01-06-2026|30000000|36825133|18
+2|Compra de armazones|Eko (Banco Familiar)|01-10-2025|10000000|13271958|18
+3|Comrpa de armazones|Ueno Bank|01-07-2025|10000000|12724461|24

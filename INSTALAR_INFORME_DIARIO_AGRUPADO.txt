@@ -1,0 +1,34 @@
+BC GESTIÓN - INFORME DIARIO AGRUPADO
+====================================
+
+INSTALACIÓN
+-----------
+
+1. Cerrá BC Gestión.
+2. Copiá únicamente Informes.py dentro de PX-Core.
+3. Elegí reemplazar el archivo existente.
+4. No reemplaces ni modifiques la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+CAMBIOS
+-------
+
+- El detalle del informe se agrupa primero por fecha.
+- Dentro de cada fecha aparece una sola fila por unidad o categoría.
+- PC, MVPC, P2, MVP2 y Administración muestran juntos:
+  lo que entró, lo que salió y el resultado.
+- Adicionales, Préstamos, Nómina y las demás categorías usan el
+  mismo criterio.
+- Cada fecha termina con un total general del día.
+- La pantalla de Informes usa el nuevo resumen diario.
+- El PDF mantiene cada día completo en una sola página.
+- El Excel agrega la hoja "Detalle diario".
+- El Excel conserva la hoja "Movimientos" con el registro individual
+  para comprobaciones y filtros.
+
+CONTROL
+-------
+
+El resumen diario se concilia automáticamente contra los ingresos y
+egresos generales antes de mostrarse o exportarse. Esta actualización
+no modifica cálculos ni archivos de Datos.

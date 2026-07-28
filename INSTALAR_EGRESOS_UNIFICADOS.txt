@@ -1,0 +1,54 @@
+BC GESTIÓN - EGRESOS UNIFICADOS
+================================
+
+Esta actualización:
+
+- Elimina el descuento automático separado de Gs. 16.000.000.
+- Sol y Rodrigo se liquidan como funcionarios en Recursos Humanos.
+- La tarjeta Egresos incluye todos los egresos y la nómina bruta.
+- Muestra por separado la salida real de dinero y los descuentos retenidos.
+- El resumen de Socios toma el sueldo directamente de la liquidación de RR. HH.
+- No modifica ni reemplaza la carpeta Datos.
+
+INSTALACIÓN
+-----------
+
+1. Cerrá BC Gestión.
+2. Copiá estos tres archivos dentro de PX-Core:
+   - interfaz.py
+   - Movimientos.py
+   - Socios.py
+3. Elegí reemplazar los archivos existentes.
+4. No reemplaces ni modifiques la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+PARA COMPLETAR JUNIO DE 2026
+----------------------------
+
+Sol y Rodrigo ya están registrados como funcionarios. Generá una liquidación
+para cada uno:
+
+1. Recursos Humanos > Liquidaciones.
+2. Seleccioná Sol Natalia Blaires Florentin.
+3. Período: 06-2026.
+4. Guardá la liquidación de Gs. 8.000.000.
+5. Repetí con Rodrigo David Cañiza Villalba por Gs. 8.000.000.
+
+Después de esas dos liquidaciones, el cierre de junio debe mostrar:
+
+- Ingresos: Gs. 164.661.100
+- Egresos: Gs. 132.151.767
+- Utilidad: Gs. 32.509.333
+- Margen: 19,74%
+- Fondo 40%: Gs. 13.003.733
+- Utilidad repartible: Gs. 19.505.600
+- Salida real de dinero: Gs. 130.975.611
+- Descuentos retenidos: Gs. 1.176.156
+
+IMPORTANTE
+----------
+
+- No cargues los Gs. 8.000.000 de Sol o Rodrigo como movimiento adicional.
+- No cargues los adelantos nuevamente como egresos.
+- En Socios, los retiros personales se descuentan del sueldo liquidado más la
+  utilidad asignada; no vuelven a afectar los egresos del negocio.

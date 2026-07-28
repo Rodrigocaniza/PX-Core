@@ -1,0 +1,48 @@
+BC GESTIÓN - LIQUIDACIONES MANUALES
+===================================
+
+Esta corrección se instala después de:
+BC_Gestion_Comisiones_en_Novedades.zip
+
+INSTALACIÓN
+-----------
+1. Cerrá BC Gestión.
+2. Copiá interfaz_rrhh.py y Liquidaciones.py dentro de la carpeta PX-Core.
+3. Elegí Reemplazar los dos archivos.
+4. No reemplaces ni modifiques la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+USO
+---
+Para funcionarios con modalidad Mensual:
+- La liquidación continúa calculándose automáticamente.
+- Dejá vacío el campo "Monto base manual".
+
+Para funcionarios con modalidad Diario o Semanal:
+- Seleccioná el funcionario y el período.
+- Escribí en "Monto base manual" el total base efectivamente liquidado.
+- El sistema no multiplica días ni semanas y no prorratea ese monto.
+- Después suma todas las comisiones del período.
+- Después resta adelantos y otros descuentos de Novedades.
+
+FÓRMULA
+-------
+Monto base manual + comisiones - adelantos - otros descuentos = neto a cobrar
+
+Las ausencias y reposos permanecen registrados como novedades, pero no vuelven
+a descontarse automáticamente en una liquidación manual porque el monto base
+ya representa lo efectivamente liquidado.
+
+SOL Y RODRIGO (SOCIOS)
+----------------------
+Los sueldos gerenciales de Gs. 8.000.000 se descuentan automáticamente en el
+cierre mensual. No se genera una liquidación de Recursos Humanos para ellos.
+Los pagos efectivamente retirados se registran en Socios > Registrar retiro.
+
+COMPATIBILIDAD
+--------------
+- No modifica Datos.
+- Conserva las liquidaciones anteriores.
+- Recalcular una liquidación manual conserva su monto base si el campo queda
+  vacío.
+- Si se escribe un nuevo monto antes de recalcular, reemplaza el monto base.

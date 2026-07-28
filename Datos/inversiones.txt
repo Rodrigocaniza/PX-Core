@@ -1,2 +1,5 @@
 01-01-2026|CDA|100000000
-27-07-2026|CDA 2|250000000
+01-06-2026|Ovidio, contador clausura de RUC Sra. Nini|950000
+01-06-2026|SET, IRE General Sra. Nini|250000
+01-06-2026|SET, otras contravenciones Sra. Nini|1900000
+01-06-2026|Porta, cuota por catálogo web 4/6|3208000

@@ -1,0 +1,42 @@
+BC GESTIÓN - CORRECCIÓN DE COMISIONES
+======================================
+
+1. Cerrá BC Gestión.
+2. Descomprimí este archivo ZIP.
+3. Copiá estos tres archivos dentro de la carpeta PX-Core:
+   - interfaz_rrhh.py
+   - Liquidaciones.py
+   - Movimientos.py
+4. Elegí Reemplazar los archivos.
+5. No modifiques ni reemplaces la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+USO
+===
+
+Recursos Humanos > Abrir Recursos Humanos > Liquidaciones
+
+- Al generar una liquidación, escribí el importe en Comisiones.
+- Si no corresponde comisión, dejá 0.
+- Para corregir una comisión ya guardada:
+  1. Seleccioná la liquidación.
+  2. Presioná Modificar comisión.
+  3. Escribí el nuevo importe y confirmá.
+
+CÁLCULO
+=======
+
+Sueldo pagado por la empresa
++ Comisiones
+- IPS
+- Adelantos
+- Otros descuentos
+= Neto a cobrar
+
+El IPS sigue calculándose con la regla ya configurada y no se aplica
+automáticamente sobre las comisiones.
+
+Las liquidaciones anteriores continúan siendo compatibles y se interpretan
+con comisión igual a 0.
+
+El cierre mensual incorpora el neto final de la liquidación una sola vez.

@@ -1,0 +1,52 @@
+BC GESTIÓN - COMISIONES DENTRO DE NOVEDADES
+================================================
+
+ARCHIVOS INCLUIDOS
+- interfaz_rrhh.py
+- Novedades.py
+- Liquidaciones.py
+- Movimientos.py
+
+INSTALACIÓN
+1. Cerrá BC Gestión.
+2. Descomprimí este archivo ZIP.
+3. Copiá los cuatro archivos incluidos dentro de la carpeta PX-Core.
+4. Elegí Reemplazar archivos cuando Windows lo consulte.
+5. No modifiques ni reemplaces la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+USO
+1. Entrá en Recursos Humanos.
+2. Abrí la pestaña Novedades.
+3. Elegí el funcionario.
+4. En Tipo seleccioná Comisión.
+5. Indicá una fecha del mes correspondiente.
+6. Escribí el monto.
+7. En Concepto / motivo / observación escribí el concepto, por ejemplo:
+   - Comisión grupal
+   - Comisión individual
+   - Composturas
+8. Presioná Guardar.
+9. Repetí el registro para todas las comisiones necesarias.
+10. Entrá en Liquidaciones y generá la liquidación del mismo período.
+
+FUNCIONAMIENTO
+- Se puede registrar una sola comisión o varias.
+- Cada comisión conserva su concepto y monto dentro de Novedades.
+- La liquidación suma automáticamente todas las comisiones del funcionario
+  correspondientes al mes.
+- Las comisiones aumentan el neto a cobrar.
+- El IPS no se calcula sobre las comisiones.
+- Adelantos y otros descuentos continúan restándose.
+- El neto final entra una sola vez como egreso del cierre mensual.
+- Para cambiar una comisión, modificala en Novedades y luego seleccioná la
+  liquidación correspondiente y presioná Recalcular.
+- Las liquidaciones anteriores continúan siendo compatibles.
+
+CÁLCULO
+Sueldo pagado por la empresa
++ total de comisiones registradas en Novedades
+- IPS
+- adelantos
+- otros descuentos
+= neto a cobrar

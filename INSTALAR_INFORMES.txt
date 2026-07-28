@@ -1,0 +1,37 @@
+BC GESTIÓN - MÓDULO INFORMES
+================================
+
+1. Cerrá BC Gestión.
+2. Copiá interfaz.py e Informes.py dentro de PX-Core.
+3. Elegí reemplazar interfaz.py.
+4. Informes.py es un archivo nuevo: debe quedar al lado de interfaz.py.
+5. No modifiques ni reemplaces la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+En el menú lateral aparecerá la nueva opción Informes.
+
+CONTENIDO DE ESTA VERSIÓN
+-------------------------
+
+- Filtro por mes y año.
+- Vista de Empresa completa o de una unidad específica.
+- Ingresos, egresos, utilidad, margen, fondo e inversiones.
+- Comparación entre PC, P2 y las demás unidades.
+- Gráfica de egresos por categoría.
+- Control automático entre el total y su desglose.
+- Detalle verificable de cada registro incluido.
+
+La vista Empresa completa usa la misma función que Cierre mensual.
+Por eso ambos módulos deben mostrar exactamente los mismos totales.
+
+En una vista de unidad solo se muestran los movimientos asignados
+directamente a esa unidad. Nómina, adicionales y cuotas se consideran
+generales porque todavía no tienen una unidad guardada.
+
+ATAJOS
+------
+
+- Tab: siguiente campo.
+- Shift + Tab: campo anterior.
+- Enter: generar informe.
+- Esc: volver al Inicio.

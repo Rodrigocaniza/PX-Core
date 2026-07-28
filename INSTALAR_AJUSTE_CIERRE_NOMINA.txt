@@ -1,0 +1,28 @@
+BC GESTIÓN - AJUSTE DE CIERRE Y NÓMINA
+=======================================
+
+1. Cerrá BC Gestión.
+2. Copiá interfaz.py y Movimientos.py dentro de PX-Core.
+3. Elegí reemplazar ambos archivos.
+4. No reemplaces ni modifiques la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+CAMBIO REALIZADO
+----------------
+
+- Los adelantos cargados en Novedades ahora se suman automáticamente
+  a la salida de caja del cierre.
+- La nómina incluida en Egresos es:
+
+  neto pagado + adelantos ya entregados
+
+- El cierre muestra por separado sueldo bruto ajustado, comisiones,
+  IPS, otros descuentos, adelantos, neto y salida de caja.
+- El IPS no se duplica: sigue entrando cuando su pago está cargado
+  en movimientos adicionales.
+
+IMPORTANTE
+----------
+
+Los adelantos deben cargarse solamente en Novedades. No los cargues
+también como egreso o movimiento adicional.

@@ -1,3 +1,11 @@
-Sol Natalia Blaires Florentin | 6133468 | 01-01-2018 | Administración | Socio/Propietario | Mensual | Manual | 8000000 | No | Sin horario fijo | Activo | Mi amoreeeeee
-Leticia Rojas | 1 | 01-01-2020 | PC | ASD | Mensual | Salario mínimo | 3044000 | Sí | 08:00 a 18:00 | Activo | Sin observaciones
-X | Z | 16-07-2026 | Administración | ASD | Mensual | Salario mínimo | 3044000 | Sí | No especificado | Activo | Sin observaciones
+Sol Natalia Blaires Florentin | 6133468 | 01-01-2018 | Administración | Socio/Propietario | Mensual | Manual | 8000000 | No | Sin horario fijo | Activo | Sin observaciones
+Leticia Ines Rojas Olivero | 4858391 | 02-01-2025 | PC | Encargada del local - Atención al cliente y ventas | Mensual | Salario mínimo | 2798309 | Sí | 08:00 a 18:00 | Activo | Sin observaciones
+Dahiana Araceli Jousson Ayala | 5449164 | 02-01-2025 | P2 | Auxiliar de óptica y consultorio | Mensual | Salario mínimo | 2798309 | Sí | 08:00 a 18:00 | Activo | Sin observaciones
+Liz Paola Olivero Toledo | 5215474 | 02-04-2025 | MVPC | Secretaria - Recepcionista | Mensual | Salario mínimo | 2798309 | Sí | 08:00 a 18:00 | Activo | Tambien se encarga de la limpieza de las salas de espera y consultorio
+Nidia Beatriz Silva | 4224327 | 01-01-2016 | P2 | Encargada del local, atención al cliente y ventas | Mensual | Salario mínimo | 1824055 | Sí | 08:00 a 18:00 | Activo | Sin observaciones
+Rodrigo David Cañiza Villalba | 5201642 | 04-05-2018 | Administración | Socio/Propietario | Mensual | Manual | 8000000 | Sí | 08:00 a 18:00 | Activo | Sin observaciones
+Anayeli Gonzalez | 5511069 | 01-04-2026 | PC | Auxiliar de óptica | Mensual | Salario mínimo | 2899048 | No | 08:00 a 18:00 | Activo | Sin observaciones
+Alucard Zacchino | 4789616 | 01-05-2026 | PC | Catálogo , recepción de mercaderías y sistema | Mensual | Salario mínimo | 2899048 | No | 08:00 a 18:00 | Activo | Sin observaciones
+Rodrigo Fernando Sarria Keim | 1 | 01-11-2024 | PC | Encargado de taller y delivery | Semanal | Manual | 600000 | No | 08:00 a 17:00 | Activo | Sin observaciones
+Raul Cañiza Bogado | 11 | 01-01-2025 | PC | Encomiendas y llevar a la Dra. a Pilar | Diario | Manual | 100000 | No | No tiene | Activo | Sin observaciones
+Fiamma Mencia | 111 | 01-05-2026 | MVP2 | Secretaria, recepción y limpieza | Diario | Manual | 100000 | No | Hasta que termine la consulta | Activo | Sin observaciones

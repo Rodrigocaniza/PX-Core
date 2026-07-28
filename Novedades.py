@@ -17,6 +17,7 @@ RUTA_NOVEDADES = (
 TIPOS_NOVEDAD = [
     "Reposo",
     "Ausencia",
+    "Comisión",
     "Adelanto",
     "Otro descuento",
 ]
@@ -290,7 +291,7 @@ def registrar_novedad():
     elif tipo == "Ausencia":
         fecha_fin = fecha_inicio
 
-    elif tipo in ["Adelanto", "Otro descuento"]:
+    elif tipo in ["Comisión", "Adelanto", "Otro descuento"]:
         monto = pedir_monto(
             "Monto en guaraníes o 0 para cancelar: "
         )
@@ -298,11 +299,20 @@ def registrar_novedad():
         if monto is None:
             return
 
-    motivo = input(
-        "Motivo u observación: "
-    ).strip()
+    etiqueta_detalle = (
+        "Concepto de la comisión"
+        if tipo == "Comisión"
+        else "Motivo u observación"
+    )
+    motivo = input(f"{etiqueta_detalle}: ").strip()
 
     if motivo == "":
+        if tipo == "Comisión":
+            print(
+                "El concepto es obligatorio para registrar "
+                "una comisión."
+            )
+            return
         motivo = "Sin observación"
 
     datos_novedad = {
@@ -326,7 +336,7 @@ def registrar_novedad():
     print("Fecha de inicio:", datos_novedad["fecha_inicio"])
     print("Fecha de finalización:", datos_novedad["fecha_fin"])
 
-    if tipo in ["Adelanto", "Otro descuento"]:
+    if tipo in ["Comisión", "Adelanto", "Otro descuento"]:
         print(
             "Monto:",
             formatear_monto(datos_novedad["monto"]),
@@ -653,6 +663,7 @@ def modificar_novedad():
             print("Opción inválida.")
 
     elif novedad["tipo"] in [
+        "Comisión",
         "Adelanto",
         "Otro descuento"
     ]:
@@ -667,6 +678,16 @@ def modificar_novedad():
 
     if nuevo_motivo == "":
         nuevo_motivo = novedad["motivo"]
+
+    if (
+        novedad["tipo"] == "Comisión"
+        and nuevo_motivo in ["", "Sin observación"]
+    ):
+        print(
+            "El concepto es obligatorio para registrar "
+            "una comisión."
+        )
+        return
 
     nuevos_datos = {
         "cedula": novedad["cedula"],

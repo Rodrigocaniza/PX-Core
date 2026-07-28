@@ -29,6 +29,7 @@ except ModuleNotFoundError:
 
 import Movimientos
 import Socios
+import Informes
 from datos import guardar_datos, leer_datos
 from interfaz_rrhh import abrir_recursos_humanos
 
@@ -346,6 +347,7 @@ def filtrar_movimientos_graficos(
     fecha_desde_texto="",
     fecha_hasta_texto="",
     tipo="Todos",
+    unidad="Todas",
 ):
     """Devuelve movimientos válidos con su posición real en el archivo."""
     fecha_desde_texto = fecha_desde_texto.strip()
@@ -375,6 +377,7 @@ def filtrar_movimientos_graficos(
 
     registros = []
     tipo_normalizado = Movimientos.normalizar_texto(tipo)
+    unidad_normalizada = Movimientos.normalizar_texto(unidad)
 
     for posicion, linea in enumerate(lineas):
         datos = Movimientos.separar_movimiento(linea)
@@ -400,6 +403,13 @@ def filtrar_movimientos_graficos(
         ):
             continue
 
+        if unidad != "Todas":
+            origen = Movimientos.normalizar_texto(datos["origen"])
+            destino = Movimientos.normalizar_texto(datos["destino"])
+
+            if unidad_normalizada not in (origen, destino):
+                continue
+
         registros.append((posicion, datos, fecha))
 
     registros.sort(
@@ -410,6 +420,72 @@ def filtrar_movimientos_graficos(
         (posicion, datos)
         for posicion, datos, _ in registros
     ]
+
+
+def unidades_relacionadas_movimiento(datos):
+    """Indica en qué grupo de sucursal debe mostrarse un movimiento."""
+    unidades_normalizadas = {
+        Movimientos.normalizar_texto(unidad): unidad
+        for unidad in Movimientos.UNIDADES
+    }
+    tipo = datos["tipo"]
+    origen = Movimientos.normalizar_texto(datos["origen"])
+    destino = Movimientos.normalizar_texto(datos["destino"])
+
+    if tipo in ("Ingreso", "Cobro externo"):
+        candidatas = [destino]
+    elif tipo in ("Egreso", "Deposito interno"):
+        candidatas = [origen]
+    elif tipo == "Transferencia interna":
+        candidatas = [origen, destino]
+    else:
+        candidatas = [origen, destino]
+
+    resultado = []
+
+    for candidata in candidatas:
+        unidad = unidades_normalizadas.get(candidata)
+
+        if unidad is not None and unidad not in resultado:
+            resultado.append(unidad)
+
+    return resultado or ["Otros"]
+
+
+def resumir_movimientos_de_unidad(unidad, registros):
+    """Resume el efecto diario de los registros sobre una unidad."""
+    unidad_normalizada = Movimientos.normalizar_texto(unidad)
+    resumen = {
+        "ingresos": 0,
+        "egresos": 0,
+        "transferencias_recibidas": 0,
+        "transferencias_enviadas": 0,
+        "depositos": 0,
+    }
+
+    for _posicion, datos in registros:
+        tipo = datos["tipo"]
+        origen = Movimientos.normalizar_texto(datos["origen"])
+        destino = Movimientos.normalizar_texto(datos["destino"])
+        monto = datos["monto"]
+
+        if (
+            tipo in ("Ingreso", "Cobro externo")
+            and destino == unidad_normalizada
+        ):
+            resumen["ingresos"] += monto
+        elif tipo == "Egreso" and origen == unidad_normalizada:
+            resumen["egresos"] += monto
+        elif tipo == "Transferencia interna":
+            if destino == unidad_normalizada:
+                resumen["transferencias_recibidas"] += monto
+            if origen == unidad_normalizada:
+                resumen["transferencias_enviadas"] += monto
+        elif tipo == "Deposito interno" and origen == unidad_normalizada:
+            resumen["depositos"] += monto
+
+    resumen["resultado"] = resumen["ingresos"] - resumen["egresos"]
+    return resumen
 
 
 def construir_adicional_grafico(
@@ -787,12 +863,13 @@ def calcular_cierre_grafico(periodo, guardar_fondo=False):
         fecha_desde,
         fecha_hasta,
     )
-    total_sueldos, detalle_sueldos = (
-        Movimientos.resumen_sueldos_liquidados(
+    nomina, detalle_sueldos = (
+        Movimientos.resumen_nomina_liquidada(
             fecha_desde,
             fecha_hasta,
         )
     )
+    total_sueldos = nomina["egreso_planilla"]
 
     registro_fondo = Movimientos.obtener_registro_fondo(
         periodo_normalizado
@@ -835,6 +912,7 @@ def calcular_cierre_grafico(periodo, guardar_fondo=False):
         "total_cuotas": total_cuotas,
         "detalle_cuotas": detalle_cuotas,
         "total_sueldos": total_sueldos,
+        "nomina": nomina,
         "detalle_sueldos": detalle_sueldos,
         "fondo": fondo,
         "fondo_registrado": fondo_registrado,
@@ -994,6 +1072,7 @@ class AplicacionPXCore(ctk.CTk):
         self.geometry("1280x760")
         self.minsize(1040, 680)
         self.configure(fg_color=COLOR_FONDO)
+        self.habilitar_navegacion_tab(self)
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -1002,7 +1081,12 @@ class AplicacionPXCore(ctk.CTk):
         self.campos_movimiento = {}
         self.movimientos_sesion = []
         self.tipo_movimiento_actual = "Ingreso"
+        self.fecha_carga_actual = datetime.now().strftime("%d-%m-%Y")
+        self.unidad_carga_actual = (
+            Movimientos.UNIDADES[0] if Movimientos.UNIDADES else ""
+        )
         self.movimientos_filtrados = []
+        self.mapa_items_movimientos = {}
         self.pagina_movimientos = 0
         self.posicion_movimiento_seleccionado = None
         self.campos_edicion_movimiento = {}
@@ -1036,6 +1120,235 @@ class AplicacionPXCore(ctk.CTk):
         self.contenedor.grid_columnconfigure(0, weight=1)
 
         self.mostrar_inicio()
+
+    def habilitar_navegacion_tab(self, ventana):
+        """Activa una navegación de teclado continua y contextual."""
+        ventana.bind(
+            "<Tab>",
+            lambda evento: self.mover_foco_formulario(evento, 1),
+            add="+",
+        )
+        ventana.bind(
+            "<Shift-Tab>",
+            lambda evento: self.mover_foco_formulario(evento, -1),
+            add="+",
+        )
+        ventana.bind(
+            "<ISO_Left_Tab>",
+            lambda evento: self.mover_foco_formulario(evento, -1),
+            add="+",
+        )
+        for secuencia, direccion in [
+            ("<Up>", "arriba"),
+            ("<Down>", "abajo"),
+            ("<Left>", "izquierda"),
+            ("<Right>", "derecha"),
+        ]:
+            ventana.bind(
+                secuencia,
+                lambda evento, sentido=direccion: (
+                    self.manejar_flecha(evento, sentido)
+                ),
+                add="+",
+            )
+
+    def controles_editables_visibles(self, contenedor):
+        """Devuelve controles útiles visibles en su orden de creación."""
+        controles = []
+        tipos_navegables = (
+            ctk.CTkEntry,
+            ctk.CTkComboBox,
+            ctk.CTkOptionMenu,
+            ctk.CTkTabview,
+            ttk.Treeview,
+        )
+
+        def recorrer(elemento):
+            for hijo in elemento.winfo_children():
+                if isinstance(hijo, tipos_navegables):
+                    try:
+                        estado = str(hijo.cget("state")).lower()
+                    except (AttributeError, ValueError):
+                        estado = "normal"
+
+                    if estado != "disabled" and hijo.winfo_viewable():
+                        controles.append(hijo)
+
+                recorrer(hijo)
+
+        recorrer(contenedor)
+        return controles
+
+    @staticmethod
+    def control_con_foco_actual(widget, controles, limite):
+        """Relaciona el control interno de CustomTkinter con su campo."""
+        actual = widget
+
+        while actual is not None:
+            if actual in controles:
+                return actual
+
+            if actual == limite:
+                break
+
+            actual = getattr(actual, "master", None)
+
+        return None
+
+    @staticmethod
+    def enfocar_control(control):
+        """Coloca el cursor en la parte editable real del control."""
+        entrada_interna = getattr(control, "_entry", None)
+
+        if entrada_interna is not None:
+            entrada_interna.focus_set()
+        else:
+            control.focus_set()
+
+    def mover_foco_formulario(self, evento, direccion):
+        """Recorre los controles y vuelve al inicio al llegar al final."""
+        ventana_activa = evento.widget.winfo_toplevel()
+        contenedor = (
+            self.contenedor
+            if str(ventana_activa) == str(self)
+            else ventana_activa
+        )
+        controles = self.controles_editables_visibles(contenedor)
+
+        if not controles:
+            return None
+
+        actual = self.control_con_foco_actual(
+            evento.widget,
+            controles,
+            contenedor,
+        )
+
+        if actual is None:
+            destino = controles[0] if direccion > 0 else controles[-1]
+        else:
+            indice = controles.index(actual)
+            nuevo_indice = (indice + direccion) % len(controles)
+            destino = controles[nuevo_indice]
+
+        self.enfocar_control(destino)
+        return "break"
+
+    @staticmethod
+    def filas_visibles_treeview(tabla, padre=""):
+        """Obtiene las filas visibles de una tabla, incluidas las agrupadas."""
+        filas = []
+        for item in tabla.get_children(padre):
+            filas.append(item)
+            if tabla.item(item, "open"):
+                filas.extend(
+                    AplicacionPXCore.filas_visibles_treeview(tabla, item)
+                )
+        return filas
+
+    @staticmethod
+    def mover_seleccion_treeview(tabla, paso):
+        """Mueve la selección una fila y hace ciclo en los extremos."""
+        filas = AplicacionPXCore.filas_visibles_treeview(tabla)
+        if not filas:
+            return
+
+        seleccion = tabla.selection()
+        actual = seleccion[0] if seleccion else None
+        if actual not in filas:
+            destino = filas[0] if paso > 0 else filas[-1]
+        else:
+            destino = filas[(filas.index(actual) + paso) % len(filas)]
+
+        tabla.selection_set(destino)
+        tabla.focus(destino)
+        tabla.see(destino)
+        tabla.event_generate("<<TreeviewSelect>>")
+
+    @staticmethod
+    def cambiar_opcion(control, paso):
+        """Cambia una opción de ComboBox u OptionMenu con las flechas."""
+        try:
+            valores = list(control.cget("values"))
+        except (AttributeError, TypeError, ValueError):
+            return False
+
+        if not valores:
+            return False
+
+        actual = control.get()
+        try:
+            indice = valores.index(actual)
+        except ValueError:
+            indice = -1 if paso > 0 else 0
+
+        nuevo = valores[(indice + paso) % len(valores)]
+        control.set(nuevo)
+
+        comando = getattr(control, "_command", None)
+        if callable(comando):
+            comando(nuevo)
+        return True
+
+    @staticmethod
+    def cambiar_pestana(control, paso):
+        """Cambia la pestaña activa con izquierda o derecha."""
+        nombres = list(getattr(control, "_name_list", []))
+        if not nombres:
+            return False
+
+        actual = control.get()
+        try:
+            indice = nombres.index(actual)
+        except ValueError:
+            indice = 0
+
+        control.set(nombres[(indice + paso) % len(nombres)])
+        return True
+
+    def manejar_flecha(self, evento, direccion):
+        """Aplica las flechas según el control que tiene el foco."""
+        ventana_activa = evento.widget.winfo_toplevel()
+        contenedor = (
+            self.contenedor
+            if str(ventana_activa) == str(self)
+            else ventana_activa
+        )
+        controles = self.controles_editables_visibles(contenedor)
+        actual = self.control_con_foco_actual(
+            evento.widget,
+            controles,
+            contenedor,
+        )
+
+        if actual is None or isinstance(actual, ctk.CTkEntry):
+            return None
+
+        if isinstance(actual, ttk.Treeview):
+            if direccion in ["arriba", "abajo"]:
+                # Treeview ya mueve una fila con su navegación nativa.
+                return None
+            if direccion == "izquierda":
+                actual.xview_scroll(-1, "units")
+            else:
+                actual.xview_scroll(1, "units")
+            return "break"
+
+        if isinstance(actual, (ctk.CTkComboBox, ctk.CTkOptionMenu)):
+            paso = -1 if direccion in ["arriba", "izquierda"] else 1
+            if self.cambiar_opcion(actual, paso):
+                return "break"
+            return None
+
+        if isinstance(actual, ctk.CTkTabview):
+            if direccion not in ["izquierda", "derecha"]:
+                return None
+            paso = -1 if direccion == "izquierda" else 1
+            if self.cambiar_pestana(actual, paso):
+                self.after_idle(actual.focus_set)
+                return "break"
+
+        return None
 
     def construir_barra_lateral(self):
         barra = ctk.CTkFrame(
@@ -1100,6 +1413,7 @@ class AplicacionPXCore(ctk.CTk):
                 lambda: self.mostrar_seccion("Recursos Humanos"),
             ),
             ("Socios", lambda: self.mostrar_seccion("Socios")),
+            ("Informes", lambda: Informes.mostrar_informes(self)),
         ]
 
         for fila, (texto, comando) in enumerate(opciones, start=1):
@@ -1218,6 +1532,13 @@ class AplicacionPXCore(ctk.CTk):
         ctk.set_appearance_mode(equivalencias[tema])
 
     def limpiar_contenedor(self):
+        self.unbind("<Return>")
+        self.unbind("<Escape>")
+        self.unbind("<Control-e>")
+        self.unbind("<Control-E>")
+        self.unbind("<Control-p>")
+        self.unbind("<Control-P>")
+
         for elemento in self.contenedor.winfo_children():
             elemento.destroy()
 
@@ -1344,7 +1665,7 @@ class AplicacionPXCore(ctk.CTk):
                 "Utilidad",
                 valores["utilidad"],
                 COLOR_PRIMARIO,
-                "Después de sueldos de socios",
+                "Ingresos menos todos los egresos",
             ),
             (
                 "Margen",
@@ -1854,6 +2175,8 @@ class AplicacionPXCore(ctk.CTk):
         self.marcar_seleccion("Movimientos")
         self.movimientos_sesion = []
         self.tipo_movimiento_actual = "Ingreso"
+        self.bind("<Return>", self.atajo_guardar_movimiento)
+        self.bind("<Escape>", self.atajo_volver_a_movimientos)
 
         pagina = ctk.CTkScrollableFrame(
             self.contenedor,
@@ -1893,6 +2216,7 @@ class AplicacionPXCore(ctk.CTk):
         )
         bloque_fecha.pack(fill="x", padx=34, pady=(0, 16))
         bloque_fecha.grid_columnconfigure(1, weight=1)
+        bloque_fecha.grid_columnconfigure(3, weight=1)
 
         ctk.CTkLabel(
             bloque_fecha,
@@ -1919,15 +2243,76 @@ class AplicacionPXCore(ctk.CTk):
         )
         self.entrada_fecha_carga.insert(
             0,
-            datetime.now().strftime("%d-%m-%Y"),
+            self.fecha_carga_actual,
         )
         self.entrada_fecha_carga.grid(
             row=0,
             column=1,
             sticky="ew",
-            padx=(0, 20),
-            pady=20,
+            padx=(0, 18),
+            pady=(18, 10),
         )
+        self.entrada_fecha_carga.bind(
+            "<KeyRelease>",
+            self.actualizar_indicador_carga,
+        )
+
+        ctk.CTkLabel(
+            bloque_fecha,
+            text="Unidad activa",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color=COLOR_TEXTO,
+            anchor="w",
+        ).grid(
+            row=0,
+            column=2,
+            sticky="w",
+            padx=(6, 14),
+            pady=(18, 10),
+        )
+
+        self.combo_unidad_carga = ctk.CTkComboBox(
+            bloque_fecha,
+            values=Movimientos.UNIDADES,
+            command=self.seleccionar_unidad_carga,
+            height=40,
+            corner_radius=9,
+            border_color=COLOR_BORDE,
+            fg_color=COLOR_PANEL_SECUNDARIO,
+            button_color=COLOR_PRIMARIO,
+            button_hover_color=COLOR_PRIMARIO_HOVER,
+            dropdown_fg_color=COLOR_PANEL,
+            dropdown_text_color=COLOR_TEXTO,
+            text_color=COLOR_TEXTO,
+            state="readonly",
+        )
+        self.combo_unidad_carga.set(self.unidad_carga_actual)
+        self.combo_unidad_carga.grid(
+            row=0,
+            column=3,
+            sticky="ew",
+            padx=(0, 20),
+            pady=(18, 10),
+        )
+
+        self.etiqueta_unidad_fecha_activa = ctk.CTkLabel(
+            bloque_fecha,
+            text="",
+            height=36,
+            corner_radius=9,
+            fg_color=COLOR_PRIMARIO,
+            text_color="#FFFFFF",
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
+        self.etiqueta_unidad_fecha_activa.grid(
+            row=1,
+            column=0,
+            columnspan=4,
+            sticky="ew",
+            padx=20,
+            pady=(0, 18),
+        )
+        self.actualizar_indicador_carga()
 
         bloque_tipos = ctk.CTkFrame(
             pagina,
@@ -2095,6 +2480,62 @@ class AplicacionPXCore(ctk.CTk):
 
         self.seleccionar_tipo_movimiento_grafico("Ingreso")
 
+    def actualizar_indicador_carga(self, _evento=None):
+        fecha = self.entrada_fecha_carga.get().strip()
+        fecha_visible = fecha or "sin fecha"
+        self.etiqueta_unidad_fecha_activa.configure(
+            text=(
+                f"CARGANDO: {self.unidad_carga_actual} "
+                f"— {fecha_visible}"
+            )
+        )
+
+    def seleccionar_unidad_carga(self, unidad):
+        if unidad not in Movimientos.UNIDADES:
+            return
+
+        self.unidad_carga_actual = unidad
+        self.actualizar_indicador_carga()
+
+        control_unidad = self.campos_movimiento.get("unidad")
+        if control_unidad is not None:
+            control_unidad.set(unidad)
+
+        control_origen = self.campos_movimiento.get("origen")
+        if control_origen is not None:
+            control_origen.set(unidad)
+            self.actualizar_campo_persona_deposito(unidad)
+
+        if self.tipo_movimiento_actual == "Transferencia interna":
+            destino = self.campos_movimiento.get("destino")
+            if destino is not None and destino.get() == unidad:
+                alternativa = next(
+                    (
+                        item
+                        for item in Movimientos.UNIDADES
+                        if item != unidad
+                    ),
+                    unidad,
+                )
+                destino.set(alternativa)
+
+    def seleccionar_unidad_desde_formulario(self, unidad):
+        if unidad in Movimientos.UNIDADES:
+            self.combo_unidad_carga.set(unidad)
+            self.seleccionar_unidad_carga(unidad)
+
+    def seleccionar_origen_deposito(self, origen):
+        self.actualizar_campo_persona_deposito(origen)
+        self.seleccionar_unidad_desde_formulario(origen)
+
+    def atajo_guardar_movimiento(self, _evento=None):
+        self.guardar_movimiento_grafico()
+        return "break"
+
+    def atajo_volver_a_movimientos(self, _evento=None):
+        self.mostrar_seccion("Movimientos")
+        return "break"
+
     def crear_etiqueta_campo(self, texto, fila, columna):
         ctk.CTkLabel(
             self.formulario_movimiento,
@@ -2239,22 +2680,26 @@ class AplicacionPXCore(ctk.CTk):
 
         if tipo in ["Ingreso", "Egreso"]:
             self.crear_etiqueta_campo("Unidad", 2, 0)
-            self.crear_combo_campo(
+            unidad = self.crear_combo_campo(
                 "unidad",
                 Movimientos.UNIDADES,
                 3,
                 0,
+                self.seleccionar_unidad_desde_formulario,
             )
+            unidad.set(self.unidad_carga_actual)
 
         elif tipo == "Transferencia interna":
             self.crear_etiqueta_campo("Unidad de origen", 2, 0)
             self.crear_etiqueta_campo("Unidad de destino", 2, 1)
-            self.crear_combo_campo(
+            origen = self.crear_combo_campo(
                 "origen",
                 Movimientos.UNIDADES,
                 3,
                 0,
+                self.seleccionar_unidad_desde_formulario,
             )
+            origen.set(self.unidad_carga_actual)
             destino = self.crear_combo_campo(
                 "destino",
                 Movimientos.UNIDADES,
@@ -2262,19 +2707,27 @@ class AplicacionPXCore(ctk.CTk):
                 1,
             )
 
-            if len(Movimientos.UNIDADES) > 1:
-                destino.set(Movimientos.UNIDADES[1])
+            alternativa = next(
+                (
+                    unidad
+                    for unidad in Movimientos.UNIDADES
+                    if unidad != self.unidad_carga_actual
+                ),
+                self.unidad_carga_actual,
+            )
+            destino.set(alternativa)
 
         elif tipo == "Depósito interno":
             self.crear_etiqueta_campo("Origen del depósito", 2, 0)
             self.crear_etiqueta_campo("Banco de destino", 2, 1)
-            self.crear_combo_campo(
+            origen = self.crear_combo_campo(
                 "origen",
                 Movimientos.UNIDADES + ["Otra persona"],
                 3,
                 0,
-                self.actualizar_campo_persona_deposito,
+                self.seleccionar_origen_deposito,
             )
+            origen.set(self.unidad_carga_actual)
             self.crear_entrada_campo(
                 "banco",
                 3,
@@ -2317,12 +2770,14 @@ class AplicacionPXCore(ctk.CTk):
                 0,
                 "Ej.: Ueno, Itaú, Continental",
             )
-            self.crear_combo_campo(
+            unidad = self.crear_combo_campo(
                 "unidad",
                 Movimientos.UNIDADES,
                 3,
                 1,
+                self.seleccionar_unidad_desde_formulario,
             )
+            unidad.set(self.unidad_carga_actual)
 
         fila_monto = 6 if tipo == "Depósito interno" else 4
         self.crear_etiqueta_campo(
@@ -2406,6 +2861,16 @@ class AplicacionPXCore(ctk.CTk):
             return
 
         self.movimientos_sesion.append(datos)
+        self.fecha_carga_actual = datos["fecha"]
+        unidad_usada = (
+            datos["destino"]
+            if datos["tipo"] in ("Ingreso", "Cobro externo")
+            else datos["origen"]
+        )
+        if unidad_usada in Movimientos.UNIDADES:
+            self.unidad_carga_actual = unidad_usada
+            self.combo_unidad_carga.set(unidad_usada)
+        self.actualizar_indicador_carga()
         self.etiqueta_estado_carga.configure(
             text="Movimiento registrado correctamente.",
             text_color=COLOR_VERDE,
@@ -2425,11 +2890,12 @@ class AplicacionPXCore(ctk.CTk):
 
     def actualizar_resumen_carga(self):
         lineas = []
+        cantidad = len(self.movimientos_sesion)
 
-        for numero, datos in enumerate(
-            self.movimientos_sesion,
-            start=1,
+        for desplazamiento, datos in enumerate(
+            reversed(self.movimientos_sesion)
         ):
+            numero = cantidad - desplazamiento
             lineas.append(
                 f"{numero}. {datos['fecha']} | {datos['tipo']} | "
                 f"{datos['origen']} → {datos['destino']} | "
@@ -2460,6 +2926,8 @@ class AplicacionPXCore(ctk.CTk):
         self.marcar_seleccion("Movimientos")
         self.pagina_movimientos = 0
         self.posicion_movimiento_seleccionado = None
+        self.bind("<Return>", self.atajo_aplicar_filtros_movimientos)
+        self.bind("<Escape>", self.atajo_volver_a_movimientos)
 
         pagina = ctk.CTkFrame(
             self.contenedor,
@@ -2503,10 +2971,10 @@ class AplicacionPXCore(ctk.CTk):
             pady=(0, 14),
         )
 
-        for columna in range(5):
+        for columna in range(6):
             filtros.grid_columnconfigure(
                 columna,
-                weight=1 if columna < 3 else 0,
+                weight=1 if columna < 4 else 0,
             )
 
         fecha_desde, fecha_hasta = periodo_actual()
@@ -2589,6 +3057,43 @@ class AplicacionPXCore(ctk.CTk):
             pady=(0, 14),
         )
 
+        ctk.CTkLabel(
+            filtros,
+            text="Sucursal",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            text_color=COLOR_TEXTO_SUAVE,
+            anchor="w",
+        ).grid(
+            row=0,
+            column=3,
+            sticky="ew",
+            padx=8,
+            pady=(14, 4),
+        )
+
+        self.filtro_unidad_movimiento = ctk.CTkComboBox(
+            filtros,
+            values=["Todas"] + Movimientos.UNIDADES,
+            height=38,
+            corner_radius=9,
+            border_color=COLOR_BORDE,
+            fg_color=COLOR_PANEL_SECUNDARIO,
+            button_color=COLOR_PRIMARIO,
+            button_hover_color=COLOR_PRIMARIO_HOVER,
+            dropdown_fg_color=COLOR_PANEL,
+            dropdown_text_color=COLOR_TEXTO,
+            text_color=COLOR_TEXTO,
+            state="readonly",
+        )
+        self.filtro_unidad_movimiento.set("Todas")
+        self.filtro_unidad_movimiento.grid(
+            row=1,
+            column=3,
+            sticky="ew",
+            padx=8,
+            pady=(0, 14),
+        )
+
         ctk.CTkButton(
             filtros,
             text="Aplicar filtros",
@@ -2601,7 +3106,7 @@ class AplicacionPXCore(ctk.CTk):
             font=ctk.CTkFont(size=12, weight="bold"),
         ).grid(
             row=1,
-            column=3,
+            column=4,
             padx=(10, 6),
             pady=(0, 14),
         )
@@ -2619,7 +3124,7 @@ class AplicacionPXCore(ctk.CTk):
             font=ctk.CTkFont(size=12, weight="bold"),
         ).grid(
             row=1,
-            column=4,
+            column=5,
             padx=(6, 18),
             pady=(0, 14),
         )
@@ -2711,22 +3216,33 @@ class AplicacionPXCore(ctk.CTk):
             foreground=[("selected", "#FFFFFF")],
         )
 
-        columnas = ("fecha", "tipo", "origen", "destino", "monto")
+        columnas = ("tipo", "origen", "destino", "monto")
         self.tabla_movimientos = ttk.Treeview(
             zona_tree,
             columns=columnas,
-            show="headings",
+            show="tree headings",
             selectmode="browse",
             style="PX.Treeview",
         )
 
         configuracion_columnas = {
-            "fecha": ("Fecha", 105, "center"),
-            "tipo": ("Tipo", 180, "w"),
-            "origen": ("Origen", 145, "w"),
-            "destino": ("Destino", 145, "w"),
-            "monto": ("Monto", 150, "e"),
+            "tipo": ("Tipo", 145, "w"),
+            "origen": ("Origen", 105, "w"),
+            "destino": ("Destino", 105, "w"),
+            "monto": ("Monto", 130, "e"),
         }
+
+        self.tabla_movimientos.heading(
+            "#0",
+            text="Fecha y sucursal · resumen del día",
+        )
+        self.tabla_movimientos.column(
+            "#0",
+            width=450,
+            minwidth=310,
+            anchor="w",
+            stretch=True,
+        )
 
         for columna, (titulo, ancho, ancla) in (
             configuracion_columnas.items()
@@ -2760,7 +3276,7 @@ class AplicacionPXCore(ctk.CTk):
         )
         self.tabla_movimientos.bind(
             "<Double-1>",
-            lambda _evento: self.abrir_edicion_movimiento(),
+            self.manejar_doble_clic_movimiento,
         )
 
         pie_tabla = ctk.CTkFrame(
@@ -2885,6 +3401,7 @@ class AplicacionPXCore(ctk.CTk):
                 self.filtro_fecha_desde.get(),
                 self.filtro_fecha_hasta.get(),
                 self.filtro_tipo_movimiento.get(),
+                self.filtro_unidad_movimiento.get(),
             )
         except ValueError as error:
             self.etiqueta_estado_movimientos.configure(
@@ -2910,16 +3427,28 @@ class AplicacionPXCore(ctk.CTk):
         self.filtro_fecha_desde.delete(0, "end")
         self.filtro_fecha_hasta.delete(0, "end")
         self.filtro_tipo_movimiento.set("Todos")
+        self.filtro_unidad_movimiento.set("Todas")
         self.aplicar_filtros_movimientos()
+
+    def atajo_aplicar_filtros_movimientos(self, _evento=None):
+        self.aplicar_filtros_movimientos()
+        return "break"
 
     def actualizar_tabla_movimientos(self):
         for item in self.tabla_movimientos.get_children():
             self.tabla_movimientos.delete(item)
 
+        self.mapa_items_movimientos = {}
         cantidad = len(self.movimientos_filtrados)
+        fechas_ordenadas = []
+
+        for _posicion, datos in self.movimientos_filtrados:
+            if datos["fecha"] not in fechas_ordenadas:
+                fechas_ordenadas.append(datos["fecha"])
+
         total_paginas = max(
             1,
-            (cantidad + MOVIMIENTOS_POR_PAGINA - 1)
+            (len(fechas_ordenadas) + MOVIMIENTOS_POR_PAGINA - 1)
             // MOVIMIENTOS_POR_PAGINA,
         )
         self.pagina_movimientos = min(
@@ -2928,22 +3457,129 @@ class AplicacionPXCore(ctk.CTk):
         )
         inicio = self.pagina_movimientos * MOVIMIENTOS_POR_PAGINA
         fin = inicio + MOVIMIENTOS_POR_PAGINA
+        fechas_pagina = set(fechas_ordenadas[inicio:fin])
+        registros_pagina = [
+            (posicion, datos)
+            for posicion, datos in self.movimientos_filtrados
+            if datos["fecha"] in fechas_pagina
+        ]
+        grupos = {}
+        unidad_filtrada = self.filtro_unidad_movimiento.get()
 
-        for posicion, datos in self.movimientos_filtrados[inicio:fin]:
+        for posicion, datos in registros_pagina:
+            unidades = unidades_relacionadas_movimiento(datos)
+
+            if unidad_filtrada != "Todas":
+                unidades = [
+                    unidad
+                    for unidad in unidades
+                    if unidad == unidad_filtrada
+                ]
+
+            for unidad in unidades:
+                clave = (datos["fecha"], unidad)
+                grupos.setdefault(clave, []).append((posicion, datos))
+
+        orden_unidades = Movimientos.UNIDADES + ["Otros"]
+        contador_items = 0
+
+        for indice_fecha, fecha in enumerate(
+            fechas_ordenadas[inicio:fin]
+        ):
+            item_fecha = f"fecha:{self.pagina_movimientos}:{indice_fecha}"
             self.tabla_movimientos.insert(
                 "",
                 "end",
-                iid=str(posicion),
-                values=(
-                    datos["fecha"],
-                    tipo_movimiento_para_gui(datos["tipo"]),
-                    datos["origen"],
-                    datos["destino"],
-                    "Gs. " + Movimientos.formatear_monto(
-                        datos["monto"]
-                    ),
-                ),
+                iid=item_fecha,
+                text=fecha,
+                open=True,
+                values=("", "", "", ""),
             )
+
+            for unidad in orden_unidades:
+                registros = grupos.get((fecha, unidad), [])
+
+                if not registros:
+                    continue
+
+                resumen = resumir_movimientos_de_unidad(
+                    unidad,
+                    registros,
+                )
+                detalles_internos = []
+
+                if (
+                    resumen["transferencias_recibidas"]
+                    or resumen["transferencias_enviadas"]
+                ):
+                    detalles_internos.append(
+                        "Transf. "
+                        f"+Gs. {Movimientos.formatear_monto(resumen['transferencias_recibidas'])}"
+                        " / "
+                        f"−Gs. {Movimientos.formatear_monto(resumen['transferencias_enviadas'])}"
+                    )
+
+                if resumen["depositos"]:
+                    detalles_internos.append(
+                        "Depósitos Gs. "
+                        + Movimientos.formatear_monto(
+                            resumen["depositos"]
+                        )
+                    )
+
+                texto_unidad = unidad
+                if detalles_internos:
+                    texto_unidad += " · " + " · ".join(detalles_internos)
+
+                item_unidad = (
+                    f"unidad:{self.pagina_movimientos}:"
+                    f"{indice_fecha}:{orden_unidades.index(unidad)}"
+                )
+                self.tabla_movimientos.insert(
+                    item_fecha,
+                    "end",
+                    iid=item_unidad,
+                    text=texto_unidad,
+                    open=True,
+                    values=(
+                        "Ingresos Gs. "
+                        + Movimientos.formatear_monto(
+                            resumen["ingresos"]
+                        ),
+                        "Egresos Gs. "
+                        + Movimientos.formatear_monto(
+                            resumen["egresos"]
+                        ),
+                        "Resultado",
+                        "Gs. "
+                        + Movimientos.formatear_monto(
+                            resumen["resultado"]
+                        ),
+                    ),
+                )
+
+                for posicion, datos in registros:
+                    item_movimiento = (
+                        f"mov:{posicion}:{contador_items}"
+                    )
+                    contador_items += 1
+                    self.mapa_items_movimientos[
+                        item_movimiento
+                    ] = posicion
+                    self.tabla_movimientos.insert(
+                        item_unidad,
+                        "end",
+                        iid=item_movimiento,
+                        text="Detalle",
+                        values=(
+                            tipo_movimiento_para_gui(datos["tipo"]),
+                            datos["origen"],
+                            datos["destino"],
+                            "Gs. " + Movimientos.formatear_monto(
+                                datos["monto"]
+                            ),
+                        ),
+                    )
 
         self.etiqueta_resultados_movimientos.configure(
             text=(
@@ -2994,7 +3630,21 @@ class AplicacionPXCore(ctk.CTk):
         if not seleccion:
             return
 
-        posicion = int(seleccion[0])
+        posicion = self.mapa_items_movimientos.get(seleccion[0])
+
+        if posicion is None:
+            self.posicion_movimiento_seleccionado = None
+            self.etiqueta_seleccion_movimiento.configure(
+                text=(
+                    "Este es un resumen. Abrí el grupo y seleccioná "
+                    "un movimiento para modificarlo o eliminarlo."
+                ),
+                text_color=COLOR_TEXTO_SUAVE,
+            )
+            self.boton_modificar_movimiento.configure(state="disabled")
+            self.boton_eliminar_movimiento.configure(state="disabled")
+            return
+
         self.posicion_movimiento_seleccionado = posicion
         lineas = Movimientos.leer_datos(Movimientos.RUTA_MOVIMIENTOS)
 
@@ -3018,6 +3668,16 @@ class AplicacionPXCore(ctk.CTk):
         )
         self.boton_modificar_movimiento.configure(state="normal")
         self.boton_eliminar_movimiento.configure(state="normal")
+
+    def manejar_doble_clic_movimiento(self, evento):
+        item = self.tabla_movimientos.identify_row(evento.y)
+
+        if item not in self.mapa_items_movimientos:
+            return
+
+        self.tabla_movimientos.selection_set(item)
+        self.seleccionar_fila_movimiento()
+        self.abrir_edicion_movimiento()
 
     def abrir_edicion_movimiento(self):
         posicion = self.posicion_movimiento_seleccionado
@@ -3052,6 +3712,7 @@ class AplicacionPXCore(ctk.CTk):
             return
 
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Modificar movimiento")
         ventana.geometry("640x610")
         ventana.minsize(580, 560)
@@ -3233,6 +3894,11 @@ class AplicacionPXCore(ctk.CTk):
             hover_color="#12835B",
             font=ctk.CTkFont(size=12, weight="bold"),
         ).grid(row=0, column=2)
+        ventana.bind(
+            "<Return>",
+            lambda _evento: self.guardar_edicion_movimiento(posicion),
+        )
+        ventana.bind("<Escape>", lambda _evento: ventana.destroy())
 
     def crear_control_edicion(
         self,
@@ -4460,6 +5126,7 @@ class AplicacionPXCore(ctk.CTk):
             return
 
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Modificar ingreso o egreso adicional")
         ventana.geometry("620x560")
         ventana.minsize(560, 520)
@@ -4844,6 +5511,7 @@ class AplicacionPXCore(ctk.CTk):
 
     def abrir_administrador_conceptos(self):
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Administrar conceptos adicionales")
         ventana.geometry("680x560")
         ventana.minsize(600, 510)
@@ -5935,6 +6603,7 @@ class AplicacionPXCore(ctk.CTk):
             return
 
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Modificar inversión")
         ventana.geometry("570x430")
         ventana.minsize(520, 400)
@@ -6977,6 +7646,7 @@ class AplicacionPXCore(ctk.CTk):
             estado["saldo"],
         )
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Registrar pago de cuota")
         ventana.geometry("520x430")
         ventana.minsize(500, 410)
@@ -7145,6 +7815,7 @@ class AplicacionPXCore(ctk.CTk):
             return
 
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Modificar préstamo")
         ventana.geometry("640x580")
         ventana.minsize(600, 550)
@@ -7410,6 +8081,7 @@ class AplicacionPXCore(ctk.CTk):
             return
 
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Cuotas del préstamo")
         ventana.geometry("680x560")
         ventana.minsize(620, 510)
@@ -7664,6 +8336,7 @@ class AplicacionPXCore(ctk.CTk):
             return
 
         ventana = ctk.CTkToplevel(self.ventana_gestion_cuotas)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Modificar cuota")
         ventana.geometry("500x360")
         ventana.minsize(470, 340)
@@ -8133,19 +8806,7 @@ class AplicacionPXCore(ctk.CTk):
                 "Egresos",
                 monto(indicadores["egresos"]),
                 COLOR_ROJO,
-                "Incluye cuotas y sueldos liquidados",
-            ),
-            (
-                "Antes de socios",
-                monto(indicadores["resultado_antes_socios"]),
-                COLOR_PRIMARIO,
-                "Ingresos menos egresos",
-            ),
-            (
-                "Sueldos de socios",
-                monto(indicadores["total_sueldos_socios"]),
-                COLOR_NARANJA,
-                "Sol y Rodrigo",
+                "Incluye todos los egresos y la nómina bruta",
             ),
             (
                 "Utilidad del mes",
@@ -8155,7 +8816,7 @@ class AplicacionPXCore(ctk.CTk):
                     if indicadores["utilidad_mes"] >= 0
                     else COLOR_ROJO
                 ),
-                "Después de sueldos gerenciales",
+                "Ingresos menos todos los egresos",
             ),
             (
                 "Margen",
@@ -8180,6 +8841,18 @@ class AplicacionPXCore(ctk.CTk):
                 monto(cierre["utilidad_repartible"]),
                 COLOR_VERDE,
                 "Después del fondo",
+            ),
+            (
+                "Salida real de dinero",
+                monto(indicadores["salida_caja_total"]),
+                COLOR_PRIMARIO,
+                "Pagos efectivamente realizados",
+            ),
+            (
+                "Descuentos retenidos",
+                monto(indicadores["diferencia_egreso_caja"]),
+                COLOR_NARANJA,
+                "IPS y otros descuentos de nómina",
             ),
         ]
 
@@ -8233,6 +8906,7 @@ class AplicacionPXCore(ctk.CTk):
 
         self.dibujar_tabla_unidades_cierre(cierre)
         self.dibujar_componentes_cierre(cierre)
+        self.dibujar_conciliacion_nomina(cierre)
         self.dibujar_detalles_cierre(cierre)
 
     def dibujar_tabla_unidades_cierre(self, cierre):
@@ -8356,9 +9030,9 @@ class AplicacionPXCore(ctk.CTk):
                 "Cada cuota completa suma como egreso",
             ),
             (
-                "Sueldos liquidados",
+                "Nómina del mes",
                 cierre["total_sueldos"],
-                "Neto de funcionarios incluido como egreso",
+                "Remuneración bruta incluida en Egresos",
             ),
             (
                 "Inversiones",
@@ -8441,6 +9115,129 @@ class AplicacionPXCore(ctk.CTk):
             pady=(10, 16),
         )
 
+    def dibujar_conciliacion_nomina(self, cierre):
+        nomina = cierre["nomina"]
+        panel = ctk.CTkFrame(
+            self.zona_resultado_cierre,
+            fg_color=COLOR_PANEL,
+            corner_radius=16,
+            border_width=1,
+            border_color=COLOR_BORDE,
+        )
+        panel.pack(fill="x", pady=7)
+
+        ctk.CTkLabel(
+            panel,
+            text="Conciliación de nómina",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=COLOR_TEXTO,
+            anchor="w",
+        ).pack(fill="x", padx=18, pady=(16, 4))
+        ctk.CTkLabel(
+            panel,
+            text=(
+                "El total de Egresos usa la remuneración bruta, como "
+                "tu planilla. La salida real muestra lo efectivamente "
+                "pagado sin volver a contar retenciones."
+            ),
+            font=ctk.CTkFont(size=11),
+            text_color=COLOR_TEXTO_SUAVE,
+            anchor="w",
+        ).pack(fill="x", padx=18, pady=(0, 10))
+
+        filas = [
+            (
+                "Sueldo bruto ajustado",
+                nomina["sueldo_bruto_ajustado"],
+                "Después de ausencias y reposos",
+            ),
+            (
+                "Comisiones",
+                nomina["comisiones"],
+                "Suman a la remuneración",
+            ),
+            (
+                "Remuneración bruta",
+                nomina["remuneracion_bruta"],
+                "Sueldo ajustado + comisiones",
+            ),
+            (
+                "IPS descontado",
+                nomina["descuento_ips"],
+                "No se suma aquí; el pago de IPS va en adicionales",
+            ),
+            (
+                "Otros descuentos",
+                nomina["otros_descuentos"],
+                "Reducen el pago al funcionario",
+            ),
+            (
+                "Adelantos ya entregados",
+                nomina["adelantos"],
+                "Salida de caja incluida automáticamente",
+            ),
+            (
+                "Neto pagado al liquidar",
+                nomina["neto_cobrar"],
+                "Importe pendiente abonado al funcionario",
+            ),
+            (
+                "Nómina incluida en Egresos",
+                nomina["egreso_planilla"],
+                "Remuneración bruta del mes",
+            ),
+            (
+                "Salida real de caja por nómina",
+                nomina["salida_caja"],
+                "Neto + adelantos efectivamente entregados",
+            ),
+        ]
+
+        tabla = ttk.Treeview(
+            panel,
+            columns=("concepto", "monto", "tratamiento"),
+            show="headings",
+            height=len(filas),
+        )
+        for columna, titulo, ancho, ancla in [
+            ("concepto", "Concepto", 260, "w"),
+            ("monto", "Monto", 180, "e"),
+            ("tratamiento", "Tratamiento en el cierre", 500, "w"),
+        ]:
+            tabla.heading(columna, text=titulo)
+            tabla.column(
+                columna,
+                width=ancho,
+                minwidth=100,
+                anchor=ancla,
+                stretch=True,
+            )
+
+        for concepto, valor, tratamiento in filas:
+            tabla.insert(
+                "",
+                "end",
+                values=(
+                    concepto,
+                    Movimientos.formatear_monto(valor),
+                    tratamiento,
+                ),
+            )
+        tabla.pack(fill="x", padx=18, pady=(0, 10))
+
+        ctk.CTkLabel(
+            panel,
+            text=(
+                "Sol y Rodrigo deben tener una liquidación mensual de "
+                "Gs. 8.000.000 en Recursos Humanos. No cargues esos "
+                "sueldos ni los adelantos nuevamente como movimientos."
+            ),
+            font=ctk.CTkFont(size=11, weight="bold"),
+            text_color=COLOR_NARANJA,
+            justify="left",
+            anchor="w",
+        ).pack(fill="x", padx=18, pady=(0, 16))
+
     def dibujar_detalles_cierre(self, cierre):
         panel = ctk.CTkFrame(
             self.zona_resultado_cierre,
@@ -8509,14 +9306,30 @@ class AplicacionPXCore(ctk.CTk):
 
         tabla_sueldos = ttk.Treeview(
             tab_sueldos,
-            columns=("periodo", "funcionario", "neto"),
+            columns=(
+                "periodo",
+                "funcionario",
+                "bruto",
+                "comisiones",
+                "ips",
+                "adelantos",
+                "otros",
+                "neto",
+                "salida",
+            ),
             show="headings",
             height=5,
         )
         for columna, titulo, ancho in [
-            ("periodo", "Período", 130),
-            ("funcionario", "Funcionario", 420),
-            ("neto", "Neto a cobrar", 180),
+            ("periodo", "Período", 80),
+            ("funcionario", "Funcionario", 190),
+            ("bruto", "Bruto ajustado", 105),
+            ("comisiones", "Comisiones", 95),
+            ("ips", "IPS", 85),
+            ("adelantos", "Adelantos", 90),
+            ("otros", "Otros", 80),
+            ("neto", "Neto", 100),
+            ("salida", "Salida de caja", 110),
         ]:
             tabla_sueldos.heading(columna, text=titulo)
             tabla_sueldos.column(
@@ -8534,7 +9347,25 @@ class AplicacionPXCore(ctk.CTk):
                     sueldo["periodo"],
                     sueldo["nombre"],
                     Movimientos.formatear_monto(
+                        sueldo["sueldo_bruto_ajustado"]
+                    ),
+                    Movimientos.formatear_monto(
+                        sueldo["comisiones"]
+                    ),
+                    Movimientos.formatear_monto(
+                        sueldo["descuento_ips"]
+                    ),
+                    Movimientos.formatear_monto(
+                        sueldo["adelantos"]
+                    ),
+                    Movimientos.formatear_monto(
+                        sueldo["otros_descuentos"]
+                    ),
+                    Movimientos.formatear_monto(
                         sueldo["neto_cobrar"]
+                    ),
+                    Movimientos.formatear_monto(
+                        sueldo["salida_caja"]
                     ),
                 ),
             )
@@ -8637,8 +9468,9 @@ class AplicacionPXCore(ctk.CTk):
         ctk.CTkLabel(
             master,
             text=(
-                "El retiro se descuenta del saldo personal del socio, "
-                "pero no modifica los egresos ni la utilidad del negocio."
+                "El retiro se descuenta del sueldo liquidado y de la "
+                "utilidad asignada al socio. Los sueldos de Sol y "
+                "Rodrigo se generan en Recursos Humanos."
             ),
             font=ctk.CTkFont(size=12),
             text_color=COLOR_TEXTO_SUAVE,
@@ -8927,21 +9759,11 @@ class AplicacionPXCore(ctk.CTk):
 
         datos = [
             (
-                "Antes de sueldos",
-                resumen["resultado_antes_socios"],
-                COLOR_PRIMARIO,
-            ),
-            (
-                "Sueldos de socios",
-                resumen["total_sueldos_socios"],
-                COLOR_NARANJA,
-            ),
-            (
-                "Después de sueldos",
-                resumen["resultado_despues_sueldos"],
+                "Utilidad del mes",
+                resumen["utilidad_mes"],
                 (
                     COLOR_VERDE
-                    if resumen["resultado_despues_sueldos"] >= 0
+                    if resumen["utilidad_mes"] >= 0
                     else COLOR_ROJO
                 ),
             ),
@@ -8954,6 +9776,14 @@ class AplicacionPXCore(ctk.CTk):
                 "Utilidad repartible",
                 resumen["utilidad_distribuible"],
                 COLOR_VERDE,
+            ),
+            (
+                "Retiros personales",
+                sum(
+                    socio["retirado"]
+                    for socio in resumen["socios"]
+                ),
+                COLOR_NARANJA,
             ),
         ]
         for indice, (titulo, valor, color) in enumerate(datos):
@@ -9045,9 +9875,12 @@ class AplicacionPXCore(ctk.CTk):
             ).pack(fill="x", padx=18, pady=(18, 12))
 
             filas = [
-                ("Sueldo", socio["sueldo"]),
-                ("Utilidad", socio["utilidad"]),
-                ("Total del mes", socio["total_a_cobrar"]),
+                (
+                    "Sueldo liquidado en RR. HH.",
+                    socio["sueldo_liquidado"],
+                ),
+                ("Utilidad asignada", socio["utilidad"]),
+                ("Total disponible", socio["total_a_cobrar"]),
                 ("Total retirado", socio["retirado"]),
             ]
             for nombre, valor in filas:
@@ -9102,12 +9935,12 @@ class AplicacionPXCore(ctk.CTk):
                 font=ctk.CTkFont(size=11, weight="bold"),
             ).pack(fill="x", padx=18, pady=(12, 18))
 
-        if resumen["resultado_despues_sueldos"] < 0:
+        if resumen["utilidad_mes"] < 0:
             ctk.CTkLabel(
                 self.zona_resumen_socios,
                 text=(
                     "No se distribuye utilidad porque el resultado "
-                    "después de los sueldos es negativo."
+                    "del mes es negativo."
                 ),
                 font=ctk.CTkFont(size=12, weight="bold"),
                 text_color=COLOR_ROJO,
@@ -9461,6 +10294,7 @@ class AplicacionPXCore(ctk.CTk):
         socio = Socios.obtener_socio(retiro["socio_id"])
 
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Modificar retiro")
         ventana.geometry("540x420")
         ventana.resizable(False, False)
@@ -9961,6 +10795,7 @@ class AplicacionPXCore(ctk.CTk):
         limite = max(resumen["resultado_despues_sueldos"], 0)
 
         ventana = ctk.CTkToplevel(self)
+        self.habilitar_navegacion_tab(ventana)
         ventana.title("Ajustar fondo de estabilidad")
         ventana.geometry("590x420")
         ventana.resizable(False, False)

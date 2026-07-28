@@ -117,6 +117,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
         self.minsize(1080, 690)
         self.configure(fg_color=COLOR_FONDO)
         self.transient(master)
+        self.habilitar_navegacion_tab()
 
         self.indice_funcionario = None
         self.indice_novedad = None
@@ -187,6 +188,226 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
 
         self.after(100, self.lift)
         self.protocol("WM_DELETE_WINDOW", self.destroy)
+
+    def habilitar_navegacion_tab(self):
+        """Activa una navegación de teclado continua y contextual."""
+        self.bind(
+            "<Tab>",
+            lambda evento: self.mover_foco_formulario(evento, 1),
+            add="+",
+        )
+        self.bind(
+            "<Shift-Tab>",
+            lambda evento: self.mover_foco_formulario(evento, -1),
+            add="+",
+        )
+        self.bind(
+            "<ISO_Left_Tab>",
+            lambda evento: self.mover_foco_formulario(evento, -1),
+            add="+",
+        )
+        for secuencia, direccion in [
+            ("<Up>", "arriba"),
+            ("<Down>", "abajo"),
+            ("<Left>", "izquierda"),
+            ("<Right>", "derecha"),
+        ]:
+            self.bind(
+                secuencia,
+                lambda evento, sentido=direccion: (
+                    self.manejar_flecha(evento, sentido)
+                ),
+                add="+",
+            )
+
+    def controles_editables_visibles(self):
+        """Devuelve controles útiles visibles en su orden de creación."""
+        controles = []
+        tipos_navegables = (
+            ctk.CTkEntry,
+            ctk.CTkComboBox,
+            ctk.CTkOptionMenu,
+            ctk.CTkTabview,
+            ttk.Treeview,
+        )
+
+        def recorrer(elemento):
+            for hijo in elemento.winfo_children():
+                if isinstance(hijo, tipos_navegables):
+                    try:
+                        estado = str(hijo.cget("state")).lower()
+                    except (AttributeError, ValueError):
+                        estado = "normal"
+
+                    if estado != "disabled" and hijo.winfo_viewable():
+                        controles.append(hijo)
+
+                recorrer(hijo)
+
+        recorrer(self)
+        return controles
+
+    @staticmethod
+    def control_con_foco_actual(widget, controles, limite):
+        """Relaciona el control interno de CustomTkinter con su campo."""
+        actual = widget
+
+        while actual is not None:
+            if actual in controles:
+                return actual
+
+            if actual == limite:
+                break
+
+            actual = getattr(actual, "master", None)
+
+        return None
+
+    @staticmethod
+    def enfocar_control(control):
+        """Coloca el cursor en la parte editable real del control."""
+        entrada_interna = getattr(control, "_entry", None)
+
+        if entrada_interna is not None:
+            entrada_interna.focus_set()
+        else:
+            control.focus_set()
+
+    def mover_foco_formulario(self, evento, direccion):
+        """Recorre los controles y vuelve al inicio al llegar al final."""
+        controles = self.controles_editables_visibles()
+
+        if not controles:
+            return None
+
+        actual = self.control_con_foco_actual(
+            evento.widget,
+            controles,
+            self,
+        )
+
+        if actual is None:
+            destino = controles[0] if direccion > 0 else controles[-1]
+        else:
+            indice = controles.index(actual)
+            nuevo_indice = (indice + direccion) % len(controles)
+            destino = controles[nuevo_indice]
+
+        self.enfocar_control(destino)
+        return "break"
+
+    @staticmethod
+    def filas_visibles_treeview(tabla, padre=""):
+        """Obtiene las filas visibles de una tabla."""
+        filas = []
+        for item in tabla.get_children(padre):
+            filas.append(item)
+            if tabla.item(item, "open"):
+                filas.extend(
+                    VentanaRecursosHumanos.filas_visibles_treeview(
+                        tabla,
+                        item,
+                    )
+                )
+        return filas
+
+    @staticmethod
+    def mover_seleccion_treeview(tabla, paso):
+        """Mueve la selección una fila y hace ciclo en los extremos."""
+        filas = VentanaRecursosHumanos.filas_visibles_treeview(tabla)
+        if not filas:
+            return
+
+        seleccion = tabla.selection()
+        actual = seleccion[0] if seleccion else None
+        if actual not in filas:
+            destino = filas[0] if paso > 0 else filas[-1]
+        else:
+            destino = filas[(filas.index(actual) + paso) % len(filas)]
+
+        tabla.selection_set(destino)
+        tabla.focus(destino)
+        tabla.see(destino)
+        tabla.event_generate("<<TreeviewSelect>>")
+
+    @staticmethod
+    def cambiar_opcion(control, paso):
+        """Cambia una opción de ComboBox u OptionMenu."""
+        try:
+            valores = list(control.cget("values"))
+        except (AttributeError, TypeError, ValueError):
+            return False
+
+        if not valores:
+            return False
+
+        actual = control.get()
+        try:
+            indice = valores.index(actual)
+        except ValueError:
+            indice = -1 if paso > 0 else 0
+
+        nuevo = valores[(indice + paso) % len(valores)]
+        control.set(nuevo)
+
+        comando = getattr(control, "_command", None)
+        if callable(comando):
+            comando(nuevo)
+        return True
+
+    @staticmethod
+    def cambiar_pestana(control, paso):
+        """Cambia la pestaña activa con izquierda o derecha."""
+        nombres = list(getattr(control, "_name_list", []))
+        if not nombres:
+            return False
+
+        actual = control.get()
+        try:
+            indice = nombres.index(actual)
+        except ValueError:
+            indice = 0
+
+        control.set(nombres[(indice + paso) % len(nombres)])
+        return True
+
+    def manejar_flecha(self, evento, direccion):
+        """Aplica las flechas según el control que tiene el foco."""
+        controles = self.controles_editables_visibles()
+        actual = self.control_con_foco_actual(
+            evento.widget,
+            controles,
+            self,
+        )
+
+        if actual is None or isinstance(actual, ctk.CTkEntry):
+            return None
+
+        if isinstance(actual, ttk.Treeview):
+            if direccion in ["arriba", "abajo"]:
+                # Treeview ya mueve una fila con su navegación nativa.
+                return None
+            if direccion == "izquierda":
+                actual.xview_scroll(-1, "units")
+            else:
+                actual.xview_scroll(1, "units")
+            return "break"
+
+        if isinstance(actual, (ctk.CTkComboBox, ctk.CTkOptionMenu)):
+            paso = -1 if direccion in ["arriba", "izquierda"] else 1
+            if self.cambiar_opcion(actual, paso):
+                return "break"
+            return None
+
+        if isinstance(actual, ctk.CTkTabview):
+            if direccion not in ["izquierda", "derecha"]:
+                return None
+            paso = -1 if direccion == "izquierda" else 1
+            if self.cambiar_pestana(actual, paso):
+                self.after_idle(actual.focus_set)
+                return "break"
+
+        return None
 
     def crear_tree(self, padre, columnas, titulos, anchos):
         contenedor = ctk.CTkFrame(
@@ -819,7 +1040,10 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             ancho=270,
         )
         self.n_motivo = self.crear_campo(
-            formulario, 7, "Motivo / observación", ancho=270
+            formulario,
+            7,
+            "Concepto / motivo / observación",
+            ancho=270,
         )
 
         hoy = datetime.now().strftime("%d-%m-%Y")
@@ -1073,7 +1297,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             inicio = validar_fecha(inicio_texto, "fecha de inicio")
             fin = validar_fecha(fin_texto, "fecha de finalización")
 
-            if tipo == "Ausencia":
+            if tipo in ["Ausencia", "Comisión"]:
                 fin = inicio
                 fin_texto = inicio_texto
 
@@ -1082,7 +1306,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
                     "La fecha final no puede ser anterior a la inicial."
                 )
 
-            if tipo in ["Adelanto", "Otro descuento"]:
+            if tipo in ["Comisión", "Adelanto", "Otro descuento"]:
                 monto = convertir_monto(self.n_monto.get())
             else:
                 monto = 0
@@ -1094,9 +1318,15 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             )
             motivo = limpiar_texto(
                 self.n_motivo.get(),
-                "motivo",
-                obligatorio=False,
-            ) or "Sin observación"
+                (
+                    "concepto de la comisión"
+                    if tipo == "Comisión"
+                    else "motivo"
+                ),
+                obligatorio=(tipo == "Comisión"),
+            )
+            if not motivo:
+                motivo = "Sin observación"
 
             datos = {
                 "cedula": funcionario["cedula"],
@@ -1188,7 +1418,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
         self.l_funcionario = ctk.CTkComboBox(
             controles,
             values=["Sin funcionarios activos"],
-            width=250,
+            width=220,
             state="readonly",
         )
         self.l_funcionario.pack(side="left", pady=14)
@@ -1207,6 +1437,18 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             datetime.now().strftime("%m-%Y"),
         )
         self.l_periodo.pack(side="left", pady=14)
+
+        ctk.CTkLabel(
+            controles,
+            text="Monto base manual",
+            text_color=COLOR_TEXTO_SUAVE,
+        ).pack(side="left", padx=(16, 6), pady=14)
+        self.l_monto_manual = ctk.CTkEntry(
+            controles,
+            width=135,
+            placeholder_text="Diario/semanal",
+        )
+        self.l_monto_manual.pack(side="left", pady=14)
 
         ctk.CTkButton(
             controles,
@@ -1284,7 +1526,6 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             hover_color="#C77B20",
             command=self.recalcular_liquidacion,
         ).pack(side="right")
-
         contenedor_tree = ctk.CTkFrame(
             pagina,
             fg_color="transparent",
@@ -1303,6 +1544,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
                 "periodo",
                 "dias",
                 "bruto",
+                "comisiones",
                 "ausencias",
                 "reposos",
                 "ips",
@@ -1315,6 +1557,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
                 "Período",
                 "Días",
                 "Bruto",
+                "Comisiones",
                 "Ausencias",
                 "Reposos",
                 "IPS",
@@ -1322,7 +1565,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
                 "Otros",
                 "Neto",
             ),
-            (170, 80, 55, 100, 90, 90, 90, 90, 90, 105),
+            (170, 80, 55, 100, 100, 90, 90, 90, 90, 90, 105),
         )
 
         ctk.CTkLabel(
@@ -1342,7 +1585,12 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             pady=(0, 8),
         )
 
-    def calcular_datos_liquidacion(self, funcionario, periodo):
+    def calcular_datos_liquidacion(
+        self,
+        funcionario,
+        periodo,
+        monto_base_manual=None,
+    ):
         fecha_periodo = validar_periodo(periodo)
         sueldo_mensual = Funcionarios.calcular_sueldo_funcionario(
             funcionario,
@@ -1359,24 +1607,46 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
                 "No se puede liquidar un período anterior al ingreso."
             )
 
-        sueldo_bruto = resultado["sueldo_bruto"]
-        dias_liquidados = resultado["dias_liquidados"]
+        liquidacion_manual = (
+            funcionario["modalidad"] in ("Diario", "Semanal")
+        )
+
+        if liquidacion_manual:
+            if monto_base_manual is None or monto_base_manual <= 0:
+                raise ValueError(
+                    "Ingresá el monto base total efectivamente liquidado "
+                    "para este período."
+                )
+            sueldo_mensual = monto_base_manual
+            sueldo_bruto = monto_base_manual
+            dias_liquidados = 0
+        else:
+            sueldo_bruto = resultado["sueldo_bruto"]
+            dias_liquidados = resultado["dias_liquidados"]
+
         novedades = Liquidaciones.obtener_novedades_del_periodo(
             funcionario["cedula"],
             fecha_periodo,
         )
-        dias_reposo = min(
-            novedades["dias_reposo"],
-            dias_liquidados,
-        )
-        dias_disponibles = dias_liquidados - dias_reposo
-        dias_ausencia = min(
-            novedades["dias_ausencia"],
-            dias_disponibles,
-        )
-        valor_dia = sueldo_mensual // 30
-        descuento_reposos = valor_dia * dias_reposo
-        descuento_ausencias = valor_dia * dias_ausencia
+        if liquidacion_manual:
+            dias_reposo = novedades["dias_reposo"]
+            dias_ausencia = novedades["dias_ausencia"]
+            descuento_reposos = 0
+            descuento_ausencias = 0
+        else:
+            dias_reposo = min(
+                novedades["dias_reposo"],
+                dias_liquidados,
+            )
+            dias_disponibles = dias_liquidados - dias_reposo
+            dias_ausencia = min(
+                novedades["dias_ausencia"],
+                dias_disponibles,
+            )
+            valor_dia = sueldo_mensual // 30
+            descuento_reposos = valor_dia * dias_reposo
+            descuento_ausencias = valor_dia * dias_ausencia
+
         bruto_empresa = max(
             0,
             sueldo_bruto
@@ -1389,9 +1659,11 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
         )
         adelantos = novedades["adelantos"]
         otros = novedades["otros_descuentos"]
+        comisiones = novedades["comisiones"]
         neto = max(
             0,
             bruto_empresa
+            + comisiones
             - descuento_ips
             - adelantos
             - otros,
@@ -1407,9 +1679,13 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             "descuento_ips": descuento_ips,
             "neto_cobrar": neto,
             "tipo_liquidacion": (
-                "Proporcional"
-                if resultado["es_proporcional"]
-                else "Mes completo"
+                "Monto manual"
+                if liquidacion_manual
+                else (
+                    "Proporcional"
+                    if resultado["es_proporcional"]
+                    else "Mes completo"
+                )
             ),
             "dias_ausencia": dias_ausencia,
             "dias_reposo": dias_reposo,
@@ -1417,22 +1693,53 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             "descuento_reposos": descuento_reposos,
             "adelantos": adelantos,
             "otros_descuentos": otros,
+            "comisiones": comisiones,
+            "detalle_comisiones": novedades["detalle_comisiones"],
         }
 
     def resumen_liquidacion(self, datos):
-        return (
-            f"Funcionario: {datos['nombre']}\n"
-            f"Período: {datos['periodo']}\n"
-            f"Días liquidados: {datos['dias_liquidados']}\n"
-            f"Sueldo bruto: Gs. {formatear_monto(datos['sueldo_bruto'])}\n"
-            f"Ausencias: {datos['dias_ausencia']} día/s\n"
-            f"Reposos: {datos['dias_reposo']} día/s\n"
-            f"IPS: Gs. {formatear_monto(datos['descuento_ips'])}\n"
-            f"Adelantos: Gs. {formatear_monto(datos['adelantos'])}\n"
-            f"Otros descuentos: "
-            f"Gs. {formatear_monto(datos['otros_descuentos'])}\n\n"
-            f"NETO A COBRAR: Gs. {formatear_monto(datos['neto_cobrar'])}"
+        lineas = [
+            f"Funcionario: {datos['nombre']}",
+            f"Período: {datos['periodo']}",
+        ]
+
+        if datos["tipo_liquidacion"] == "Monto manual":
+            lineas.append(
+                "Monto base manual: "
+                f"Gs. {formatear_monto(datos['sueldo_bruto'])}"
+            )
+        else:
+            lineas.extend(
+                [
+                    f"Días liquidados: {datos['dias_liquidados']}",
+                    "Sueldo bruto: "
+                    f"Gs. {formatear_monto(datos['sueldo_bruto'])}",
+                ]
+            )
+
+        lineas.extend(
+            [
+                (
+                    "Comisiones "
+                    f"({len(datos.get('detalle_comisiones', []))}): "
+                    f"Gs. {formatear_monto(datos['comisiones'])}"
+                ),
+                f"Ausencias: {datos['dias_ausencia']} día/s",
+                f"Reposos: {datos['dias_reposo']} día/s",
+                f"IPS: Gs. {formatear_monto(datos['descuento_ips'])}",
+                f"Adelantos: Gs. {formatear_monto(datos['adelantos'])}",
+                (
+                    "Otros descuentos: "
+                    f"Gs. {formatear_monto(datos['otros_descuentos'])}"
+                ),
+                "",
+                (
+                    "NETO A COBRAR: "
+                    f"Gs. {formatear_monto(datos['neto_cobrar'])}"
+                ),
+            ]
         )
+        return "\n".join(lineas)
 
     def generar_liquidacion(self):
         try:
@@ -1456,9 +1763,21 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
                     "guardada para ese período."
                 )
 
+            monto_manual = None
+            if funcionario["modalidad"] in ("Diario", "Semanal"):
+                if not self.l_monto_manual.get().strip():
+                    raise ValueError(
+                        "Para un funcionario diario o semanal, ingresá "
+                        "el monto base total efectivamente liquidado."
+                    )
+                monto_manual = convertir_monto(
+                    self.l_monto_manual.get()
+                )
+
             datos = self.calcular_datos_liquidacion(
                 funcionario,
                 periodo,
+                monto_manual,
             )
 
             if not messagebox.askyesno(
@@ -1479,6 +1798,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             )
             self.filtro_periodo_liquidacion.delete(0, "end")
             self.filtro_periodo_liquidacion.insert(0, periodo)
+            self.l_monto_manual.delete(0, "end")
             self.actualizar_liquidaciones()
             messagebox.showinfo(
                 "Liquidaciones",
@@ -1528,8 +1848,13 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
                 values=(
                     datos["nombre"],
                     datos["periodo"],
-                    datos["dias_liquidados"],
+                    (
+                        "-"
+                        if datos["tipo_liquidacion"] == "Monto manual"
+                        else datos["dias_liquidados"]
+                    ),
                     formatear_monto(datos["sueldo_bruto"]),
+                    formatear_monto(datos["comisiones"]),
                     (
                         f"{datos['dias_ausencia']} / "
                         f"{formatear_monto(datos['descuento_ausencias'])}"
@@ -1585,6 +1910,15 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             nueva = self.calcular_datos_liquidacion(
                 funcionario,
                 anterior["periodo"],
+                (
+                    convertir_monto(self.l_monto_manual.get())
+                    if self.l_monto_manual.get().strip()
+                    else (
+                        anterior["sueldo_bruto"]
+                        if anterior["tipo_liquidacion"] == "Monto manual"
+                        else None
+                    )
+                ),
             )
             if not messagebox.askyesno(
                 "Recalcular liquidación",
@@ -1601,6 +1935,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
                 Liquidaciones.RUTA_LIQUIDACIONES,
                 lineas,
             )
+            self.l_monto_manual.delete(0, "end")
             self.actualizar_liquidaciones()
 
         except (ValueError, IndexError) as error:
@@ -1891,4 +2226,3 @@ def abrir_recursos_humanos(master, pestana="Gestión de funcionarios"):
 
     ventana = VentanaRecursosHumanos(master, pestana)
     master._ventana_rrhh = ventana
-
