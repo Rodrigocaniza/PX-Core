@@ -1,0 +1,873 @@
+# PROYECTO X
+
+## Descripción general y lógica de negocio
+
+## 1. Concepto general
+
+Proyecto X es un sistema de gestión empresarial desarrollado inicialmente en Python para registrar, ordenar, controlar y analizar las operaciones financieras y administrativas de una empresa.
+
+El sistema no busca ser solamente una caja o un registro de ingresos y egresos. Su objetivo es reunir en un solo lugar la información necesaria para responder preguntas como:
+
+* Cuánto dinero entró y salió.
+* De qué unidad de negocio provino cada movimiento.
+* Cuánto ganó realmente la empresa.
+* Cuánto pueden retirar los socios.
+* Cuánto dinero debe conservarse como reserva.
+* Qué obligaciones, préstamos y cuotas continúan pendientes.
+* Qué gastos se repiten mensualmente.
+* Qué períodos están cerrados y cuáles todavía pueden modificarse.
+* Qué tareas, proyectos y procesos internos están pendientes.
+* Qué mantenimiento necesitan los equipos.
+* Qué importes deben cobrarse en convenios o asociaciones.
+
+Proyecto X debe transformarse progresivamente en el sistema central de control de BC Inversiones EAS y sus unidades operativas.
+
+---
+
+# 2. Estructura empresarial que debe representar
+
+Actualmente, el sistema debe contemplar una empresa principal y diferentes unidades o centros de operación.
+
+## Empresa principal
+
+**BC Inversiones EAS**
+
+Es la entidad jurídica y económica que centraliza las operaciones, inversiones, activos, ingresos, gastos y resultados.
+
+## Unidades o centros de negocio
+
+### PC
+
+Corresponde principalmente a las operaciones de Asunción.
+
+Puede incluir:
+
+* Óptica.
+* Consultorio.
+* Ventas.
+* Cobros.
+* Compras.
+* Gastos operativos.
+* Depósitos bancarios.
+* Movimientos de caja.
+
+### P2
+
+Corresponde principalmente a las operaciones de Pilar.
+
+Puede incluir:
+
+* Óptica.
+* Consultas.
+* Viajes médicos.
+* Ventas.
+* Gastos operativos.
+* Personal.
+* Combustible.
+* Comisiones.
+* Depósitos.
+* Movimientos propios de la sucursal.
+
+### Operaciones generales de la EAS
+
+Existen movimientos que no corresponden exclusivamente a PC o P2, por ejemplo:
+
+* Aportes de socios.
+* Compras de activos.
+* Préstamos.
+* Gastos administrativos.
+* Impuestos.
+* Honorarios.
+* Inversiones.
+* Fondo de estabilidad.
+* Distribución de utilidades.
+* Transferencias entre cuentas.
+
+Por eso, cada movimiento debe poder vincularse a una unidad, cuenta o categoría determinada.
+
+---
+
+# 3. Principio central del sistema
+
+La base de Proyecto X es el concepto de **movimiento económico**.
+
+Un movimiento representa cualquier operación que produzca una variación en:
+
+* Caja.
+* Banco.
+* Deudas.
+* Créditos.
+* Patrimonio.
+* Ingresos.
+* Gastos.
+* Saldo de socios.
+* Fondo de estabilidad.
+
+Cada movimiento debe registrar como mínimo:
+
+* Fecha.
+* Tipo de movimiento.
+* Concepto.
+* Descripción.
+* Monto.
+* Unidad o centro de negocio.
+* Cuenta de origen.
+* Cuenta de destino, cuando corresponda.
+* Medio de pago.
+* Observación.
+* Período contable.
+* Estado del período.
+
+La información no debe duplicarse innecesariamente. El mismo movimiento debe alimentar los diferentes informes y cálculos del sistema.
+
+---
+
+# 4. Módulo de movimientos
+
+El módulo de movimientos constituye el núcleo financiero de Proyecto X.
+
+## Tipos principales
+
+### Ingreso
+
+Registra dinero que entra a la empresa.
+
+Ejemplos:
+
+* Ventas.
+* Consultas.
+* Alquiler cobrado.
+* Cobro de cuotas.
+* Recuperación de préstamos.
+* Aportes.
+* Otros ingresos.
+
+### Egreso
+
+Registra dinero que sale de la empresa.
+
+Ejemplos:
+
+* Compras.
+* Salarios.
+* Alquileres pagados.
+* Servicios.
+* Combustible.
+* Impuestos.
+* Gastos administrativos.
+* Pagos de préstamos.
+* Compras con tarjeta.
+* Retiros autorizados.
+
+### Transferencia interna
+
+Representa un traslado entre cuentas de la misma empresa.
+
+Ejemplos:
+
+* Caja a banco.
+* Banco a caja.
+* Cuenta PC a cuenta P2.
+* Una cuenta bancaria a otra.
+* Cuenta operativa a fondo de estabilidad.
+
+Una transferencia interna no representa ingreso ni gasto. Solamente cambia la ubicación del dinero.
+
+### Depósito bancario
+
+Representa el ingreso de dinero físico o externo a una cuenta bancaria.
+
+Debe distinguirse entre:
+
+* Depósito interno.
+* Depósito externo.
+
+El depósito interno puede provenir de la propia caja de la empresa y no debe incrementar artificialmente los ingresos.
+
+---
+
+# 5. Carga diaria de operaciones
+
+La lógica deseada es que la carga pueda realizarse por día.
+
+El usuario selecciona una fecha y registra dentro de esa jornada:
+
+* Ingresos.
+* Egresos.
+* Transferencias.
+* Depósitos.
+* Otros movimientos relacionados.
+
+Esto evita ingresar la misma fecha repetidamente y permite revisar todo lo ocurrido en un día determinado.
+
+El sistema también debe permitir:
+
+* Ver movimientos.
+* Modificar movimientos.
+* Eliminar movimientos.
+* Filtrar por mes y año.
+* Filtrar por unidad.
+* Filtrar por tipo.
+* Filtrar por cuenta.
+* Buscar por concepto o descripción.
+
+Las funciones de ver, modificar y eliminar deben estar agrupadas para evitar menús innecesariamente largos.
+
+En todos los menús internos, la opción **Volver** debe ser siempre **0**.
+
+---
+
+# 6. Períodos mensuales
+
+Toda la información debe organizarse por período, normalmente con formato:
+
+**MM-AAAA**
+
+Ejemplo:
+
+**07-2026**
+
+Cada período contiene los movimientos de un mes.
+
+## Estados posibles
+
+### Abierto
+
+El período puede recibir nuevos movimientos y modificaciones.
+
+### Cerrado
+
+El período ya fue revisado y consolidado.
+
+Un período cerrado no debería modificarse libremente. En caso de necesitar una corrección, el sistema debe advertir al usuario o exigir una reapertura.
+
+### Eliminado
+
+El sistema dispone de una función para eliminar un período completo cuando fue cargado incorrectamente y debe importarse nuevamente.
+
+La eliminación de período debe retirar todos los datos asociados de forma controlada, evitando registros huérfanos.
+
+---
+
+# 7. Importación de planillas
+
+Proyecto X debe permitir importar movimientos desde archivos Excel.
+
+La importación se utiliza principalmente para incorporar información histórica o movimientos preparados fuera del sistema.
+
+El proceso debe:
+
+1. Leer la planilla.
+2. Validar las columnas.
+3. Normalizar fechas, importes y descripciones.
+4. Identificar el período.
+5. Evitar duplicados.
+6. Informar errores.
+7. Importar únicamente los registros válidos.
+8. Permitir eliminar el período si la importación fue incorrecta.
+
+Las planillas deben seguir un formato estandarizado para que cada mes pueda cargarse sin realizar correcciones manuales repetitivas.
+
+---
+
+# 8. Categorías y conceptos
+
+Los movimientos deben clasificarse mediante categorías.
+
+Ejemplos:
+
+* Ventas.
+* Consultas.
+* Salarios.
+* Comisiones.
+* Horas extra.
+* Alquiler.
+* Electricidad.
+* Internet.
+* Impuestos.
+* Combustible.
+* Laboratorios.
+* Armazones.
+* Equipos.
+* Mantenimiento.
+* Marketing.
+* Tarjetas de crédito.
+* Préstamos.
+* Retiros de socios.
+
+Las categorías permiten generar informes, comparar períodos y conocer en qué se utiliza el dinero.
+
+## Gastos fijos
+
+Debe existir una lista editable de gastos fijos.
+
+El usuario debe poder:
+
+* Agregar conceptos.
+* Modificar conceptos.
+* Eliminar conceptos.
+* Marcar periodicidad.
+* Registrar monto esperado.
+* Comparar monto esperado contra monto pagado.
+* Identificar gastos pendientes.
+
+---
+
+# 9. Tarjetas de crédito
+
+Los pagos con tarjeta de crédito deben poder registrarse con observaciones.
+
+Por ejemplo, un movimiento general denominado **Bancard** puede contener una observación como:
+
+* Visa Oro: 2.000.000 Gs.
+* Visa Clásica: 2.234.343 Gs.
+
+La observación identifica qué tarjeta fue utilizada o cómo se distribuyó el pago, sin necesidad de detallar nuevamente cada compra si ese detalle ya se encuentra controlado por otra vía.
+
+El sistema debe evitar confundir:
+
+* La compra realizada con tarjeta.
+* El pago posterior del resumen.
+
+Registrar ambos como gastos independientes duplicaría el egreso.
+
+---
+
+# 10. Préstamos y cuotas
+
+El módulo de préstamos debe controlar obligaciones financieras y créditos concedidos.
+
+## Datos principales
+
+* Acreedor o deudor.
+* Monto original.
+* Total a devolver.
+* Cantidad de cuotas.
+* Monto de cada cuota.
+* Fecha de inicio.
+* Cuotas pagadas.
+* Cuotas pendientes.
+* Capital pendiente.
+* Intereses.
+* Próximo vencimiento.
+* Estado.
+
+## Funciones necesarias
+
+* Registrar préstamo.
+* Registrar pago de cuota.
+* Consultar historial.
+* Ver saldo pendiente.
+* Filtrar por período.
+* Modificar datos.
+* Cancelar o cerrar préstamo.
+* Mostrar próximos vencimientos.
+
+Los pagos de cuotas deben generar movimientos financieros, pero no deben confundirse automáticamente con un gasto completo. Cuando sea posible, debe diferenciarse entre:
+
+* Amortización de capital.
+* Interés.
+* Gastos administrativos.
+
+---
+
+# 11. Cierre mensual
+
+El cierre mensual consolida los resultados de cada período.
+
+Debe calcular como mínimo:
+
+* Total de ingresos.
+* Total de egresos.
+* Resultado operativo.
+* Utilidad o pérdida.
+* Margen porcentual.
+* Movimientos por PC.
+* Movimientos por P2.
+* Movimientos generales.
+* Saldo de caja.
+* Saldo bancario.
+* Préstamos pendientes.
+* Gastos fijos.
+* Retiros de socios.
+* Fondo de estabilidad.
+
+## Fórmula básica
+
+**Utilidad = ingresos – egresos**
+
+## Margen
+
+**Margen porcentual = utilidad ÷ ingresos × 100**
+
+Sin embargo, el sistema debe distinguir los movimientos que no afectan el resultado.
+
+Por ejemplo:
+
+* Transferencias internas.
+* Depósitos provenientes de la propia caja.
+* Aportes de socios.
+* Retiros patrimoniales.
+* Amortización de capital.
+* Movimientos entre cuentas.
+
+Estos movimientos modifican saldos, pero no necesariamente representan ingresos o gastos operativos.
+
+---
+
+# 12. Fondo de estabilidad
+
+El fondo de estabilidad representa una reserva de seguridad de la empresa.
+
+La política actual prevé retener aproximadamente el **40 % de las utilidades**, aunque el porcentaje debe ser editable.
+
+## Cálculo orientativo
+
+**Aporte al fondo = utilidad distribuible × porcentaje de retención**
+
+El sistema debe mostrar:
+
+* Saldo anterior.
+* Aporte del período.
+* Retiros del fondo.
+* Saldo final.
+* Porcentaje aplicado.
+* Origen de los movimientos.
+* Observaciones.
+
+El fondo puede recibir información desde:
+
+* El cierre mensual.
+* El módulo de movimientos.
+* El módulo de socios.
+
+No debe tratarse simplemente como un gasto. Es una reasignación interna de utilidades o liquidez.
+
+---
+
+# 13. Módulo de socios
+
+El sistema debe controlar la relación económica entre la empresa y sus socios.
+
+Actualmente se contemplan dos socios:
+
+* Sol: 65 %.
+* Rodrigo: 35 %.
+
+Cada socio puede tener:
+
+* Sueldo gerencial.
+* Participación en utilidades.
+* Retiros.
+* Aportes.
+* Anticipos.
+* Saldo pendiente a favor o en contra.
+
+## Cálculo mensual
+
+Una estructura prevista es:
+
+**Saldo del socio = sueldo + utilidad asignada – retiros**
+
+El resultado puede ser:
+
+* Positivo: la empresa todavía debe dinero al socio.
+* Negativo: el socio retiró más de lo que le correspondía.
+* Cero: el período quedó compensado.
+
+## Distribución de utilidad
+
+Primero se calcula la utilidad.
+
+Luego se retiene el porcentaje correspondiente al fondo de estabilidad.
+
+El saldo distribuible se reparte según las participaciones:
+
+* Sol: 65 %.
+* Rodrigo: 35 %.
+
+El sistema debe mantener separados:
+
+* Sueldo.
+* Distribución de utilidad.
+* Retiro de dinero.
+* Aporte de capital.
+* Préstamo del socio a la empresa.
+
+Aunque todos implican movimientos de dinero, jurídicamente y contablemente no son equivalentes.
+
+---
+
+# 14. Saldos y cuentas
+
+Proyecto X debe controlar diferentes ubicaciones del dinero.
+
+Ejemplos:
+
+* Caja PC.
+* Caja P2.
+* Banco.
+* Cuenta corriente.
+* Caja de ahorro.
+* Tarjetas.
+* Fondo de estabilidad.
+* Fondos personales pendientes de separación.
+* Cuentas de socios.
+
+Cada cuenta debe tener:
+
+* Nombre.
+* Tipo.
+* Saldo inicial.
+* Movimientos de entrada.
+* Movimientos de salida.
+* Saldo calculado.
+* Estado.
+* Unidad asociada.
+
+El saldo no debe escribirse manualmente como dato aislado. Debe surgir del saldo inicial más los movimientos registrados.
+
+---
+
+# 15. Informes
+
+El sistema debe producir informes mensuales claros y profesionales.
+
+## Primera sección del informe
+
+Debe mostrar los indicadores más importantes:
+
+* Ingresos.
+* Egresos.
+* Utilidad.
+* Margen.
+* Variación contra el mes anterior.
+* Fondo de estabilidad.
+* Resultado por unidad.
+* Principales gastos.
+* Situación de socios.
+
+## Secciones de detalle
+
+* Movimientos por día.
+* Ingresos por categoría.
+* Gastos por categoría.
+* Gastos fijos.
+* Préstamos.
+* Saldos.
+* Retiros.
+* Observaciones.
+* Alertas.
+
+El diseño debe ser:
+
+* Profesional.
+* Minimalista.
+* Visualmente agradable.
+* Fácil de leer.
+* Más vivo que una tabla puramente contable.
+* Orientado primero a la toma de decisiones y después al detalle.
+
+---
+
+# 16. Módulo de ideas
+
+El módulo de ideas funciona como un repositorio simple para registrar oportunidades de mejora o nuevos desarrollos.
+
+Debe permitir:
+
+* Agregar ideas.
+* Ver ideas.
+* Numerarlas.
+* Mostrar cantidad total.
+* Eliminar ideas.
+* Convertir una idea en proyecto.
+
+Actualmente puede trabajar con un archivo de texto, aunque posteriormente debería migrarse a una base de datos.
+
+---
+
+# 17. Módulo de proyectos
+
+El módulo de proyectos permite registrar y seguir iniciativas.
+
+Cada proyecto contiene:
+
+* Nombre.
+* Descripción.
+* Estado.
+* Fecha.
+* Prioridad.
+* Próximo paso.
+* Horas invertidas.
+
+Estados principales:
+
+* Pendiente.
+* En progreso.
+* Finalizado.
+
+Debe permitir:
+
+* Agregar.
+* Ver.
+* Modificar.
+* Cambiar estado.
+* Eliminar.
+* Relacionar tareas.
+* Registrar horas.
+
+---
+
+# 18. Registro de horas
+
+El registro de horas permite medir cuánto tiempo se invierte en cada proyecto o sesión.
+
+Debe registrar:
+
+* Fecha.
+* Proyecto.
+* Hora de inicio.
+* Hora de finalización.
+* Duración.
+* Descripción del trabajo.
+* Resultado obtenido.
+
+El objetivo es:
+
+* Medir productividad.
+* Calcular esfuerzo real.
+* Registrar aprendizaje.
+* Conocer el costo de desarrollo.
+* Preparar al usuario para trabajos externos o freelance.
+
+---
+
+# 19. Módulo de planillas de asociaciones
+
+Este módulo estará destinado inicialmente a convenios como Caja Municipal.
+
+Cada planilla debe incluir:
+
+* Nombre de la asociación.
+* Mes correspondiente.
+* Número de legajo.
+* Nombre del beneficiario.
+* Monto total.
+* Número de cuotas.
+* Monto de cuota.
+* Saldo pendiente.
+* Total general a cobrar.
+* Total expresado en letras y en guaraníes.
+
+## Automatización mensual
+
+Al generar el mes siguiente, el sistema debe:
+
+1. Reducir en una unidad la cantidad de cuotas pendientes.
+2. Restar del saldo el monto de la cuota.
+3. Mantener al beneficiario mientras continúe con saldo.
+4. Retirar o marcar como finalizados los registros cancelados.
+5. Generar una nueva planilla mensual.
+
+Debe admitir diferentes asociaciones o grupos independientes.
+
+---
+
+# 20. Módulo de mantenimiento de equipos
+
+Este módulo controlará los equipos de la empresa.
+
+Cada equipo debe tener:
+
+* Identificador.
+* Tipo de equipo.
+* Marca.
+* Modelo.
+* Número de serie.
+* Ubicación.
+* Fecha del último mantenimiento.
+* Fecha del próximo mantenimiento.
+* Responsable.
+* Observaciones.
+* Estado.
+
+Ejemplos de ubicación:
+
+* Óptica Asunción.
+* Óptica Pilar.
+* Consultorio.
+* Sala de espera.
+* Taller.
+* Administración.
+
+El sistema debe generar alertas cuando:
+
+* Se acerque el mantenimiento.
+* El mantenimiento esté vencido.
+* El equipo presente una observación crítica.
+
+---
+
+# 21. Arquitectura funcional
+
+Proyecto X está siendo desarrollado de manera modular.
+
+Cada módulo debe encargarse de una función específica.
+
+Ejemplo de estructura:
+
+* Menú principal.
+* Movimientos.
+* Períodos.
+* Importación.
+* Gastos fijos.
+* Préstamos.
+* Socios.
+* Fondo de estabilidad.
+* Cierre mensual.
+* Informes.
+* Ideas.
+* Proyectos.
+* Registro de horas.
+* Asociaciones.
+* Mantenimiento.
+
+La separación modular permite:
+
+* Corregir una función sin afectar todo el sistema.
+* Evitar archivos excesivamente grandes.
+* Reutilizar funciones.
+* Realizar pruebas.
+* Trabajar por etapas.
+* Mantener el código más ordenado.
+
+---
+
+# 22. Fuente única de datos
+
+Uno de los principios más importantes es evitar que la misma información se mantenga en varios lugares sin conexión.
+
+Por ejemplo, un egreso salarial no debería cargarse:
+
+* Una vez en movimientos.
+* Otra vez en gastos.
+* Otra vez en cierre.
+* Otra vez en informes.
+
+Debe registrarse una sola vez y luego ser consultado por cada módulo.
+
+Esta lógica reduce:
+
+* Duplicaciones.
+* Diferencias entre informes.
+* Errores manuales.
+* Pérdida de trazabilidad.
+
+En una etapa inicial se pueden utilizar archivos de texto, CSV o Excel. Sin embargo, la evolución lógica del proyecto es migrar a una base de datos, probablemente SQLite en una primera fase.
+
+---
+
+# 23. Trazabilidad y controles
+
+Cada operación importante debe poder rastrearse.
+
+El sistema debería registrar:
+
+* Fecha de creación.
+* Fecha de modificación.
+* Usuario que realizó el cambio.
+* Valor anterior.
+* Valor nuevo.
+* Motivo de modificación.
+
+Especialmente en:
+
+* Movimientos.
+* Períodos cerrados.
+* Retiros de socios.
+* Eliminación de períodos.
+* Préstamos.
+* Fondo de estabilidad.
+* Importaciones.
+
+Una operación eliminada no debería desaparecer sin dejar evidencia cuando el sistema alcance una etapa de uso empresarial formal.
+
+---
+
+# 24. Objetivo operativo
+
+Proyecto X debe reducir la dependencia de:
+
+* Planillas separadas.
+* Anotaciones manuales.
+* Cálculos repetidos.
+* Memoria de las personas.
+* Revisiones mensuales improvisadas.
+* Información distribuida entre varios archivos.
+
+El usuario debe poder abrir el sistema y conocer rápidamente:
+
+1. Cuánto dinero tiene la empresa.
+2. Cuánto ganó durante el mes.
+3. Qué pagos están pendientes.
+4. Qué préstamos siguen activos.
+5. Cuánto retiró cada socio.
+6. Cuánto corresponde reservar.
+7. Qué unidad produjo mejores resultados.
+8. Qué movimientos necesitan revisión.
+9. Qué tareas o proyectos continúan pendientes.
+10. Qué decisiones deben tomarse.
+
+---
+
+# 25. Objetivo estratégico
+
+El objetivo final no es solamente administrar la óptica actual.
+
+Proyecto X debe convertirse en una plataforma reutilizable para:
+
+* BC Inversiones EAS.
+* Nuevas sucursales.
+* Nuevas unidades de negocio.
+* Consultorios.
+* Convenios.
+* Gestión de equipos.
+* Empresas de terceros.
+* Servicios freelance.
+* Soluciones empresariales personalizadas.
+
+El desarrollo del sistema también funciona como proceso de aprendizaje práctico para que el usuario pueda adquirir experiencia en:
+
+* Análisis de negocio.
+* Automatización.
+* Python.
+* Bases de datos.
+* Diseño de sistemas.
+* Control financiero.
+* Desarrollo de soluciones empresariales.
+* Prestación de servicios tecnológicos.
+
+---
+
+# 26. Resumen de la lógica completa
+
+La secuencia general de Proyecto X es la siguiente:
+
+1. Se configuran empresas, unidades, cuentas, socios y categorías.
+2. Se abre un período mensual.
+3. Se registran o importan los movimientos.
+4. Los movimientos actualizan los saldos de las cuentas.
+5. Se clasifican ingresos, egresos y operaciones patrimoniales.
+6. Se controlan préstamos, cuotas y gastos fijos.
+7. Se calculan los resultados por unidad y de manera consolidada.
+8. Se determina la utilidad.
+9. Se calcula el aporte al fondo de estabilidad.
+10. Se distribuye la utilidad restante entre los socios.
+11. Se comparan los importes asignados con los retiros realizados.
+12. Se genera el informe mensual.
+13. Se revisan errores o diferencias.
+14. Se cierra el período.
+15. La información queda disponible para análisis histórico y toma de decisiones.
+
+En síntesis, Proyecto X busca transformar movimientos diarios dispersos en información empresarial organizada, verificable y útil para decidir.

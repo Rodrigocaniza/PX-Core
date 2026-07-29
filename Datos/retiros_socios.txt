@@ -32,30 +32,6 @@ F72B49B7215C | 01-05-2026 | RODRIGO | 550000 | Lente para señora Anto Acosta (D
 1F03A9B1ECC8 | 01-05-2026 | RODRIGO | 440000 | Arreglo portón duplex
 E6E31699F9A9 | 01-05-2026 | RODRIGO | 325589 | Servicios duplex (Ande, Essap, Personal)
 4CA599F77CA4 | 01-05-2026 | RODRIGO | 700000 | Lente para señora Maria Higinia Acosta (David)
-F679ABE65C06 | 01-02-2026 | SOL | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel (Rodrigo 1.6mm)
-B264709D314F | 01-02-2026 | SOL | 2000000 | Gasto personal | Tio Walter
-CDD6366BF04E | 01-02-2026 | SOL | 1624000 | Gasto personal | Markus
-C532500B3421 | 01-02-2026 | SOL | 600000 | Gasto personal | Farmacia
-51BEC02F8C83 | 01-02-2026 | SOL | 456000 | Gasto personal | Purina para Tobi óptica
-82CC2C54F1A8 | 01-02-2026 | SOL | 5500000 | Inversión personal | Olier, heladera Samsung para la casa
-8D99577369C0 | 01-02-2026 | RODRIGO | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel
-384A2334C77D | 01-02-2026 | RODRIGO | 2000000 | Gasto personal | Meta Sports, Compulandia (pastas termicas, coolers), Chubex
-D3AF9A3A0506 | 01-02-2026 | RODRIGO | 1500000 | Gasto personal | Préstamo
-F258DA3E1D08 | 01-02-2026 | RODRIGO | 1000000 | Gasto personal | Dtal Moto Spa, moto de Rochi detailing 980 y vuelto
-574A85E84202 | 01-02-2026 | RODRIGO | 456000 | Gasto personal | Purina para Tobi casa
-2797D582B05C | 01-03-2026 | SOL | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel (Rodrigo 1.6mm)
-87EE7CB3796C | 01-03-2026 | SOL | 1500000 | Gasto personal | Pago de tarjeta Ueno Rodrigo (comida, etc.)
-358ABCDF5094 | 01-03-2026 | SOL | 1624000 | Gasto personal | Markus
-37A873794540 | 01-03-2026 | SOL | 2000000 | Gasto personal | Ayuda Tío Walter
-DEC5D1583591 | 01-03-2026 | SOL | 2000000 | Gasto personal | Regalo Cumple Mi amor
-5DC2361B06B7 | 01-03-2026 | SOL | 130000 | Gasto personal | Limpieza del frente de la casa
-1B025BABF09E | 01-03-2026 | SOL | 6190000 | Inversión personal | Alemania Cell, Macbook Neo
-AED17B690148 | 01-03-2026 | SOL | 2250000 | Inversión personal | Olier, mesa
-9DB1DC6B410E | 01-03-2026 | SOL | 1650000 | Inversión personal | Olier, aspiradora
-036A45B5419C | 01-03-2026 | RODRIGO | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel
-2B430114794B | 01-03-2026 | RODRIGO | 352639 | Gasto personal | Pago de servicios (casa)
-BBA67799603A | 01-03-2026 | RODRIGO | 1500000 | Gasto personal | Préstamo
-06ADFC16ABF6 | 01-03-2026 | RODRIGO | 1500000 | Gasto personal | Pago de tarjeta Ueno (comida, etc.)
 A06F7A5F2E9D | 01-04-2026 | SOL | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel (Rodrigo 1.6mm)
 843D54D55F3C | 01-04-2026 | SOL | 2000000 | Gasto personal | Tio Walter
 ECBD04066C56 | 01-04-2026 | SOL | 1624000 | Gasto personal | Markus
@@ -97,3 +73,27 @@ DEBAA49ED56C | 01-01-2026 | RODRIGO | 600000 | Gasto personal | Dra. Gabi, blanq
 B01DC276C801 | 01-01-2026 | RODRIGO | 243001 | Gasto personal | Farmacenter, creatina
 0FD14BB5AE72 | 01-01-2026 | RODRIGO | 220000 | Gasto personal | Rosario Aguero Tobi remedio
 ADCCCF9C8DFD | 01-01-2026 | RODRIGO | 132000 | Gasto personal | Marketplace, cortinas para ducha, etc.
+A3C9D32FCBDB | 01-02-2026 | SOL | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel (Rodrigo 1.6mm)
+00E52E893305 | 01-02-2026 | RODRIGO | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel
+2F000FD4984C | 01-02-2026 | SOL | 2000000 | Gasto personal | Tio Walter
+E7BDEE73405E | 01-02-2026 | RODRIGO | 2000000 | Gasto personal | Meta Sports, Compulandia (pastas termicas, coolers), Chubex
+4DC9AD2B2E5C | 01-02-2026 | SOL | 1624000 | Gasto personal | Markus
+3684FC2443DB | 01-02-2026 | RODRIGO | 1500000 | Gasto personal | Préstamo
+461379626552 | 01-02-2026 | SOL | 600000 | Gasto personal | Farmacia
+7D967BC8E17E | 01-02-2026 | RODRIGO | 1000000 | Gasto personal | Dtal Moto Spa, moto de Rochi detailing 980 y vuelto
+B28AE06E38C0 | 01-02-2026 | SOL | 456000 | Gasto personal | Purina para Tobi óptica
+CA9A3E5537EF | 01-02-2026 | RODRIGO | 456000 | Gasto personal | Purina para Tobi casa
+42BDB0F98E7E | 01-02-2026 | SOL | 5500000 | Inversión personal | Olier, heladera Samsung para la casa
+BC552AC9AFCD | 01-03-2026 | SOL | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel (Rodrigo 1.6mm)
+404FE0A30388 | 01-03-2026 | RODRIGO | 2100000 | Gasto personal | Alquiler dúplex 4mm, Gladys Coronel
+D05B16DF5E8C | 01-03-2026 | SOL | 1500000 | Gasto personal | Pago de tarjeta Ueno Rodrigo (comida, etc.)
+06083715BA83 | 01-03-2026 | RODRIGO | 352639 | Gasto personal | Pago de servicios (casa)
+8667914E61F5 | 01-03-2026 | SOL | 1624000 | Gasto personal | Markus
+8FBB3D3226D2 | 01-03-2026 | RODRIGO | 1500000 | Gasto personal | Préstamo
+0206C5B91D84 | 01-03-2026 | SOL | 2000000 | Gasto personal | Ayuda Tío Walter
+D2D95911DDB4 | 01-03-2026 | RODRIGO | 1500000 | Gasto personal | Pago de tarjeta Ueno (comida, etc.)
+43ACE90D3132 | 01-03-2026 | SOL | 2000000 | Gasto personal | Regalo Cumple Mi amor
+ACD273F61646 | 01-03-2026 | SOL | 130000 | Gasto personal | Limpieza del frente de la casa
+A8DBF48EA477 | 01-03-2026 | SOL | 6190000 | Inversión personal | Alemania Cell, Macbook Neo
+90A369194BC6 | 01-03-2026 | SOL | 2250000 | Inversión personal | Olier, mesa
+209C8F48CA22 | 01-03-2026 | SOL | 1650000 | Inversión personal | Olier, aspiradora

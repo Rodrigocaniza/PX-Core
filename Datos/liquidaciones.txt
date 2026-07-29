@@ -20,27 +20,6 @@
 4224327 | Nidia Beatriz Silva | 05-2026 | 30 | 2899048 | 2899048 | 0 | 2787524 | Importada desde Excel | 0 | 0 | 0 | 0 | 650000 | 0 | 538476
 5449164 | Dahiana Araceli Jousson Ayala | 05-2026 | 30 | 2899048 | 2899048 | 0 | 2092648 | Importada desde Excel | 0 | 0 | 0 | 0 | 950000 | 0 | 143600
 111 | Fiamma Mencia | 05-2026 | 0 | 250000 | 250000 | 0 | 250000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-6133468 | Sol Natalia Blaires Florentin | 02-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
-5201642 | Rodrigo David Cañiza Villalba | 02-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
-4858391 | Leticia Ines Rojas Olivero | 02-2026 | 30 | 2899048 | 2899048 | 0 | 4400848 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 1501800
-5215474 | Liz Paola Olivero Toledo | 02-2026 | 30 | 2899048 | 2899048 | 0 | 2900848 | Importada desde Excel | 0 | 0 | 0 | 0 | 700000 | 0 | 701800
-4224327 | Nidia Beatriz Silva | 02-2026 | 30 | 2899048 | 2899048 | 0 | 2715080 | Importada desde Excel | 0 | 0 | 0 | 0 | 950000 | 0 | 766032
-5449164 | Dahiana Araceli Jousson Ayala | 02-2026 | 30 | 2899048 | 2899048 | 0 | 2630828 | Importada desde Excel | 0 | 0 | 0 | 0 | 900000 | 0 | 631780
-1 | Rodrigo Fernando Sarria Keim | 02-2026 | 0 | 2705000 | 2705000 | 0 | 2705000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-11 | Raul Cañiza Bogado | 02-2026 | 0 | 1400000 | 1400000 | 0 | 1400000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-HIST-MARIA-CECILIA | Maria Cecilia Mino | 02-2026 | 0 | 500000 | 500000 | 0 | 500000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-6133468 | Sol Natalia Blaires Florentin | 03-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
-5201642 | Rodrigo David Cañiza Villalba | 03-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
-4858391 | Leticia Ines Rojas Olivero | 03-2026 | 30 | 2899048 | 2899048 | 0 | 4209593 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 1310545
-5215474 | Liz Paola Olivero Toledo | 03-2026 | 30 | 2899048 | 2899048 | 0 | 2841208 | Importada desde Excel | 0 | 0 | 0 | 0 | 800000 | 0 | 742160
-4224327 | Nidia Beatriz Silva | 03-2026 | 30 | 2899048 | 2899048 | 0 | 2989305 | Importada desde Excel | 0 | 0 | 0 | 0 | 900000 | 0 | 990257
-5449164 | Dahiana Araceli Jousson Ayala | 03-2026 | 30 | 2899048 | 2899048 | 0 | 2454838 | Importada desde Excel | 0 | 0 | 0 | 0 | 900000 | 0 | 455790
-5511069 | Anayeli Gonzalez | 03-2026 | 0 | 2500000 | 2500000 | 0 | 2500000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-1 | Rodrigo Fernando Sarria Keim | 03-2026 | 0 | 2400000 | 2400000 | 0 | 2400000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-11 | Raul Cañiza Bogado | 03-2026 | 0 | 1400000 | 1400000 | 0 | 1400000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-4789616 | Alucard Zacchino | 03-2026 | 0 | 1900000 | 1900000 | 0 | 1900000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-HIST-MARIA-CECILIA | Maria Cecilia Mino | 03-2026 | 0 | 200000 | 200000 | 0 | 200000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
-111 | Fiamma Mencia | 03-2026 | 0 | 200000 | 200000 | 0 | 200000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
 6133468 | Sol Natalia Blaires Florentin | 04-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
 5201642 | Rodrigo David Cañiza Villalba | 04-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
 4858391 | Leticia Ines Rojas Olivero | 04-2026 | 30 | 2899048 | 2899048 | 0 | 3662408 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 763360
@@ -61,3 +40,25 @@ HIST-MARIA-CECILIA | Maria Cecilia Mino | 03-2026 | 0 | 200000 | 200000 | 0 | 20
 1 | Rodrigo Fernando Sarria Keim | 01-2026 | 0 | 2675000 | 2675000 | 0 | 2675000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
 11 | Raul Cañiza Bogado | 01-2026 | 0 | 1600000 | 1600000 | 0 | 1600000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
 HIST-MARIA-CECILIA | Maria Cecilia Mino | 01-2026 | 0 | 300000 | 300000 | 0 | 300000 | Monto manual | 0 | 0 | 0 | 0 | 0 | 0 | 0
+6133468 | Sol Natalia Blaires Florentin | 02-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
+5201642 | Rodrigo David Cañiza Villalba | 02-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
+4858391 | Leticia Ines Rojas Olivero | 02-2026 | 30 | 2899048 | 2899048 | 0 | 3900848 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 1001800
+1 | Rodrigo Fernando Sarria Keim | 02-2026 | 30 | 600000 | 600000 | 0 | 2705000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 2105000
+11 | Raul Cañiza Bogado | 02-2026 | 30 | 400000 | 400000 | 0 | 1400000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 1000000
+5215474 | Liz Paola Olivero Toledo | 02-2026 | 30 | 2899048 | 2899048 | 0 | 2900848 | Importada desde Excel | 0 | 0 | 0 | 0 | 700000 | 0 | 701800
+4224327 | Nidia Beatriz Silva | 02-2026 | 30 | 2899048 | 2899048 | 0 | 2715080 | Importada desde Excel | 0 | 0 | 0 | 0 | 950000 | 0 | 766032
+5449164 | Dahiana Araceli Jousson Ayala | 02-2026 | 30 | 2899048 | 2899048 | 0 | 2630828 | Importada desde Excel | 0 | 0 | 0 | 0 | 900000 | 0 | 631780
+222 | Maria Cecilia Mino | 02-2026 | 30 | 100000 | 100000 | 0 | 500000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 400000
+333 | Leticia (reemplazo temporal, vacaciones de Liz) | 02-2026 | 30 | 500000 | 500000 | 0 | 500000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
+6133468 | Sol Natalia Blaires Florentin | 03-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
+5201642 | Rodrigo David Cañiza Villalba | 03-2026 | 30 | 8000000 | 8000000 | 0 | 8000000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0
+4858391 | Leticia Ines Rojas Olivero | 03-2026 | 30 | 2899048 | 2899048 | 0 | 4209593 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 1310545
+5511069 | Anayeli Gonzalez | 03-2026 | 30 | 500000 | 500000 | 0 | 2500000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 2000000
+1 | Rodrigo Fernando Sarria Keim | 03-2026 | 30 | 600000 | 600000 | 0 | 2400000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 1800000
+11 | Raul Cañiza Bogado | 03-2026 | 30 | 400000 | 400000 | 0 | 1400000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 1000000
+4789616 | Alucard Zacchino | 03-2026 | 30 | 100000 | 100000 | 0 | 1900000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 1800000
+5215474 | Liz Paola Olivero Toledo | 03-2026 | 30 | 2899048 | 2899048 | 0 | 2841208 | Importada desde Excel | 0 | 0 | 0 | 0 | 800000 | 0 | 742160
+4224327 | Nidia Beatriz Silva | 03-2026 | 30 | 2899048 | 2899048 | 0 | 2989305 | Importada desde Excel | 0 | 0 | 0 | 0 | 900000 | 0 | 990257
+5449164 | Dahiana Araceli Jousson Ayala | 03-2026 | 30 | 2899048 | 2899048 | 0 | 2454838 | Importada desde Excel | 0 | 0 | 0 | 0 | 900000 | 0 | 455790
+222 | Maria Cecilia Mino | 03-2026 | 30 | 100000 | 100000 | 0 | 200000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 100000
+111 | Fiamma Mencia | 03-2026 | 30 | 200000 | 200000 | 0 | 200000 | Importada desde Excel | 0 | 0 | 0 | 0 | 0 | 0 | 0

@@ -31,6 +31,7 @@ import Movimientos
 import Socios
 import Informes
 import ImportadorExcel
+import Facturas
 from datos import guardar_datos, leer_datos
 from interfaz_rrhh import abrir_recursos_humanos
 
@@ -1098,6 +1099,7 @@ class AplicacionPXCore(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
 
         self.botones_menu = {}
+        self.orden_tablas = {}
         self.campos_movimiento = {}
         self.movimientos_sesion = []
         self.tipo_movimiento_actual = "Ingreso"
@@ -1379,7 +1381,7 @@ class AplicacionPXCore(ctk.CTk):
             border_width=0,
         )
         barra.grid(row=0, column=0, sticky="nsew")
-        barra.grid_rowconfigure(9, weight=1)
+        barra.grid_rowconfigure(10, weight=1)
         barra.grid_propagate(False)
 
         marca = ctk.CTkFrame(
@@ -1433,6 +1435,10 @@ class AplicacionPXCore(ctk.CTk):
                 lambda: self.mostrar_seccion("Recursos Humanos"),
             ),
             ("Socios", lambda: self.mostrar_seccion("Socios")),
+            (
+                "Facturas",
+                lambda: Facturas.abrir_facturas(self),
+            ),
             ("Informes", lambda: Informes.mostrar_informes(self)),
         ]
 
@@ -4258,6 +4264,7 @@ class AplicacionPXCore(ctk.CTk):
         self.marcar_seleccion("Movimientos")
         self.pagina_adicionales = 0
         self.posicion_adicional_seleccionado = None
+        self.orden_tablas.pop("adicionales", None)
 
         pagina = ctk.CTkFrame(
             self.contenedor,
@@ -4869,6 +4876,27 @@ class AplicacionPXCore(ctk.CTk):
                 anchor=ancla,
                 stretch=True,
             )
+        self._bind_orden_columnas(
+            tabla=self.tabla_adicionales,
+            clave="adicionales",
+            titulos={
+                "fecha": "Fecha",
+                "tipo": "Tipo",
+                "concepto": "Concepto",
+                "monto": "Monto",
+                "observacion": "Observación",
+            },
+            tipos={
+                "fecha": "fecha",
+                "tipo": "texto",
+                "concepto": "texto",
+                "monto": "monto",
+                "observacion": "texto",
+            },
+            campos={"concepto": "descripcion"},
+            atributo_lista="adicionales_filtrados",
+            callback_actualizar=self._actualizar_tras_orden_adicionales,
+        )
 
         barra = ttk.Scrollbar(
             bloque_tabla,
@@ -5002,6 +5030,10 @@ class AplicacionPXCore(ctk.CTk):
         )
         self.boton_eliminar_adicional.grid(row=0, column=2)
 
+    def _actualizar_tras_orden_adicionales(self):
+        self.pagina_adicionales = 0
+        self.actualizar_tabla_adicionales()
+
     def aplicar_filtros_adicionales(self):
         try:
             lineas = Movimientos.leer_datos(
@@ -5025,6 +5057,7 @@ class AplicacionPXCore(ctk.CTk):
             text="Filtros aplicados.",
             text_color=COLOR_VERDE,
         )
+        self._reaplicar_orden_tabla("adicionales")
         self.actualizar_tabla_adicionales()
 
     def mostrar_todos_adicionales(self):
@@ -5900,6 +5933,7 @@ class AplicacionPXCore(ctk.CTk):
         self.marcar_seleccion("Movimientos")
         self.pagina_inversiones = 0
         self.posicion_inversion_seleccionada = None
+        self.orden_tablas.pop("inversiones", None)
 
         pagina = ctk.CTkFrame(
             self.contenedor,
@@ -6345,6 +6379,23 @@ class AplicacionPXCore(ctk.CTk):
                 anchor=ancla,
                 stretch=True,
             )
+        self._bind_orden_columnas(
+            tabla=self.tabla_inversiones,
+            clave="inversiones",
+            titulos={
+                "fecha": "Fecha",
+                "descripcion": "Descripción",
+                "monto": "Monto",
+            },
+            tipos={
+                "fecha": "fecha",
+                "descripcion": "texto",
+                "monto": "monto",
+            },
+            campos={},
+            atributo_lista="inversiones_filtradas",
+            callback_actualizar=self._actualizar_tras_orden_inversiones,
+        )
 
         barra = ttk.Scrollbar(
             bloque_tabla,
@@ -6474,6 +6525,135 @@ class AplicacionPXCore(ctk.CTk):
         )
         self.boton_eliminar_inversion.grid(row=0, column=2)
 
+    def _bind_orden_columnas(
+        self, tabla, clave, titulos, tipos, campos,
+        atributo_lista, callback_actualizar, resolutores=None,
+    ):
+        """Registra clic-en-encabezado para ordenar una tabla ttk.Treeview.
+
+        - tabla: el widget Treeview.
+        - clave: nombre único para guardar el estado (columna/asc) de esta
+          tabla en self.orden_tablas.
+        - titulos: dict {columna: "Título visible"} (sin flechas).
+        - tipos: dict {columna: "fecha" | "monto" | "texto"}.
+        - campos: dict {columna: "clave_en_el_dict_de_datos"}; úsalo cuando
+          el nombre de columna no coincide con la clave real del registro
+          (ej. columna "concepto" pero el dato vive en datos["descripcion"]).
+        - atributo_lista: nombre (string) del atributo de instancia que
+          contiene la lista filtrada [(posicion, datos), ...].
+        - callback_actualizar: función sin argumentos que redibuja la tabla
+          (ya se encarga de resetear la página a 0 si corresponde).
+        - resolutores: dict opcional {columna: función(datos) -> valor} para
+          columnas cuyo valor no vive directo en el dict (ej. el nombre de
+          un socio que se busca por id). Tiene prioridad sobre "campos".
+        """
+        self.orden_tablas[clave] = {
+            "columna": None,
+            "asc": True,
+            "tabla": tabla,
+            "titulos": titulos,
+            "tipos": tipos,
+            "campos": campos,
+            "resolutores": resolutores or {},
+            "atributo_lista": atributo_lista,
+            "callback_actualizar": callback_actualizar,
+        }
+        for columna in titulos:
+            tabla.heading(
+                columna,
+                command=lambda c=columna, k=clave: self._ordenar_tabla(k, c),
+            )
+
+    def _clave_orden_tabla(self, tipo, campo, resolutor=None):
+        if resolutor is not None:
+            if tipo == "fecha":
+                def clave(item):
+                    try:
+                        return Movimientos.convertir_fecha(
+                            resolutor(item[1]) or ""
+                        )
+                    except (ValueError, TypeError):
+                        return datetime.min
+            elif tipo == "monto":
+                def clave(item):
+                    valor = resolutor(item[1])
+                    return valor if isinstance(valor, (int, float)) else 0
+            else:
+                def clave(item):
+                    return str(resolutor(item[1]) or "").strip().lower()
+            return clave
+
+        if tipo == "fecha":
+            def clave(item):
+                try:
+                    return Movimientos.convertir_fecha(
+                        item[1].get(campo, "")
+                    )
+                except (ValueError, TypeError):
+                    return datetime.min
+        elif tipo == "periodo":
+            def clave(item):
+                try:
+                    return datetime.strptime(
+                        item[1].get(campo, ""), "%m-%Y"
+                    )
+                except (ValueError, TypeError):
+                    return datetime.min
+        elif tipo == "monto":
+            def clave(item):
+                valor = item[1].get(campo, 0)
+                return valor if isinstance(valor, (int, float)) else 0
+        else:
+            def clave(item):
+                return str(item[1].get(campo, "") or "").strip().lower()
+        return clave
+
+    def _ordenar_tabla(self, clave_estado, columna, alternar=True):
+        estado = self.orden_tablas.get(clave_estado)
+        if estado is None:
+            return
+
+        if alternar:
+            if estado["columna"] == columna:
+                estado["asc"] = not estado["asc"]
+            else:
+                estado["columna"] = columna
+                estado["asc"] = True
+
+        columna_activa = estado["columna"]
+        if columna_activa is None:
+            return
+
+        lista = getattr(self, estado["atributo_lista"])
+        tipo = estado["tipos"].get(columna_activa, "texto")
+        campo = estado["campos"].get(columna_activa, columna_activa)
+        resolutor = estado["resolutores"].get(columna_activa)
+        lista.sort(
+            key=self._clave_orden_tabla(tipo, campo, resolutor),
+            reverse=not estado["asc"],
+        )
+
+        flecha = " ▲" if estado["asc"] else " ▼"
+        for nombre_col, titulo in estado["titulos"].items():
+            estado["tabla"].heading(
+                nombre_col,
+                text=titulo + (
+                    flecha if nombre_col == columna_activa else ""
+                ),
+            )
+
+        if alternar and estado["callback_actualizar"] is not None:
+            estado["callback_actualizar"]()
+
+    def _reaplicar_orden_tabla(self, clave_estado):
+        estado = self.orden_tablas.get(clave_estado)
+        if estado and estado["columna"] is not None:
+            self._ordenar_tabla(clave_estado, estado["columna"], alternar=False)
+
+    def _actualizar_tras_orden_inversiones(self):
+        self.pagina_inversiones = 0
+        self.actualizar_tabla_inversiones()
+
     def aplicar_filtros_inversiones(self):
         try:
             lineas = Movimientos.leer_datos(
@@ -6497,6 +6677,7 @@ class AplicacionPXCore(ctk.CTk):
             text="Filtros aplicados.",
             text_color=COLOR_VERDE,
         )
+        self._reaplicar_orden_tabla("inversiones")
         self.actualizar_tabla_inversiones()
 
     def mostrar_todas_inversiones(self):
@@ -9415,6 +9596,8 @@ class AplicacionPXCore(ctk.CTk):
     def mostrar_socios(self, pestana_inicial="Resumen mensual"):
         self.limpiar_contenedor()
         self.marcar_seleccion("Socios")
+        self.orden_tablas.pop("retiros", None)
+        self.orden_tablas.pop("fondos", None)
 
         pagina = ctk.CTkScrollableFrame(
             self.contenedor,
@@ -10160,6 +10343,33 @@ class AplicacionPXCore(ctk.CTk):
                 anchor=ancla,
                 stretch=True,
             )
+        self._bind_orden_columnas(
+            tabla=self.tabla_retiros,
+            clave="retiros",
+            titulos={
+                "fecha": "Fecha",
+                "socio": "Socio",
+                "tipo": "Tipo",
+                "monto": "Monto",
+                "observacion": "Observación",
+            },
+            tipos={
+                "fecha": "fecha",
+                "socio": "texto",
+                "tipo": "texto",
+                "monto": "monto",
+                "observacion": "texto",
+            },
+            campos={},
+            resolutores={
+                "socio": lambda retiro: (
+                    Socios.obtener_socio(retiro.get("socio_id"))
+                    or {}
+                ).get("nombre", ""),
+            },
+            atributo_lista="retiros_filtrados",
+            callback_actualizar=self._actualizar_tras_orden_retiros,
+        )
         self.tabla_retiros.pack(
             fill="both",
             expand=True,
@@ -10289,6 +10499,11 @@ class AplicacionPXCore(ctk.CTk):
                 and (tipo == "Todos" or item[1]["tipo"] == tipo)
             )
         ]
+        self.pagina_retiros = 0
+        self._reaplicar_orden_tabla("retiros")
+        self.dibujar_tabla_retiros()
+
+    def _actualizar_tras_orden_retiros(self):
         self.pagina_retiros = 0
         self.dibujar_tabla_retiros()
 
@@ -10717,6 +10932,30 @@ class AplicacionPXCore(ctk.CTk):
                 anchor=ancla,
                 stretch=True,
             )
+        self._bind_orden_columnas(
+            tabla=self.tabla_fondos,
+            clave="fondos",
+            titulos={
+                "periodo": "Período",
+                "calculado": "Calculado",
+                "aplicado": "Aplicado",
+                "modo": "Modo",
+                "observacion": "Observación",
+            },
+            tipos={
+                "periodo": "periodo",
+                "calculado": "monto",
+                "aplicado": "monto",
+                "modo": "texto",
+                "observacion": "texto",
+            },
+            campos={
+                "calculado": "monto_calculado",
+                "aplicado": "monto_aplicado",
+            },
+            atributo_lista="fondos_filtrados",
+            callback_actualizar=self._actualizar_tras_orden_fondos,
+        )
         self.tabla_fondos.pack(
             fill="both",
             expand=True,
@@ -10791,6 +11030,10 @@ class AplicacionPXCore(ctk.CTk):
 
         self.actualizar_fondos_graficos()
 
+    def _actualizar_tras_orden_fondos(self):
+        self.pagina_fondos = 0
+        self.dibujar_tabla_fondos()
+
     def actualizar_fondos_graficos(self):
         try:
             self.fondos_filtrados = Socios.ordenar_registros_fondo()
@@ -10802,6 +11045,7 @@ class AplicacionPXCore(ctk.CTk):
             )
             return
         self.pagina_fondos = 0
+        self._reaplicar_orden_tabla("fondos")
         self.dibujar_tabla_fondos()
 
     def dibujar_tabla_fondos(self):

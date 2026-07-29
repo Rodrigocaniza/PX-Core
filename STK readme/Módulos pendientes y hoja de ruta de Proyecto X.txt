@@ -1,0 +1,1074 @@
+# 27. Módulos pendientes y hoja de ruta de Proyecto X
+
+Esta sección reúne las funciones, módulos y mejoras que fueron planteadas durante el desarrollo, pero que todavía no están completamente implementadas.
+
+No todos los puntos tienen la misma prioridad. Algunos forman parte del núcleo inmediato de BC Gestión y otros corresponden a una ampliación futura de Proyecto X.
+
+---
+
+## 27.1. Estado general del desarrollo
+
+Proyecto X ya cuenta con una base funcional que permite avanzar sobre la gestión financiera y administrativa.
+
+Entre las funciones que ya fueron desarrolladas o probadas se encuentran:
+
+* Menú principal modular.
+* Registro de ideas.
+* Registro y administración de proyectos.
+* Registro básico de horas.
+* Registro de movimientos.
+* Visualización de movimientos.
+* Modificación de movimientos.
+* Eliminación de movimientos.
+* Importación de movimientos desde Excel.
+* Filtrado por período.
+* Eliminación completa de períodos importados incorrectamente.
+* Sincronización del proyecto mediante GitHub.
+* Uso del sistema desde diferentes computadoras mediante `git pull` y `git push`.
+
+La función de eliminación de períodos ya fue probada y funciona correctamente.
+
+A partir de esta base, el desarrollo debe continuar por módulos, evitando intentar construir todo el sistema simultáneamente.
+
+---
+
+# 28. Pendientes inmediatos del núcleo financiero
+
+## 28.1. Consolidar la carga diaria
+
+La carga de movimientos debe organizarse principalmente por fecha.
+
+El flujo esperado es:
+
+1. Seleccionar la fecha.
+2. Registrar todo lo ocurrido ese día.
+3. Ingresar ingresos.
+4. Ingresar egresos.
+5. Registrar transferencias internas.
+6. Registrar depósitos.
+7. Revisar el resumen diario.
+8. Confirmar la carga.
+
+Esto reemplazaría la necesidad de ingresar repetidamente la fecha en cada operación.
+
+También permitiría verificar fácilmente si un día quedó completamente cargado.
+
+---
+
+## 28.2. Unificar la gestión de movimientos
+
+Las opciones relacionadas con movimientos deben estar agrupadas dentro de un único menú.
+
+El módulo debería contener:
+
+1. Registrar movimientos del día.
+2. Ver movimientos.
+3. Modificar movimientos.
+4. Eliminar movimientos.
+5. Buscar o filtrar movimientos.
+6. Importar movimientos.
+7. Administrar períodos.
+8. Volver.
+
+La opción **Volver** debe mantenerse siempre como número **0** en todos los menús del sistema.
+
+---
+
+## 28.3. Filtros generales por mes y año
+
+Todo listado que pueda crecer debe solicitar primero el período que se desea consultar.
+
+Ejemplo:
+
+**07-2026**
+
+Este criterio debe aplicarse a:
+
+* Movimientos.
+* Préstamos.
+* Cuotas.
+* Retiros de socios.
+* Gastos fijos.
+* Informes.
+* Cierres.
+* Depósitos.
+* Tarjetas de crédito.
+* Mantenimientos realizados.
+* Planillas de asociaciones.
+
+El objetivo es evitar listas excesivamente largas y facilitar la revisión mensual.
+
+---
+
+## 28.4. Validación de movimientos duplicados
+
+El sistema debe identificar posibles duplicaciones, especialmente después de una importación.
+
+Podría comparar:
+
+* Fecha.
+* Monto.
+* Tipo.
+* Descripción.
+* Cuenta.
+* Unidad de negocio.
+* Número de comprobante.
+
+El sistema no debería bloquear automáticamente todos los movimientos iguales, porque pueden existir operaciones legítimamente repetidas.
+
+Debe mostrar una advertencia para que el usuario decida.
+
+---
+
+## 28.5. Numeración interna de movimientos
+
+Cada movimiento debe recibir un identificador único.
+
+Ejemplo:
+
+**MOV-2026-000154**
+
+Este código permitiría:
+
+* Buscar una operación.
+* Modificarla.
+* Relacionarla con préstamos.
+* Relacionarla con socios.
+* Vincularla a documentos.
+* Registrar auditorías.
+* Evitar confusión entre movimientos similares.
+
+---
+
+# 29. Módulo de cuentas y saldos
+
+Actualmente se registran movimientos, pero todavía se necesita desarrollar un control completo de cuentas.
+
+## 29.1. Cuentas previstas
+
+El sistema debería poder administrar:
+
+* Caja PC.
+* Caja P2.
+* Banco de PC.
+* Banco de P2.
+* Cuentas generales de BC Inversiones EAS.
+* Cuenta corriente.
+* Caja de ahorro.
+* Fondo de estabilidad.
+* Tarjetas de crédito.
+* Cuenta de cada socio.
+* Cuentas de préstamos.
+* Otras cuentas que se agreguen posteriormente.
+
+## 29.2. Funciones pendientes
+
+* Crear cuentas.
+* Modificar cuentas.
+* Desactivar cuentas.
+* Registrar saldo inicial.
+* Consultar saldo actual.
+* Ver historial.
+* Conciliar saldo del sistema contra saldo real.
+* Registrar ajustes.
+* Identificar diferencias.
+
+## 29.3. Conciliación
+
+La conciliación debe permitir comparar:
+
+* Saldo calculado por Proyecto X.
+* Saldo de caja contado físicamente.
+* Saldo informado por el banco.
+* Diferencia encontrada.
+* Motivo del ajuste.
+
+Los ajustes deben quedar identificados y no mezclarse silenciosamente con ingresos o gastos normales.
+
+---
+
+# 30. Módulo de categorías y gastos fijos
+
+## 30.1. Administración de categorías
+
+Debe crearse un módulo para administrar categorías y subcategorías.
+
+Ejemplo:
+
+### Categoría
+
+Personal.
+
+### Subcategorías
+
+* Salario.
+* Comisión.
+* Horas extra.
+* IPS.
+* Bonificación.
+* Viático.
+
+Otro ejemplo:
+
+### Categoría
+
+Servicios.
+
+### Subcategorías
+
+* Electricidad.
+* Internet.
+* Agua.
+* Telefonía.
+* Software.
+
+El usuario debe poder:
+
+* Agregar.
+* Modificar.
+* Desactivar.
+* Reordenar.
+* Asociar una categoría a una unidad de negocio.
+* Definir si afecta resultados.
+
+---
+
+## 30.2. Gastos fijos
+
+Debe existir una lista editable de gastos que normalmente se repiten todos los meses.
+
+Cada gasto fijo debería contener:
+
+* Nombre.
+* Categoría.
+* Unidad.
+* Monto estimado.
+* Día habitual de vencimiento.
+* Medio de pago.
+* Estado del mes.
+* Monto pagado.
+* Diferencia.
+* Observación.
+
+El sistema debe indicar:
+
+* Pendiente.
+* Pagado.
+* Vencido.
+* Pagado parcialmente.
+* No aplicable durante ese período.
+
+---
+
+# 31. Módulo de préstamos y financiación
+
+El módulo de préstamos todavía debe consolidarse como una unidad independiente.
+
+Debe permitir registrar tanto:
+
+* Préstamos tomados por la empresa.
+* Préstamos concedidos a terceros.
+* Compras financiadas.
+* Obligaciones en cuotas.
+* Deudas con socios.
+* Anticipos.
+
+## 31.1. Información requerida
+
+* Nombre del préstamo.
+* Acreedor.
+* Deudor.
+* Fecha de inicio.
+* Capital recibido.
+* Total a devolver.
+* Cantidad de cuotas.
+* Monto de cuota.
+* Frecuencia.
+* Cuota inicial.
+* Cuotas pagadas.
+* Cuotas pendientes.
+* Saldo pendiente.
+* Fecha del próximo vencimiento.
+* Observaciones.
+
+## 31.2. Registro de pagos
+
+Al pagar una cuota, el sistema debe:
+
+1. Registrar el movimiento financiero.
+2. Aumentar las cuotas pagadas.
+3. Reducir las cuotas pendientes.
+4. Actualizar el saldo.
+5. Calcular el próximo vencimiento.
+6. Mantener un historial.
+
+Cuando sea posible, se debe diferenciar:
+
+* Capital amortizado.
+* Interés.
+* Seguro.
+* Comisión.
+* Otros gastos.
+
+---
+
+# 32. Módulo de tarjetas de crédito
+
+Las tarjetas requieren un control específico para evitar duplicaciones.
+
+## 32.1. Tarjetas previstas
+
+El sistema debe admitir varias tarjetas, por ejemplo:
+
+* Visa Oro.
+* Visa Clásica.
+* Otras tarjetas futuras.
+
+También debe permitir registrar pagos realizados mediante Bancard u otro canal.
+
+## 32.2. Información necesaria
+
+* Nombre de la tarjeta.
+* Banco.
+* Últimos cuatro dígitos.
+* Fecha de cierre.
+* Fecha de vencimiento.
+* Límite.
+* Saldo utilizado.
+* Compras del período.
+* Pago realizado.
+* Saldo pendiente.
+* Observación.
+
+## 32.3. Criterio contable
+
+Debe evitarse registrar como gasto dos veces:
+
+1. La compra realizada con tarjeta.
+2. El pago posterior del resumen.
+
+La compra puede representar el gasto.
+
+El pago del resumen representa la cancelación de la deuda contra la tarjeta.
+
+---
+
+# 33. Módulo de socios
+
+Este es uno de los módulos prioritarios pendientes.
+
+Debe administrar la relación financiera entre BC Inversiones EAS y sus socios.
+
+## 33.1. Socios iniciales
+
+* Sol: participación del 65 %.
+* Rodrigo: participación del 35 %.
+
+## 33.2. Conceptos que deben mantenerse separados
+
+* Sueldo gerencial.
+* Utilidad asignada.
+* Retiro de dinero.
+* Aporte de capital.
+* Préstamo del socio.
+* Devolución de préstamo.
+* Anticipo.
+* Compra o venta de bienes entre el socio y la EAS.
+
+## 33.3. Cálculo mensual
+
+Como referencia inicial:
+
+**Saldo del socio = sueldo gerencial + utilidad asignada + créditos a favor – retiros – anticipos**
+
+El resultado debe indicar:
+
+* Saldo a favor del socio.
+* Saldo a favor de la empresa.
+* Saldo compensado.
+
+## 33.4. Retiros mensuales
+
+El sistema debe permitir registrar cada retiro indicando:
+
+* Socio.
+* Fecha.
+* Monto.
+* Cuenta de origen.
+* Medio de retiro.
+* Motivo.
+* Observación.
+* Período al que corresponde.
+
+También debe permitir diferenciar un retiro ordinario de una distribución formal de utilidades.
+
+---
+
+# 34. Fondo de estabilidad
+
+El fondo de estabilidad debe transformarse en un módulo propio.
+
+## 34.1. Política inicial
+
+La política financiera actual contempla retener aproximadamente el:
+
+**40 % de la utilidad**
+
+Este porcentaje debe ser editable.
+
+## 34.2. Información mensual
+
+El módulo debe mostrar:
+
+* Saldo inicial.
+* Utilidad del período.
+* Porcentaje retenido.
+* Aporte calculado.
+* Aportes extraordinarios.
+* Retiros.
+* Saldo final.
+* Ubicación real del dinero.
+* Observaciones.
+
+## 34.3. Relación con otros módulos
+
+El fondo debe vincularse con:
+
+* Cierre mensual.
+* Movimientos.
+* Cuentas.
+* Socios.
+* Informes.
+
+Una transferencia al fondo no debería considerarse un gasto operativo.
+
+---
+
+# 35. Cierre mensual
+
+El cierre mensual constituye uno de los desarrollos centrales pendientes.
+
+## 35.1. Proceso esperado
+
+1. Seleccionar período.
+2. Verificar que estén cargados todos los movimientos.
+3. Revisar movimientos sin categoría.
+4. Revisar posibles duplicados.
+5. Conciliar cajas.
+6. Conciliar bancos.
+7. Revisar gastos fijos pendientes.
+8. Revisar préstamos y cuotas.
+9. Calcular ingresos.
+10. Calcular egresos.
+11. Calcular utilidad.
+12. Calcular margen.
+13. Calcular fondo de estabilidad.
+14. Calcular participación de socios.
+15. Registrar retiros.
+16. Generar informe.
+17. Cerrar período.
+
+## 35.2. Indicadores principales
+
+* Ventas.
+* Otros ingresos.
+* Gastos operativos.
+* Gastos administrativos.
+* Resultado operativo.
+* Utilidad.
+* Margen porcentual.
+* Resultado de PC.
+* Resultado de P2.
+* Resultado consolidado.
+* Fondo de estabilidad.
+* Saldo de socios.
+* Deudas pendientes.
+
+## 35.3. Protocolo de cierre
+
+Debe definirse un protocolo mensual estándar para que todos los períodos sean procesados siguiendo los mismos pasos.
+
+El protocolo debe quedar incorporado dentro del sistema como una lista de comprobación.
+
+---
+
+# 36. Informes mensuales
+
+El sistema necesita generar informes automáticos, probablemente en PDF y Excel.
+
+## 36.1. Primera página
+
+La primera página debe funcionar como un tablero ejecutivo.
+
+Debe mostrar:
+
+* Total de ingresos.
+* Total de egresos.
+* Utilidad.
+* Margen.
+* Variación contra el período anterior.
+* Fondo de estabilidad.
+* Resultado por sucursal.
+* Gastos principales.
+* Situación de socios.
+* Alertas principales.
+
+## 36.2. Secciones posteriores
+
+* Detalle diario.
+* Ingresos por categoría.
+* Egresos por categoría.
+* Resultado por unidad.
+* Gastos fijos.
+* Salarios.
+* Comisiones.
+* Préstamos.
+* Tarjetas.
+* Retiros.
+* Saldos.
+* Observaciones.
+
+## 36.3. Diseño
+
+El informe debe tener un diseño:
+
+* Profesional.
+* Minimalista.
+* Más visual.
+* Menos opaco.
+* Fácil de presentar a socios.
+* Fácil de interpretar.
+* Con gráficos solamente cuando aporten información.
+
+---
+
+# 37. Panel principal o tablero de control
+
+En una etapa posterior, Proyecto X debe abrir con un tablero general.
+
+El panel debería mostrar:
+
+* Dinero disponible.
+* Ingresos del mes.
+* Egresos del mes.
+* Utilidad provisoria.
+* Gastos pendientes.
+* Próximos vencimientos.
+* Cuotas pendientes.
+* Fondo de estabilidad.
+* Retiros de socios.
+* Alertas de mantenimiento.
+* Proyectos pendientes.
+
+Este panel debe evitar que el usuario tenga que ingresar a cada módulo para conocer la situación general.
+
+---
+
+# 38. Módulo de planillas de asociaciones
+
+Se encuentra previsto inicialmente para Caja Municipal, aunque debe construirse de manera genérica para admitir otras asociaciones.
+
+## 38.1. Datos de la asociación
+
+* Nombre.
+* RUC o identificación.
+* Contacto.
+* Condiciones del convenio.
+* Día de presentación.
+* Día estimado de cobro.
+* Observaciones.
+
+## 38.2. Datos de cada beneficiario
+
+* Número de legajo.
+* Nombre.
+* Documento.
+* Monto total.
+* Número total de cuotas.
+* Cuotas restantes.
+* Monto de cuota.
+* Saldo pendiente.
+* Mes de inicio.
+* Estado.
+
+## 38.3. Generación mensual automática
+
+Al crear el siguiente mes:
+
+* Se reduce una cuota pendiente.
+* Se descuenta el monto de la cuota.
+* Se actualiza el saldo.
+* Se mantienen los beneficiarios activos.
+* Se identifican las últimas cuotas.
+* Se cierran los registros cancelados.
+
+## 38.4. Documento generado
+
+La planilla debe mostrar:
+
+* Asociación.
+* Mes correspondiente.
+* Listado de beneficiarios.
+* Total a cobrar.
+* Total expresado en letras en guaraníes.
+* Espacio para firma o sello.
+* Historial de planillas anteriores.
+
+---
+
+# 39. Módulo de mantenimiento de equipos
+
+Debe permitir registrar todos los equipos importantes de la empresa.
+
+## 39.1. Equipos posibles
+
+* Biseladora.
+* Lensómetro.
+* Equipos del consultorio.
+* Computadoras.
+* Impresoras.
+* Aires acondicionados.
+* Equipos eléctricos.
+* Herramientas del taller.
+* Equipos futuros.
+
+## 39.2. Datos del equipo
+
+* Identificador.
+* Nombre.
+* Marca.
+* Modelo.
+* Número de serie.
+* Fecha de compra.
+* Valor.
+* Ubicación.
+* Responsable.
+* Último mantenimiento.
+* Próximo mantenimiento.
+* Estado.
+* Observaciones.
+
+## 39.3. Alertas
+
+El sistema debe alertar cuando:
+
+* Falten pocos días para el mantenimiento.
+* El mantenimiento esté vencido.
+* Exista una falla pendiente.
+* Un equipo se encuentre fuera de servicio.
+* Una garantía esté próxima a vencer.
+
+---
+
+# 40. Módulo de inventario y activos
+
+Aunque todavía no se definió como el módulo inicial de stock comercial completo, Proyecto X debería poder controlar activos y bienes relevantes.
+
+## 40.1. Activos empresariales
+
+* Equipos.
+* Muebles.
+* Vehículos.
+* Computadoras.
+* Herramientas.
+* Instalaciones.
+* Mejoras.
+* Bienes aportados a la EAS.
+
+## 40.2. Datos principales
+
+* Descripción.
+* Tipo.
+* Fecha de adquisición.
+* Proveedor.
+* Costo.
+* Propietario original.
+* Forma de incorporación a la EAS.
+* Ubicación.
+* Estado.
+* Documento respaldatorio.
+* Observación.
+
+Este módulo sería especialmente útil para documentar la separación patrimonial y los bienes transferidos a BC Inversiones EAS.
+
+---
+
+# 41. Módulo documental y comprobantes
+
+Cada movimiento debería poder tener documentación asociada.
+
+Ejemplos:
+
+* Factura.
+* Recibo.
+* Comprobante bancario.
+* Contrato.
+* Autofactura.
+* Nota de crédito.
+* Liquidación.
+* Fotografía.
+* Documento interno.
+
+El sistema debería permitir registrar:
+
+* Tipo de documento.
+* Número.
+* Fecha.
+* Emisor.
+* Monto.
+* Archivo digital.
+* Movimiento relacionado.
+* Estado de revisión.
+
+Esto permitiría pasar de un registro financiero básico a un sistema con trazabilidad documental.
+
+---
+
+# 42. Módulo de proveedores y terceros
+
+En una etapa posterior se necesita una base centralizada de terceros.
+
+## Tipos de terceros
+
+* Proveedores.
+* Clientes.
+* Empleados.
+* Asociaciones.
+* Bancos.
+* Laboratorios.
+* Prestamistas.
+* Socios.
+* Profesionales.
+* Prestadores de servicios.
+
+Cada tercero debería contar con:
+
+* Nombre.
+* Documento o RUC.
+* Tipo.
+* Teléfono.
+* Correo.
+* Dirección.
+* Cuenta bancaria.
+* Observaciones.
+* Estado.
+
+Esto evitaría escribir repetidamente los mismos nombres y reduciría errores de carga.
+
+---
+
+# 43. Módulo de personal y liquidaciones
+
+Proyecto X podría incorporar progresivamente el control interno del personal.
+
+## Información posible
+
+* Nombre.
+* Sucursal.
+* Cargo.
+* Salario base.
+* IPS.
+* Comisión.
+* Horas extra.
+* Bonificaciones.
+* Descuentos.
+* Reposos.
+* Anticipos.
+* Total liquidado.
+
+El módulo debe ser principalmente administrativo y no reemplazar obligaciones contables, laborales o fiscales que requieran sistemas oficiales.
+
+Podría utilizarse para preparar y verificar las liquidaciones mensuales.
+
+---
+
+# 44. Módulo de alertas y recordatorios
+
+El sistema debe contar con un centro de alertas.
+
+## Alertas financieras
+
+* Cuota próxima a vencer.
+* Gasto fijo pendiente.
+* Tarjeta próxima al vencimiento.
+* Saldo bancario bajo.
+* Período sin cerrar.
+* Diferencia de caja.
+* Movimiento sin categoría.
+
+## Alertas administrativas
+
+* Mantenimiento pendiente.
+* Documento faltante.
+* Proyecto atrasado.
+* Convenio pendiente de cobro.
+* Asociación próxima a presentar.
+* Equipo con garantía próxima a vencer.
+
+Las alertas deben aparecer en el panel principal.
+
+---
+
+# 45. Registro de horas mejorado
+
+El módulo actual debe ampliarse.
+
+Cada sesión debería registrar:
+
+* Fecha.
+* Hora de inicio.
+* Hora de finalización.
+* Pausas.
+* Duración real.
+* Proyecto.
+* Módulo trabajado.
+* Cambios realizados.
+* Problemas encontrados.
+* Próximo paso.
+
+El sistema podría generar:
+
+* Horas por día.
+* Horas por semana.
+* Horas por proyecto.
+* Horas por módulo.
+* Promedio diario.
+* Costo estimado de desarrollo.
+
+---
+
+# 46. Protocolo de trabajo entre computadoras
+
+Como Proyecto X se trabaja desde la casa y desde la óptica, debe mantenerse un protocolo obligatorio.
+
+## Al comenzar
+
+1. Abrir la carpeta del proyecto.
+2. Abrir la terminal.
+3. Ejecutar `git pull`.
+4. Confirmar que no existan conflictos.
+5. Iniciar el trabajo.
+
+## Al terminar
+
+1. Probar los cambios.
+2. Guardar todos los archivos.
+3. Ejecutar `git status`.
+4. Ejecutar `git add .`.
+5. Crear el commit.
+6. Ejecutar `git push`.
+7. Confirmar que los cambios subieron correctamente.
+8. Registrar el avance y las horas.
+
+Este protocolo evita trabajar sobre versiones antiguas y perder cambios.
+
+---
+
+# 47. Migración futura a base de datos
+
+La versión inicial utiliza archivos simples y planillas porque permiten aprender y construir las funciones progresivamente.
+
+Sin embargo, el sistema deberá migrar a una base de datos.
+
+## Primera opción recomendada
+
+**SQLite**
+
+Ventajas:
+
+* No requiere servidor.
+* Funciona localmente.
+* Se integra bien con Python.
+* Permite relaciones entre módulos.
+* Reduce duplicaciones.
+* Facilita búsquedas.
+* Permite respaldos.
+* Es adecuada para una primera versión empresarial.
+
+## Evolución posterior
+
+Si Proyecto X se convierte en una aplicación usada simultáneamente desde varias computadoras, podría migrarse a:
+
+* PostgreSQL.
+* Una aplicación web.
+* Un servidor local o en la nube.
+* Gestión de usuarios y permisos.
+
+---
+
+# 48. Usuarios y permisos
+
+En una etapa futura deben existir diferentes usuarios.
+
+Ejemplos:
+
+### Administrador
+
+Acceso completo.
+
+### Carga
+
+Puede registrar operaciones, pero no eliminar períodos ni modificar cierres.
+
+### Consulta
+
+Puede ver informes, pero no modificar.
+
+### Socio
+
+Puede visualizar resultados y saldos autorizados.
+
+### Contabilidad
+
+Puede consultar y exportar información financiera.
+
+El sistema debe registrar qué usuario realizó cada modificación.
+
+---
+
+# 49. Copias de seguridad
+
+Debe existir una política automática de respaldo.
+
+El sistema debería generar:
+
+* Copia diaria.
+* Copia antes de importar.
+* Copia antes de eliminar un período.
+* Copia antes de cerrar un mes.
+* Copia antes de actualizar la estructura de datos.
+
+Los respaldos deben incluir:
+
+* Base de datos.
+* Configuración.
+* Documentos.
+* Informes.
+* Archivos importados.
+
+GitHub respalda principalmente el código, pero no debe utilizarse como único respaldo de la información empresarial.
+
+---
+
+# 50. Hoja de ruta sugerida
+
+Para evitar dispersión, el desarrollo debería continuar en este orden:
+
+## Etapa 1. Núcleo de movimientos
+
+* Consolidar carga diaria.
+* Mejorar filtros.
+* Numeración interna.
+* Validaciones.
+* Importación estable.
+* Administración de períodos.
+
+## Etapa 2. Cuentas y conciliación
+
+* Crear cuentas.
+* Calcular saldos.
+* Transferencias internas.
+* Conciliación de cajas y bancos.
+
+## Etapa 3. Gastos fijos y categorías
+
+* Categorías.
+* Subcategorías.
+* Gastos recurrentes.
+* Pendientes y vencimientos.
+
+## Etapa 4. Préstamos y tarjetas
+
+* Préstamos.
+* Cuotas.
+* Tarjetas.
+* Vencimientos.
+* Historial de pagos.
+
+## Etapa 5. Socios y fondo de estabilidad
+
+* Retiros.
+* Sueldos.
+* Utilidades.
+* Participaciones.
+* Fondo de estabilidad.
+* Saldos individuales.
+
+## Etapa 6. Cierre mensual
+
+* Protocolo de revisión.
+* Cálculos.
+* Bloqueo de período.
+* Reapertura controlada.
+
+## Etapa 7. Informes
+
+* Informe mensual.
+* Tablero ejecutivo.
+* Exportación a Excel.
+* Exportación a PDF.
+* Comparación entre meses.
+
+## Etapa 8. Módulos administrativos
+
+* Asociaciones.
+* Mantenimiento.
+* Activos.
+* Documentos.
+* Personal.
+* Proveedores.
+
+## Etapa 9. Profesionalización técnica
+
+* Base de datos.
+* Usuarios.
+* Permisos.
+* Auditoría.
+* Respaldos.
+* Interfaz gráfica o aplicación web.
+
+---
+
+# 51. Criterio para agregar nuevos módulos
+
+Antes de crear un nuevo módulo debe responderse:
+
+1. ¿Qué problema empresarial resuelve?
+2. ¿Quién lo utilizará?
+3. ¿Qué información necesita?
+4. ¿Qué resultado debe producir?
+5. ¿Se relaciona con un módulo existente?
+6. ¿La información ya se carga en otro lugar?
+7. ¿Es prioritario o puede esperar?
+8. ¿Puede desarrollarse sin afectar el núcleo actual?
+
+El objetivo es evitar agregar funciones aisladas que compliquen el sistema sin mejorar realmente el control del negocio.
+
+---
+
+# 52. Resumen de pendientes principales
+
+Los pendientes más importantes de Proyecto X son:
+
+1. Terminar y estabilizar la gestión de movimientos.
+2. Implementar cuentas y saldos.
+3. Desarrollar conciliación de caja y banco.
+4. Crear categorías y gastos fijos.
+5. Completar préstamos y cuotas.
+6. Implementar tarjetas de crédito.
+7. Crear el módulo de socios.
+8. Crear el fondo de estabilidad.
+9. Desarrollar el cierre mensual.
+10. Generar informes profesionales.
+11. Crear el panel principal.
+12. Desarrollar planillas de asociaciones.
+13. Incorporar mantenimiento de equipos.
+14. Registrar activos y bienes de la EAS.
+15. Vincular comprobantes y documentos.
+16. Incorporar alertas.
+17. Mejorar registro de horas y proyectos.
+18. Migrar progresivamente a una base de datos.
+19. Incorporar usuarios, permisos y auditoría.
+20. Crear un sistema confiable de copias de seguridad.
+
+Estos puntos constituyen la hoja de ruta funcional actual de Proyecto X y deben mantenerse documentados para no perder las decisiones tomadas durante el desarrollo.

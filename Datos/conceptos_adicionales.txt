@@ -16,3 +16,58 @@ Egreso|Gastos de la cuenta - P2
 Egreso|Cuota de préstamo
 Egreso|Wacamole - Marketing
 Ingreso|Factory
+Ingreso|Dr. Ricardo Perán (seguros médicos)
+Ingreso|Dra. Sol González (seguros médicos)
+Ingreso|Aso. de Educadores del Ñeembucú
+Ingreso|Dra. Gabi
+Egreso|Alquiler PC
+Egreso|Alquiler P2
+Egreso|Systemsoft (sistema) 5/12
+Egreso|SET (IVA General)
+Egreso|Wacamole, Sara Cogliolo (gestión de redes sociales)
+Egreso|Bancard 1.488.751 hasta Nidia Silva 2.454.166 28/02
+Egreso|Optilab
+Egreso|Combustible viaje a Pilar para llevar a la Dra. 06/02
+Egreso|Kamniz
+Egreso|Combustible viaje a Pilar para llevar a la Dra. 20/02
+Egreso|Servioptica 7.203.000 13/02, 2.540.000 27/02
+Egreso|Combustible viaje a Pilar para llevar a la Dra. 27/02
+Egreso|Comfar
+Egreso|Alcides Acevedo, publicidad radio
+Egreso|Graphis, talonarios de facturas (10), fichas de pacientes, sobres
+Egreso|Mil Sabores, torta cumple Ema
+Egreso|Gustavo Rivas, publicidad programa "Ni locas Ni Santas" (Luli)
+Egreso|Proray, estuches...
+Egreso|Optilab, armazones cuota 1 de 4
+Egreso|Ande
+Egreso|Casa de Plantas, plantas del frente PC
+Egreso|Benito, para pintar sala de espera blindex
+Egreso|Karina Omar, Óptica Fénix
+Egreso|Plumeros
+Egreso|Ferretería Jack
+Egreso|Bepsa POS x2
+Egreso|Surgical Medical Supplies, fluoresceina + envío
+Egreso|Ferretería Jack, luz led para exhibidor y adaptador para monitor de la ofi
+Egreso|Copipunto
+Egreso|Ferretería Jack, cinta doble faz para pegar base de exhibidor, cable para luz led
+Egreso|Systemsoft (sistema) 6/12
+Egreso|SET, IRE (entrega 20% del total y después cuotas)
+Egreso|Gustavo Monzon, Publitec cartel de lona
+Egreso|Servioptica 3.705.000 16/03, 8.019.000 31/03
+Egreso|Combustible para viaje a Pilar (llevar a la dra.) 06/03
+Egreso|Alcides Acevedo, promo radio
+Egreso|Combustible para viaje a Pilar (llevar a la dra.) 26/03
+Egreso|Proray
+Egreso|Comercial Mayor, frascos para limpia cristales, etc.
+Egreso|Optilab, armazones cuota 2 de 4
+Egreso|Pascual Scavone y Cia., Acuatears
+Egreso|Graphis
+Egreso|Benito, para pintar marcos de puertas y paredes de afuera
+Egreso|Julio Morales, estuches
+Egreso|Leonardo Garcia, cristales Maycon 1 de 2
+Egreso|Kyrion, arreglo de radiador
+Egreso|Publitex, cartel de lona seguros médicos (560 y vuelto)
+Egreso|Compumarket, toner para impresora de ofi
+Egreso|Gigi Perlas, bolsitas para accesorios
+Egreso|Mil Sabores, torta para Ceci
+Egreso|Punto Farma, Ferretería Jack

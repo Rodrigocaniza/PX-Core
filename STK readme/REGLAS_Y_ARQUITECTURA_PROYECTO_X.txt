@@ -1,0 +1,29 @@
+[ARQUITECTURA Y LÓGICA DE NEGOCIO DE PROYECTO X / BC GESTIÓN]
+
+1. ENTIDADES PRINCIPALES Y ESTRUCTURA
+- Empresa principal: BC Inversiones EAS (Centraliza cuentas, fondo de estabilidad y utilidades).
+- Unidades / Centros de costo: PC (Asunción), P2 (Pilar), General EAS.
+- Socios: Sol (65% participación), Rodrigo (35% participación).
+- Fondo de Estabilidad: Se retiene el 40% de la utilidad nula/distribuible (porcentaje configurable).
+
+2. ESTÁNDARES TÉCNICOS Y REGLAS DE CÓDIGO
+- Lenguaje/Stack: Python (consola por ahora, migrando progresivamente a SQLite).
+- Estructura Modular: Menu Principal, Movimientos, Cuentas/Saldos, Categorías, Préstamos/Cuotas, Tarjetas, Socios, Fondo Estabilidad, Cierre Mensual, Informes, Planillas Asociaciones, Mantenimiento Equipos.
+- Reglas de UI/Navegación: La opción 'Volver' o 'Salir' debe ser SIEMPRE el número '0' en todos los menús.
+- Carga Diaria: La carga de operaciones se agrupa por fecha antes de registrar transacciones.
+- Formato de Períodos: MM-AAAA (Ej: 07-2026). Filtro obligatorio para evitar listas gigantes de datos.
+- Identificador de Movimientos: Código único por transacción (Ej: MOV-2026-000154).
+
+3. FÓRMULAS Y REGLAS DE CÓMPUTO
+- Movimiento Económico: Ingreso, Egreso, Transferencia Interna (no afecta P&L), Depósito (interno/externo).
+- Cierre Mensual: Utilidad = Ingresos - Egresos (Filtrando transferencias y depósitos internos).
+- Margen % = (Utilidad / Ingresos) * 100.
+- Distribución de Utilidades: 
+  1. Utilidad Neta -> 2. Descuento Fondo Estabilidad (40%) -> 3. Saldo Distribuible (Sol 65%, Rodrigo 35%).
+- Saldo Socio = Sueldo Gerencial + Utilidad Asignada + Créditos a Favor - Retiros - Anticipos.
+- Préstamos: Separar Amortización de Capital de Interés/Gastos Administrativos.
+
+4. RESTRICCIONES DE DESARROLLO
+- Prioridad actual: Finalizar núcleo de Movimientos, Cuentas, Gastos Fijos, Cierre Mensual e Informes.
+- No duplicar datos: La información se registra una vez y alimenta todos los módulos.
+- La persistencia actual se maneja con lectura/escritura limpia en archivos (TXT/CSV) hasta migración a DB.
