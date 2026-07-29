@@ -1,0 +1,28 @@
+BC GESTIÓN — CORRECCIÓN DE DEPÓSITOS BANCARIOS
+
+1. Cerrá BC Gestión.
+2. Copiá ImportadorExcel.py e Informes.py dentro de PX-Core.
+3. Elegí Reemplazar archivo cuando Windows lo pregunte.
+4. No copies ni modifiques la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+6. Entrá en Movimientos → Importar desde Excel.
+7. Seleccioná Movimientos_Mayo_2026_Corregido_para_Importar.xlsx.
+8. Presioná Analizar Excel.
+
+Si mayo ya estaba importado, la vista previa debe mostrar:
+
+CORRECCIONES DE CLASIFICACIÓN: 1
+25-05-2026: Cobro externo → Depósito interno (Gs. 8.373.930)
+
+Los demás registros aparecerán como duplicados y no volverán a guardarse.
+Presioná Importar mes para aplicar la corrección. El sistema creará un
+respaldo automático antes de modificar el registro.
+
+Después generá nuevamente el informe de mayo. Debe mostrar:
+
+- Ingresos de PC: Gs. 89.994.000.
+- Depósito bancario del 25-05-2026.
+- Ruta: PC → Banco no especificado en planilla.
+- Monto movido: Gs. 8.373.930.
+
+El depósito es un movimiento interno: no suma ingreso, egreso ni utilidad.

@@ -30,6 +30,7 @@ except ModuleNotFoundError:
 import Movimientos
 import Socios
 import Informes
+import ImportadorExcel
 from datos import guardar_datos, leer_datos
 from interfaz_rrhh import abrir_recursos_humanos
 
@@ -117,6 +118,10 @@ SECCIONES = {
             (
                 "Cierre mensual",
                 "Utilidad, margen y fondo de estabilidad.",
+            ),
+            (
+                "Importar desde Excel",
+                "Carga un mes completo con validación y respaldo.",
             ),
         ],
     },
@@ -207,7 +212,13 @@ def convertir_monto_no_negativo_grafico(texto):
     return monto_convertido
 
 
-def construir_retiro_grafico(fecha, socio_nombre, monto_texto, observacion):
+def construir_retiro_grafico(
+    fecha,
+    socio_nombre,
+    monto_texto,
+    observacion,
+    tipo=None,
+):
     try:
         Movimientos.convertir_fecha(fecha.strip())
     except ValueError as error:
@@ -226,11 +237,20 @@ def construir_retiro_grafico(fecha, socio_nombre, monto_texto, observacion):
     if socio is None:
         raise ValueError("Seleccioná un socio válido.")
 
+    tipo_normalizado = Socios.normalizar_tipo_movimiento_personal(
+        tipo or Socios.TIPO_MOVIMIENTO_PREDETERMINADO
+    )
+    if tipo_normalizado is None:
+        raise ValueError(
+            "Seleccioná Gasto personal o Inversión personal."
+        )
+
     retiro = {
         "id": uuid4().hex[:12].upper(),
         "fecha": fecha.strip(),
         "socio_id": socio["id"],
         "monto": convertir_monto_grafico(monto_texto),
+        "tipo": tipo_normalizado,
         "observacion": Socios.limpiar_texto(observacion) or "-",
     }
     return retiro, Socios.crear_linea_retiro(retiro)
@@ -1828,7 +1848,7 @@ class AplicacionPXCore(ctk.CTk):
         ctk.CTkLabel(
             encabezado,
             text=(
-                "6 FUNCIONES CONECTADAS"
+                "7 FUNCIONES CONECTADAS"
                 if nombre == "Movimientos"
                 else (
                     "4 FUNCIONES CONECTADAS"
@@ -2042,12 +2062,32 @@ class AplicacionPXCore(ctk.CTk):
                     padx=20,
                     pady=(0, 20),
                 )
+            elif (
+                nombre == "Movimientos"
+                and titulo == "Importar desde Excel"
+            ):
+                ctk.CTkButton(
+                    tarjeta,
+                    text="Abrir importador",
+                    command=lambda: ImportadorExcel.abrir_importador(self),
+                    height=38,
+                    corner_radius=9,
+                    fg_color=COLOR_VERDE,
+                    hover_color="#12835B",
+                    font=ctk.CTkFont(size=12, weight="bold"),
+                ).grid(
+                    row=2,
+                    column=0,
+                    sticky="ew",
+                    padx=20,
+                    pady=(0, 20),
+                )
             elif nombre == "Socios":
                 ctk.CTkButton(
                     tarjeta,
                     text="Abrir Socios",
                     command=lambda: self.mostrar_socios(
-                        "Registrar retiro"
+                        "Registrar movimiento"
                     ),
                     height=38,
                     corner_radius=9,
@@ -2114,7 +2154,8 @@ class AplicacionPXCore(ctk.CTk):
                 (
                     "Cargar día, Gestionar movimientos, Ingresos y "
                     "egresos adicionales, Inversiones y Préstamos "
-                    "y cuotas, y Cierre mensual ya funcionan "
+                    "y cuotas, Cierre mensual e Importar desde Excel "
+                    "ya funcionan "
                     "directamente desde esta interfaz."
                 )
                 if nombre == "Movimientos"
@@ -9386,7 +9427,7 @@ class AplicacionPXCore(ctk.CTk):
             pagina,
             "Socios",
             (
-                "Retiros de Sol y Rodrigo, distribución mensual "
+                "Movimientos personales de Sol y Rodrigo, distribución mensual "
                 "y fondo de estabilidad."
             ),
         )
@@ -9402,9 +9443,10 @@ class AplicacionPXCore(ctk.CTk):
         ctk.CTkLabel(
             aviso,
             text=(
-                "Los retiros de socios no son gastos operativos. "
-                "El resumen calcula: sueldo + utilidad correspondiente "
-                "− retiros realizados."
+                "Los gastos e inversiones personales de los socios no son "
+                "gastos operativos. Los gastos personales reducen el saldo "
+                "del socio; las inversiones personales quedan solo para "
+                "control y no modifican ese saldo."
             ),
             font=ctk.CTkFont(size=12),
             text_color=COLOR_TEXTO,
@@ -9430,7 +9472,7 @@ class AplicacionPXCore(ctk.CTk):
             pady=(0, 30),
         )
 
-        tab_registrar = pestanas.add("Registrar retiro")
+        tab_registrar = pestanas.add("Registrar movimiento")
         tab_resumen = pestanas.add("Resumen mensual")
         tab_gestionar = pestanas.add("Gestionar retiros")
         tab_fondo = pestanas.add("Fondo de estabilidad")
@@ -9441,7 +9483,7 @@ class AplicacionPXCore(ctk.CTk):
         self.construir_fondo_estabilidad(tab_fondo)
 
         if pestana_inicial in [
-            "Registrar retiro",
+            "Registrar movimiento",
             "Resumen mensual",
             "Gestionar retiros",
             "Fondo de estabilidad",
@@ -9453,7 +9495,7 @@ class AplicacionPXCore(ctk.CTk):
 
         ctk.CTkLabel(
             master,
-            text="Registrar retiro de socio",
+            text="Registrar movimiento personal",
             font=ctk.CTkFont(size=19, weight="bold"),
             text_color=COLOR_TEXTO,
             anchor="w",
@@ -9468,9 +9510,9 @@ class AplicacionPXCore(ctk.CTk):
         ctk.CTkLabel(
             master,
             text=(
-                "El retiro se descuenta del sueldo liquidado y de la "
-                "utilidad asignada al socio. Los sueldos de Sol y "
-                "Rodrigo se generan en Recursos Humanos."
+                "Gasto personal se descuenta del sueldo y la utilidad "
+                "asignada. Inversión personal queda solo para control y "
+                "no modifica el saldo mensual ni la utilidad del negocio."
             ),
             font=ctk.CTkFont(size=12),
             text_color=COLOR_TEXTO_SUAVE,
@@ -9489,6 +9531,7 @@ class AplicacionPXCore(ctk.CTk):
         etiquetas = [
             ("Fecha", "DD-MM-AAAA"),
             ("Socio", ""),
+            ("Tipo", ""),
             ("Monto retirado", "Ej.: 2.000.000"),
             ("Observación", "Opcional"),
         ]
@@ -9521,6 +9564,19 @@ class AplicacionPXCore(ctk.CTk):
                 )
                 self.selector_socio_retiro.set("Sol")
                 campo = self.selector_socio_retiro
+            elif titulo == "Tipo":
+                self.selector_tipo_retiro = ctk.CTkOptionMenu(
+                    master,
+                    values=Socios.TIPOS_MOVIMIENTO_PERSONAL,
+                    fg_color=COLOR_PANEL_SECUNDARIO,
+                    button_color=COLOR_PRIMARIO,
+                    button_hover_color=COLOR_PRIMARIO_HOVER,
+                    text_color=COLOR_TEXTO,
+                )
+                self.selector_tipo_retiro.set(
+                    Socios.TIPO_MOVIMIENTO_PREDETERMINADO
+                )
+                campo = self.selector_tipo_retiro
             else:
                 campo = ctk.CTkEntry(
                     master,
@@ -9548,7 +9604,7 @@ class AplicacionPXCore(ctk.CTk):
 
         ctk.CTkButton(
             master,
-            text="Guardar retiro",
+            text="Guardar movimiento",
             command=self.guardar_retiro_grafico,
             width=180,
             height=42,
@@ -9557,7 +9613,7 @@ class AplicacionPXCore(ctk.CTk):
             hover_color="#12835B",
             font=ctk.CTkFont(size=13, weight="bold"),
         ).grid(
-            row=6,
+            row=7,
             column=1,
             sticky="e",
             padx=(0, 20),
@@ -9571,6 +9627,7 @@ class AplicacionPXCore(ctk.CTk):
                 self.selector_socio_retiro.get(),
                 self.entrada_monto_retiro.get(),
                 self.entrada_observacion_retiro.get(),
+                self.selector_tipo_retiro.get(),
             )
         except ValueError as error:
             messagebox.showerror(
@@ -9582,12 +9639,13 @@ class AplicacionPXCore(ctk.CTk):
 
         socio = Socios.obtener_socio(retiro["socio_id"])
         if not messagebox.askyesno(
-            "Confirmar retiro",
+            "Confirmar movimiento",
             (
                 f"Fecha: {retiro['fecha']}\n"
                 f"Socio: {socio['nombre']}\n"
+                f"Tipo: {retiro['tipo']}\n"
                 f"Monto: {monto(retiro['monto'])}\n\n"
-                "¿Querés guardar este retiro?"
+                "¿Querés guardar este movimiento?"
             ),
             icon="question",
             parent=self,
@@ -9609,8 +9667,8 @@ class AplicacionPXCore(ctk.CTk):
         self.entrada_monto_retiro.delete(0, "end")
         self.entrada_observacion_retiro.delete(0, "end")
         messagebox.showinfo(
-            "Retiro guardado",
-            "El retiro fue registrado correctamente.",
+            "Movimiento guardado",
+            "El movimiento personal fue registrado correctamente.",
             parent=self,
         )
 
@@ -9881,7 +9939,15 @@ class AplicacionPXCore(ctk.CTk):
                 ),
                 ("Utilidad asignada", socio["utilidad"]),
                 ("Total disponible", socio["total_a_cobrar"]),
-                ("Total retirado", socio["retirado"]),
+                (
+                    "Gastos personales",
+                    socio["gastos_personales"],
+                ),
+                (
+                    "Inversiones personales",
+                    socio["inversiones_personales"],
+                ),
+                ("Total descontado del saldo", socio["retirado"]),
             ]
             for nombre, valor in filas:
                 fila = ctk.CTkFrame(
@@ -9954,7 +10020,7 @@ class AplicacionPXCore(ctk.CTk):
             corner_radius=12,
         )
         controles.pack(fill="x", padx=16, pady=(18, 12))
-        controles.grid_columnconfigure(4, weight=1)
+        controles.grid_columnconfigure(6, weight=1)
 
         ctk.CTkLabel(
             controles,
@@ -10009,6 +10075,30 @@ class AplicacionPXCore(ctk.CTk):
             pady=14,
         )
 
+        ctk.CTkLabel(
+            controles,
+            text="Tipo",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=COLOR_TEXTO,
+        ).grid(row=0, column=4, padx=(18, 8), pady=14)
+        self.selector_filtro_tipo_retiros = ctk.CTkOptionMenu(
+            controles,
+            values=["Todos", *Socios.TIPOS_MOVIMIENTO_PERSONAL],
+            width=170,
+            height=36,
+            fg_color=COLOR_PANEL,
+            button_color=COLOR_PRIMARIO,
+            button_hover_color=COLOR_PRIMARIO_HOVER,
+            text_color=COLOR_TEXTO,
+            command=lambda _valor: self.filtrar_retiros_graficos(),
+        )
+        self.selector_filtro_tipo_retiros.set("Todos")
+        self.selector_filtro_tipo_retiros.grid(
+            row=0,
+            column=5,
+            pady=14,
+        )
+
         ctk.CTkButton(
             controles,
             text="Filtrar",
@@ -10021,7 +10111,7 @@ class AplicacionPXCore(ctk.CTk):
             font=ctk.CTkFont(size=12, weight="bold"),
         ).grid(
             row=0,
-            column=5,
+            column=7,
             padx=16,
             pady=14,
         )
@@ -10040,7 +10130,13 @@ class AplicacionPXCore(ctk.CTk):
             pady=(0, 18),
         )
 
-        columnas = ("fecha", "socio", "monto", "observacion")
+        columnas = (
+            "fecha",
+            "socio",
+            "tipo",
+            "monto",
+            "observacion",
+        )
         self.tabla_retiros = ttk.Treeview(
             panel,
             columns=columnas,
@@ -10051,8 +10147,9 @@ class AplicacionPXCore(ctk.CTk):
         configuracion = [
             ("fecha", "Fecha", 120, "center"),
             ("socio", "Socio", 130, "center"),
-            ("monto", "Monto", 160, "e"),
-            ("observacion", "Observación", 430, "w"),
+            ("tipo", "Tipo", 170, "center"),
+            ("monto", "Monto", 150, "e"),
+            ("observacion", "Observación", 330, "w"),
         ]
         for columna, titulo, ancho, ancla in configuracion:
             self.tabla_retiros.heading(columna, text=titulo)
@@ -10162,6 +10259,7 @@ class AplicacionPXCore(ctk.CTk):
             return
 
         socio_nombre = self.selector_filtro_socio_retiros.get()
+        tipo = self.selector_filtro_tipo_retiros.get()
         socio_id = None
         if socio_nombre != "Todos":
             socio_id = next(
@@ -10186,7 +10284,10 @@ class AplicacionPXCore(ctk.CTk):
         self.retiros_filtrados = [
             item
             for item in retiros
-            if socio_id is None or item[1]["socio_id"] == socio_id
+            if (
+                (socio_id is None or item[1]["socio_id"] == socio_id)
+                and (tipo == "Todos" or item[1]["tipo"] == tipo)
+            )
         ]
         self.pagina_retiros = 0
         self.dibujar_tabla_retiros()
@@ -10220,6 +10321,7 @@ class AplicacionPXCore(ctk.CTk):
                 values=(
                     retiro["fecha"],
                     socio["nombre"],
+                    retiro["tipo"],
                     monto(retiro["monto"]),
                     retiro["observacion"],
                 ),
@@ -10296,7 +10398,7 @@ class AplicacionPXCore(ctk.CTk):
         ventana = ctk.CTkToplevel(self)
         self.habilitar_navegacion_tab(ventana)
         ventana.title("Modificar retiro")
-        ventana.geometry("540x420")
+        ventana.geometry("560x500")
         ventana.resizable(False, False)
         ventana.transient(self)
         ventana.grab_set()
@@ -10383,6 +10485,35 @@ class AplicacionPXCore(ctk.CTk):
             pady=8,
         )
 
+        ctk.CTkLabel(
+            ventana,
+            text="Tipo",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=COLOR_TEXTO,
+        ).grid(
+            row=5,
+            column=0,
+            sticky="w",
+            padx=(24, 12),
+            pady=8,
+        )
+        selector_tipo = ctk.CTkOptionMenu(
+            ventana,
+            values=Socios.TIPOS_MOVIMIENTO_PERSONAL,
+            fg_color=COLOR_PANEL_SECUNDARIO,
+            button_color=COLOR_PRIMARIO,
+            button_hover_color=COLOR_PRIMARIO_HOVER,
+            text_color=COLOR_TEXTO,
+        )
+        selector_tipo.set(retiro["tipo"])
+        selector_tipo.grid(
+            row=5,
+            column=1,
+            sticky="ew",
+            padx=(0, 24),
+            pady=8,
+        )
+
         def guardar_cambios():
             try:
                 _, _linea_temporal = construir_retiro_grafico(
@@ -10390,6 +10521,7 @@ class AplicacionPXCore(ctk.CTk):
                     selector.get(),
                     campos["Monto"].get(),
                     campos["Observación"].get(),
+                    selector_tipo.get(),
                 )
                 socio_actualizado = next(
                     item
@@ -10403,6 +10535,7 @@ class AplicacionPXCore(ctk.CTk):
                     "monto": convertir_monto_grafico(
                         campos["Monto"].get()
                     ),
+                    "tipo": selector_tipo.get(),
                     "observacion": (
                         Socios.limpiar_texto(
                             campos["Observación"].get()
@@ -10437,7 +10570,7 @@ class AplicacionPXCore(ctk.CTk):
             hover_color="#12835B",
             font=ctk.CTkFont(size=12, weight="bold"),
         ).grid(
-            row=5,
+            row=6,
             column=1,
             sticky="e",
             padx=24,
@@ -10455,6 +10588,7 @@ class AplicacionPXCore(ctk.CTk):
             (
                 f"Fecha: {retiro['fecha']}\n"
                 f"Socio: {socio['nombre']}\n"
+                f"Tipo: {retiro['tipo']}\n"
                 f"Monto: {monto(retiro['monto'])}\n\n"
                 "¿Querés eliminar definitivamente este retiro?"
             ),

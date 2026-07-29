@@ -1,5 +1,35 @@
-01-01-2026|CDA|100000000
 01-06-2026|Ovidio, contador clausura de RUC Sra. Nini|950000
 01-06-2026|SET, IRE General Sra. Nini|250000
 01-06-2026|SET, otras contravenciones Sra. Nini|1900000
 01-06-2026|Porta, cuota por catálogo web 4/6|3208000
+01-05-2026|Bosani, armazones para catálogo web|6083000
+01-02-2026|Depósito de efectivo|46000000
+01-02-2026|Yamil Manzur, para diseñar taller nuevo PC|3500000
+01-02-2026|Yamil Manzur, 2/2 renovación de la óptica (muebles, etc.)|24729870
+01-02-2026|Yamil Manzur, 1/2 renovación de la óptica (muebles, etc.)|25000000
+01-02-2026|G&H Construcciones, cielo razo, 4 luces led y pintura para oficina PC|3500000
+01-02-2026|Hassan Mehdi... Kazwini, Calentador de armazones, monitor para consultorio MVP2|3484000
+01-02-2026|Soluparts, cojinete, plato y disco de embrague para Kyrion 2012|3040000
+01-02-2026|Mano de obra cambio kit de embrague Kyrion 2012|850000
+01-02-2026|El Haidar, Kazwini, estuches en promo (para probar que tal son)|837500
+01-03-2026|Isabel Cantero, Innovar armazones para mueble nuevo|18300000
+01-03-2026|Porta, servicio social marketing 5.980.000, diseño y desarrollo catalogo web 1/6 3.208.000|9188000
+01-03-2026|Julio Morales, armazones para mueble nuevo|5670000
+01-03-2026|Alemania Cell, Iphone 13 Pro para PC|5337500
+01-03-2026|Compupar, notebook y perifericos para Alucard|2450000
+01-03-2026|HACHE SA UNDEFINED, Mecal Muebles silla para ofi Sol|1544000
+01-03-2026|HACHE SA UNDEFINED, Mecal Muebles silla para ofi Rodrigo|1544000
+01-03-2026|Coexma S.R.L, silla de 3 lugares para PC 1/2|1530000
+01-03-2026|El Fabricante, mueble para guardar cosas en la ofi|1500000
+01-03-2026|Lugaro, silla alta para PC|1109602
+01-03-2026|Yamil Manzur, entrega 50% para exhibidor P2|2743750
+01-04-2026|Kamniz|14761000
+01-04-2026|Haidar El, Kazwini armazones de oferta para ver que calidad son|3366000
+01-04-2026|Porta, desarrollo de sitio web catálogo 2/6|3208000
+01-04-2026|Yamil Manzur, pago del saldo pendiente para exhibidor P2|2000000
+01-04-2026|Julio Morales, armazones|1880000
+01-04-2026|Haidar El, Kazwini caja de prueba para MVP2|1848000
+01-04-2026|Coexma SRL, silla de 3 lugares para PC 2/2|1530000
+01-04-2026|Fufo SRL, armazones Coot|1520000
+01-04-2026|SET, clausura de Sra. Nida Blaires|1330000
+01-01-2026|Yamil Manzur, 50% que quedaba pendiente por el diseño (no entra)|3900000

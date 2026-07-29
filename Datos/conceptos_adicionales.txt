@@ -8,3 +8,11 @@ Egreso|SET
 Egreso|Porta - Marketing
 Egreso|Pago de tarjeta de crédito
 Egreso|Bancard
+Ingreso|Asociación de Magistrados
+Ingreso|Doctores
+Ingreso|Asociación de Educadores
+Egreso|Gastos de la cuenta - PC
+Egreso|Gastos de la cuenta - P2
+Egreso|Cuota de préstamo
+Egreso|Wacamole - Marketing
+Ingreso|Factory

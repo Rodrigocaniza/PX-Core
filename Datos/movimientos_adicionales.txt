@@ -34,3 +34,202 @@ Egreso|01-06-2026|Gestión cobro de cheque 19/06|11000|
 Egreso|01-06-2026|Combustible viaje a Pilar 05 y 19/06|400000|
 Egreso|01-06-2026|Remeras de Paraguay para Nidia y Dai, bandera|200000|
 Egreso|01-06-2026|Alcides Acevedo, promo radio "Ricos y sabrosos"|200000|
+Ingreso|01-05-2026|Asociación de Magistrados|87400|Asociación de Magistrados Judiciales del Paraguay (planilla de abril 2026)
+Ingreso|01-05-2026|Doctores|4975000|Dr. Ricardo Perán (seguros médicos)
+Ingreso|01-05-2026|Doctores|225000|Dra. Sol González (seguros médicos)
+Ingreso|01-05-2026|Asociación de Educadores|4532500|Aso. de Educadores del Ñeembucú
+Ingreso|01-05-2026|Alquiler del consultorio|1550000|Dra. Gabi
+Egreso|01-05-2026|Alquiler - PC|3061000|Alquiler PC
+Egreso|01-05-2026|Alquiler - P2|2350000|Alquiler P2
+Egreso|01-05-2026|Gastos de la cuenta - PC|16793200|Optilab
+Egreso|01-05-2026|Gastos de la cuenta - PC|5690000|Servioptica 4.330.000 13/05, 1.360.000
+Egreso|01-05-2026|Gastos de la cuenta - PC|3519135|Comfar 2.019.135 marzo, 1.500.000 abril 1/2
+Egreso|01-05-2026|Gastos de la cuenta - PC|2200000|Gustavo Rivas, publicidad programa "Ni locas Ni Santas" (Luli)
+Egreso|01-05-2026|Gastos de la cuenta - PC|1812500|Optilab, armazones cuota 4 de 4
+Egreso|01-05-2026|Gastos de la cuenta - PC|1649600|MULTILENS COMERCIO OPTICO EAS UNDEFINED, Gama Visión cristal
+Egreso|01-05-2026|Gastos de la cuenta - PC|910000|OMAR LOPEZ, KARINA KATHIA ROCIO, Fénix Óptica cristal (registro 1 de 2)
+Egreso|01-05-2026|Gastos de la cuenta - PC|588000|Ande
+Egreso|01-05-2026|Gastos de la cuenta - PC|585000|TJC Import SRL, Sky Optical lente de contacto Biofinity y Biofinity Toric
+Egreso|01-05-2026|Gastos de la cuenta - PC|500000|Mantenimiento Kyrion 2012
+Egreso|01-05-2026|Gastos de la cuenta - PC|498000|Graphis
+Egreso|01-05-2026|Gastos de la cuenta - PC|350000|Paraguay Box
+Egreso|01-05-2026|Gastos de la cuenta - PC|350000|Lic. Ovidio, contador
+Egreso|01-05-2026|Gastos de la cuenta - PC|240000|Bepsa POS x2
+Egreso|01-05-2026|Gastos de la cuenta - PC|100000|Claudia Avalos, arreglo de linea baja PC
+Egreso|01-05-2026|Gastos de la cuenta - PC|50000|CARLOS JAVIER OLMEDO RAMIREZ, balanza digital para pesar pedidos Aliexpress
+Egreso|01-05-2026|Gastos de la cuenta - PC|350000|Municipalidad de Asunción (cartelería 349.600)
+Egreso|01-05-2026|Gastos de la cuenta - PC|910000|OMAR LOPEZ, KARINA KATHIA ROCIO, Fénix Óptica cristal (registro 2 de 2)
+Egreso|01-05-2026|Gastos de la cuenta - PC|95000|Lic. Ovidio, contador balance de la Municipalidad de ASunción
+Egreso|01-05-2026|Gastos de la cuenta - P2|200000|Combustible Viaje Pilar 08/05
+Egreso|01-05-2026|Gastos de la cuenta - P2|200000|Alcides Acevedo, promo radio "Ricos y sabrosos"
+Egreso|01-05-2026|Gastos de la cuenta - P2|110000|Guilermo Acuña Franco, promo radio ZP12
+Egreso|01-05-2026|Cuota de préstamo|1055563|Ueno, cuota de préstamo para armazones (Rodrigo 11/12)
+Egreso|01-05-2026|IPS|2957028|IPS, patronal
+Egreso|01-05-2026|Systemsoft|416666|Systemsoft (sistema) 8/12
+Egreso|01-05-2026|SET|591896|SET, IVA 36.439, IRE 577.997
+Egreso|01-05-2026|Porta - Marketing|5980000|Porta, social marketing
+Egreso|01-05-2026|Pago de tarjeta de crédito|4000000|Pago de tarjeta de crédito, Clasica 2.000.000 (compras Aliexpress) y Oro 2.000.000 (Porta redes sociales)
+Egreso|01-05-2026|Bancard|1613030|Bancard hasta Nidia 1.526.610 30/05
+Ingreso|01-02-2026|Doctores|5010000|Dr. Ricardo Perán (seguros médicos)
+Ingreso|01-02-2026|Doctores|240000|Dra. Sol González (seguros médicos)
+Ingreso|01-02-2026|Asociación de Educadores|4125700|Aso. de Educadores del Ñeembucú
+Ingreso|01-02-2026|Alquiler del consultorio|1550000|Dra. Gabi
+Egreso|01-02-2026|Alquiler - PC|3061000|Alquiler PC
+Egreso|01-02-2026|Alquiler - P2|2350000|Alquiler P2
+Egreso|01-02-2026|IPS|2957028|IPS
+Egreso|01-02-2026|Systemsoft|416666|Systemsoft (sistema) 5/12
+Egreso|01-02-2026|SET|2828677|SET (IVA General)
+Egreso|01-02-2026|Wacamole - Marketing|1000000|Wacamole, Sara Cogliolo (gestión de redes sociales)
+Egreso|01-02-2026|Pago de tarjeta de crédito|2000000|Pago de tarjeta de crédito
+Egreso|28-02-2026|Bancard|2000000|Bancard 1.488.751 hasta Nidia Silva 2.454.166 28/02
+Egreso|01-02-2026|Gastos de la cuenta - PC|20992977|Optilab
+Egreso|01-02-2026|Gastos de la cuenta - PC|12710000|Kamniz
+Egreso|13-02-2026|Gastos de la cuenta - PC|7203000|Servioptica 7.203.000 13/02, 2.540.000 27/02
+Egreso|27-02-2026|Gastos de la cuenta - PC|2540000|Servioptica 7.203.000 13/02, 2.540.000 27/02
+Egreso|01-02-2026|Gastos de la cuenta - PC|6269379|Comfar
+Egreso|01-02-2026|Gastos de la cuenta - PC|2365000|Graphis, talonarios de facturas (10), fichas de pacientes, sobres
+Egreso|01-02-2026|Gastos de la cuenta - PC|2200000|Gustavo Rivas, publicidad programa "Ni locas Ni Santas" (Luli)
+Egreso|01-02-2026|Gastos de la cuenta - PC|2090300|Proray, estuches...
+Egreso|01-02-2026|Gastos de la cuenta - PC|1812500|Optilab, armazones cuota 1 de 4
+Egreso|01-02-2026|Gastos de la cuenta - PC|1107000|Ande
+Egreso|01-02-2026|Gastos de la cuenta - PC|700000|Casa de Plantas, plantas del frente PC
+Egreso|01-02-2026|Gastos de la cuenta - PC|700000|Benito, para pintar sala de espera blindex
+Egreso|01-02-2026|Gastos de la cuenta - PC|675000|Karina Omar, Óptica Fénix
+Egreso|01-02-2026|Gastos de la cuenta - PC|500000|Plumeros
+Egreso|01-02-2026|Gastos de la cuenta - PC|311000|Ferretería Jack
+Egreso|01-02-2026|Gastos de la cuenta - PC|240000|Bepsa POS x2
+Egreso|01-02-2026|Gastos de la cuenta - PC|198000|Surgical Medical Supplies, fluoresceina + envío
+Egreso|01-02-2026|Gastos de la cuenta - PC|150000|Ferretería Jack, luz led para exhibidor y adaptador para monitor de la ofi
+Egreso|01-02-2026|Gastos de la cuenta - PC|70000|Copipunto
+Egreso|01-02-2026|Gastos de la cuenta - PC|50000|Ferretería Jack, cinta doble faz para pegar base de exhibidor, cable para luz led
+Egreso|06-02-2026|Gastos de la cuenta - P2|200000|Combustible viaje a Pilar para llevar a la Dra. 06/02
+Egreso|20-02-2026|Gastos de la cuenta - P2|200000|Combustible viaje a Pilar para llevar a la Dra. 20/02
+Egreso|27-02-2026|Gastos de la cuenta - P2|200000|Combustible viaje a Pilar para llevar a la Dra. 27/02
+Egreso|01-02-2026|Gastos de la cuenta - P2|200000|Alcides Acevedo, publicidad radio
+Egreso|01-02-2026|Gastos de la cuenta - P2|130000|Mil Sabores, torta cumple Ema
+Ingreso|01-03-2026|Doctores|4970000|Dr. Ricardo Perán (seguros médicos)
+Ingreso|01-03-2026|Doctores|315000|Dra. Sol González (seguros médicos)
+Ingreso|01-03-2026|Asociación de Educadores|4261000|Aso. de Educadores del Ñeembucú
+Ingreso|01-03-2026|Alquiler del consultorio|1550000|Dra. Gabi
+Egreso|01-03-2026|Alquiler - PC|3061000|Alquiler PC
+Egreso|01-03-2026|Alquiler - P2|2350000|Alquiler P2
+Egreso|01-03-2026|IPS|2957028|IPS
+Egreso|01-03-2026|Systemsoft|416666|Systemsoft (sistema) 6/12
+Egreso|01-03-2026|SET|888072|SET, IRE (entrega 20% del total y después cuotas)
+Egreso|01-03-2026|Wacamole - Marketing|1800000|Wacamole, Sara Cogliolo (gestión de redes sociales)
+Egreso|01-03-2026|Pago de tarjeta de crédito|2000000|Pago de tarjeta de crédito
+Egreso|01-03-2026|Bancard|1976128|Bancard
+Egreso|01-03-2026|Gastos de la cuenta - PC|22000804|Optilab
+Egreso|16-03-2026|Gastos de la cuenta - PC|3705000|Servioptica 3.705.000 16/03, 8.019.000 31/03
+Egreso|31-03-2026|Gastos de la cuenta - PC|8019000|Servioptica 3.705.000 16/03, 8.019.000 31/03
+Egreso|01-03-2026|Gastos de la cuenta - PC|3516342|Comfar
+Egreso|01-03-2026|Gastos de la cuenta - PC|2200000|Gustavo Rivas, publicidad programa "Ni locas Ni Santas" (Luli)
+Egreso|01-03-2026|Gastos de la cuenta - PC|2116300|Proray
+Egreso|01-03-2026|Gastos de la cuenta - PC|1820000|Comercial Mayor, frascos para limpia cristales, etc.
+Egreso|01-03-2026|Gastos de la cuenta - PC|1812500|Optilab, armazones cuota 2 de 4
+Egreso|01-03-2026|Gastos de la cuenta - PC|1576201|Pascual Scavone y Cia., Acuatears
+Egreso|01-03-2026|Gastos de la cuenta - PC|1485000|Graphis
+Egreso|01-03-2026|Gastos de la cuenta - PC|1318800|Proray
+Egreso|01-03-2026|Gastos de la cuenta - PC|950000|Benito, para pintar marcos de puertas y paredes de afuera
+Egreso|01-03-2026|Gastos de la cuenta - PC|900000|Julio Morales, estuches
+Egreso|01-03-2026|Gastos de la cuenta - PC|780000|Leonardo Garcia, cristales Maycon 1 de 2
+Egreso|01-03-2026|Gastos de la cuenta - PC|700000|Kyrion, arreglo de radiador
+Egreso|01-03-2026|Gastos de la cuenta - PC|600000|Publitex, cartel de lona seguros médicos (560 y vuelto)
+Egreso|01-03-2026|Gastos de la cuenta - PC|478000|Copipunto
+Egreso|01-03-2026|Gastos de la cuenta - PC|415000|Copipunto
+Egreso|01-03-2026|Gastos de la cuenta - PC|330000|Compumarket, toner para impresora de ofi
+Egreso|01-03-2026|Gastos de la cuenta - PC|300000|Gigi Perlas, bolsitas para accesorios
+Egreso|01-03-2026|Gastos de la cuenta - PC|240000|Bepsa POS x2
+Egreso|01-03-2026|Gastos de la cuenta - PC|133000|Mil Sabores, torta para Ceci
+Egreso|01-03-2026|Gastos de la cuenta - PC|100000|Punto Farma, Ferretería Jack
+Egreso|01-03-2026|Gastos de la cuenta - P2|480000|Gustavo Monzon, Publitec cartel de lona
+Egreso|06-03-2026|Gastos de la cuenta - P2|200000|Combustible para viaje a Pilar (llevar a la dra.) 06/03
+Egreso|01-03-2026|Gastos de la cuenta - P2|200000|Alcides Acevedo, promo radio
+Egreso|26-03-2026|Gastos de la cuenta - P2|200000|Combustible para viaje a Pilar (llevar a la dra.) 26/03
+Ingreso|01-04-2026|Asociación de Magistrados|475000|Asociación de Magistrados Judiciales del Paraguay (planilla de marzo 2026)
+Ingreso|01-04-2026|Factory|314466|Factory
+Ingreso|01-04-2026|Doctores|7670000|Dr. Ricardo Perán (seguros médicos enero)
+Ingreso|01-04-2026|Doctores|285000|Dra. Sol González (seguros médicos diciembre)
+Ingreso|01-04-2026|Asociación de Educadores|3948500|Aso. de Educadores del Ñeembucú
+Ingreso|01-04-2026|Alquiler del consultorio|1550000|Dra. Gabi
+Egreso|01-04-2026|Alquiler - PC|3061000|Alquiler PC
+Egreso|01-04-2026|Alquiler - P2|2350000|Alquiler P2
+Egreso|01-04-2026|IPS|2957028|IPS
+Egreso|01-04-2026|Systemsoft|416666|Systemsoft (sistema) 7/12
+Egreso|01-04-2026|SET|1397327|SET, IVA 818.528, IRE 578.799
+Egreso|01-04-2026|Porta - Marketing|5980000|Porta, social marketing
+Egreso|01-04-2026|Pago de tarjeta de crédito|2000000|Pago de tarjeta de crédito
+Egreso|01-04-2026|Bancard|1493283|Bancard
+Egreso|01-04-2026|Gastos de la cuenta - PC|23902600|Optilab
+Egreso|14-04-2026|Gastos de la cuenta - PC|3070000|Servioptica 3.070.000 14/04, 3.620.000 30/04
+Egreso|30-04-2026|Gastos de la cuenta - PC|3620000|Servioptica 3.070.000 14/04, 3.620.000 30/04
+Egreso|01-04-2026|Gastos de la cuenta - PC|2702760|Proray
+Egreso|01-04-2026|Gastos de la cuenta - PC|2540462|Comfar 5.540.462 (queda pendiente 3.000.000 a cobrar en Mayo, Junio)
+Egreso|01-04-2026|Gastos de la cuenta - PC|2200000|Gustavo Rivas, publicidad programa "Ni locas Ni Santas" (Luli)
+Egreso|01-04-2026|Gastos de la cuenta - PC|1812500|Optilab, armazones cuota 3 de 4
+Egreso|01-04-2026|Gastos de la cuenta - PC|1057000|Proray
+Egreso|01-04-2026|Gastos de la cuenta - PC|988100|Fortis, golosinas, cafe, etc.
+Egreso|01-04-2026|Gastos de la cuenta - PC|880000|Graphis 1/9, bolsas Puppilent´s
+Egreso|01-04-2026|Gastos de la cuenta - PC|780000|LEONARDO LUIS ALFREDO GARCIA, cristal Mycon
+Egreso|01-04-2026|Gastos de la cuenta - PC|773200|Proray
+Egreso|01-04-2026|Gastos de la cuenta - PC|600000|Graphis
+Egreso|21-04-2026|Gastos de la cuenta - PC|500000|Benito 21/04
+Egreso|01-04-2026|Gastos de la cuenta - PC|411470|Casa Parana, regalos por el día del trabajador
+Egreso|01-04-2026|Gastos de la cuenta - PC|350000|Ovidio Torres, contador
+Egreso|01-04-2026|Gastos de la cuenta - PC|262900|Paraguaybox
+Egreso|01-04-2026|Gastos de la cuenta - PC|260000|Don Mario, bocaditos por dia del trabajador
+Egreso|01-04-2026|Gastos de la cuenta - PC|240000|Bepsa POS x2
+Egreso|01-04-2026|Gastos de la cuenta - PC|210000|EZEQUIEL ANTONIO GONZALEZ GONZALEZ, Distri Opto CDE plaquetas anatomicas
+Egreso|01-04-2026|Gastos de la cuenta - PC|70000|Copipunto
+Egreso|01-04-2026|Gastos de la cuenta - PC|23200|Comercial Mayor, bolsas para regalos por dia del trabajador
+Egreso|01-04-2026|Gastos de la cuenta - PC|8000|Don Mario, delivery
+Egreso|01-04-2026|Gastos de la cuenta - P2|250000|Giselle Irazusta, tarjetas para MVP2
+Egreso|01-04-2026|Gastos de la cuenta - P2|200000|Alcides Acevedo, promo radio "Ricos y sabrosos"
+Egreso|24-04-2026|Gastos de la cuenta - P2|200000|Combustible viaje a Pilar 24/04
+Egreso|01-04-2026|Gastos de la cuenta - P2|135000|Kathia Rocio Omar Lopez, Fai Optical Center... Soflens
+Egreso|01-04-2026|Gastos de la cuenta - P2|36300|Rodrigo Sarria, Proray armazon Tio SMith
+Egreso|01-04-2026|Gastos de la cuenta - P2|95000|Mil Sabores, bocaditos por dia del trabajador
+Ingreso|01-01-2026|Doctores|5010000|Dr. Ricardo Perán (seguros médicos)
+Ingreso|01-01-2026|Doctores|300000|Dra. Sol González (seguros médicos)
+Ingreso|01-01-2026|Alquiler del consultorio|1550000|Dra. Gabi
+Egreso|01-01-2026|Alquiler - PC|3061000|Alquiler PC
+Egreso|01-01-2026|Alquiler - P2|2350000|Alquiler P2
+Egreso|01-01-2026|IPS|2612041|IPS
+Egreso|01-01-2026|Systemsoft|416666|Systemsoft (sistema) 4/12
+Egreso|01-01-2026|Wacamole - Marketing|2500000|Wacamole, Sara Cogliolo (gestión de redes sociales)
+Egreso|19-01-2026|Pago de tarjeta de crédito|2000000|Pago de tarjeta de crédito 19/01
+Egreso|01-01-2026|Bancard|1808021|Bancard
+Egreso|01-01-2026|Gastos de la cuenta - PC|22613202|Optilab
+Egreso|19-01-2026|Gastos de la cuenta - PC|5690000|Servioptica 5.690.000 19/01, 6.025.000 30/01
+Egreso|30-01-2026|Gastos de la cuenta - PC|6025000|Servioptica 5.690.000 19/01, 6.025.000 30/01
+Egreso|01-01-2026|Gastos de la cuenta - PC|6474000|Bosani
+Egreso|01-01-2026|Gastos de la cuenta - PC|6000000|Optilab, armazones (queda 7.250.000/4 de 1.812.500)
+Egreso|01-01-2026|Gastos de la cuenta - PC|2200000|Gustavo Rivas, publicidad programa "Ni locas Ni Santas" (Luli)
+Egreso|01-01-2026|Gastos de la cuenta - PC|1530407|Comfar
+Egreso|01-01-2026|Gastos de la cuenta - PC|1172500|Marcos Notario, Puerta para pasillo MVPC
+Egreso|01-01-2026|Gastos de la cuenta - PC|900000|Master Shop, taladro de mesa
+Egreso|01-01-2026|Gastos de la cuenta - PC|500000|Pedro Gomez, arreglo de faros Kyrion
+Egreso|01-01-2026|Gastos de la cuenta - PC|480000|Ercilia Ullon (Nelson Cabrera), líquido para limpia cristales
+Egreso|01-01-2026|Gastos de la cuenta - PC|400000|Plaspasa, bolsas camisillas 10x40 unidades
+Egreso|01-01-2026|Gastos de la cuenta - PC|390000|Copipunto
+Egreso|01-01-2026|Gastos de la cuenta - PC|300000|Mantenimiento a.a Kyrion, filtro, etc.
+Egreso|01-01-2026|Gastos de la cuenta - PC|280000|Maletero para moto de Rochi (para llevar trabajos)
+Egreso|01-01-2026|Gastos de la cuenta - PC|240000|Bepsa POS x2
+Egreso|01-01-2026|Gastos de la cuenta - PC|220000|Graphis
+Egreso|01-01-2026|Gastos de la cuenta - PC|204000|TJC Import, Sky Optical
+Egreso|01-01-2026|Gastos de la cuenta - PC|180000|Flavio Pereira, Instalación de la puerta pasillo MVPC
+Egreso|01-01-2026|Gastos de la cuenta - PC|168320|Culligan, Pamaq Aquamaq
+Egreso|01-01-2026|Gastos de la cuenta - PC|70000|Copipunto
+Egreso|01-01-2026|Gastos de la cuenta - PC|115000|Ferretería Jack, filtro de sedimentos para tanque
+Egreso|01-01-2026|Gastos de la cuenta - PC|400000|Municipalidad de Asunción, patente comercial (253.200 y 112.200) y vueto
+Egreso|01-01-2026|Gastos de la cuenta - PC|1000000|Municipalidad de Asunción, patente comercial Rodrigo (962.100) y vuelto
+Egreso|01-01-2026|Gastos de la cuenta - PC|930000|Comercial Mayor, 500 frascos para limpia cristales
+Egreso|01-01-2026|Gastos de la cuenta - PC|300000|Reparacion de caño del radiador Kyrion
+Egreso|01-01-2026|Gastos de la cuenta - P2|2000000|Yamil Manzur, mueble para P2 (pendiente 8mm)... se pagó al contado
+Egreso|01-01-2026|Gastos de la cuenta - P2|900000|Karina Omar Lopez, Óptica Fénix (cristal para Pilar)
+Egreso|01-01-2026|Gastos de la cuenta - P2|502000|Tigo TV e internet, 2 meses
+Egreso|30-01-2026|Gastos de la cuenta - P2|285000|Petropar y Copetrol, combustible viaje a Pilar (llevar Dra. 30/01 no tenía más tanto reintegro)
+Egreso|01-01-2026|Gastos de la cuenta - P2|385000|Rosa Dominguez, limpiador ultrasonico
+Egreso|09-01-2026|Gastos de la cuenta - P2|200000|Petropar, combustible viaje a Pilar (llevar Dra. 09/01)
+Egreso|01-01-2026|Gastos de la cuenta - P2|200000|Alcides Acevedo, promo radio Rico y Sabroso
+Egreso|17-01-2026|Gastos de la cuenta - P2|125000|Petropar, combustible viaje a Pilar (llevar Dra. 17/01)

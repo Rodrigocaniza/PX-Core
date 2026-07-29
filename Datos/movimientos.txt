@@ -1,10 +1,3 @@
-Ingreso|01-01-2026|Externo|PC|5020000|Si
-Egreso|01-01-2026|PC|Externo|50000|Si
-Egreso|01-01-2026|MVPC|Externo|700000|Si
-Transferencia interna|01-01-2026|P2|ADMINISTRACIÓN|3950000|No
-Ingreso|01-01-2026|Externo|P2|390000|Si
-Ingreso|01-01-2026|Externo|MVPC|340000|Si
-Egreso|01-01-2026|P2|Externo|50000|Si
 Ingreso|01-06-2026|Externo|PC|5020000|Si
 Egreso|01-06-2026|PC|Externo|50000|Si
 Ingreso|01-06-2026|Externo|P2|390000|Si
@@ -163,3 +156,890 @@ Ingreso|29-06-2026|Externo|P2|320000|Si
 Ingreso|29-06-2026|Externo|MVPC|220000|Si
 Egreso|29-06-2026|MVPC|Externo|390000|Si
 Transferencia interna|29-06-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|02-05-2026|Externo|PC|1650000|Si
+Egreso|02-05-2026|PC|Externo|20000|Si
+Ingreso|02-05-2026|Externo|P2|240000|Si
+Egreso|02-05-2026|P2|Externo|70000|Si
+Transferencia interna|02-05-2026|PC|ADMINISTRACIÓN|1000000|No
+Ingreso|04-05-2026|Externo|PC|2789000|Si
+Egreso|04-05-2026|PC|Externo|413000|Si
+Ingreso|04-05-2026|Externo|P2|2237000|Si
+Egreso|04-05-2026|P2|Externo|50000|Si
+Ingreso|04-05-2026|Externo|MVPC|340000|Si
+Egreso|04-05-2026|MVPC|Externo|360000|Si
+Transferencia interna|04-05-2026|P2|ADMINISTRACIÓN|2500000|No
+Ingreso|05-05-2026|Externo|PC|3565000|Si
+Egreso|05-05-2026|PC|Externo|134000|Si
+Ingreso|05-05-2026|Externo|P2|2961000|Si
+Egreso|05-05-2026|P2|Externo|79000|Si
+Ingreso|05-05-2026|Externo|MVPC|440000|Si
+Egreso|05-05-2026|MVPC|Externo|290000|Si
+Transferencia interna|05-05-2026|P2|ADMINISTRACIÓN|4500000|No
+Ingreso|06-05-2026|Externo|PC|5383000|Si
+Egreso|06-05-2026|PC|Externo|50000|Si
+Ingreso|06-05-2026|Externo|P2|520000|Si
+Egreso|06-05-2026|P2|Externo|63000|Si
+Ingreso|06-05-2026|Externo|MVPC|660000|Si
+Egreso|06-05-2026|MVPC|Externo|770000|Si
+Transferencia interna|06-05-2026|PC|ADMINISTRACIÓN|2600000|No
+Transferencia interna|06-05-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Transferencia interna|06-05-2026|ADMINISTRACIÓN|PC|122000|No
+Ingreso|07-05-2026|Externo|PC|6974000|Si
+Egreso|07-05-2026|PC|Externo|50000|Si
+Ingreso|07-05-2026|Externo|P2|286000|Si
+Egreso|07-05-2026|P2|Externo|50000|Si
+Ingreso|07-05-2026|Externo|MVPC|440000|Si
+Egreso|07-05-2026|MVPC|Externo|600000|Si
+Ingreso|08-05-2026|Externo|PC|4558000|Si
+Egreso|08-05-2026|PC|Externo|1731000|Si
+Ingreso|08-05-2026|Externo|P2|3323000|Si
+Egreso|08-05-2026|P2|Externo|18000|Si
+Egreso|08-05-2026|MVPC|Externo|250000|Si
+Ingreso|08-05-2026|Externo|MVP2|2220000|Si
+Egreso|08-05-2026|MVP2|Externo|2605000|Si
+Transferencia interna|08-05-2026|P2|ADMINISTRACIÓN|2500000|No
+Transferencia interna|08-05-2026|ADMINISTRACIÓN|PC|57000|No
+Transferencia interna|08-05-2026|ADMINISTRACIÓN|MVP2|525000|No
+Ingreso|09-05-2026|Externo|PC|7279000|Si
+Egreso|09-05-2026|PC|Externo|50000|Si
+Ingreso|09-05-2026|Externo|P2|1032000|Si
+Egreso|09-05-2026|P2|Externo|45000|Si
+Ingreso|09-05-2026|Externo|MVPC|560000|Si
+Egreso|09-05-2026|MVPC|Externo|440000|Si
+Ingreso|11-05-2026|Externo|PC|5546000|Si
+Egreso|11-05-2026|PC|Externo|218500|Si
+Ingreso|11-05-2026|Externo|P2|1341000|Si
+Egreso|11-05-2026|P2|Externo|277000|Si
+Ingreso|11-05-2026|Externo|MVPC|500000|Si
+Egreso|11-05-2026|MVPC|Externo|540000|Si
+Ingreso|12-05-2026|Externo|PC|4922000|Si
+Egreso|12-05-2026|PC|Externo|844000|Si
+Ingreso|12-05-2026|Externo|P2|1746000|Si
+Egreso|12-05-2026|P2|Externo|1594000|Si
+Ingreso|12-05-2026|Externo|MVPC|560000|Si
+Egreso|12-05-2026|MVPC|Externo|470000|Si
+Transferencia interna|12-05-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|13-05-2026|Externo|PC|4418000|Si
+Egreso|13-05-2026|PC|Externo|50000|Si
+Ingreso|13-05-2026|Externo|P2|871000|Si
+Egreso|13-05-2026|P2|Externo|25000|Si
+Ingreso|13-05-2026|Externo|MVPC|220000|Si
+Egreso|13-05-2026|MVPC|Externo|490000|Si
+Transferencia interna|13-05-2026|PC|ADMINISTRACIÓN|2000000|No
+Transferencia interna|13-05-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|16-05-2026|Externo|PC|3668000|Si
+Egreso|16-05-2026|PC|Externo|50000|Si
+Ingreso|16-05-2026|Externo|P2|720000|Si
+Egreso|16-05-2026|P2|Externo|80000|Si
+Ingreso|16-05-2026|Externo|MVPC|440000|Si
+Egreso|16-05-2026|MVPC|Externo|520000|Si
+Ingreso|18-05-2026|Externo|PC|4890000|Si
+Egreso|18-05-2026|PC|Externo|50000|Si
+Ingreso|18-05-2026|Externo|P2|798000|Si
+Egreso|18-05-2026|P2|Externo|20000|Si
+Ingreso|18-05-2026|Externo|MVPC|1100000|Si
+Egreso|18-05-2026|MVPC|Externo|450000|Si
+Transferencia interna|18-05-2026|PC|ADMINISTRACIÓN|1100000|No
+Transferencia interna|18-05-2026|P2|ADMINISTRACIÓN|1100000|No
+Ingreso|19-05-2026|Externo|PC|2639000|Si
+Egreso|19-05-2026|PC|Externo|50000|Si
+Ingreso|19-05-2026|Externo|P2|945000|Si
+Egreso|19-05-2026|P2|Externo|45000|Si
+Ingreso|19-05-2026|Externo|MVPC|490000|Si
+Egreso|19-05-2026|MVPC|Externo|638900|Si
+Transferencia interna|19-05-2026|PC|ADMINISTRACIÓN|700000|No
+Transferencia interna|19-05-2026|P2|ADMINISTRACIÓN|700000|No
+Ingreso|20-05-2026|Externo|PC|5637000|Si
+Egreso|20-05-2026|PC|Externo|50000|Si
+Ingreso|20-05-2026|Externo|P2|135000|Si
+Egreso|20-05-2026|P2|Externo|110500|Si
+Ingreso|20-05-2026|Externo|MVPC|120000|Si
+Egreso|20-05-2026|MVPC|Externo|350000|Si
+Ingreso|21-05-2026|Externo|PC|1942000|Si
+Egreso|21-05-2026|PC|Externo|97000|Si
+Ingreso|21-05-2026|Externo|P2|1496000|Si
+Egreso|21-05-2026|P2|Externo|297500|Si
+Ingreso|21-05-2026|Externo|MVPC|1120000|Si
+Egreso|21-05-2026|MVPC|Externo|590000|Si
+Transferencia interna|21-05-2026|PC|ADMINISTRACIÓN|1200000|No
+Ingreso|22-05-2026|Externo|PC|2762000|Si
+Egreso|22-05-2026|PC|Externo|50000|Si
+Ingreso|22-05-2026|Externo|P2|1626000|Si
+Egreso|22-05-2026|P2|Externo|30000|Si
+Ingreso|22-05-2026|Externo|MVPC|340000|Si
+Egreso|22-05-2026|MVPC|Externo|410000|Si
+Transferencia interna|22-05-2026|PC|ADMINISTRACIÓN|1100000|No
+Ingreso|23-05-2026|Externo|PC|405000|Si
+Egreso|23-05-2026|PC|Externo|50000|Si
+Ingreso|23-05-2026|Externo|P2|1822000|Si
+Egreso|23-05-2026|P2|Externo|20000|Si
+Ingreso|23-05-2026|Externo|MVPC|220000|Si
+Egreso|23-05-2026|MVPC|Externo|590000|Si
+Ingreso|25-05-2026|Externo|PC|3766000|Si
+Egreso|25-05-2026|PC|Externo|744000|Si
+Ingreso|25-05-2026|Externo|P2|1371000|Si
+Egreso|25-05-2026|P2|Externo|20000|Si
+Ingreso|25-05-2026|Externo|MVPC|680000|Si
+Egreso|25-05-2026|MVPC|Externo|890000|Si
+Transferencia interna|25-05-2026|PC|ADMINISTRACIÓN|1600000|No
+Transferencia interna|25-05-2026|P2|ADMINISTRACIÓN|2800000|No
+Transferencia interna|25-05-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Cobro externo|25-05-2026|Banco no especificado en planilla|PC|8373930|Si
+Ingreso|26-05-2026|Externo|PC|2190000|Si
+Ingreso|26-05-2026|Externo|P2|752000|Si
+Egreso|26-05-2026|P2|Externo|25000|Si
+Egreso|26-05-2026|MVPC|Externo|530000|Si
+Ingreso|27-05-2026|Externo|PC|4730000|Si
+Egreso|27-05-2026|PC|Externo|50000|Si
+Ingreso|27-05-2026|Externo|P2|1855000|Si
+Egreso|27-05-2026|P2|Externo|75000|Si
+Ingreso|27-05-2026|Externo|MVPC|220000|Si
+Egreso|27-05-2026|MVPC|Externo|150000|Si
+Transferencia interna|27-05-2026|PC|ADMINISTRACIÓN|800000|No
+Transferencia interna|27-05-2026|P2|ADMINISTRACIÓN|1700000|No
+Transferencia interna|27-05-2026|ADMINISTRACIÓN|MVPC|800000|No
+Ingreso|28-05-2026|Externo|PC|4463000|Si
+Egreso|28-05-2026|PC|Externo|310000|Si
+Ingreso|28-05-2026|Externo|P2|690000|Si
+Egreso|28-05-2026|P2|Externo|20000|Si
+Ingreso|28-05-2026|Externo|MVPC|300000|Si
+Egreso|28-05-2026|MVPC|Externo|565000|Si
+Ingreso|29-05-2026|Externo|PC|3753000|Si
+Egreso|29-05-2026|PC|Externo|50000|Si
+Ingreso|29-05-2026|Externo|P2|4572500|Si
+Egreso|29-05-2026|P2|Externo|70000|Si
+Ingreso|29-05-2026|Externo|MVPC|220000|Si
+Egreso|29-05-2026|MVPC|Externo|150000|Si
+Ingreso|29-05-2026|Externo|MVP2|2280000|Si
+Egreso|29-05-2026|MVP2|Externo|2110000|Si
+Transferencia interna|29-05-2026|PC|ADMINISTRACIÓN|1800000|No
+Ingreso|30-05-2026|Externo|PC|2065000|Si
+Egreso|30-05-2026|PC|Externo|50000|Si
+Ingreso|30-05-2026|Externo|P2|3160000|Si
+Egreso|30-05-2026|P2|Externo|45000|Si
+Ingreso|30-05-2026|Externo|MVPC|520000|Si
+Egreso|30-05-2026|MVPC|Externo|540000|Si
+Transferencia interna|30-05-2026|PC|ADMINISTRACIÓN|1000000|No
+Ingreso|02-02-2026|Externo|PC|5300000|Si
+Egreso|02-02-2026|PC|Externo|50000|Si
+Ingreso|02-02-2026|Externo|P2|2705000|Si
+Egreso|02-02-2026|P2|Externo|119500|Si
+Ingreso|02-02-2026|Externo|MVPC|860000|Si
+Egreso|02-02-2026|MVPC|Externo|1630000|Si
+Transferencia interna|02-02-2026|PC|ADMINISTRACIÓN|1400000|No
+Transferencia interna|02-02-2026|P2|ADMINISTRACIÓN|6000000|No
+Transferencia interna|02-02-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|03-02-2026|Externo|PC|6672500|Si
+Egreso|03-02-2026|PC|Externo|195000|Si
+Ingreso|03-02-2026|Externo|P2|3740000|Si
+Egreso|03-02-2026|P2|Externo|45000|Si
+Ingreso|03-02-2026|Externo|MVPC|1620000|Si
+Egreso|03-02-2026|MVPC|Externo|620000|Si
+Transferencia interna|03-02-2026|PC|ADMINISTRACIÓN|3000000|No
+Transferencia interna|03-02-2026|P2|ADMINISTRACIÓN|2000000|No
+Ingreso|04-02-2026|Externo|PC|3675000|Si
+Egreso|04-02-2026|PC|Externo|50000|Si
+Ingreso|04-02-2026|Externo|P2|783000|Si
+Egreso|04-02-2026|P2|Externo|80000|Si
+Egreso|04-02-2026|MVPC|Externo|1640000|Si
+Transferencia interna|04-02-2026|PC|ADMINISTRACIÓN|1000000|No
+Transferencia interna|04-02-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|05-02-2026|Externo|PC|6047000|Si
+Egreso|05-02-2026|PC|Externo|50000|Si
+Ingreso|05-02-2026|Externo|P2|1745000|Si
+Egreso|05-02-2026|P2|Externo|44000|Si
+Ingreso|05-02-2026|Externo|MVPC|1100000|Si
+Egreso|05-02-2026|MVPC|Externo|440000|Si
+Transferencia interna|05-02-2026|PC|ADMINISTRACIÓN|2500000|No
+Transferencia interna|05-02-2026|P2|ADMINISTRACIÓN|1700000|No
+Ingreso|06-02-2026|Externo|PC|4030000|Si
+Egreso|06-02-2026|PC|Externo|50000|Si
+Ingreso|06-02-2026|Externo|P2|6985000|Si
+Egreso|06-02-2026|P2|Externo|316000|Si
+Ingreso|06-02-2026|Externo|MVPC|560000|Si
+Egreso|06-02-2026|MVPC|Externo|603000|Si
+Ingreso|06-02-2026|Externo|MVP2|2880000|Si
+Egreso|06-02-2026|MVP2|Externo|2275000|Si
+Transferencia interna|06-02-2026|PC|ADMINISTRACIÓN|2900000|No
+Transferencia interna|06-02-2026|P2|ADMINISTRACIÓN|5400000|No
+Ingreso|07-02-2026|Externo|PC|2270000|Si
+Egreso|07-02-2026|PC|Externo|50000|Si
+Ingreso|07-02-2026|Externo|P2|1880000|Si
+Egreso|07-02-2026|P2|Externo|25000|Si
+Ingreso|07-02-2026|Externo|MVPC|660000|Si
+Egreso|07-02-2026|MVPC|Externo|590000|Si
+Transferencia interna|07-02-2026|PC|ADMINISTRACIÓN|1300000|No
+Transferencia interna|07-02-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|09-02-2026|Externo|PC|5555000|Si
+Egreso|09-02-2026|PC|Externo|60500|Si
+Ingreso|09-02-2026|Externo|P2|1855000|Si
+Egreso|09-02-2026|P2|Externo|20000|Si
+Ingreso|09-02-2026|Externo|MVPC|1100000|Si
+Egreso|09-02-2026|MVPC|Externo|1370000|Si
+Transferencia interna|09-02-2026|P2|ADMINISTRACIÓN|2000000|No
+Ingreso|10-02-2026|Externo|PC|4910000|Si
+Egreso|10-02-2026|PC|Externo|1301800|Si
+Ingreso|10-02-2026|Externo|P2|3765000|Si
+Egreso|10-02-2026|P2|Externo|66000|Si
+Ingreso|10-02-2026|Externo|MVPC|490000|Si
+Egreso|10-02-2026|MVPC|Externo|1013300|Si
+Transferencia interna|10-02-2026|P2|ADMINISTRACIÓN|3100000|No
+Ingreso|11-02-2026|Externo|PC|5550000|Si
+Egreso|11-02-2026|PC|Externo|1131000|Si
+Ingreso|11-02-2026|Externo|P2|2055000|Si
+Egreso|11-02-2026|P2|Externo|55000|Si
+Ingreso|11-02-2026|Externo|MVPC|1000000|Si
+Egreso|11-02-2026|MVPC|Externo|1100000|Si
+Transferencia interna|11-02-2026|PC|ADMINISTRACIÓN|2900000|No
+Transferencia interna|11-02-2026|P2|ADMINISTRACIÓN|1200000|No
+Transferencia interna|11-02-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|12-02-2026|Externo|PC|2890000|Si
+Ingreso|12-02-2026|Externo|P2|1550000|Si
+Egreso|12-02-2026|P2|Externo|285000|Si
+Ingreso|12-02-2026|Externo|MVPC|340000|Si
+Egreso|12-02-2026|MVPC|Externo|1040000|Si
+Transferencia interna|12-02-2026|PC|ADMINISTRACIÓN|700000|No
+Transferencia interna|12-02-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|13-02-2026|Externo|PC|2885000|Si
+Egreso|13-02-2026|PC|Externo|130000|Si
+Ingreso|13-02-2026|Externo|P2|715000|Si
+Egreso|13-02-2026|P2|Externo|176000|Si
+Egreso|13-02-2026|MVPC|Externo|230000|Si
+Transferencia interna|13-02-2026|PC|ADMINISTRACIÓN|1700000|No
+Ingreso|14-02-2026|Externo|PC|2525000|Si
+Egreso|14-02-2026|PC|Externo|110000|Si
+Ingreso|14-02-2026|Externo|P2|35000|Si
+Egreso|14-02-2026|P2|Externo|30000|Si
+Transferencia interna|14-02-2026|PC|ADMINISTRACIÓN|700000|No
+Ingreso|16-02-2026|Externo|PC|3514000|Si
+Egreso|16-02-2026|PC|Externo|50000|Si
+Ingreso|16-02-2026|Externo|P2|1590000|Si
+Egreso|16-02-2026|P2|Externo|15000|Si
+Ingreso|16-02-2026|Externo|MVPC|880000|Si
+Egreso|16-02-2026|MVPC|Externo|400000|Si
+Transferencia interna|16-02-2026|PC|ADMINISTRACIÓN|700000|No
+Ingreso|17-02-2026|Externo|PC|3060000|Si
+Egreso|17-02-2026|PC|Externo|157000|Si
+Ingreso|17-02-2026|Externo|P2|1285000|Si
+Egreso|17-02-2026|P2|Externo|40000|Si
+Ingreso|17-02-2026|Externo|MVPC|440000|Si
+Egreso|17-02-2026|MVPC|Externo|799500|Si
+Transferencia interna|17-02-2026|PC|ADMINISTRACIÓN|700000|No
+Ingreso|18-02-2026|Externo|PC|1070000|Si
+Egreso|18-02-2026|PC|Externo|25000|Si
+Ingreso|18-02-2026|Externo|P2|1555000|Si
+Egreso|18-02-2026|P2|Externo|45000|Si
+Ingreso|18-02-2026|Externo|MVPC|440000|Si
+Egreso|18-02-2026|MVPC|Externo|510000|Si
+Transferencia interna|18-02-2026|P2|ADMINISTRACIÓN|1300000|No
+Transferencia interna|18-02-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Cobro externo|18-02-2026|Banco Continental|PC|14853100|Si
+Ingreso|19-02-2026|Externo|PC|1495000|Si
+Egreso|19-02-2026|PC|Externo|100000|Si
+Ingreso|19-02-2026|Externo|P2|1070000|Si
+Egreso|19-02-2026|P2|Externo|30000|Si
+Ingreso|19-02-2026|Externo|MVPC|660000|Si
+Egreso|19-02-2026|MVPC|Externo|460000|Si
+Transferencia interna|19-02-2026|PC|ADMINISTRACIÓN|1300000|No
+Ingreso|20-02-2026|Externo|PC|1819000|Si
+Egreso|20-02-2026|PC|Externo|114000|Si
+Ingreso|20-02-2026|Externo|P2|4340000|Si
+Egreso|20-02-2026|P2|Externo|15000|Si
+Ingreso|20-02-2026|Externo|MVPC|240000|Si
+Egreso|20-02-2026|MVPC|Externo|610000|Si
+Ingreso|20-02-2026|Externo|MVP2|2000000|Si
+Egreso|20-02-2026|MVP2|Externo|1700000|Si
+Transferencia interna|20-02-2026|PC|ADMINISTRACIÓN|500000|No
+Transferencia interna|20-02-2026|P2|ADMINISTRACIÓN|3600000|No
+Ingreso|21-02-2026|Externo|PC|365000|Si
+Ingreso|21-02-2026|Externo|P2|775000|Si
+Ingreso|21-02-2026|Externo|MVPC|220000|Si
+Egreso|21-02-2026|MVPC|Externo|770000|Si
+Ingreso|23-02-2026|Externo|PC|5431000|Si
+Egreso|23-02-2026|PC|Externo|30000|Si
+Ingreso|23-02-2026|Externo|P2|1006000|Si
+Egreso|23-02-2026|P2|Externo|15000|Si
+Ingreso|23-02-2026|Externo|MVPC|220000|Si
+Egreso|23-02-2026|MVPC|Externo|391400|Si
+Transferencia interna|23-02-2026|P2|ADMINISTRACIÓN|1000000|No
+Transferencia interna|23-02-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|24-02-2026|Externo|PC|5568000|Si
+Egreso|24-02-2026|PC|Externo|50000|Si
+Ingreso|24-02-2026|Externo|P2|1815000|Si
+Egreso|24-02-2026|P2|Externo|40000|Si
+Ingreso|24-02-2026|Externo|MVPC|460000|Si
+Egreso|24-02-2026|MVPC|Externo|150000|Si
+Transferencia interna|24-02-2026|PC|ADMINISTRACIÓN|3100000|No
+Transferencia interna|24-02-2026|P2|ADMINISTRACIÓN|1700000|No
+Ingreso|25-02-2026|Externo|PC|2180000|Si
+Egreso|25-02-2026|PC|Externo|50000|Si
+Ingreso|25-02-2026|Externo|P2|1790000|Si
+Egreso|25-02-2026|P2|Externo|25000|Si
+Ingreso|25-02-2026|Externo|MVPC|500000|Si
+Egreso|25-02-2026|MVPC|Externo|510000|Si
+Transferencia interna|25-02-2026|PC|ADMINISTRACIÓN|700000|No
+Ingreso|26-02-2026|Externo|PC|7370000|Si
+Egreso|26-02-2026|PC|Externo|50000|Si
+Ingreso|26-02-2026|Externo|P2|1634000|Si
+Egreso|26-02-2026|P2|Externo|40000|Si
+Ingreso|26-02-2026|Externo|MVPC|340000|Si
+Egreso|26-02-2026|MVPC|Externo|400000|Si
+Transferencia interna|26-02-2026|P2|ADMINISTRACIÓN|1000000|No
+Ingreso|27-02-2026|Externo|PC|1715000|Si
+Egreso|27-02-2026|PC|Externo|5000|Si
+Ingreso|27-02-2026|Externo|P2|3500000|Si
+Egreso|27-02-2026|P2|Externo|20000|Si
+Ingreso|27-02-2026|Externo|MVPC|660000|Si
+Egreso|27-02-2026|MVPC|Externo|547600|Si
+Ingreso|27-02-2026|Externo|MVP2|2720000|Si
+Egreso|27-02-2026|MVP2|Externo|2150000|Si
+Transferencia interna|27-02-2026|PC|ADMINISTRACIÓN|800000|No
+Transferencia interna|27-02-2026|P2|ADMINISTRACIÓN|3100000|No
+Transferencia interna|27-02-2026|ADMINISTRACIÓN|MVPC|800000|No
+Ingreso|28-02-2026|Externo|PC|2656000|Si
+Egreso|28-02-2026|PC|Externo|90000|Si
+Ingreso|28-02-2026|Externo|P2|1680000|Si
+Egreso|28-02-2026|P2|Externo|40000|Si
+Ingreso|28-02-2026|Externo|MVPC|660000|Si
+Egreso|28-02-2026|MVPC|Externo|480000|Si
+Ingreso|03-03-2026|Externo|PC|3635000|Si
+Egreso|03-03-2026|PC|Externo|350000|Si
+Ingreso|03-03-2026|Externo|P2|2775000|Si
+Egreso|03-03-2026|P2|Externo|455000|Si
+Ingreso|03-03-2026|Externo|MVPC|1000000|Si
+Egreso|03-03-2026|MVPC|Externo|250000|Si
+Transferencia interna|03-03-2026|P2|ADMINISTRACIÓN|5100000|No
+Ingreso|04-03-2026|Externo|PC|5375000|Si
+Egreso|04-03-2026|PC|Externo|26000|Si
+Ingreso|04-03-2026|Externo|P2|2592000|Si
+Egreso|04-03-2026|P2|Externo|40000|Si
+Ingreso|04-03-2026|Externo|MVPC|1000000|Si
+Egreso|04-03-2026|MVPC|Externo|1390000|Si
+Transferencia interna|04-03-2026|P2|ADMINISTRACIÓN|2200000|No
+Ingreso|05-03-2026|Externo|PC|8105000|Si
+Egreso|05-03-2026|PC|Externo|1550000|Si
+Ingreso|05-03-2026|Externo|P2|4265000|Si
+Egreso|05-03-2026|P2|Externo|40000|Si
+Ingreso|05-03-2026|Externo|MVPC|1540000|Si
+Egreso|05-03-2026|MVPC|Externo|900000|Si
+Transferencia interna|05-03-2026|PC|ADMINISTRACIÓN|1800000|No
+Transferencia interna|05-03-2026|P2|ADMINISTRACIÓN|1100000|No
+Ingreso|06-03-2026|Externo|PC|3055000|Si
+Ingreso|06-03-2026|Externo|P2|5364000|Si
+Egreso|06-03-2026|P2|Externo|25000|Si
+Ingreso|06-03-2026|Externo|MVPC|220000|Si
+Egreso|06-03-2026|MVPC|Externo|350000|Si
+Ingreso|06-03-2026|Externo|MVP2|2525000|Si
+Egreso|06-03-2026|MVP2|Externo|2425000|Si
+Transferencia interna|06-03-2026|P2|ADMINISTRACIÓN|5000000|No
+Ingreso|07-03-2026|Externo|PC|3814000|Si
+Egreso|07-03-2026|PC|Externo|75000|Si
+Ingreso|07-03-2026|Externo|P2|2067000|Si
+Egreso|07-03-2026|P2|Externo|95000|Si
+Ingreso|07-03-2026|Externo|MVPC|340000|Si
+Egreso|07-03-2026|MVPC|Externo|550000|Si
+Transferencia interna|07-03-2026|ADMINISTRACIÓN|MVPC|2000000|No
+Ingreso|09-03-2026|Externo|PC|4110000|Si
+Egreso|09-03-2026|PC|Externo|744000|Si
+Ingreso|09-03-2026|Externo|P2|2220000|Si
+Egreso|09-03-2026|P2|Externo|588000|Si
+Egreso|09-03-2026|MVPC|Externo|1465500|Si
+Transferencia interna|09-03-2026|P2|ADMINISTRACIÓN|700000|No
+Ingreso|10-03-2026|Externo|PC|5110000|Si
+Egreso|10-03-2026|PC|Externo|2284300|Si
+Ingreso|10-03-2026|Externo|P2|4130000|Si
+Egreso|10-03-2026|P2|Externo|40000|Si
+Ingreso|10-03-2026|Externo|MVPC|710000|Si
+Egreso|10-03-2026|MVPC|Externo|250000|Si
+Transferencia interna|10-03-2026|P2|ADMINISTRACIÓN|2500000|No
+Transferencia interna|10-03-2026|ADMINISTRACIÓN|PC|1900000|No
+Ingreso|11-03-2026|Externo|PC|2791000|Si
+Egreso|11-03-2026|PC|Externo|400000|Si
+Ingreso|11-03-2026|Externo|P2|985000|Si
+Egreso|11-03-2026|P2|Externo|835500|Si
+Ingreso|11-03-2026|Externo|MVPC|220000|Si
+Egreso|11-03-2026|MVPC|Externo|840000|Si
+Transferencia interna|11-03-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|12-03-2026|Externo|PC|4425000|Si
+Egreso|12-03-2026|PC|Externo|182000|Si
+Ingreso|12-03-2026|Externo|P2|910000|Si
+Egreso|12-03-2026|P2|Externo|140000|Si
+Ingreso|12-03-2026|Externo|MVPC|1020000|Si
+Egreso|12-03-2026|MVPC|Externo|380000|Si
+Transferencia interna|12-03-2026|PC|ADMINISTRACIÓN|1900000|No
+Transferencia interna|12-03-2026|P2|ADMINISTRACIÓN|800000|No
+Ingreso|13-03-2026|Externo|PC|1435000|Si
+Egreso|13-03-2026|PC|Externo|120000|Si
+Ingreso|13-03-2026|Externo|P2|1885000|Si
+Egreso|13-03-2026|P2|Externo|328000|Si
+Ingreso|13-03-2026|Externo|MVPC|560000|Si
+Egreso|13-03-2026|MVPC|Externo|570200|Si
+Ingreso|14-03-2026|Externo|PC|1715000|Si
+Egreso|14-03-2026|PC|Externo|50000|Si
+Ingreso|14-03-2026|Externo|P2|730000|Si
+Egreso|14-03-2026|P2|Externo|40000|Si
+Ingreso|14-03-2026|Externo|MVPC|220000|Si
+Egreso|14-03-2026|MVPC|Externo|350000|Si
+Ingreso|16-03-2026|Externo|PC|3670000|Si
+Egreso|16-03-2026|PC|Externo|50000|Si
+Ingreso|16-03-2026|Externo|P2|1120000|Si
+Egreso|16-03-2026|P2|Externo|30000|Si
+Ingreso|16-03-2026|Externo|MVPC|440000|Si
+Egreso|16-03-2026|MVPC|Externo|1240000|Si
+Transferencia interna|16-03-2026|P2|ADMINISTRACIÓN|1000000|No
+Ingreso|17-03-2026|Externo|PC|3230000|Si
+Egreso|17-03-2026|PC|Externo|153000|Si
+Ingreso|17-03-2026|Externo|P2|775000|Si
+Egreso|17-03-2026|P2|Externo|30000|Si
+Ingreso|17-03-2026|Externo|MVPC|440000|Si
+Egreso|17-03-2026|MVPC|Externo|450000|Si
+Transferencia interna|17-03-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|18-03-2026|Externo|PC|2050000|Si
+Egreso|18-03-2026|PC|Externo|50000|Si
+Ingreso|18-03-2026|Externo|P2|1155000|Si
+Egreso|18-03-2026|P2|Externo|30000|Si
+Ingreso|18-03-2026|Externo|MVPC|780000|Si
+Egreso|18-03-2026|MVPC|Externo|670000|Si
+Transferencia interna|18-03-2026|PC|ADMINISTRACIÓN|1300000|No
+Ingreso|19-03-2026|Externo|PC|3710000|Si
+Egreso|19-03-2026|PC|Externo|50000|Si
+Ingreso|19-03-2026|Externo|P2|900000|Si
+Egreso|19-03-2026|P2|Externo|167500|Si
+Ingreso|19-03-2026|Externo|MVPC|340000|Si
+Egreso|19-03-2026|MVPC|Externo|390000|Si
+Ingreso|20-03-2026|Externo|PC|5254000|Si
+Egreso|20-03-2026|PC|Externo|200000|Si
+Ingreso|20-03-2026|Externo|P2|9955000|Si
+Ingreso|20-03-2026|Externo|MVPC|220000|Si
+Egreso|20-03-2026|MVPC|Externo|150000|Si
+Ingreso|20-03-2026|Externo|MVP2|2600000|Si
+Egreso|20-03-2026|MVP2|Externo|2365000|Si
+Transferencia interna|20-03-2026|PC|ADMINISTRACIÓN|1700000|No
+Transferencia interna|20-03-2026|P2|ADMINISTRACIÓN|4400000|No
+Ingreso|21-03-2026|Externo|PC|1225000|Si
+Egreso|21-03-2026|PC|Externo|25000|Si
+Ingreso|21-03-2026|Externo|P2|2635000|Si
+Egreso|21-03-2026|P2|Externo|45000|Si
+Ingreso|21-03-2026|Externo|MVPC|220000|Si
+Egreso|21-03-2026|MVPC|Externo|530000|Si
+Ingreso|23-03-2026|Externo|PC|7800000|Si
+Egreso|23-03-2026|PC|Externo|50000|Si
+Ingreso|23-03-2026|Externo|P2|465000|Si
+Egreso|23-03-2026|P2|Externo|20000|Si
+Ingreso|23-03-2026|Externo|MVPC|660000|Si
+Egreso|23-03-2026|MVPC|Externo|366000|Si
+Transferencia interna|23-03-2026|PC|ADMINISTRACIÓN|1800000|No
+Transferencia interna|23-03-2026|P2|ADMINISTRACIÓN|2000000|No
+Ingreso|24-03-2026|Externo|PC|4569000|Si
+Egreso|24-03-2026|PC|Externo|116000|Si
+Ingreso|24-03-2026|Externo|P2|1730000|Si
+Egreso|24-03-2026|P2|Externo|45000|Si
+Ingreso|24-03-2026|Externo|MVPC|410000|Si
+Egreso|24-03-2026|MVPC|Externo|760800|Si
+Transferencia interna|24-03-2026|PC|ADMINISTRACIÓN|1100000|No
+Transferencia interna|24-03-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|25-03-2026|Externo|PC|4650000|Si
+Egreso|25-03-2026|PC|Externo|50000|Si
+Ingreso|25-03-2026|Externo|P2|1050000|Si
+Egreso|25-03-2026|P2|Externo|165000|Si
+Ingreso|25-03-2026|Externo|MVPC|1060000|Si
+Egreso|25-03-2026|MVPC|Externo|750000|Si
+Transferencia interna|25-03-2026|P2|ADMINISTRACIÓN|1100000|No
+Transferencia interna|25-03-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|26-03-2026|Externo|PC|3945000|Si
+Egreso|26-03-2026|PC|Externo|503000|Si
+Ingreso|26-03-2026|Externo|P2|1005000|Si
+Egreso|26-03-2026|P2|Externo|40000|Si
+Egreso|26-03-2026|MVPC|Externo|850000|Si
+Transferencia interna|26-03-2026|PC|ADMINISTRACIÓN|1100000|No
+Ingreso|27-03-2026|Externo|PC|3350000|Si
+Egreso|27-03-2026|PC|Externo|41000|Si
+Ingreso|27-03-2026|Externo|P2|6177000|Si
+Ingreso|27-03-2026|Externo|MVPC|220000|Si
+Egreso|27-03-2026|MVPC|Externo|225000|Si
+Ingreso|27-03-2026|Externo|MVP2|2280000|Si
+Egreso|27-03-2026|MVP2|Externo|2780000|Si
+Transferencia interna|27-03-2026|P2|ADMINISTRACIÓN|3800000|No
+Transferencia interna|27-03-2026|ADMINISTRACIÓN|MVPC|814000|No
+Cobro externo|27-03-2026|Banco Continental|PC|10583900|Si
+Ingreso|28-03-2026|Externo|PC|7480000|Si
+Egreso|28-03-2026|PC|Externo|50000|Si
+Ingreso|28-03-2026|Externo|P2|1865000|Si
+Egreso|28-03-2026|P2|Externo|40000|Si
+Ingreso|28-03-2026|Externo|MVPC|780000|Si
+Egreso|28-03-2026|MVPC|Externo|270000|Si
+Transferencia interna|28-03-2026|PC|ADMINISTRACIÓN|3600000|No
+Ingreso|30-03-2026|Externo|PC|5165000|Si
+Egreso|30-03-2026|PC|Externo|350000|Si
+Ingreso|30-03-2026|Externo|P2|1135000|Si
+Egreso|30-03-2026|P2|Externo|15000|Si
+Ingreso|30-03-2026|Externo|MVPC|440000|Si
+Egreso|30-03-2026|MVPC|Externo|80000|Si
+Transferencia interna|30-03-2026|PC|ADMINISTRACIÓN|2000000|No
+Cobro externo|30-03-2026|Banco Continental|PC|2350000|Si
+Ingreso|31-03-2026|Externo|PC|5555000|Si
+Egreso|31-03-2026|PC|Externo|25000|Si
+Ingreso|31-03-2026|Externo|P2|5185000|Si
+Egreso|31-03-2026|P2|Externo|30000|Si
+Ingreso|31-03-2026|Externo|MVPC|1100000|Si
+Egreso|31-03-2026|MVPC|Externo|510000|Si
+Transferencia interna|31-03-2026|PC|ADMINISTRACIÓN|1300000|No
+Ingreso|01-04-2026|Externo|PC|4605000|Si
+Egreso|01-04-2026|PC|Externo|220000|Si
+Ingreso|01-04-2026|Externo|P2|3705000|Si
+Egreso|01-04-2026|P2|Externo|108500|Si
+Ingreso|01-04-2026|Externo|MVPC|500000|Si
+Egreso|01-04-2026|MVPC|Externo|750000|Si
+Transferencia interna|01-04-2026|PC|ADMINISTRACIÓN|500000|No
+Ingreso|06-04-2026|Externo|PC|13140000|Si
+Egreso|06-04-2026|PC|Externo|50000|Si
+Ingreso|06-04-2026|Externo|P2|1915000|Si
+Egreso|06-04-2026|P2|Externo|400000|Si
+Ingreso|06-04-2026|Externo|MVPC|1880000|Si
+Egreso|06-04-2026|MVPC|Externo|750000|Si
+Transferencia interna|06-04-2026|PC|ADMINISTRACIÓN|5650000|No
+Transferencia interna|06-04-2026|P2|ADMINISTRACIÓN|8700000|No
+Ingreso|07-04-2026|Externo|PC|3550000|Si
+Egreso|07-04-2026|PC|Externo|50000|Si
+Ingreso|07-04-2026|Externo|P2|570000|Si
+Egreso|07-04-2026|P2|Externo|15000|Si
+Egreso|07-04-2026|MVPC|Externo|1110000|Si
+Transferencia interna|07-04-2026|P2|ADMINISTRACIÓN|900000|No
+Transferencia interna|07-04-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|08-04-2026|Externo|PC|4612900|Si
+Egreso|08-04-2026|PC|Externo|1358400|Si
+Ingreso|08-04-2026|Externo|P2|1005000|Si
+Egreso|08-04-2026|P2|Externo|154000|Si
+Ingreso|08-04-2026|Externo|MVPC|1240000|Si
+Egreso|08-04-2026|MVPC|Externo|721000|Si
+Ingreso|09-04-2026|Externo|PC|1680000|Si
+Egreso|09-04-2026|PC|Externo|385000|Si
+Ingreso|09-04-2026|Externo|P2|1260000|Si
+Egreso|09-04-2026|P2|Externo|261500|Si
+Ingreso|09-04-2026|Externo|MVPC|660000|Si
+Egreso|09-04-2026|MVPC|Externo|1130000|Si
+Ingreso|10-04-2026|Externo|PC|5780000|Si
+Egreso|10-04-2026|PC|Externo|74000|Si
+Ingreso|10-04-2026|Externo|P2|5595000|Si
+Egreso|10-04-2026|P2|Externo|20000|Si
+Ingreso|10-04-2026|Externo|MVPC|440000|Si
+Egreso|10-04-2026|MVPC|Externo|200000|Si
+Ingreso|10-04-2026|Externo|MVP2|2500000|Si
+Egreso|10-04-2026|MVP2|Externo|2145000|Si
+Transferencia interna|10-04-2026|PC|ADMINISTRACIÓN|700000|No
+Transferencia interna|10-04-2026|P2|ADMINISTRACIÓN|3500000|No
+Transferencia interna|10-04-2026|ADMINISTRACIÓN|MVPC|700000|No
+Ingreso|11-04-2026|Externo|PC|1460000|Si
+Egreso|11-04-2026|PC|Externo|25000|Si
+Ingreso|11-04-2026|Externo|P2|1400000|Si
+Egreso|11-04-2026|P2|Externo|575000|Si
+Ingreso|11-04-2026|Externo|MVPC|340000|Si
+Egreso|11-04-2026|MVPC|Externo|625000|Si
+Ingreso|13-04-2026|Externo|PC|4083000|Si
+Egreso|13-04-2026|PC|Externo|100000|Si
+Ingreso|13-04-2026|Externo|P2|1145000|Si
+Egreso|13-04-2026|P2|Externo|575000|Si
+Ingreso|13-04-2026|Externo|MVPC|1630000|Si
+Egreso|13-04-2026|MVPC|Externo|740000|Si
+Ingreso|14-04-2026|Externo|PC|1375000|Si
+Egreso|14-04-2026|PC|Externo|1323000|Si
+Ingreso|14-04-2026|Externo|P2|2560000|Si
+Egreso|14-04-2026|P2|Externo|85000|Si
+Ingreso|14-04-2026|Externo|MVPC|500000|Si
+Egreso|14-04-2026|MVPC|Externo|470000|Si
+Transferencia interna|14-04-2026|P2|ADMINISTRACIÓN|1100000|No
+Ingreso|15-04-2026|Externo|PC|1705000|Si
+Egreso|15-04-2026|PC|Externo|50000|Si
+Ingreso|15-04-2026|Externo|P2|995000|Si
+Egreso|15-04-2026|P2|Externo|25000|Si
+Ingreso|15-04-2026|Externo|MVPC|1440000|Si
+Egreso|15-04-2026|MVPC|Externo|950000|Si
+Transferencia interna|15-04-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|16-04-2026|Externo|PC|3855000|Si
+Egreso|16-04-2026|PC|Externo|512000|Si
+Ingreso|16-04-2026|Externo|P2|800000|Si
+Egreso|16-04-2026|P2|Externo|50000|Si
+Ingreso|16-04-2026|Externo|MVPC|1000000|Si
+Egreso|16-04-2026|MVPC|Externo|1750000|Si
+Transferencia interna|16-04-2026|P2|ADMINISTRACIÓN|1600000|No
+Ingreso|17-04-2026|Externo|PC|3925000|Si
+Egreso|17-04-2026|PC|Externo|481000|Si
+Ingreso|17-04-2026|Externo|P2|4250000|Si
+Ingreso|17-04-2026|Externo|MVPC|220000|Si
+Egreso|17-04-2026|MVPC|Externo|600000|Si
+Ingreso|17-04-2026|Externo|MVP2|1920000|Si
+Egreso|17-04-2026|MVP2|Externo|2845000|Si
+Transferencia interna|17-04-2026|PC|ADMINISTRACIÓN|2700000|No
+Ingreso|18-04-2026|Externo|PC|3670000|Si
+Egreso|18-04-2026|PC|Externo|25000|Si
+Ingreso|18-04-2026|Externo|P2|1175000|Si
+Egreso|18-04-2026|P2|Externo|40000|Si
+Ingreso|18-04-2026|Externo|MVPC|560000|Si
+Egreso|18-04-2026|MVPC|Externo|900000|Si
+Transferencia interna|18-04-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|20-04-2026|Externo|PC|1715000|Si
+Egreso|20-04-2026|PC|Externo|50000|Si
+Ingreso|20-04-2026|Externo|MVPC|240000|Si
+Egreso|20-04-2026|MVPC|Externo|890000|Si
+Transferencia interna|20-04-2026|PC|ADMINISTRACIÓN|1200000|No
+Transferencia interna|20-04-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|21-04-2026|Externo|PC|4985000|Si
+Egreso|21-04-2026|PC|Externo|200000|Si
+Ingreso|21-04-2026|Externo|P2|2980000|Si
+Egreso|21-04-2026|P2|Externo|97000|Si
+Ingreso|21-04-2026|Externo|MVPC|780000|Si
+Egreso|21-04-2026|MVPC|Externo|280000|Si
+Transferencia interna|21-04-2026|P2|ADMINISTRACIÓN|3200000|No
+Ingreso|22-04-2026|Externo|PC|1090000|Si
+Egreso|22-04-2026|PC|Externo|50000|Si
+Ingreso|22-04-2026|Externo|P2|1125000|Si
+Egreso|22-04-2026|P2|Externo|20000|Si
+Ingreso|22-04-2026|Externo|MVPC|50000|Si
+Egreso|22-04-2026|MVPC|Externo|670000|Si
+Ingreso|23-04-2026|Externo|PC|1100000|Si
+Egreso|23-04-2026|PC|Externo|50000|Si
+Ingreso|23-04-2026|Externo|P2|560000|Si
+Egreso|23-04-2026|P2|Externo|332250|Si
+Ingreso|23-04-2026|Externo|MVPC|340000|Si
+Egreso|23-04-2026|MVPC|Externo|190000|Si
+Transferencia interna|23-04-2026|PC|ADMINISTRACIÓN|700000|No
+Transferencia interna|23-04-2026|P2|ADMINISTRACIÓN|1200000|No
+Cobro externo|23-04-2026|Banco Continental|PC|8363270|Si
+Ingreso|24-04-2026|Externo|PC|1685000|Si
+Egreso|24-04-2026|PC|Externo|80000|Si
+Ingreso|24-04-2026|Externo|P2|1110000|Si
+Egreso|24-04-2026|P2|Externo|50000|Si
+Ingreso|24-04-2026|Externo|MVP2|1440000|Si
+Egreso|24-04-2026|MVP2|Externo|1625000|Si
+Transferencia interna|24-04-2026|P2|ADMINISTRACIÓN|700000|No
+Ingreso|25-04-2026|Externo|PC|1475000|Si
+Egreso|25-04-2026|PC|Externo|25000|Si
+Ingreso|25-04-2026|Externo|P2|1195000|Si
+Egreso|25-04-2026|P2|Externo|30000|Si
+Ingreso|25-04-2026|Externo|MVPC|220000|Si
+Egreso|25-04-2026|MVPC|Externo|620000|Si
+Transferencia interna|25-04-2026|PC|ADMINISTRACIÓN|800000|No
+Transferencia interna|25-04-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|27-04-2026|Externo|PC|1705000|Si
+Egreso|27-04-2026|PC|Externo|438000|Si
+Ingreso|27-04-2026|Externo|P2|840000|Si
+Egreso|27-04-2026|P2|Externo|20000|Si
+Ingreso|27-04-2026|Externo|MVPC|340000|Si
+Egreso|27-04-2026|MVPC|Externo|50000|Si
+Ingreso|28-04-2026|Externo|PC|1465000|Si
+Egreso|28-04-2026|PC|Externo|65000|Si
+Ingreso|28-04-2026|Externo|P2|2580000|Si
+Egreso|28-04-2026|P2|Externo|45000|Si
+Ingreso|28-04-2026|Externo|MVPC|220000|Si
+Egreso|28-04-2026|MVPC|Externo|340000|Si
+Transferencia interna|28-04-2026|PC|ADMINISTRACIÓN|1900000|No
+Transferencia interna|28-04-2026|ADMINISTRACIÓN|PC|114000|No
+Ingreso|29-04-2026|Externo|PC|7985000|Si
+Egreso|29-04-2026|PC|Externo|50000|Si
+Ingreso|29-04-2026|Externo|P2|775000|Si
+Egreso|29-04-2026|P2|Externo|40000|Si
+Ingreso|29-04-2026|Externo|MVPC|220000|Si
+Egreso|29-04-2026|MVPC|Externo|722500|Si
+Transferencia interna|29-04-2026|PC|ADMINISTRACIÓN|2800000|No
+Transferencia interna|29-04-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|30-04-2026|Externo|PC|4650000|Si
+Egreso|30-04-2026|PC|Externo|50000|Si
+Ingreso|30-04-2026|Externo|P2|1650000|Si
+Egreso|30-04-2026|P2|Externo|980000|Si
+Ingreso|30-04-2026|Externo|MVPC|220000|Si
+Egreso|30-04-2026|MVPC|Externo|870000|Si
+Ingreso|02-01-2026|Externo|PC|3925000|Si
+Egreso|02-01-2026|PC|Externo|250000|Si
+Ingreso|02-01-2026|Externo|P2|395000|Si
+Egreso|02-01-2026|P2|Externo|125000|Si
+Ingreso|02-01-2026|Externo|MVPC|220000|Si
+Egreso|02-01-2026|MVPC|Externo|530000|Si
+Transferencia interna|02-01-2026|PC|ADMINISTRACIÓN|1100000|No
+Transferencia interna|02-01-2026|ADMINISTRACIÓN|PC|24000|No
+Ingreso|03-01-2026|Externo|PC|4280000|Si
+Egreso|03-01-2026|PC|Externo|50000|Si
+Ingreso|03-01-2026|Externo|P2|945000|Si
+Egreso|03-01-2026|P2|Externo|25000|Si
+Ingreso|03-01-2026|Externo|MVPC|440000|Si
+Egreso|03-01-2026|MVPC|Externo|220000|Si
+Ingreso|05-01-2026|Externo|PC|2770000|Si
+Egreso|05-01-2026|PC|Externo|190000|Si
+Ingreso|05-01-2026|Externo|P2|1085000|Si
+Egreso|05-01-2026|P2|Externo|15000|Si
+Transferencia interna|05-01-2026|PC|ADMINISTRACIÓN|1400000|No
+Transferencia interna|05-01-2026|P2|ADMINISTRACIÓN|1800000|No
+Ingreso|06-01-2026|Externo|PC|5952000|Si
+Ingreso|06-01-2026|Externo|P2|645000|Si
+Egreso|06-01-2026|P2|Externo|135000|Si
+Ingreso|06-01-2026|Externo|MVPC|560000|Si
+Egreso|06-01-2026|MVPC|Externo|400000|Si
+Ingreso|07-01-2026|Externo|PC|2660000|Si
+Egreso|07-01-2026|PC|Externo|50000|Si
+Ingreso|07-01-2026|Externo|P2|2240000|Si
+Egreso|07-01-2026|P2|Externo|40000|Si
+Transferencia interna|07-01-2026|PC|ADMINISTRACIÓN|1400000|No
+Transferencia interna|07-01-2026|P2|ADMINISTRACIÓN|1200000|No
+Ingreso|08-01-2026|Externo|PC|4890000|Si
+Egreso|08-01-2026|PC|Externo|1222000|Si
+Ingreso|08-01-2026|Externo|P2|995000|Si
+Egreso|08-01-2026|P2|Externo|40000|Si
+Ingreso|08-01-2026|Externo|MVPC|440000|Si
+Egreso|08-01-2026|MVPC|Externo|1055000|Si
+Transferencia interna|08-01-2026|PC|ADMINISTRACIÓN|1200000|No
+Transferencia interna|08-01-2026|P2|ADMINISTRACIÓN|1000000|No
+Transferencia interna|08-01-2026|ADMINISTRACIÓN|PC|1200000|No
+Ingreso|09-01-2026|Externo|PC|1986000|Si
+Egreso|09-01-2026|PC|Externo|430000|Si
+Ingreso|09-01-2026|Externo|P2|12895000|Si
+Ingreso|09-01-2026|Externo|MVP2|3320000|Si
+Egreso|09-01-2026|MVP2|Externo|2625000|Si
+Transferencia interna|09-01-2026|P2|ADMINISTRACIÓN|9400000|No
+Ingreso|10-01-2026|Externo|PC|1555000|Si
+Egreso|10-01-2026|PC|Externo|25000|Si
+Ingreso|10-01-2026|Externo|P2|540000|Si
+Egreso|10-01-2026|P2|Externo|25000|Si
+Ingreso|10-01-2026|Externo|MVPC|780000|Si
+Egreso|10-01-2026|MVPC|Externo|650000|Si
+Transferencia interna|10-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Transferencia interna|10-01-2026|ADMINISTRACIÓN|PC|300000|No
+Ingreso|12-01-2026|Externo|PC|5880000|Si
+Egreso|12-01-2026|PC|Externo|400000|Si
+Ingreso|12-01-2026|Externo|P2|410000|Si
+Egreso|12-01-2026|P2|Externo|172000|Si
+Ingreso|12-01-2026|Externo|MVPC|1220000|Si
+Egreso|12-01-2026|MVPC|Externo|1075000|Si
+Transferencia interna|12-01-2026|PC|ADMINISTRACIÓN|100000|No
+Transferencia interna|12-01-2026|ADMINISTRACIÓN|MVPC|100000|No
+Ingreso|13-01-2026|Externo|PC|2775000|Si
+Egreso|13-01-2026|PC|Externo|450000|Si
+Ingreso|13-01-2026|Externo|P2|4250000|Si
+Egreso|13-01-2026|P2|Externo|307000|Si
+Egreso|13-01-2026|MVPC|Externo|980000|Si
+Transferencia interna|13-01-2026|P2|ADMINISTRACIÓN|2800000|No
+Transferencia interna|13-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Transferencia interna|13-01-2026|ADMINISTRACIÓN|PC|150000|No
+Ingreso|14-01-2026|Externo|PC|3340000|Si
+Egreso|14-01-2026|PC|Externo|75000|Si
+Ingreso|14-01-2026|Externo|P2|410000|Si
+Egreso|14-01-2026|P2|Externo|172000|Si
+Ingreso|14-01-2026|Externo|MVPC|440000|Si
+Egreso|14-01-2026|MVPC|Externo|450000|Si
+Transferencia interna|14-01-2026|PC|ADMINISTRACIÓN|1000000|No
+Transferencia interna|14-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|15-01-2026|Externo|PC|1625000|Si
+Egreso|15-01-2026|PC|Externo|55000|Si
+Ingreso|15-01-2026|Externo|P2|1606250|Si
+Egreso|15-01-2026|P2|Externo|70500|Si
+Ingreso|15-01-2026|Externo|MVPC|340000|Si
+Egreso|15-01-2026|MVPC|Externo|661400|Si
+Transferencia interna|15-01-2026|P2|ADMINISTRACIÓN|600000|No
+Ingreso|16-01-2026|Externo|PC|3570000|Si
+Egreso|16-01-2026|PC|Externo|100000|Si
+Ingreso|16-01-2026|Externo|P2|6361000|Si
+Ingreso|16-01-2026|Externo|MVPC|880000|Si
+Egreso|16-01-2026|MVPC|Externo|290000|Si
+Ingreso|16-01-2026|Externo|MVP2|2940000|Si
+Egreso|16-01-2026|MVP2|Externo|2420000|Si
+Transferencia interna|16-01-2026|P2|ADMINISTRACIÓN|3200000|No
+Ingreso|17-01-2026|Externo|PC|5340000|Si
+Egreso|17-01-2026|PC|Externo|70000|Si
+Ingreso|17-01-2026|Externo|P2|1775000|Si
+Egreso|17-01-2026|P2|Externo|25000|Si
+Ingreso|17-01-2026|Externo|MVPC|1280000|Si
+Egreso|17-01-2026|MVPC|Externo|890000|Si
+Transferencia interna|17-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|19-01-2026|Externo|PC|6180000|Si
+Egreso|19-01-2026|PC|Externo|37000|Si
+Ingreso|19-01-2026|Externo|P2|135000|Si
+Egreso|19-01-2026|P2|Externo|54000|Si
+Ingreso|19-01-2026|Externo|MVPC|560000|Si
+Egreso|19-01-2026|MVPC|Externo|600000|Si
+Ingreso|20-01-2026|Externo|PC|3510000|Si
+Egreso|20-01-2026|PC|Externo|50000|Si
+Ingreso|20-01-2026|Externo|P2|4717500|Si
+Egreso|20-01-2026|P2|Externo|45000|Si
+Ingreso|20-01-2026|Externo|MVPC|950000|Si
+Egreso|20-01-2026|MVPC|Externo|640000|Si
+Transferencia interna|20-01-2026|PC|ADMINISTRACIÓN|3900000|No
+Transferencia interna|20-01-2026|P2|ADMINISTRACIÓN|2300000|No
+Transferencia interna|20-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|21-01-2026|Externo|PC|2555000|Si
+Egreso|21-01-2026|PC|Externo|82000|Si
+Ingreso|21-01-2026|Externo|P2|2095000|Si
+Egreso|21-01-2026|P2|Externo|40000|Si
+Ingreso|21-01-2026|Externo|MVPC|740000|Si
+Egreso|21-01-2026|MVPC|Externo|930000|Si
+Transferencia interna|21-01-2026|P2|ADMINISTRACIÓN|1300000|No
+Transferencia interna|21-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|22-01-2026|Externo|PC|3445000|Si
+Egreso|22-01-2026|PC|Externo|868000|Si
+Ingreso|22-01-2026|Externo|P2|1700000|Si
+Egreso|22-01-2026|P2|Externo|40000|Si
+Ingreso|22-01-2026|Externo|MVPC|1340000|Si
+Egreso|22-01-2026|MVPC|Externo|1015000|Si
+Transferencia interna|22-01-2026|PC|ADMINISTRACIÓN|1000000|No
+Transferencia interna|22-01-2026|P2|ADMINISTRACIÓN|2100000|No
+Transferencia interna|22-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|23-01-2026|Externo|PC|2285000|Si
+Ingreso|23-01-2026|Externo|P2|685000|Si
+Egreso|23-01-2026|P2|Externo|25000|Si
+Egreso|23-01-2026|MVPC|Externo|540000|Si
+Transferencia interna|23-01-2026|PC|ADMINISTRACIÓN|800000|No
+Transferencia interna|23-01-2026|ADMINISTRACIÓN|PC|44000|No
+Ingreso|24-01-2026|Externo|PC|4520000|Si
+Egreso|24-01-2026|PC|Externo|109000|Si
+Ingreso|24-01-2026|Externo|P2|1005000|Si
+Egreso|24-01-2026|P2|Externo|171000|Si
+Ingreso|24-01-2026|Externo|MVPC|520000|Si
+Egreso|24-01-2026|MVPC|Externo|1100000|Si
+Transferencia interna|24-01-2026|PC|ADMINISTRACIÓN|1300000|No
+Transferencia interna|24-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|26-01-2026|Externo|PC|6375000|Si
+Egreso|26-01-2026|PC|Externo|34000|Si
+Ingreso|26-01-2026|Externo|P2|791500|Si
+Egreso|26-01-2026|P2|Externo|15000|Si
+Ingreso|26-01-2026|Externo|MVPC|560000|Si
+Egreso|26-01-2026|MVPC|Externo|1170000|Si
+Transferencia interna|26-01-2026|PC|ADMINISTRACIÓN|900000|No
+Transferencia interna|26-01-2026|P2|ADMINISTRACIÓN|1700000|No
+Transferencia interna|26-01-2026|ADMINISTRACIÓN|MVPC|900000|No
+Ingreso|27-01-2026|Externo|PC|5404000|Si
+Egreso|27-01-2026|PC|Externo|129300|Si
+Ingreso|27-01-2026|Externo|P2|1421000|Si
+Egreso|27-01-2026|P2|Externo|60000|Si
+Ingreso|27-01-2026|Externo|MVPC|220000|Si
+Egreso|27-01-2026|MVPC|Externo|480000|Si
+Transferencia interna|27-01-2026|PC|ADMINISTRACIÓN|1000000|No
+Transferencia interna|27-01-2026|P2|ADMINISTRACIÓN|900000|No
+Cobro externo|27-01-2026|Banco Continental|PC|6402500|Si
+Ingreso|28-01-2026|Externo|PC|7218000|Si
+Egreso|28-01-2026|PC|Externo|220000|Si
+Ingreso|28-01-2026|Externo|P2|769000|Si
+Egreso|28-01-2026|P2|Externo|90000|Si
+Ingreso|28-01-2026|Externo|MVPC|780000|Si
+Egreso|28-01-2026|MVPC|Externo|1002800|Si
+Transferencia interna|28-01-2026|PC|ADMINISTRACIÓN|1200000|No
+Transferencia interna|28-01-2026|ADMINISTRACIÓN|MVPC|1000000|No
+Ingreso|29-01-2026|Externo|PC|2234000|Si
+Egreso|29-01-2026|PC|Externo|75000|Si
+Ingreso|29-01-2026|Externo|P2|720000|Si
+Egreso|29-01-2026|P2|Externo|40000|Si
+Ingreso|29-01-2026|Externo|MVPC|1680000|Si
+Egreso|29-01-2026|MVPC|Externo|760000|Si
+Transferencia interna|29-01-2026|PC|ADMINISTRACIÓN|900000|No
+Ingreso|30-01-2026|Externo|PC|14582500|Si
+Egreso|30-01-2026|PC|Externo|50000|Si
+Ingreso|30-01-2026|Externo|P2|9660000|Si
+Egreso|30-01-2026|P2|Externo|65000|Si
+Ingreso|30-01-2026|Externo|MVPC|440000|Si
+Egreso|30-01-2026|MVPC|Externo|280000|Si
+Ingreso|30-01-2026|Externo|MVP2|3400000|Si
+Egreso|30-01-2026|MVP2|Externo|2870000|Si
+Transferencia interna|30-01-2026|PC|ADMINISTRACIÓN|1400000|No
+Transferencia interna|30-01-2026|P2|ADMINISTRACIÓN|6000000|No
+Ingreso|31-01-2026|Externo|PC|2080000|Si
+Egreso|31-01-2026|PC|Externo|238000|Si
+Ingreso|31-01-2026|Externo|P2|1150000|Si
+Egreso|31-01-2026|P2|Externo|90000|Si
+Ingreso|31-01-2026|Externo|MVPC|780000|Si
+Egreso|31-01-2026|MVPC|Externo|860000|Si

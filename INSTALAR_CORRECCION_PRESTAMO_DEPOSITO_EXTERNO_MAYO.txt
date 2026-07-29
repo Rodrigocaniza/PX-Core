@@ -1,0 +1,30 @@
+BC GESTIÓN — CORRECCIÓN FINAL DE MAYO 2026
+
+1. Cerrá BC Gestión.
+2. Copiá ImportadorExcel.py e Informes.py dentro de PX-Core.
+3. Elegí Reemplazar archivo cuando Windows lo pregunte.
+4. No copies ni modifiques la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+6. Entrá en Movimientos → Importar desde Excel.
+7. Seleccioná Movimientos_Mayo_2026_Corregido_Final.xlsx.
+8. Presioná Analizar Excel y luego Importar mes.
+
+CORRECCIONES INCLUIDAS
+
+- Gs. 1.055.563: Ueno Rodrigo 11/12 pasa de Adicionales a
+  Cuotas de préstamos como cuota histórica.
+- Total de cuotas de préstamos de mayo: Gs. 2.332.500.
+- Gs. 8.373.930: Cobro externo recibido en Banco Continental.
+- El cobro externo sí suma como ingreso y aparece el 25-05-2026.
+
+Si mayo ya fue importado con la clasificación anterior, el sistema detectará
+y reemplazará los registros incorrectos. Antes de aplicar los cambios creará
+un respaldo automático.
+
+RESULTADOS ESPERADOS DE MAYO
+
+- Ingresos: Gs. 158.227.330.
+- Egresos: Gs. 127.795.084.
+- Utilidad: Gs. 30.432.246.
+- Cuotas de préstamos: Gs. 2.332.500.
+- Estado de conciliación: OK.

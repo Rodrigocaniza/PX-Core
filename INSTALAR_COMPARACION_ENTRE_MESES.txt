@@ -1,0 +1,21 @@
+BC GESTIÓN - COMPARACIÓN ENTRE MESES
+
+INSTALACIÓN
+
+1. Cerrá BC Gestión.
+2. Copiá Informes.py dentro de la carpeta PX-Core.
+3. Elegí reemplazar el archivo existente.
+4. No modifiques ni reemplaces la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+USO
+
+1. Entrá en Informes.
+2. En el bloque Comparar meses, indicá Desde y Hasta con formato MM-AAAA.
+3. Elegí Empresa completa o una unidad.
+4. Presioná Generar comparación.
+5. Si querés descargarla, usá Descargar Excel o Descargar PDF.
+
+La comparación admite hasta 24 meses y marca los períodos sin registros como
+"Sin datos". Las variaciones se calculan únicamente contra el mes inmediato
+anterior cuando ambos meses tienen información.

@@ -1,0 +1,42 @@
+BC GESTIÓN - IMPORTACIÓN MENSUAL DESDE EXCEL
+=============================================
+
+INSTALACIÓN
+
+1. Cerrá BC Gestión.
+2. Copiá estos tres archivos dentro de PX-Core:
+   - interfaz.py
+   - ImportadorExcel.py
+   - Plantilla_Carga_Mensual_BC_Gestion.xlsx
+3. Elegí Reemplazar solamente para interfaz.py.
+4. No copies ni reemplaces la carpeta Datos.
+5. Abrí iniciar_interfaz.bat.
+
+USO
+
+1. Abrí la plantilla y guardá una copia con el nombre del mes.
+2. Completá solamente las hojas que necesites.
+3. En BC Gestión entrá a:
+   Movimientos > Importar desde Excel > Abrir importador.
+4. Elegí el archivo mensual.
+5. Revisá la vista previa:
+   - registros nuevos;
+   - duplicados omitidos;
+   - advertencias;
+   - errores.
+6. Si no hay errores, presioná Importar mes.
+
+SEGURIDAD
+
+- Un archivo puede contener solamente un mes.
+- Nada se guarda durante la vista previa.
+- Antes de importar se crea un respaldo automático.
+- Los registros idénticos ya existentes se omiten.
+- Si una fila tiene un dato inválido, no se importa ninguna fila.
+- La carga manual sigue disponible para correcciones.
+
+IMPORTANTE
+
+La planilla antigua de resumen no se importa directamente. Primero debe
+pasarse a la plantilla oficial, porque sus fórmulas y celdas combinadas no
+identifican cada registro de manera inequívoca.

@@ -1,0 +1,29 @@
+BC GESTIÓN — INVERSIONES PERSONALES DE SOCIOS
+
+INSTALACIÓN
+1. Cerrá BC Gestión.
+2. Copiá estos cuatro archivos dentro de PX-Core:
+   - Socios.py
+   - interfaz.py
+   - ImportadorExcel.py
+   - Plantilla_Carga_Mensual_BC_Gestion.xlsx
+3. Elegí reemplazar los archivos existentes.
+4. No copies, reemplaces ni modifiques la carpeta Datos.
+5. Abrí BC Gestión con iniciar_interfaz.bat.
+
+IMPORTACIÓN DE ENERO A ABRIL
+1. Entrá en Movimientos -> Importar desde Excel.
+2. Importá un archivo por vez, en este orden:
+   Enero, Febrero, Marzo y Abril.
+3. En cada archivo presioná Analizar Excel.
+4. Si la vista previa no muestra errores, presioná Importar mes.
+
+NUEVA CLASIFICACIÓN PERSONAL
+- Gasto personal: reduce el saldo mensual del socio.
+- Inversión personal: queda registrada solo para control del socio.
+  No reduce el saldo mensual y no modifica los ingresos, egresos
+  ni la utilidad del negocio.
+
+COMPATIBILIDAD
+Las planillas anteriores que no tengan la columna Tipo siguen siendo
+compatibles y se interpretan como Gasto personal.

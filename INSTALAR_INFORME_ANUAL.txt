@@ -1,0 +1,21 @@
+BC GESTIÓN - INFORME ANUAL
+
+1. Cerrá BC Gestión.
+2. Descomprimí este archivo ZIP.
+3. Copiá únicamente Informes.py dentro de la carpeta PX-Core.
+4. Elegí reemplazar el archivo existente.
+5. No copies ni modifiques la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+En Informes aparecerá una nueva sección llamada "Informe anual".
+Ingresá el año con cuatro números, por ejemplo 2026, y presioná
+"Generar informe anual".
+
+El cuadro muestra enero a diciembre con:
+- Ingresos
+- Egresos
+- Utilidad
+- Margen
+
+La última fila muestra el TOTAL DEL AÑO. El mismo informe puede
+descargarse en Excel o PDF usando los botones existentes.

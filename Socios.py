@@ -27,9 +27,54 @@ SOCIOS = [
     },
 ]
 
+TIPOS_MOVIMIENTO_PERSONAL = [
+    "Gasto personal",
+    "Inversión personal",
+]
+TIPO_MOVIMIENTO_PREDETERMINADO = "Gasto personal"
+TIPOS_QUE_AFECTAN_SALDO = {"Gasto personal"}
+
 
 def limpiar_texto(texto):
     return texto.strip().replace("|", "/")
+
+
+def normalizar_tipo_movimiento_personal(tipo):
+    texto = limpiar_texto(str(tipo or "")).lower()
+    for opcion in TIPOS_MOVIMIENTO_PERSONAL:
+        if texto == opcion.lower():
+            return opcion
+    return None
+
+
+def seleccionar_tipo_movimiento_personal(valor_actual=None):
+    while True:
+        print()
+        for numero, tipo in enumerate(
+            TIPOS_MOVIMIENTO_PERSONAL,
+            start=1,
+        ):
+            print(f"{numero}. {tipo}")
+
+        if valor_actual is not None:
+            print("ENTER. Conservar", valor_actual)
+        print("0. Volver")
+        print()
+
+        opcion = input("Seleccione el tipo: ").strip()
+        if opcion == "" and valor_actual is not None:
+            return valor_actual
+        if opcion == "0":
+            return None
+
+        try:
+            indice = int(opcion) - 1
+            if 0 <= indice < len(TIPOS_MOVIMIENTO_PERSONAL):
+                return TIPOS_MOVIMIENTO_PERSONAL[indice]
+        except ValueError:
+            pass
+
+        print("Opción inválida.")
 
 
 def obtener_socio(socio_id):
@@ -99,7 +144,7 @@ def limites_periodo(mes, anio):
 def separar_retiro(linea):
     partes = [parte.strip() for parte in linea.split("|")]
 
-    if len(partes) != 5:
+    if len(partes) not in (5, 6):
         return None
 
     try:
@@ -108,7 +153,18 @@ def separar_retiro(linea):
     except ValueError:
         return None
 
-    if monto <= 0 or obtener_socio(partes[2]) is None:
+    tipo = (
+        TIPO_MOVIMIENTO_PREDETERMINADO
+        if len(partes) == 5
+        else normalizar_tipo_movimiento_personal(partes[4])
+    )
+    observacion = partes[4] if len(partes) == 5 else partes[5]
+
+    if (
+        monto <= 0
+        or obtener_socio(partes[2]) is None
+        or tipo is None
+    ):
         return None
 
     return {
@@ -116,7 +172,8 @@ def separar_retiro(linea):
         "fecha": partes[1],
         "socio_id": partes[2],
         "monto": monto,
-        "observacion": partes[4],
+        "tipo": tipo,
+        "observacion": observacion,
     }
 
 
@@ -127,6 +184,13 @@ def crear_linea_retiro(datos):
             datos["fecha"],
             datos["socio_id"],
             str(datos["monto"]),
+            normalizar_tipo_movimiento_personal(
+                datos.get(
+                    "tipo",
+                    TIPO_MOVIMIENTO_PREDETERMINADO,
+                )
+            )
+            or TIPO_MOVIMIENTO_PREDETERMINADO,
             limpiar_texto(datos["observacion"]) or "-",
         ]
     )
@@ -169,7 +233,25 @@ def total_retirado(socio_id, mes, anio):
     return sum(
         retiro["monto"]
         for _, retiro in retiros_del_periodo(mes, anio)
-        if retiro["socio_id"] == socio_id
+        if (
+            retiro["socio_id"] == socio_id
+            and retiro["tipo"] in TIPOS_QUE_AFECTAN_SALDO
+        )
+    )
+
+
+def total_retirado_por_tipo(socio_id, mes, anio, tipo):
+    tipo_normalizado = normalizar_tipo_movimiento_personal(tipo)
+    if tipo_normalizado is None:
+        return 0
+
+    return sum(
+        retiro["monto"]
+        for _, retiro in retiros_del_periodo(mes, anio)
+        if (
+            retiro["socio_id"] == socio_id
+            and retiro["tipo"] == tipo_normalizado
+        )
     )
 
 
@@ -230,6 +312,18 @@ def calcular_resumen_periodo(mes, anio):
             mes,
             anio
         )
+        gastos_personales = total_retirado_por_tipo(
+            socio["id"],
+            mes,
+            anio,
+            "Gasto personal",
+        )
+        inversiones_personales = total_retirado_por_tipo(
+            socio["id"],
+            mes,
+            anio,
+            "Inversión personal",
+        )
         utilidad = utilidades_socios[socio["id"]]
         sueldo_liquidado = sum(
             liquidacion["egreso_planilla"]
@@ -246,6 +340,8 @@ def calcular_resumen_periodo(mes, anio):
                 "utilidad": utilidad,
                 "total_a_cobrar": total_a_cobrar,
                 "retirado": retirado,
+                "gastos_personales": gastos_personales,
+                "inversiones_personales": inversiones_personales,
                 "saldo": saldo,
             }
         )
@@ -291,6 +387,10 @@ def registrar_retiro():
     if socio_id is None:
         return
 
+    tipo = seleccionar_tipo_movimiento_personal()
+    if tipo is None:
+        return
+
     monto = Movimientos.pedir_monto("Monto retirado: ")
     if monto is None:
         return
@@ -307,6 +407,7 @@ def registrar_retiro():
     print()
     print("Fecha:", fecha)
     print("Socio:", socio["nombre"])
+    print("Tipo:", tipo)
     print("Monto:", Movimientos.formatear_monto(monto))
     print("Observación:", observacion or "-")
     print()
@@ -322,6 +423,7 @@ def registrar_retiro():
         "fecha": fecha,
         "socio_id": socio_id,
         "monto": monto,
+        "tipo": tipo,
         "observacion": observacion,
     }
 
@@ -441,8 +543,20 @@ def ver_resumen_mensual():
             )
         )
         print(
-            "Total retirado:",
+            "Total descontado del saldo:",
             Movimientos.formatear_monto(socio["retirado"])
+        )
+        print(
+            "Gastos personales:",
+            Movimientos.formatear_monto(
+                socio["gastos_personales"]
+            )
+        )
+        print(
+            "Inversiones personales:",
+            Movimientos.formatear_monto(
+                socio["inversiones_personales"]
+            )
         )
         print(mostrar_saldo(socio["saldo"]))
 
@@ -455,6 +569,7 @@ def mostrar_retiro(numero, retiro):
     print(
         f"{numero}. {retiro['fecha']} | "
         f"{socio['nombre']} | "
+        f"{retiro['tipo']} | "
         f"{Movimientos.formatear_monto(retiro['monto'])} | "
         f"{retiro['observacion']}"
     )
@@ -493,6 +608,10 @@ def modificar_retiro(posicion, retiro):
     if socio_id is None:
         return
 
+    tipo = seleccionar_tipo_movimiento_personal(retiro["tipo"])
+    if tipo is None:
+        return
+
     monto = Movimientos.pedir_monto(
         "Monto retirado: ",
         retiro["monto"]
@@ -515,6 +634,7 @@ def modificar_retiro(posicion, retiro):
         "fecha": fecha,
         "socio_id": socio_id,
         "monto": monto,
+        "tipo": tipo,
         "observacion": observacion,
     }
 
@@ -537,6 +657,7 @@ def eliminar_retiro(posicion, retiro):
     print()
     print("Fecha:", retiro["fecha"])
     print("Socio:", socio["nombre"])
+    print("Tipo:", retiro["tipo"])
     print(
         "Monto:",
         Movimientos.formatear_monto(retiro["monto"])
@@ -567,6 +688,7 @@ def gestionar_retiro(posicion, retiro):
         print()
         print("Fecha:", retiro["fecha"])
         print("Socio:", socio["nombre"])
+        print("Tipo:", retiro["tipo"])
         print(
             "Monto:",
             Movimientos.formatear_monto(retiro["monto"])

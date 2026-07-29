@@ -1,0 +1,20 @@
+BC GESTIÓN - INFORME CON INGRESOS PRIMERO
+
+1. Cerrá BC Gestión.
+2. Descomprimí el archivo ZIP.
+3. Copiá únicamente Informes.py dentro de la carpeta PX-Core.
+4. Elegí Reemplazar archivo.
+5. No copies ni reemplaces la carpeta Datos.
+6. Abrí iniciar_interfaz.bat.
+
+CAMBIOS
+
+- En pantalla aparece primero Ingresos por categoría.
+- Después aparece Egresos por categoría.
+- Excel muestra primero la hoja Ingresos y luego Egresos.
+- El Resumen de Excel incluye un gráfico verde de ingresos y después
+  un gráfico rojo de egresos.
+- El PDF abre con ingresos, continúa con egresos y conserva después
+  la comparación, los controles y el detalle diario.
+- Se mantienen las transferencias internas y depósitos en sus fechas.
+- No se modifican los cálculos, clasificaciones ni la carpeta Datos.
