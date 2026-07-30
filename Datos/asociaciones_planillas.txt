@@ -1,0 +1,12 @@
+{"id":"PLA-D32092729D","config_id":"ASC-BE785AA0EE","periodo":"07-2026","categoria":"Permanentes","descuento_manual":0,"observacion":"Importado desde Caja Municipal.xlsx","creado":"2026-07-30T13:38:48"}
+{"id":"PLA-81CE63E4D1","config_id":"ASC-BE785AA0EE","periodo":"07-2026","categoria":"Jubilados","descuento_manual":0,"observacion":"Importado desde Caja Municipal.xlsx","creado":"2026-07-30T13:38:48"}
+{"id":"PLA-8192DE8F72","config_id":"ASC-BE785AA0EE","periodo":"07-2026","categoria":"Miembros del consejo","descuento_manual":0,"observacion":"Importado desde Caja Municipal.xlsx","creado":"2026-07-30T13:38:49"}
+{"id":"PLA-3EB49C34BA","config_id":"ASC-BE785AA0EE","periodo":"07-2026","categoria":"Jornales","descuento_manual":0,"observacion":"Importado desde Caja Municipal.xlsx","creado":"2026-07-30T13:38:49"}
+{"id":"PLA-C158B8B2C9","config_id":"ASC-BE785AA0EE","periodo":"07-2026","categoria":"Contratados","descuento_manual":0,"observacion":"Importado desde Caja Municipal.xlsx","creado":"2026-07-30T13:38:49"}
+{"id":"PLA-D344B7E2D3","config_id":"ASC-BE785AA0EE","periodo":"07-2026","categoria":"Honorarios Profesionales","descuento_manual":0,"observacion":"Importado desde Caja Municipal.xlsx","creado":"2026-07-30T13:38:49"}
+{"id":"PLA-3126FEF5E4","config_id":"ASC-BE785AA0EE","periodo":"08-2026","categoria":"Jubilados","descuento_manual":0,"observacion":"Generada desde 07-2026","creado":"2026-07-30T17:27:01"}
+{"id":"PLA-EA7905D5F9","config_id":"ASC-BE785AA0EE","periodo":"08-2026","categoria":"Jornales","descuento_manual":0,"observacion":"Generada desde 07-2026","creado":"2026-07-30T17:27:01"}
+{"id":"PLA-8EB2BE4CF8","config_id":"ASC-BE785AA0EE","periodo":"08-2026","categoria":"Honorarios Profesionales","descuento_manual":0,"observacion":"Generada desde 07-2026","creado":"2026-07-30T17:27:01"}
+{"id":"PLA-043B2B53F4","config_id":"ASC-BE785AA0EE","periodo":"08-2026","categoria":"Contratados","descuento_manual":0,"observacion":"Generada desde 07-2026","creado":"2026-07-30T17:27:01"}
+{"id":"PLA-2C791CC823","config_id":"ASC-BE785AA0EE","periodo":"08-2026","categoria":"Permanentes","descuento_manual":0,"observacion":"Generada desde 07-2026","creado":"2026-07-30T17:30:25"}
+{"id":"PLA-C4C44309C3","config_id":"ASC-BE785AA0EE","periodo":"08-2026","categoria":"Miembros del consejo","descuento_manual":0,"observacion":"Generada desde 07-2026","creado":"2026-07-30T17:30:26"}

@@ -1,0 +1,38 @@
+INTEGRACIÓN INCREMENTAL EN interfaz.py
+
+1) Junto a los imports:
+from panel_asociaciones import crear_panel_asociaciones
+
+2) En SECCIONES, agregar:
+"Planillas Asociaciones": {
+    "descripcion": "Liquidaciones y seguimiento de cobros por asociación.",
+    "opciones": [
+        ("Planillas", "Configurar asociaciones, cargar cuotas y exportar."),
+    ],
+},
+
+3) En el método que resuelve/abre cada sección, agregar:
+if nombre_seccion == "Planillas Asociaciones":
+    self.mostrar_panel_personalizado(crear_panel_asociaciones)
+    return
+
+Usar el mismo método/contenedor empleado actualmente para crear_panel_rrhh.
+No abrir CTkToplevel: debe renderizarse dentro del área principal.
+
+4) Copiar en la raíz de PX-Core:
+- Asociaciones.py
+- panel_asociaciones.py
+
+5) No crear manualmente archivos en Datos. El módulo generará:
+- Datos/asociaciones_config.txt
+- Datos/asociaciones_planillas.txt
+- Datos/asociaciones_detalles.txt
+- Datos/logos_asociaciones/
+
+6) Verificación:
+py interfaz.py
+
+Prueba Caja Municipal:
+- Tipo: SOLO_PRIMERA_CUOTA
+- Porcentaje: 2
+- Categorías: Funcionarios, Jubilados

@@ -1,0 +1,48 @@
+INSTALACIÓN
+
+1. Cerrá BC Gestión.
+2. Copiá y reemplazá en la raíz de PX-Core:
+   - interfaz.py
+   - Asociaciones.py
+   - panel_asociaciones.py
+3. Ejecutá:
+   py interfaz.py
+
+GENERAR MES SIGUIENTE
+1. Entrá al local.
+2. Seleccioná una planilla.
+3. Presioná “Generar mes siguiente”.
+4. El sistema:
+   - copia solo registros con saldo pendiente;
+   - aumenta la cuota: 1 pasa a 2, 1/10 pasa a 2/10;
+   - conserva el total original de compra;
+   - usa como próxima cuota el menor valor entre cuota habitual y saldo;
+   - resta la cuota del saldo;
+   - excluye compras ya terminadas.
+5. La nueva planilla se abre automáticamente.
+6. Ahí podés agregar nuevos funcionarios con “Nuevo”.
+
+No modifica Movimientos.py ni afecta cierres o resultados.
+
+MEJORAS DE NAVEGACIÓN
+- Tocá cualquier encabezado de Planillas o Detalle para ordenar.
+- Primer toque: menor a mayor / A-Z.
+- Segundo toque: mayor a menor / Z-A.
+- Escape retrocede una pantalla.
+- Repetir Escape vuelve hasta el Panel general.
+
+GENERACIÓN MÚLTIPLE
+- Seleccioná varias planillas usando Ctrl + clic o Shift + clic.
+- Presioná “Generar mes siguiente”.
+- Antes de crear, el sistema valida todas las seleccionadas.
+- Si alguna ya tiene mes siguiente o no posee saldo pendiente, no crea ninguna.
+- Si todo está correcto, genera todas en una sola operación.
+
+NAVEGACIÓN COMPLETA POR TECLADO
+- Tab: avanza por campos, listas y botones.
+- Shift + Tab: retrocede.
+- Flechas: recorren botones, opciones y filas.
+- Enter: abre el menú, local o planilla seleccionada; también ejecuta botones.
+- Espacio: ejecuta el botón enfocado.
+- Escape: vuelve a la pantalla anterior.
+- Ctrl + clic / Shift + clic siguen disponibles para selección múltiple.

@@ -34,6 +34,7 @@ import ImportadorExcel
 import Facturas
 from datos import guardar_datos, leer_datos
 from panel_rrhh import crear_panel_rrhh
+from panel_asociaciones import crear_panel_asociaciones
 
 
 COLOR_FONDO = ("#F4F7FB", "#0B1220")
@@ -1142,6 +1143,9 @@ class AplicacionPXCore(ctk.CTk):
         self.contenedor.grid_columnconfigure(0, weight=1)
 
         self.mostrar_inicio()
+        self.after_idle(
+            lambda: self.botones_menu["Inicio"].focus_set()
+        )
 
     def habilitar_navegacion_tab(self, ventana):
         """Activa una navegación de teclado continua y contextual."""
@@ -1158,6 +1162,21 @@ class AplicacionPXCore(ctk.CTk):
         ventana.bind(
             "<ISO_Left_Tab>",
             lambda evento: self.mover_foco_formulario(evento, -1),
+            add="+",
+        )
+        ventana.bind(
+            "<Return>",
+            self.activar_control_enfocado,
+            add="+",
+        )
+        ventana.bind(
+            "<KP_Enter>",
+            self.activar_control_enfocado,
+            add="+",
+        )
+        ventana.bind(
+            "<space>",
+            self.activar_control_enfocado,
             add="+",
         )
         for secuencia, direccion in [
@@ -1178,6 +1197,7 @@ class AplicacionPXCore(ctk.CTk):
         """Devuelve controles útiles visibles en su orden de creación."""
         controles = []
         tipos_navegables = (
+            ctk.CTkButton,
             ctk.CTkEntry,
             ctk.CTkComboBox,
             ctk.CTkOptionMenu,
@@ -1328,6 +1348,65 @@ class AplicacionPXCore(ctk.CTk):
         control.set(nombres[(indice + paso) % len(nombres)])
         return True
 
+    def activar_control_enfocado(self, evento):
+        """Enter abre/ejecuta; Espacio activa botones sin usar el mouse."""
+        ventana_activa = evento.widget.winfo_toplevel()
+        contenedor = (
+            self.contenedor
+            if str(ventana_activa) == str(self)
+            else ventana_activa
+        )
+        controles = self.controles_editables_visibles(contenedor)
+        actual = self.control_con_foco_actual(
+            evento.widget,
+            controles,
+            contenedor,
+        )
+
+        if actual is None:
+            return None
+
+        if isinstance(actual, ctk.CTkButton):
+            actual.invoke()
+            return "break"
+
+        if isinstance(actual, ttk.Treeview):
+            actual.event_generate("<<AbrirConTeclado>>")
+            return "break"
+
+        if isinstance(actual, (ctk.CTkComboBox, ctk.CTkOptionMenu)):
+            # Las flechas cambian la opción; Enter conserva la seleccionada.
+            return "break"
+
+        return None
+
+    def mover_foco_entre_controles(self, evento, direccion):
+        """Mueve el foco con flechas entre botones y controles vecinos."""
+        ventana_activa = evento.widget.winfo_toplevel()
+        contenedor = (
+            self.contenedor
+            if str(ventana_activa) == str(self)
+            else ventana_activa
+        )
+        controles = self.controles_editables_visibles(contenedor)
+        actual = self.control_con_foco_actual(
+            evento.widget,
+            controles,
+            contenedor,
+        )
+        if not controles:
+            return None
+
+        if actual is None:
+            destino = controles[0]
+        else:
+            paso = -1 if direccion in ("arriba", "izquierda") else 1
+            indice = controles.index(actual)
+            destino = controles[(indice + paso) % len(controles)]
+
+        self.enfocar_control(destino)
+        return "break"
+
     def manejar_flecha(self, evento, direccion):
         """Aplica las flechas según el control que tiene el foco."""
         ventana_activa = evento.widget.winfo_toplevel()
@@ -1369,6 +1448,9 @@ class AplicacionPXCore(ctk.CTk):
             if self.cambiar_pestana(actual, paso):
                 self.after_idle(actual.focus_set)
                 return "break"
+
+        if isinstance(actual, ctk.CTkButton):
+            return self.mover_foco_entre_controles(evento, direccion)
 
         return None
 
@@ -1439,6 +1521,10 @@ class AplicacionPXCore(ctk.CTk):
                 "Facturas",
                 self.mostrar_facturas,
             ),
+            (
+                "Planillas de Asociaciones",
+                self.mostrar_asociaciones,
+            ),
             ("Informes", lambda: Informes.mostrar_informes(self)),
         ]
 
@@ -1461,6 +1547,17 @@ class AplicacionPXCore(ctk.CTk):
                 sticky="ew",
                 padx=14,
                 pady=4,
+            )
+            boton.bind(
+                "<FocusIn>",
+                lambda _e, b=boton: b.configure(
+                    border_width=2,
+                    border_color=COLOR_PRIMARIO,
+                ),
+            )
+            boton.bind(
+                "<FocusOut>",
+                lambda _e, b=boton: b.configure(border_width=0),
             )
             self.botones_menu[texto] = boton
 
@@ -1556,6 +1653,14 @@ class AplicacionPXCore(ctk.CTk):
         panel = Facturas.crear_panel_facturas(self.contenedor)
         panel.grid(row=0, column=0, sticky="nsew")
 
+    def mostrar_asociaciones(self):
+        self.limpiar_contenedor()
+        self.marcar_seleccion("Planillas de Asociaciones")
+
+        panel = crear_panel_asociaciones(self.contenedor)
+        panel.grid(row=0, column=0, sticky="nsew")
+        panel.tkraise()
+
     def mostrar_rrhh(
         self,
         pestana="Gestión de funcionarios",
@@ -1598,6 +1703,13 @@ class AplicacionPXCore(ctk.CTk):
 
         for elemento in self.contenedor.winfo_children():
             elemento.destroy()
+
+        self.bind("<Escape>", self.atajo_volver_inicio)
+
+    def atajo_volver_inicio(self, _evento=None):
+        """Escape vuelve al panel general cuando la vista no define otro regreso."""
+        self.mostrar_inicio()
+        return "break"
 
     def marcar_seleccion(self, nombre):
         for texto, boton in self.botones_menu.items():
