@@ -33,7 +33,7 @@ import Informes
 import ImportadorExcel
 import Facturas
 from datos import guardar_datos, leer_datos
-from interfaz_rrhh import abrir_recursos_humanos
+from panel_rrhh import crear_panel_rrhh
 
 
 COLOR_FONDO = ("#F4F7FB", "#0B1220")
@@ -1432,12 +1432,12 @@ class AplicacionPXCore(ctk.CTk):
             ),
             (
                 "Recursos Humanos",
-                lambda: self.mostrar_seccion("Recursos Humanos"),
+                self.mostrar_rrhh,
             ),
             ("Socios", lambda: self.mostrar_seccion("Socios")),
             (
                 "Facturas",
-                lambda: Facturas.abrir_facturas(self),
+                self.mostrar_facturas,
             ),
             ("Informes", lambda: Informes.mostrar_informes(self)),
         ]
@@ -1549,6 +1549,37 @@ class AplicacionPXCore(ctk.CTk):
             pady=(0, 16),
         )
 
+    def mostrar_facturas(self):
+        self.limpiar_contenedor()
+        self.marcar_seleccion("Facturas")
+
+        panel = Facturas.crear_panel_facturas(self.contenedor)
+        panel.grid(row=0, column=0, sticky="nsew")
+
+    def mostrar_rrhh(
+        self,
+        pestana="Gestión de funcionarios",
+    ):
+        self.limpiar_contenedor()
+        self.marcar_seleccion("Recursos Humanos")
+
+        self.panel_rrhh = crear_panel_rrhh(
+            self.contenedor,
+            pestana,
+        )
+        self.panel_rrhh.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+        )
+        self.panel_rrhh.tkraise()
+
+        print(
+            "RRHH:",
+            self.panel_rrhh.winfo_class(),
+            self.panel_rrhh.winfo_children(),
+        )
+    
     def cambiar_tema(self, tema):
         equivalencias = {
             "Sistema": "system",
@@ -2107,13 +2138,13 @@ class AplicacionPXCore(ctk.CTk):
                     padx=20,
                     pady=(0, 20),
                 )
+
             elif nombre == "Recursos Humanos":
                 ctk.CTkButton(
-                    tarjeta,
-                    text="Abrir Recursos Humanos",
-                    command=lambda: abrir_recursos_humanos(
-                        self,
-                        "Gestión de funcionarios",
+                tarjeta,
+                text="Abrir Recursos Humanos",
+                command=lambda: self.mostrar_rrhh(
+                    "Gestión de funcionarios"
                     ),
                     height=38,
                     corner_radius=9,

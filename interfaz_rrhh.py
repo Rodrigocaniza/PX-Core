@@ -108,15 +108,14 @@ def configurar_treeview():
     )
 
 
-class VentanaRecursosHumanos(ctk.CTkToplevel):
+class VentanaRecursosHumanos(ctk.CTkFrame):
     def __init__(self, master, pestana_inicial):
-        super().__init__(master)
+        super().__init__(
+            master,
+            fg_color=COLOR_FONDO,
+            corner_radius=0,
+        )
 
-        self.title("BC Gestión | Recursos Humanos")
-        self.geometry("1240x760")
-        self.minsize(1080, 690)
-        self.configure(fg_color=COLOR_FONDO)
-        self.transient(master)
         self.habilitar_navegacion_tab()
 
         self.indice_funcionario = None
@@ -186,8 +185,7 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
             equivalencias.get(pestana_inicial, "Funcionarios")
         )
 
-        self.after(100, self.lift)
-        self.protocol("WM_DELETE_WINDOW", self.destroy)
+        
 
     def habilitar_navegacion_tab(self):
         """Activa una navegación de teclado continua y contextual."""
@@ -2205,24 +2203,25 @@ class VentanaRecursosHumanos(ctk.CTkToplevel):
         self.actualizar_salarios()
 
 
-def abrir_recursos_humanos(master, pestana="Gestión de funcionarios"):
-    """Abre Recursos Humanos sin crear varias ventanas duplicadas."""
+def crear_panel_recursos_humanos(
+    master,
+    pestana="Gestión de funcionarios",
+):
+    return VentanaRecursosHumanos(master, pestana)
 
-    existente = getattr(master, "_ventana_rrhh", None)
 
-    if existente is not None and existente.winfo_exists():
-        existente.lift()
-        equivalencias = {
-            "Gestión de funcionarios": "Funcionarios",
-            "Novedades": "Novedades",
-            "Liquidaciones": "Liquidaciones",
-            "Salario mínimo": "Salario mínimo",
-        }
-        existente.pestanas.set(
-            equivalencias.get(pestana, "Funcionarios")
-        )
-        existente.actualizar_todo()
-        return
+def abrir_recursos_humanos(
+    master,
+    pestana="Gestión de funcionarios",
+):
+    ventana = ctk.CTkToplevel(master)
+    ventana.title("BC Gestión | Recursos Humanos")
+    ventana.geometry("1240x760")
+    ventana.minsize(1080, 690)
+    ventana.configure(fg_color=COLOR_FONDO)
 
-    ventana = VentanaRecursosHumanos(master, pestana)
-    master._ventana_rrhh = ventana
+    panel = VentanaRecursosHumanos(
+        ventana,
+        pestana,
+    )
+    panel.pack(fill="both", expand=True)
