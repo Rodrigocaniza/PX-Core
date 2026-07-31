@@ -98,8 +98,21 @@ def _error(mensaje):
     raise ValueError(mensaje)
 
 
+def _es_caja_municipal(asociacion):
+    nombre = " ".join(str(asociacion or "").casefold().split())
+    return nombre == (
+        "caja de jubilaciones y pensiones del personal municipal"
+    )
+
+
 def listar_configuraciones():
-    return _leer_json(RUTA_CONFIG)
+    registros = _leer_json(RUTA_CONFIG)
+    for registro in registros:
+        registro.setdefault(
+            "primeras_cuotas_al_final",
+            _es_caja_municipal(registro.get("asociacion")),
+        )
+    return registros
 
 
 def obtener_configuracion(config_id):
@@ -125,11 +138,14 @@ def guardar_configuracion(datos):
         "tipo_descuento": tipo,
         "porcentaje": convertir_porcentaje(datos.get("porcentaje", 0)),
         "permite_ajuste_manual": bool(datos.get("permite_ajuste_manual", True)),
+        "primeras_cuotas_al_final": bool(
+            datos.get("primeras_cuotas_al_final", False)
+        ),
         "categorias": [
             limpiar_texto(x, "categoría")
             for x in datos.get("categorias", [])
             if str(x).strip()
-        ] or ["Funcionarios"],
+        ],
     }
 
     for i, actual in enumerate(registros):
@@ -173,9 +189,11 @@ def guardar_planilla(datos):
     if not config:
         raise ValueError("Seleccioná una asociación/local válido.")
 
-    categoria = limpiar_texto(datos.get("categoria"), "categoría")
-    if categoria not in config["categorias"]:
-        raise ValueError("La categoría no pertenece a la configuración elegida.")
+    categoria = limpiar_texto(
+        datos.get("categoria", ""),
+        "categoría",
+        obligatorio=False,
+    )
 
     registro = {
         "id": planilla_id,
@@ -228,8 +246,8 @@ def eliminar_planilla(planilla_id):
 
 
 
-def _clave_orden_cuota(detalle):
-    """Prioriza cuotas próximas a finalizar y desempata por nombre."""
+def _clave_orden_cuota(detalle, primeras_cuotas_al_final=False):
+    """Prioriza cuotas próximas a finalizar y, si corresponde, deja 1/x al final."""
     try:
         partes = str(detalle.get("numero_cuota", "")).replace("-", "/").split("/")
         actual = int(partes[0])
@@ -239,6 +257,7 @@ def _clave_orden_cuota(detalle):
         actual, restantes = 0, 10**9
 
     return (
+        primeras_cuotas_al_final and actual == 1,
         restantes,
         -actual,
         str(detalle.get("nombre", "")).casefold(),
@@ -260,7 +279,25 @@ def listar_detalles(planilla_id=None):
             detalle["saldo_pendiente"] = 0
         corregidos.append(detalle)
 
-    return sorted(corregidos, key=_clave_orden_cuota)
+    primeras_cuotas_al_final = False
+    if planilla_id:
+        planilla = obtener_planilla(planilla_id)
+        config = (
+            obtener_configuracion(planilla["config_id"])
+            if planilla
+            else None
+        )
+        primeras_cuotas_al_final = bool(
+            config and config.get("primeras_cuotas_al_final", False)
+        )
+
+    return sorted(
+        corregidos,
+        key=lambda detalle: _clave_orden_cuota(
+            detalle,
+            primeras_cuotas_al_final,
+        ),
+    )
 
 
 def calcular_saldo_pendiente(planilla_id):
@@ -934,10 +971,11 @@ def exportar_excel(planilla_id, ruta_destino):
     ws["A2"].font = Font(size=12, bold=True)
     ws["A2"].alignment = Alignment(horizontal="center")
 
-    ws.merge_cells("A3:F3")
-    ws["A3"] = planilla["categoria"].upper()
-    ws["A3"].font = Font(size=12, bold=True)
-    ws["A3"].alignment = Alignment(horizontal="center")
+    if planilla.get("categoria", "").strip():
+        ws.merge_cells("A3:F3")
+        ws["A3"] = planilla["categoria"].upper()
+        ws["A3"].font = Font(size=12, bold=True)
+        ws["A3"].alignment = Alignment(horizontal="center")
 
     encabezados = ["Legajo", "Nombre y Apellido", "Cuota", "Total compra", "Monto cuota", "Saldo"]
     for col, texto in enumerate(encabezados, 1):
@@ -1172,7 +1210,7 @@ def exportar_pdf(planilla_id, ruta_destino):
     elementos.append(tabla_resumen)
 
     elementos.append(Paragraph(
-        f"SON GUARANÍES: {numero_en_letras(totales['total']).upper()} GUARANÍES.",
+        f"Son guaraníes: {numero_en_letras(totales['total'])} guaraníes.",
         estilo_importe,
     ))
 

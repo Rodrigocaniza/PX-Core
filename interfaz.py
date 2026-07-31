@@ -8,6 +8,7 @@ from calendar import monthrange
 from datetime import datetime
 import os
 from pathlib import Path
+from PIL import Image, ImageTk
 import subprocess
 import sys
 from tkinter import messagebox, ttk
@@ -17,6 +18,8 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 BASE_DIR = Path(__file__).resolve().parent
 os.chdir(BASE_DIR)
+BASE_DIR = Path(__file__).resolve().parent
+RUTA_LOGO = BASE_DIR / "assets" / "logo" / "logo.png"
 
 try:
     import customtkinter as ctk
@@ -1099,6 +1102,7 @@ class AplicacionPXCore(ctk.CTk):
             self.error_respaldo_diario = str(error)
 
         self.title("BC Gestión Empresarial")
+        self._cargar_identidad_visual()
         self.geometry("1280x760")
         self.minsize(1040, 680)
         self.configure(fg_color=COLOR_FONDO)
@@ -1154,6 +1158,31 @@ class AplicacionPXCore(ctk.CTk):
         self.after_idle(
             lambda: self.botones_menu["Inicio"].focus_set()
         )
+
+    def _cargar_identidad_visual(self):
+        """Carga el logo principal sin impedir el inicio si falta el archivo."""
+        self.logo_menu = None
+        self.logo_icono = None
+
+        if not RUTA_LOGO.exists():
+            return
+
+        try:
+            imagen = Image.open(RUTA_LOGO).convert("RGBA")
+
+            self.logo_menu = ctk.CTkImage(
+                light_image=imagen,
+                dark_image=imagen,
+                size=(58, 58),
+            )
+
+            self.logo_icono = ImageTk.PhotoImage(
+                imagen.resize((64, 64), Image.Resampling.LANCZOS)
+            )
+            self.iconphoto(True, self.logo_icono)
+        except (OSError, ValueError):
+            self.logo_menu = None
+            self.logo_icono = None
 
     def habilitar_navegacion_tab(self, ventana):
         """Activa una navegación de teclado continua y contextual."""
@@ -1489,11 +1518,12 @@ class AplicacionPXCore(ctk.CTk):
 
         ctk.CTkLabel(
             marca,
-            text="BC",
-            width=46,
-            height=46,
+            text="" if self.logo_menu else "BC",
+            image=self.logo_menu,
+            width=62,
+            height=62,
             corner_radius=12,
-            fg_color=COLOR_PRIMARIO,
+            fg_color="transparent" if self.logo_menu else COLOR_PRIMARIO,
             text_color="#FFFFFF",
             font=ctk.CTkFont(size=18, weight="bold"),
         ).grid(row=0, column=0, rowspan=2, padx=(0, 12))
@@ -1524,7 +1554,7 @@ class AplicacionPXCore(ctk.CTk):
                 "Recursos Humanos",
                 self.mostrar_rrhh,
             ),
-            ("Socios", lambda: self.mostrar_seccion("Socios")),
+            ("Socios", lambda: self.mostrar_socios("Registrar movimiento")),
             (
                 "Facturas",
                 self.mostrar_facturas,

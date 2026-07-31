@@ -8,6 +8,7 @@ from tkinter import filedialog, messagebox, ttk
 
 import customtkinter as ctk
 import Asociaciones
+import re
 
 COLOR_FONDO = ("#F4F7FB", "#0B1220")
 COLOR_PANEL = ("#FFFFFF", "#131D2E")
@@ -24,6 +25,36 @@ COLOR_NARANJA = "#E99A35"
 def _monto(valor):
     return f"Gs. {int(valor):,}".replace(",", ".")
 
+def _nombre_corto_asociacion(config, categoria=""):
+    """Obtiene una sigla o un nombre breve para el archivo exportado."""
+    textos = (
+        config.get("local", ""),
+        config.get("asociacion", ""),
+        categoria,
+    )
+
+    # Prioriza siglas escritas en mayúsculas: ANNP, IPS, etc.
+    for texto in textos:
+        siglas = re.findall(r"\b[A-ZÁÉÍÓÚÑ]{2,}\b", str(texto))
+        if siglas:
+            return siglas[-1]
+
+    ignorar = {
+        "de", "del", "la", "las", "el", "los",
+        "y", "para", "personal", "funcionarios",
+        "jubilados", "obreros",
+    }
+
+    for texto in textos:
+        palabras = [
+            palabra
+            for palabra in re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]+", str(texto))
+            if palabra.casefold() not in ignorar
+        ]
+        if palabras:
+            return palabras[0].upper()
+
+    return "PLANILLA"
 
 class PanelAsociaciones(ctk.CTkFrame):
     def __init__(self, master):
@@ -410,8 +441,19 @@ class PanelAsociaciones(ctk.CTkFrame):
         self.c_porcentaje = self._campo(form, "Porcentaje", 7, 1)
         self.c_categorias = self._campo(form, "Categorías separadas por coma", 7, 2, 2)
 
+        self.c_primeras_final = ctk.CTkCheckBox(
+            form,
+            text="Mostrar las primeras cuotas (1/x) al final",
+            text_color=COLOR_TEXTO,
+            font=ctk.CTkFont(size=12, weight="bold"),
+        )
+        self.c_primeras_final.grid(
+            row=9, column=0, columnspan=4,
+            sticky="w", padx=8, pady=(6, 3),
+        )
+
         botones = ctk.CTkFrame(form, fg_color="transparent")
-        botones.grid(row=9, column=0, columnspan=4, sticky="ew", padx=12, pady=16)
+        botones.grid(row=10, column=0, columnspan=4, sticky="ew", padx=12, pady=16)
         self._boton(botones, "Guardar", self.guardar_config, COLOR_VERDE).pack(side="left", padx=4)
         self._boton(botones, "Cancelar", self.mostrar_inicio, COLOR_NARANJA).pack(side="left", padx=4)
 
@@ -428,10 +470,12 @@ class PanelAsociaciones(ctk.CTkFrame):
             for campo, valor in datos:
                 campo.insert(0, valor)
             self.c_tipo.set(config["tipo_descuento"])
+            if config.get("primeras_cuotas_al_final", False):
+                self.c_primeras_final.select()
         else:
             self.c_tipo.set("SIN_DESCUENTO")
             self.c_porcentaje.insert(0, "0")
-            self.c_categorias.insert(0, "Funcionarios, Jubilados")
+            self.c_categorias.insert(0, "")
 
     def elegir_logo(self):
         ruta = filedialog.askopenfilename(
@@ -460,6 +504,9 @@ class PanelAsociaciones(ctk.CTkFrame):
                 "porcentaje": self.c_porcentaje.get() or "0",
                 "categorias": [x.strip() for x in self.c_categorias.get().split(",")],
                 "permite_ajuste_manual": True,
+                "primeras_cuotas_al_final": bool(
+                    self.c_primeras_final.get()
+                ),
             })
         except (ValueError, OSError) as error:
             messagebox.showerror("No se pudo guardar", str(error), parent=self)
@@ -547,15 +594,23 @@ class PanelAsociaciones(ctk.CTkFrame):
             periodo_frame, "▶", self.periodo_siguiente, COLOR_PRIMARIO, 38
         ).grid(row=0, column=2, sticky="e", padx=(6, 0))
         ctk.CTkLabel(
-            marco, text="Categoría",
-            font=ctk.CTkFont(size=12, weight="bold"), text_color=COLOR_TEXTO,
+            marco,
+            text="Categoría (opcional)",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=COLOR_TEXTO,
         ).grid(row=1, column=1, sticky="w", padx=8, pady=(6, 3))
-        self.p_categoria = ctk.CTkOptionMenu(
-            marco, values=config["categorias"], height=38,
-            fg_color=COLOR_PRIMARIO,
+
+        self.p_categoria = ctk.CTkEntry(
+            marco,
+            height=38,
+            fg_color=COLOR_PANEL_SECUNDARIO,
+            border_color=COLOR_BORDE,
+            text_color=COLOR_TEXTO,
+            placeholder_text="Escribí una categoría o dejá vacío",
         )
-        self.p_categoria.grid(row=2, column=1, sticky="ew", padx=8, pady=(0, 7))
-        self.p_categoria.set(config["categorias"][0])
+        self.p_categoria.grid(
+            row=2, column=1, sticky="ew", padx=8, pady=(0, 7)
+        )
 
         self.p_descuento = self._campo(marco, "Descuento manual", 1, 2)
         self.p_descuento.insert(0, "0")
@@ -879,27 +934,66 @@ class PanelAsociaciones(ctk.CTkFrame):
     def _exportar(self, extension, funcion):
         pid = self._planilla_seleccionada()
         if not pid:
-            messagebox.showwarning("Planilla", "Seleccioná una planilla.", parent=self)
+            messagebox.showwarning(
+                "Planilla",
+                "Seleccioná una planilla.",
+                parent=self,
+            )
             return
+
         p = Asociaciones.obtener_planilla(pid)
+        config = Asociaciones.obtener_configuracion(p["config_id"])
+
+        nombre_corto = _nombre_corto_asociacion(
+            config,
+            p.get("categoria", ""),
+        )
+
+        categoria = p.get("categoria", "").strip()
+        categoria_archivo = re.sub(
+            r'[<>:"/\\|?*]+',
+            "",
+            categoria,
+        )
+        categoria_archivo = "_".join(categoria_archivo.split())
+
+        mes, anio = p["periodo"].split("-")
+        periodo_corto = f"{mes}-{anio[-2:]}"
+
+        partes_nombre = [nombre_corto]
+
+        if categoria_archivo:
+            partes_nombre.append(categoria_archivo)
+
+        partes_nombre.append(periodo_corto)
+
+        nombre_archivo = "_".join(partes_nombre) + f".{extension}"
+
         ruta = filedialog.asksaveasfilename(
             defaultextension=f".{extension}",
             filetypes=[(extension.upper(), f"*.{extension}")],
-            initialfile=f"{p['periodo']}_{p['categoria']}.{extension}",
+            initialfile=nombre_archivo,
             parent=self,
         )
+
         if not ruta:
             return
+
         try:
             funcion(pid, ruta)
         except Exception as error:
-            messagebox.showerror("No se pudo exportar", str(error), parent=self)
+            messagebox.showerror(
+                "No se pudo exportar",
+                str(error),
+                parent=self,
+            )
             return
-        messagebox.showinfo("Exportación completa", f"Archivo guardado en:\n{ruta}", parent=self)
 
-    # ------------------------------------------------------------------
-    # DETALLE DE PLANILLA
-    # ------------------------------------------------------------------
+        messagebox.showinfo(
+            "Exportación completa",
+            f"Archivo guardado en:\n{ruta}",
+            parent=self,
+        )
     def _mostrar_detalle(self):
         self.vista_actual = "detalle"
         self._limpiar_cuerpo()
@@ -917,7 +1011,15 @@ class PanelAsociaciones(ctk.CTkFrame):
 
         ctk.CTkLabel(
             marco,
-            text=f"{config['asociacion']} · {config['local']} · {p['periodo']} · {p['categoria']}",
+            text=" · ".join(
+                dato for dato in (
+                    config["asociacion"],
+                    config["local"],
+                    p["periodo"],
+                    p.get("categoria", "").strip(),
+                )
+                if dato
+            ),
             font=ctk.CTkFont(size=18, weight="bold"), text_color=COLOR_TEXTO,
         ).grid(row=0, column=0, columnspan=5, sticky="w", padx=16, pady=(14, 8))
         self._boton(marco, "Volver", self._mostrar_local, COLOR_NARANJA, 100).grid(
@@ -970,27 +1072,57 @@ class PanelAsociaciones(ctk.CTkFrame):
         self.refrescar_detalle()
 
     def _actualizar_saldo_nuevo(self, _evento=None):
-        """Calcula el saldo solo al cargar una compra nueva en su primera cuota."""
+        """Calcula primera cuota, monto mensual y saldo de una compra nueva."""
         if self.detalle_id is not None:
             return
 
         try:
-            cuota = self.d_cuota.get().strip()
-            if not cuota or not Asociaciones.es_primera_cuota(cuota):
+            cuota_texto = self.d_cuota.get().strip().replace(" ", "")
+            if not cuota_texto:
+                return
+
+            # Al escribir solamente 8 o 10, se interpreta como cantidad total
+            # de cuotas y se registra como primera cuota: 1/8 o 1/10.
+            if cuota_texto.isdigit():
+                cantidad_cuotas = int(cuota_texto)
+            else:
+                cuota_normalizada = Asociaciones.normalizar_numero_cuota(
+                    cuota_texto
+                )
+                partes = cuota_normalizada.split("/")
+
+                if len(partes) != 2 or int(partes[0]) != 1:
+                    return
+
+                cantidad_cuotas = int(partes[1])
+
+            if cantidad_cuotas <= 0:
                 return
 
             total = Asociaciones.convertir_entero(
-                self.d_total.get(), "total de compra"
+                self.d_total.get(),
+                "total de compra",
+                permitir_cero=False,
             )
-            monto = Asociaciones.convertir_entero(
-                self.d_monto.get(), "monto de cuota"
-            )
+
+            monto_cuota = round(total / cantidad_cuotas)
+            saldo = max(total - monto_cuota, 0)
+
         except ValueError:
             return
 
+        numero_cuota = f"1/{cantidad_cuotas}"
+
+        if self.d_cuota.get() != numero_cuota:
+            self.d_cuota.delete(0, "end")
+            self.d_cuota.insert(0, numero_cuota)
+
+        self.d_monto.delete(0, "end")
+        self.d_monto.insert(0, str(monto_cuota))
+
         self.d_saldo.configure(state="normal")
         self.d_saldo.delete(0, "end")
-        self.d_saldo.insert(0, str(max(total - monto, 0)))
+        self.d_saldo.insert(0, str(saldo))
         self.d_saldo.configure(state="disabled")
 
     def nuevo_detalle(self):
