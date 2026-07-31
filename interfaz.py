@@ -31,6 +31,8 @@ import Movimientos
 import Socios
 import Informes
 import ImportadorExcel
+import CajaDiaria
+import SobresVenta
 import Facturas
 from datos import guardar_datos, leer_datos
 from panel_rrhh import crear_panel_rrhh
@@ -125,6 +127,12 @@ SECCIONES = {
                 "Importar desde Excel",
                 "Carga un mes completo con validación y respaldo.",
             ),
+            (
+                "Caja diaria (Óptica)",
+                "Importación de caja, carga manual y arqueo independiente.",
+            ),
+
+        
         ],
     },
     "Recursos Humanos": {
@@ -1997,7 +2005,7 @@ class AplicacionPXCore(ctk.CTk):
         ctk.CTkLabel(
             encabezado,
             text=(
-                "7 FUNCIONES CONECTADAS"
+                "8 FUNCIONES CONECTADAS"
                 if nombre == "Movimientos"
                 else (
                     "4 FUNCIONES CONECTADAS"
@@ -2213,12 +2221,12 @@ class AplicacionPXCore(ctk.CTk):
                 )
             elif (
                 nombre == "Movimientos"
-                and titulo == "Importar desde Excel"
+                and titulo == "Caja diaria (Óptica)"
             ):
                 ctk.CTkButton(
                     tarjeta,
-                    text="Abrir importador",
-                    command=lambda: ImportadorExcel.abrir_importador(self),
+                    text="Abrir caja diaria",
+                    command=lambda: CajaDiaria.abrir_caja_diaria(self),
                     height=38,
                     corner_radius=9,
                     fg_color=COLOR_VERDE,

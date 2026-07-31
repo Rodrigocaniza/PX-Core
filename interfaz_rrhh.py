@@ -13,8 +13,15 @@ from tkinter import messagebox, ttk
 import customtkinter as ctk
 
 import Funcionarios
+import Aguinaldos
 import Liquidaciones
 import Novedades
+import Funcionarios
+import Aguinaldos
+import Liquidaciones
+import Novedades
+import Vacaciones
+import SobresVenta
 from datos import guardar_datos, leer_datos
 
 
@@ -165,6 +172,8 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
             "Funcionarios",
             "Novedades",
             "Liquidaciones",
+            "Aguinaldos",
+            "Vacaciones",
             "Salario mínimo",
         ]:
             self.pestanas.add(nombre)
@@ -172,6 +181,8 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
         self.construir_funcionarios()
         self.construir_novedades()
         self.construir_liquidaciones()
+        self.construir_aguinaldos()
+        self.construir_vacaciones()
         self.construir_salario_minimo()
         self.actualizar_todo()
 
@@ -179,13 +190,261 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
             "Gestión de funcionarios": "Funcionarios",
             "Novedades": "Novedades",
             "Liquidaciones": "Liquidaciones",
+            "Aguinaldos": "Aguinaldos",
+            "Vacaciones": "Vacaciones",
             "Salario mínimo": "Salario mínimo",
         }
         self.pestanas.set(
             equivalencias.get(pestana_inicial, "Funcionarios")
         )
 
-        
+    def construir_vacaciones(self):
+        pagina = self.pestanas.tab("Vacaciones")
+
+        encabezado = ctk.CTkFrame(
+            pagina,
+            fg_color="transparent",
+        )
+        encabezado.pack(fill="x", padx=18, pady=(18, 10))
+
+        ctk.CTkLabel(
+            encabezado,
+            text="Períodos de vacaciones",
+            text_color=COLOR_TEXTO,
+            font=ctk.CTkFont(size=21, weight="bold"),
+        ).pack(side="left")
+
+        ctk.CTkButton(
+            encabezado,
+            text="Actualizar períodos",
+            fg_color=COLOR_PRIMARIO,
+            hover_color=COLOR_PRIMARIO_HOVER,
+            command=self.actualizar_vacaciones,
+        ).pack(side="right")
+
+        filtros = ctk.CTkFrame(
+            pagina,
+            fg_color=COLOR_PANEL,
+            border_width=1,
+            border_color=COLOR_BORDE,
+        )
+        filtros.pack(fill="x", padx=18, pady=(0, 12))
+
+        ctk.CTkLabel(
+            filtros,
+            text="Funcionario",
+            text_color=COLOR_TEXTO,
+        ).pack(side="left", padx=(14, 8), pady=12)
+
+        self.v_filtro_funcionario = ctk.CTkComboBox(
+            filtros,
+            values=["Todos"],
+            width=280,
+            command=lambda _valor: self.actualizar_vacaciones(),
+        )
+        self.v_filtro_funcionario.set("Todos")
+        self.v_filtro_funcionario.pack(side="left", pady=12)
+
+        ctk.CTkLabel(
+            filtros,
+            text="Estado",
+            text_color=COLOR_TEXTO,
+        ).pack(side="left", padx=(18, 8), pady=12)
+
+        self.v_filtro_estado = ctk.CTkComboBox(
+            filtros,
+            values=[
+                "Todos",
+                "Disponible",
+                "Programada",
+                "Parcialmente utilizada",
+                "Utilizada",
+                "Vencimiento próximo",
+                "Fuera de plazo",
+            ],
+            width=210,
+            command=lambda _valor: self.actualizar_vacaciones(),
+        )
+        self.v_filtro_estado.set("Todos")
+        self.v_filtro_estado.pack(side="left", pady=12)
+
+        contenedor = ctk.CTkFrame(
+            pagina,
+            fg_color=COLOR_PANEL,
+            border_width=1,
+            border_color=COLOR_BORDE,
+        )
+        contenedor.pack(
+            fill="both",
+            expand=True,
+            padx=18,
+            pady=(0, 18),
+        )
+
+        columnas = (
+            "funcionario",
+            "periodo",
+            "derecho",
+            "limite",
+            "generados",
+            "utilizados",
+            "pendientes",
+            "estado",
+        )
+
+        self.tree_vacaciones = ttk.Treeview(
+            contenedor,
+            columns=columnas,
+            show="headings",
+            style="BCTree.Treeview",
+        )
+
+        encabezados = {
+            "funcionario": "Funcionario",
+            "periodo": "Período",
+            "derecho": "Derecho desde",
+            "limite": "Fecha límite",
+            "generados": "Días",
+            "utilizados": "Usados",
+            "pendientes": "Pendientes",
+            "estado": "Estado",
+        }
+
+        anchos = {
+            "funcionario": 230,
+            "periodo": 185,
+            "derecho": 105,
+            "limite": 105,
+            "generados": 65,
+            "utilizados": 65,
+            "pendientes": 75,
+            "estado": 155,
+        }
+
+        for columna in columnas:
+            self.tree_vacaciones.heading(
+                columna,
+                text=encabezados[columna],
+            )
+            self.tree_vacaciones.column(
+                columna,
+                width=anchos[columna],
+                anchor="center",
+            )
+
+        self.tree_vacaciones.column(
+            "funcionario",
+            anchor="w",
+        )
+
+        barra_vertical = ttk.Scrollbar(
+            contenedor,
+            orient="vertical",
+            command=self.tree_vacaciones.yview,
+        )
+        barra_horizontal = ttk.Scrollbar(
+            contenedor,
+            orient="horizontal",
+            command=self.tree_vacaciones.xview,
+        )
+
+        self.tree_vacaciones.configure(
+            yscrollcommand=barra_vertical.set,
+            xscrollcommand=barra_horizontal.set,
+        )
+
+        contenedor.grid_rowconfigure(0, weight=1)
+        contenedor.grid_columnconfigure(0, weight=1)
+
+        self.tree_vacaciones.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+            padx=(10, 0),
+            pady=(10, 0),
+        )
+        barra_vertical.grid(
+            row=0,
+            column=1,
+            sticky="ns",
+            pady=(10, 0),
+        )
+        barra_horizontal.grid(
+            row=1,
+            column=0,
+            sticky="ew",
+            padx=(10, 0),
+            pady=(0, 10),
+        )
+
+    def actualizar_vacaciones(self):
+        try:
+            resumenes = Vacaciones.obtener_resumen_general()
+
+            funcionarios = sorted({
+            (
+                f"{dato['funcionario']['cedula']} — "
+                f"{dato['funcionario']['nombre']}"
+            )
+            for dato in resumenes
+            if dato["funcionario"] is not None
+            })
+
+            seleccion_actual = self.v_filtro_funcionario.get()
+            valores = ["Todos", *funcionarios]
+            self.v_filtro_funcionario.configure(values=valores)
+
+            if seleccion_actual not in valores:
+                self.v_filtro_funcionario.set("Todos")
+
+            for item in self.tree_vacaciones.get_children():
+                self.tree_vacaciones.delete(item)
+
+            filtro_funcionario = self.v_filtro_funcionario.get()
+            filtro_estado = self.v_filtro_estado.get()
+
+            for dato in resumenes:
+                funcionario = dato["funcionario"]
+
+                if funcionario is None:
+                    continue
+
+                clave_funcionario = (
+                    f"{funcionario['cedula']} — "
+                    f"{funcionario['nombre']}"
+                )
+
+                if (
+                    filtro_funcionario != "Todos"
+                    and clave_funcionario != filtro_funcionario
+                ):
+                    continue
+
+                if (
+                    filtro_estado != "Todos"
+                    and dato["estado"] != filtro_estado
+                ):
+                    continue
+
+                periodo = (
+                    f"{dato['periodo_desde']} "
+                    f"al {dato['periodo_hasta']}"
+                )
+
+                self.tree_vacaciones.insert(
+                    "",
+                    "end",
+                    iid=dato["id"],
+                    values=(
+                        ...
+                    ),
+                )
+        except (OSError, ValueError) as error:
+            messagebox.showerror(
+                "Vacaciones",
+                str(error),
+                parent=self,
+            )
 
     def habilitar_navegacion_tab(self):
         """Activa una navegación de teclado continua y contextual."""
@@ -652,7 +911,7 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
         self.filtro_estado_funcionario = ctk.CTkComboBox(
             filtros,
             values=["Activos", "Inactivos", "Todos"],
-            width=145,
+            width=140,
             state="readonly",
             command=lambda _valor: self.actualizar_funcionarios(),
         )
@@ -686,6 +945,8 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
             (
                 "nombre",
                 "cedula",
+                "fecha_ingreso",
+                "antiguedad",
                 "unidad",
                 "cargo",
                 "modalidad",
@@ -696,6 +957,8 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
             (
                 "Nombre",
                 "Cédula",
+                "Fecha de ingreso",
+                "Antigüedad",
                 "Unidad",
                 "Cargo",
                 "Modalidad",
@@ -703,7 +966,7 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
                 "IPS",
                 "Estado",
             ),
-            (180, 100, 90, 140, 90, 110, 55, 75),
+            (180, 100, 110, 90, 90, 140, 90, 110, 55, 75),
         )
         self.tree_funcionarios.bind(
             "<<TreeviewSelect>>",
@@ -745,13 +1008,31 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
                 continue
 
             sueldo = Funcionarios.calcular_sueldo_funcionario(datos)
+
+            fecha_ingreso = datetime.strptime(
+                datos["fecha_ingreso"],
+                "%d-%m-%Y",
+            )
+
+            hoy = datetime.now()
+            antiguedad = hoy.year - fecha_ingreso.year
+
+            if (hoy.month, hoy.day) < (
+                fecha_ingreso.month,
+                fecha_ingreso.day,
+            ):
+                antiguedad -= 1
+
             self.tree_funcionarios.insert(
                 "",
                 "end",
                 iid=str(indice),
+
                 values=(
                     datos["nombre"],
                     datos["cedula"],
+                    datos["fecha_ingreso"],
+                    f"{max(antiguedad, 0)} años",
                     datos["unidad"],
                     datos["cargo"],
                     datos["modalidad"],
@@ -759,7 +1040,7 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
                     datos["ips"],
                     datos["estado"],
                 ),
-            )
+                            )
 
     def limpiar_funcionario(self):
         self.indice_funcionario = None
@@ -1457,6 +1738,28 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
             command=self.generar_liquidacion,
         ).pack(side="left", padx=14, pady=14)
 
+        ctk.CTkButton(
+            controles,
+            text="Cargar sobres PC",
+            width=135,
+            fg_color=COLOR_PRIMARIO,
+            hover_color=COLOR_PRIMARIO_HOVER,
+            command=lambda: SobresVenta.abrir_importador_sobres(
+                self.winfo_toplevel()
+            ),
+        ).pack(side="right", padx=(8, 14), pady=14)
+
+        ctk.CTkButton(
+            controles,
+            text="Ver sobres guardados",
+            width=155,
+            fg_color=COLOR_NARANJA,
+            hover_color="#C77B20",
+            command=lambda: SobresVenta.abrir_historial_sobres(
+                self.winfo_toplevel()
+            ),
+        ).pack(side="right", padx=(8, 0), pady=14)
+
         filtros = ctk.CTkFrame(
             pagina,
             fg_color="transparent",
@@ -2023,6 +2326,471 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
 
     # ------------------------ SALARIO MÍNIMO ------------------------
 
+
+    def construir_aguinaldos(self):
+        pagina = self.pestanas.tab("Aguinaldos")
+        pagina.grid_columnconfigure(0, weight=1)
+        pagina.grid_rowconfigure(1, weight=1)
+
+        self.aguinaldo_funcionarios = []
+        self.aguinaldo_indice = 0
+        self.aguinaldo_entradas = []
+
+        controles = ctk.CTkFrame(
+            pagina,
+            fg_color=COLOR_PANEL,
+            corner_radius=12,
+            border_width=1,
+            border_color=COLOR_BORDE,
+        )
+        controles.grid(row=0, column=0, sticky="ew", padx=8, pady=(8, 6))
+
+        ctk.CTkLabel(
+            controles, text="Año", text_color=COLOR_TEXTO_SUAVE
+        ).pack(side="left", padx=(16, 6), pady=14)
+        self.aguinaldo_anio = ctk.CTkEntry(controles, width=80)
+        self.aguinaldo_anio.insert(0, str(datetime.now().year))
+        self.aguinaldo_anio.pack(side="left", pady=14)
+
+        ctk.CTkLabel(
+            controles, text="Funcionario", text_color=COLOR_TEXTO_SUAVE
+        ).pack(side="left", padx=(16, 6), pady=14)
+        self.aguinaldo_funcionario = ctk.CTkComboBox(
+            controles,
+            values=["Sin funcionarios"],
+            width=245,
+            state="readonly",
+            command=self.seleccionar_funcionario_aguinaldo,
+        )
+        self.aguinaldo_funcionario.pack(side="left", pady=14)
+
+        ctk.CTkButton(
+            controles,
+            text="◀ Anterior",
+            width=95,
+            command=lambda: self.navegar_aguinaldo(-1),
+        ).pack(side="left", padx=(14, 4), pady=14)
+        ctk.CTkButton(
+            controles,
+            text="Siguiente ▶",
+            width=95,
+            command=lambda: self.navegar_aguinaldo(1),
+        ).pack(side="left", padx=4, pady=14)
+        ctk.CTkButton(
+            controles,
+            text="Cargar año",
+            width=95,
+            command=self.cargar_aguinaldo,
+        ).pack(side="left", padx=4, pady=14)
+
+        contenido = ctk.CTkFrame(
+            pagina,
+            fg_color=COLOR_PANEL,
+            corner_radius=12,
+            border_width=1,
+            border_color=COLOR_BORDE,
+        )
+        contenido.grid(row=1, column=0, sticky="nsew", padx=8, pady=6)
+        contenido.grid_columnconfigure(0, weight=1)
+        contenido.grid_rowconfigure(1, weight=1)
+
+        encabezados = ctk.CTkFrame(contenido, fg_color="transparent")
+        encabezados.grid(row=0, column=0, sticky="ew", padx=12, pady=(12, 2))
+        for columna, texto, ancho in (
+            (0, "Mes", 110),
+            (1, "Salario básico bruto", 145),
+            (2, "Horas extra", 125),
+            (3, "Comisiones", 125),
+            (4, "Otros remunerativos", 150),
+            (5, "Total computable", 145),
+        ):
+            ctk.CTkLabel(
+                encabezados,
+                text=texto,
+                width=ancho,
+                anchor="center",
+                text_color=COLOR_TEXTO,
+                font=ctk.CTkFont(size=12, weight="bold"),
+            ).grid(row=0, column=columna, padx=4)
+
+        grilla = ctk.CTkScrollableFrame(
+            contenido,
+            fg_color="transparent",
+        )
+        grilla.grid(row=1, column=0, sticky="nsew", padx=8, pady=4)
+
+        for mes in range(1, 13):
+            ctk.CTkLabel(
+                grilla,
+                text=Aguinaldos.MESES[mes],
+                width=110,
+                anchor="w",
+                text_color=COLOR_TEXTO,
+            ).grid(row=mes - 1, column=0, padx=4, pady=4)
+
+            fila = {"mes": mes}
+            for columna, campo, ancho in (
+                (1, "basico", 145),
+                (2, "horas_extra", 125),
+                (3, "comisiones", 125),
+                (4, "otros_remunerativos", 150),
+            ):
+                entrada = ctk.CTkEntry(grilla, width=ancho, justify="right")
+                entrada.insert(0, "0")
+                entrada.grid(row=mes - 1, column=columna, padx=4, pady=4)
+                entrada.bind(
+                    "<KeyRelease>",
+                    self.actualizar_totales_aguinaldo,
+                )
+                entrada.bind(
+                    "<FocusOut>",
+                    lambda _evento, campo=entrada: (
+                        self.formatear_campo_aguinaldo(campo)
+                    ),
+                )
+                entrada.bind(
+                    "<Return>",
+                    lambda _evento, campo=entrada: (
+                        self.formatear_campo_aguinaldo(campo)
+                    ),
+                )
+                fila[campo] = entrada
+
+            total = ctk.CTkLabel(
+                grilla,
+                text="Gs. 0",
+                width=145,
+                anchor="e",
+                text_color=COLOR_TEXTO,
+                font=ctk.CTkFont(size=12, weight="bold"),
+            )
+            total.grid(row=mes - 1, column=5, padx=4, pady=4)
+            fila["total"] = total
+            self.aguinaldo_entradas.append(fila)
+
+        acciones = ctk.CTkFrame(contenido, fg_color="transparent")
+        acciones.grid(row=2, column=0, sticky="ew", padx=12, pady=(4, 12))
+
+        ctk.CTkButton(
+            acciones,
+            text="Importar liquidaciones",
+            width=155,
+            fg_color=COLOR_NARANJA,
+            hover_color="#C77B20",
+            command=self.importar_liquidaciones_aguinaldo,
+        ).pack(side="left")
+        ctk.CTkButton(
+            acciones,
+            text="Guardar meses",
+            width=125,
+            command=self.guardar_aguinaldo,
+        ).pack(side="left", padx=8)
+        ctk.CTkButton(
+            acciones,
+            text="Calcular aguinaldo",
+            width=150,
+            fg_color=COLOR_VERDE,
+            hover_color="#12835B",
+            command=self.calcular_aguinaldo,
+        ).pack(side="left")
+
+        self.aguinaldo_total_anual = ctk.CTkLabel(
+            acciones,
+            text="Total remuneraciones: Gs. 0",
+            text_color=COLOR_TEXTO,
+            font=ctk.CTkFont(size=13, weight="bold"),
+        )
+        self.aguinaldo_total_anual.pack(side="right", padx=(12, 0))
+        self.aguinaldo_resultado = ctk.CTkLabel(
+            acciones,
+            text="Aguinaldo: Gs. 0",
+            text_color=COLOR_VERDE,
+            font=ctk.CTkFont(size=15, weight="bold"),
+        )
+        self.aguinaldo_resultado.pack(side="right", padx=12)
+
+        ctk.CTkLabel(
+            pagina,
+            text=(
+                "Base: salario bruto devengado + horas extra + comisiones + "
+                "otros remunerativos. No incluye IPS, adelantos, compras, "
+                "bonificación familiar, viáticos, subsidios ni reposos médicos."
+            ),
+            text_color=COLOR_TEXTO_SUAVE,
+            anchor="w",
+        ).grid(row=2, column=0, sticky="ew", padx=12, pady=(0, 8))
+
+        self.actualizar_funcionarios_aguinaldo()
+
+    def _anio_aguinaldo(self):
+        texto = self.aguinaldo_anio.get().strip()
+        if not texto.isdigit() or not 2000 <= int(texto) <= 2100:
+            raise ValueError("Ingresá un año válido.")
+        return int(texto)
+
+    def actualizar_funcionarios_aguinaldo(self):
+        actual = (
+            self.aguinaldo_funcionarios[self.aguinaldo_indice]["cedula"]
+            if self.aguinaldo_funcionarios
+            and self.aguinaldo_indice < len(self.aguinaldo_funcionarios)
+            else None
+        )
+        self.aguinaldo_funcionarios = Aguinaldos.listar_funcionarios()
+        valores = [
+            f"{x['nombre']} | {x['cedula']}"
+            for x in self.aguinaldo_funcionarios
+        ]
+        self.aguinaldo_funcionario.configure(
+            values=valores or ["Sin funcionarios"]
+        )
+        if not valores:
+            self.aguinaldo_funcionario.set("Sin funcionarios")
+            return
+        self.aguinaldo_indice = next(
+            (
+                i for i, x in enumerate(self.aguinaldo_funcionarios)
+                if x["cedula"] == actual
+            ),
+            0,
+        )
+        self.aguinaldo_funcionario.set(valores[self.aguinaldo_indice])
+        self.cargar_aguinaldo()
+
+    def cargar_aguinaldo(self):
+        if not self.aguinaldo_funcionarios:
+            return
+
+        try:
+            funcionario = self.aguinaldo_funcionarios[
+                self.aguinaldo_indice
+            ]
+            anio = self._anio_aguinaldo()
+
+            meses = Aguinaldos.obtener_meses(
+                funcionario["cedula"],
+                anio,
+            )
+
+            meses = Aguinaldos.importar_desde_liquidaciones(
+                funcionario["cedula"],
+                anio,
+                meses,
+            )
+
+            self._mostrar_meses_aguinaldo(meses)
+            self.calcular_aguinaldo()
+
+        except ValueError as error:
+            messagebox.showerror(
+                "Aguinaldos",
+                str(error),
+                parent=self,
+            )
+    def seleccionar_funcionario_aguinaldo(self, valor):
+        for indice, funcionario in enumerate(self.aguinaldo_funcionarios):
+            if valor == f"{funcionario['nombre']} | {funcionario['cedula']}":
+                self.aguinaldo_indice = indice
+                self.cargar_aguinaldo()
+                break
+
+    def navegar_aguinaldo(self, desplazamiento):
+        if not self.aguinaldo_funcionarios:
+            return
+        self.aguinaldo_indice = (
+            self.aguinaldo_indice + desplazamiento
+        ) % len(self.aguinaldo_funcionarios)
+        funcionario = self.aguinaldo_funcionarios[self.aguinaldo_indice]
+        self.aguinaldo_funcionario.set(
+            f"{funcionario['nombre']} | {funcionario['cedula']}"
+        )
+        self.cargar_aguinaldo()
+
+    def _datos_meses_aguinaldo(self):
+        meses = []
+        for fila in self.aguinaldo_entradas:
+            meses.append({
+                "mes": fila["mes"],
+                "basico": fila["basico"].get(),
+                "horas_extra": fila["horas_extra"].get(),
+                "comisiones": fila["comisiones"].get(),
+                "otros_remunerativos": fila["otros_remunerativos"].get(),
+            })
+        return meses
+
+    def _mostrar_meses_aguinaldo(self, meses):
+        por_mes = {int(x["mes"]): x for x in meses}
+        for fila in self.aguinaldo_entradas:
+            datos = por_mes.get(fila["mes"], {})
+            for campo in (
+                "basico", "horas_extra", "comisiones", "otros_remunerativos"
+            ):
+                entrada = fila[campo]
+                entrada.delete(0, "end")
+                entrada.insert(
+                0,
+                formatear_monto(
+                    int(datos.get(campo, 0) or 0)
+                ),
+            )
+        self.actualizar_totales_aguinaldo()
+
+    def actualizar_totales_aguinaldo(self, _evento=None):
+        for fila in self.aguinaldo_entradas:
+            total_mes = 0
+
+            for campo in (
+                "basico",
+                "horas_extra",
+                "comisiones",
+                "otros_remunerativos",
+            ):
+                texto = (
+                    fila[campo]
+                    .get()
+                    .replace(".", "")
+                    .replace(",", "")
+                    .replace(" ", "")
+                    .strip()
+                )
+
+                if texto.isdigit():
+                    total_mes += int(texto)
+
+            fila["total"].configure(
+                text=f"Gs. {formatear_monto(total_mes)}"
+            )
+
+        if not self.aguinaldo_funcionarios:
+            return
+
+        try:
+            resultado = Aguinaldos.calcular(
+                self._datos_meses_aguinaldo()
+            )
+
+            total = resultado["total_remuneraciones"]
+            aguinaldo = resultado["aguinaldo"]
+
+            meses_con_datos = sum(
+                1
+                for detalle in resultado["detalle"]
+                if detalle["total"] > 0
+            )
+
+            promedio = (
+                total // meses_con_datos
+                if meses_con_datos
+                else 0
+            )
+
+            self.aguinaldo_total_anual.configure(
+                text=(
+                    f"Total computable ({meses_con_datos} meses): "
+                    f"Gs. {formatear_monto(total)}"
+                )
+            )
+
+            self.aguinaldo_resultado.configure(
+                text=(
+                    f"Promedio: Gs. {formatear_monto(promedio)}  |  "
+                    f"Aguinaldo ÷ 12: Gs. {formatear_monto(aguinaldo)}"
+                )
+            )
+
+        except ValueError:
+            pass
+
+    def importar_liquidaciones_aguinaldo(self):
+        if not self.aguinaldo_funcionarios:
+            return
+        try:
+            funcionario = self.aguinaldo_funcionarios[self.aguinaldo_indice]
+            meses = Aguinaldos.importar_desde_liquidaciones(
+                funcionario["cedula"],
+                self._anio_aguinaldo(),
+                self._datos_meses_aguinaldo(),
+            )
+            self._mostrar_meses_aguinaldo(meses)
+            messagebox.showinfo(
+                "Aguinaldos",
+                "Se completaron únicamente los meses vacíos. Revisá y guardá.",
+            )
+        except ValueError as error:
+            messagebox.showerror("Aguinaldos", str(error))
+
+    def guardar_aguinaldo(self):
+        if not self.aguinaldo_funcionarios:
+            return
+        try:
+            funcionario = self.aguinaldo_funcionarios[self.aguinaldo_indice]
+            Aguinaldos.guardar_meses(
+                funcionario["cedula"],
+                funcionario["nombre"],
+                self._anio_aguinaldo(),
+                self._datos_meses_aguinaldo(),
+            )
+            messagebox.showinfo("Aguinaldos", "Meses guardados correctamente.")
+        except ValueError as error:
+            messagebox.showerror("Aguinaldos", str(error))
+
+    def calcular_aguinaldo(self):
+        if not self.aguinaldo_funcionarios:
+            return
+
+        try:
+            resultado = Aguinaldos.calcular(
+                self._datos_meses_aguinaldo()
+            )
+
+            total = resultado["total_remuneraciones"]
+            aguinaldo = resultado["aguinaldo"]
+
+            meses_con_datos = sum(
+                1
+                for detalle in resultado["detalle"]
+                if detalle["total"] > 0
+            )
+
+            self.aguinaldo_total_anual.configure(
+                text=(
+                    f"Acumulado ({meses_con_datos} meses): "
+                    f"Gs. {formatear_monto(total)}"
+                )
+            )
+
+            self.aguinaldo_resultado.configure(
+                text=(
+                    "Aguinaldo acumulado: "
+                    f"Gs. {formatear_monto(aguinaldo)}"
+                )
+            )
+
+        except ValueError as error:
+            messagebox.showerror(
+                "Aguinaldos",
+                str(error),
+                parent=self,
+            )
+    def formatear_campo_aguinaldo(self, entrada):
+        texto = (
+                entrada.get()
+            .replace(".", "")
+            .replace(",", "")
+            .replace(" ", "")
+            .strip()
+        )
+
+        if not texto:
+            valor = 0
+        elif texto.isdigit():
+            valor = int(texto)
+        else:
+                return
+
+        entrada.delete(0, "end")
+        entrada.insert(0, formatear_monto(valor))
+        self.actualizar_totales_aguinaldo()
+
     def construir_salario_minimo(self):
         pagina = self.pestanas.tab("Salario mínimo")
         pagina.grid_columnconfigure(0, weight=1)
@@ -2200,6 +2968,8 @@ class VentanaRecursosHumanos(ctk.CTkFrame):
         self.actualizar_lista_funcionarios()
         self.actualizar_novedades()
         self.actualizar_liquidaciones()
+        self.actualizar_funcionarios_aguinaldo()
+        self.actualizar_vacaciones()
         self.actualizar_salarios()
 
 
@@ -2225,3 +2995,4 @@ def abrir_recursos_humanos(
         pestana,
     )
     panel.pack(fill="both", expand=True)
+

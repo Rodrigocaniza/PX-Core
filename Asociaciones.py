@@ -985,20 +985,22 @@ def exportar_excel(planilla_id, ruta_destino):
 
 def exportar_pdf(planilla_id, ruta_destino):
     from reportlab.lib import colors
-    from reportlab.lib.pagesizes import landscape
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import mm
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
-    from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    from reportlab.platypus import (
+        Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    )
 
     planilla = obtener_planilla(planilla_id)
+    if not planilla:
+        raise ValueError("La planilla no existe.")
+
     config = obtener_configuracion(planilla["config_id"])
     detalles = listar_detalles(planilla_id)
     totales = calcular_totales(planilla_id)
 
-    # Usa Arial cuando está instalada en Windows; conserva una fuente segura
-    # compatible cuando el sistema no la encuentra.
     fuente_normal = "Helvetica"
     fuente_negrita = "Helvetica-Bold"
     rutas_arial = (
@@ -1025,37 +1027,27 @@ def exportar_pdf(planilla_id, ruta_destino):
         f"Liquidación correspondiente al mes de {meses[mes]} de {anio}"
     )
 
-    OFICIO = (216 * mm, 330 * mm)  # 21,6 x 33 cm vertical
-
+    OFICIO = (216 * mm, 330 * mm)
     doc = SimpleDocTemplate(
         str(ruta_destino),
         pagesize=OFICIO,
-        leftMargin=12 * mm,
-        rightMargin=12 * mm,
-        topMargin=6 * mm,
-        bottomMargin=8 * mm,
+        leftMargin=10 * mm,
+        rightMargin=10 * mm,
+        topMargin=5 * mm,
+        bottomMargin=7 * mm,
     )
 
     estilos = getSampleStyleSheet()
-    titulo = ParagraphStyle(
-        "Titulo",
-        parent=estilos["Normal"],
-        alignment=1,
-        fontName=fuente_negrita,
-        fontSize=10,
-        leading=12,
-        spaceAfter=1.2 * mm,
-    )
-    asociacion = ParagraphStyle(
+    estilo_asociacion = ParagraphStyle(
         "Asociacion",
         parent=estilos["Normal"],
         alignment=1,
         fontName=fuente_negrita,
         fontSize=10,
         leading=12,
-        spaceAfter=1.2 * mm,
+        spaceAfter=1 * mm,
     )
-    liquidacion = ParagraphStyle(
+    estilo_liquidacion = ParagraphStyle(
         "Liquidacion",
         parent=estilos["Normal"],
         alignment=1,
@@ -1064,31 +1056,54 @@ def exportar_pdf(planilla_id, ruta_destino):
         leading=13,
         spaceAfter=2 * mm,
     )
-    importe_texto = ParagraphStyle(
+    estilo_importe = ParagraphStyle(
         "ImporteTexto",
+        parent=estilos["Normal"],
+        alignment=0,
+        fontName=fuente_negrita,
+        fontSize=9,
+        leading=11,
+        spaceBefore=2 * mm,
+    )
+    estilo_firma = ParagraphStyle(
+        "Firma",
         parent=estilos["Normal"],
         alignment=0,
         fontName=fuente_normal,
         fontSize=9,
         leading=11,
-        spaceBefore=1.5 * mm,
     )
 
     elementos = []
 
-    if config.get("logo") and Path(config["logo"]).exists():
-        logo = Image(config["logo"])
-        logo._restrictSize(72 * mm, 27 * mm)
+    # Primero usa el logo configurado. Si esa ruta no existe, busca el archivo
+    # estándar dentro de Datos/logos_asociaciones.
+    candidatos_logo = []
+    logo_config = str(config.get("logo") or "").strip()
+    if logo_config:
+        ruta_config = Path(logo_config)
+        candidatos_logo.append(
+            ruta_config if ruta_config.is_absolute() else BASE_DIR / ruta_config
+        )
+    candidatos_logo.extend([
+        CARPETA_LOGOS / "logo para excel.png",
+        CARPETA_LOGOS / "logo_puppilents.png",
+        CARPETA_LOGOS / "logo.png",
+    ])
+    ruta_logo = next((ruta for ruta in candidatos_logo if ruta.exists()), None)
+
+    if ruta_logo:
+        logo = Image(str(ruta_logo))
+        logo._restrictSize(92 * mm, 43 * mm)
         logo.hAlign = "CENTER"
         elementos.append(logo)
-        elementos.append(Spacer(1, 1 * mm))
+        elementos.append(Spacer(1, 1.5 * mm))
 
-    elementos.append(Paragraph(config["titulo"], titulo))
     elementos.append(Paragraph(
         f"{config['asociacion']} · {planilla['categoria']}",
-        asociacion,
+        estilo_asociacion,
     ))
-    elementos.append(Paragraph(texto_liquidacion, liquidacion))
+    elementos.append(Paragraph(texto_liquidacion, estilo_liquidacion))
 
     encabezados = [
         "Legajo", "Nombre y apellido", "Cuota",
@@ -1105,22 +1120,21 @@ def exportar_pdf(planilla_id, ruta_destino):
             f"{int(detalle['saldo_pendiente']):,}".replace(",", "."),
         ])
 
-    # Tabla compacta para aprovechar mejor cada página impresa.
-    anchos = [22 * mm, 60 * mm, 16 * mm, 28 * mm, 28 * mm, 28 * mm]
-    tabla = Table(datos, colWidths=anchos, repeatRows=1, hAlign="LEFT")
+    anchos = [22 * mm, 63 * mm, 17 * mm, 29 * mm, 29 * mm, 29 * mm]
+    tabla = Table(datos, colWidths=anchos, repeatRows=1, hAlign="CENTER")
     tabla.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F4E78")),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), fuente_negrita),
         ("FONTNAME", (0, 1), (-1, -1), fuente_normal),
-        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#808080")),
+        ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#A0A0A0")),
         ("ALIGN", (0, 0), (-1, -1), "CENTER"),
         ("ALIGN", (1, 1), (1, -1), "LEFT"),
         ("ALIGN", (3, 1), (-1, -1), "RIGHT"),
-        ("FONTSIZE", (0, 0), (-1, -1), 7.5),
+        ("FONTSIZE", (0, 0), (-1, -1), 7.3),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 2),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ("TOPPADDING", (0, 0), (-1, -1), 1.7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1.7),
         ("LEFTPADDING", (0, 0), (-1, -1), 3),
         ("RIGHTPADDING", (0, 0), (-1, -1), 3),
     ]))
@@ -1139,13 +1153,13 @@ def exportar_pdf(planilla_id, ruta_destino):
         f"{totales['total']:,}".replace(",", "."),
     ])
 
-    tabla_resumen = Table(resumen, colWidths=anchos, hAlign="LEFT")
+    tabla_resumen = Table(resumen, colWidths=anchos, hAlign="CENTER")
     estilo_resumen = [
         ("SPAN", (3, fila), (4, fila))
         for fila in range(len(resumen))
     ]
     estilo_resumen.extend([
-        ("GRID", (3, 0), (5, -1), 0.4, colors.HexColor("#808080")),
+        ("GRID", (3, 0), (5, -1), 0.35, colors.HexColor("#A0A0A0")),
         ("FONTNAME", (3, 0), (5, -1), fuente_negrita),
         ("ALIGN", (3, 0), (4, -1), "RIGHT"),
         ("ALIGN", (5, 0), (5, -1), "RIGHT"),
@@ -1158,28 +1172,23 @@ def exportar_pdf(planilla_id, ruta_destino):
     elementos.append(tabla_resumen)
 
     elementos.append(Paragraph(
-        f"<b>Son guaraníes: {numero_en_letras(totales['total'])} guaraníes.</b>",
-        importe_texto,
+        f"SON GUARANÍES: {numero_en_letras(totales['total']).upper()} GUARANÍES.",
+        estilo_importe,
     ))
 
-    # Espacio real para firma y sello.
-    elementos.append(Spacer(1, 24 * mm))
+    elementos.append(Spacer(1, 22 * mm))
+
     firma = Table(
-        [
-            [""Óptica Puppilent's""],
-            [config["titulo"]],
-        ],
-        colWidths=[72 * mm],
+        [[Paragraph("ÓPTICA PUPPILENT'S", estilo_firma)]],
+        colWidths=[58 * mm],
         hAlign="LEFT",
     )
     firma.setStyle(TableStyle([
-        ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-        ("FONTNAME", (0, 0), (0, 0), fuente_normal),
-        ("FONTNAME", (0, 1), (0, 1), fuente_normal),
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ("TOPPADDING", (0, 0), (-1, -1), 1),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("LINEABOVE", (0, 0), (0, 0), 0.7, colors.black),
+        ("LEFTPADDING", (0, 0), (0, 0), 0),
+        ("RIGHTPADDING", (0, 0), (0, 0), 0),
+        ("TOPPADDING", (0, 0), (0, 0), 3),
+        ("BOTTOMPADDING", (0, 0), (0, 0), 0),
     ]))
     elementos.append(firma)
 

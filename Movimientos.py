@@ -3028,6 +3028,7 @@ def menu_movimientos():
         print("4. Inversiones")
         print("5. Préstamos y cuotas")
         print("6. Cierre mensual")
+        print("7. Sobres de venta PC")
         print("0. Volver")
         print()
 
@@ -3050,6 +3051,10 @@ def menu_movimientos():
 
         elif opcion == "6":
             ver_cierre_mensual()
+
+        elif opcion == "7":
+            import SobresVenta
+            SobresVenta.menu_sobres_pc()
 
         elif opcion == "0":
             return
