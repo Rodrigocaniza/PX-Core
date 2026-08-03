@@ -99,10 +99,11 @@
 {"id":"DET-31D68E51F2","planilla_id":"PLA-2C791CC823","legajo":"4836504","nombre":"Venancio Montania","numero_cuota":"3/10","total_compra":2350000,"monto_cuota":235000,"saldo_pendiente":1645000}
 {"id":"DET-EB9A07DAE6","planilla_id":"PLA-8EB2BE4CF8","legajo":"2894198","nombre":"Yamili Mereles","numero_cuota":"3/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":1162000}
 {"id":"DET-A8EC10C94E","planilla_id":"PLA-2C791CC823","legajo":"1539826","nombre":"Pastora Blanca Mereles","numero_cuota":"1/8","total_compra":610000,"monto_cuota":76250,"saldo_pendiente":533750}
+{"id":"DET-0A1A8F0D33","planilla_id":"PLA-41570C9D57","legajo":"293263","nombre":"Sandra Liz Medina Flor","numero_cuota":"1/8","total_compra":1300000,"monto_cuota":162500,"saldo_pendiente":1137500}
 {"id":"DET-8A98A39E65","planilla_id":"PLA-81CE63E4D1","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"2/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1680000}
 {"id":"DET-55972096B5","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"2/10","total_compra":1200000,"monto_cuota":120000,"saldo_pendiente":960000}
 {"id":"DET-55769412F5","planilla_id":"PLA-D32092729D","legajo":"4836504","nombre":"Venancio Montania","numero_cuota":"2/10","total_compra":2350000,"monto_cuota":235000,"saldo_pendiente":1880000}
 {"id":"DET-EE8953475A","planilla_id":"PLA-D344B7E2D3","legajo":"2894198","nombre":"Yamili Mereles","numero_cuota":"2/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":1328000}
 {"id":"DET-8B81EFEFA6","planilla_id":"PLA-3126FEF5E4","legajo":"903298","nombre":"Magin Alvarez","numero_cuota":"1/10","total_compra":1080000,"monto_cuota":108000,"saldo_pendiente":972000}
 {"id":"DET-0A733DD934","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"1/10","total_compra":1200000,"monto_cuota":120000,"saldo_pendiente":1080000}
-{"id":"DET-0A1A8F0D33","planilla_id":"PLA-41570C9D57","legajo":"293263","nombre":"Sandra Liz Medina Flor","numero_cuota":"1/8","total_compra":1300000,"monto_cuota":162500,"saldo_pendiente":1137500}
+{"id":"DET-C56DB19930","planilla_id":"PLA-A7BA6F96E7","legajo":"293263","nombre":"Sandra Liz Medina Flor","numero_cuota":"2/8","total_compra":1300000,"monto_cuota":162500,"saldo_pendiente":975000}
