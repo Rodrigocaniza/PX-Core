@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "source": "OBSERVED_LEGACY",
+    "real_workbook_status": "PENDING_REAL_WORKBOOK_VALIDATION"
+  },
+  "cases": {
+    "missing_headers": "La hoja se omite cuando no aparecen TOTAL y Efectivo en las primeras seis filas.",
+    "invalid_date": "La hoja se omite sin fecha de respaldo; con respaldo se acepta y genera aviso.",
+    "duplicate_opening": "Se conserva la última CAJA INICIAL y se genera aviso.",
+    "missing_opening": "Se usa cero y se genera aviso.",
+    "invalid_money": "El valor se transforma en cero y se genera aviso; los avisos no bloquean importación.",
+    "blank_description_with_amount": "La fila se descarta aunque contenga importes.",
+    "duplicate_day": "Una fecha/unidad existente hace que se omita el día completo.",
+    "no_edit_support": "CajaDiaria.py no expone edición de registros; solo alta y eliminación del día completo."
+  }
+}

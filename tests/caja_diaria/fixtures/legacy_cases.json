@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "source": "OBSERVED_LEGACY",
+    "real_workbook_status": "PENDING_REAL_WORKBOOK_VALIDATION",
+    "currency": "PYG",
+    "unit": "PC"
+  },
+  "headers": [
+    "Descripción/Cliente",
+    "Sobre",
+    "Arm/Org",
+    "COD.",
+    "ARMAZON",
+    "CRISTAL",
+    "Receta Dr.",
+    "TOTAL",
+    "Efectivo",
+    "Tarj./Cheq.",
+    "Ordenes",
+    "Cuotas",
+    "Saldo",
+    "Gastos"
+  ],
+  "cases": {
+    "empty_day": {
+      "date": "01-08-2026",
+      "opening_cash": 0,
+      "rows": [],
+      "expected": {"entries": 0, "total": 0, "cash": 0, "card_check": 0, "expenses": 0, "final_cash": 0}
+    },
+    "representative_day": {
+      "date": "02-08-2026",
+      "opening_cash": 500000,
+      "rows": [
+        ["CLIENTE EFECTIVO", "S-001", "ARM", "A1", "300000", "200000", "DR A", 500000, 500000, null, null, null, null, null],
+        ["CLIENTE TARJETA", "S-002", "ORG", "A2", "400000", "200000", "DR B", 600000, null, 600000, null, null, "cancelado", null],
+        ["CLIENTE MIXTO", "S-003", "ARM", "A3", "250000", "150000", "DR C", 400000, 150000, 150000, "ORD-10", "2x50000", 50000, null],
+        ["CLIENTE MULTIFILA", "S-004", "ARM", "A4", "100000", null, "DR D", 100000, 100000, null, null, null, null, null],
+        ["CLIENTE MULTIFILA", "S-004", "ORG", "A4", null, "150000", "DR D", 150000, null, 150000, null, null, null, null],
+        ["PAGO MENSAJERÍA", null, null, null, null, null, null, 0, 0, 0, null, null, null, 30000]
+      ],
+      "expected": {"entries": 6, "total": 1750000, "cash": 750000, "card_check": 900000, "expenses": 30000, "final_cash": 1220000}
+    },
+    "blank_optional_values": {
+      "date": "03-08-2026",
+      "opening_cash": 100000,
+      "rows": [["CLIENTE", null, null, null, null, null, null, 100000, 100000, null, null, null, null, null]],
+      "expected": {"entries": 1, "total": 100000, "cash": 100000, "card_check": 0, "expenses": 0, "final_cash": 200000}
+    }
+  }
+}

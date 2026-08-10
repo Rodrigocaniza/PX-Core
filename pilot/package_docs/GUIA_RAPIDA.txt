@@ -1,0 +1,22 @@
+BC CAJA - GUIA RAPIDA
+
+ABRIR
+Ejecutar BC-Caja.exe.
+
+ABRIR CAJA DEL DIA
+Ir a "Cargar manual", indicar fecha, unidad y caja inicial. La caja se crea al guardar la primera operacion. Si existe un dia anterior cerrado, la caja inicial se completa automaticamente al dejarla vacia.
+
+CARGAR OPERACION
+Completar los importes y datos disponibles. Presionar "Guardar movimiento".
+
+EDITAR O ANULAR
+Ir a "Historial", consultar fecha/unidad y usar "Editar" o "Anular". La anulacion pide motivo y no borra el registro.
+
+REVISAR TOTALES Y CERRAR
+Consultar el dia. Revisar efectivo final y realizar el arqueo. Cerrar la caja solamente al terminar la jornada. El cierre crea un backup.
+
+CONSULTAR DIA ANTERIOR
+Ir a "Historial", escribir la fecha y presionar "Consultar".
+
+SI APARECE UN ERROR
+Leer el mensaje y no repetir muchas veces la accion. Informar fecha, accion realizada y texto del error al tester.

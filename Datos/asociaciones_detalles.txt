@@ -1,107 +1,109 @@
-{"id":"DET-6E356BC58D","planilla_id":"PLA-D32092729D","legajo":"4348836","nombre":"Edgar Marcelo Perez","numero_cuota":"8/10","total_compra":1780000,"monto_cuota":178000,"saldo_pendiente":356000}
-{"id":"DET-376CF268EB","planilla_id":"PLA-D32092729D","legajo":"1125864","nombre":"Raquel Lamas","numero_cuota":"8/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":332000}
-{"id":"DET-014A0D8F2B","planilla_id":"PLA-D32092729D","legajo":"2910153","nombre":"Evelin Cespedes","numero_cuota":"8/10","total_compra":1140000,"monto_cuota":114000,"saldo_pendiente":228000}
-{"id":"DET-09E7E03379","planilla_id":"PLA-D32092729D","legajo":"1848495","nombre":"Richard Medina","numero_cuota":"8/10","total_compra":1100000,"monto_cuota":110000,"saldo_pendiente":220000}
-{"id":"DET-89BE7AB1A7","planilla_id":"PLA-D32092729D","legajo":"3173376","nombre":"Rodrigo Caballero","numero_cuota":"8/10","total_compra":1320000,"monto_cuota":132000,"saldo_pendiente":264000}
-{"id":"DET-42E0942ACC","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"8/10","total_compra":1040000,"monto_cuota":104000,"saldo_pendiente":208000}
-{"id":"DET-5046AAB022","planilla_id":"PLA-D32092729D","legajo":"5148237","nombre":"Christian Martinez","numero_cuota":"8/10","total_compra":980000,"monto_cuota":98000,"saldo_pendiente":196000}
-{"id":"DET-60AE9EE588","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"6/10","total_compra":910000,"monto_cuota":91000,"saldo_pendiente":364000}
-{"id":"DET-2485368846","planilla_id":"PLA-D32092729D","legajo":"4222652","nombre":"Amelia Leticia Jimenez","numero_cuota":"6/6","total_compra":660000,"monto_cuota":110000,"saldo_pendiente":550000}
-{"id":"DET-9E689452C3","planilla_id":"PLA-D32092729D","legajo":"1848495","nombre":"Richard Medina","numero_cuota":"6/8","total_compra":880000,"monto_cuota":110000,"saldo_pendiente":220000}
-{"id":"DET-51AABF3F14","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"4/10","total_compra":970000,"monto_cuota":97000,"saldo_pendiente":582000}
-{"id":"DET-5C23F42092","planilla_id":"PLA-D32092729D","legajo":"3856294","nombre":"Rodofo Cañete","numero_cuota":"4/10","total_compra":960000,"monto_cuota":96000,"saldo_pendiente":576000}
-{"id":"DET-08ED7E1F76","planilla_id":"PLA-D32092729D","legajo":"2160571","nombre":"Liz Carmen Velazquez","numero_cuota":"4/5","total_compra":460000,"monto_cuota":92000,"saldo_pendiente":92000}
-{"id":"DET-EB32D7604F","planilla_id":"PLA-D32092729D","legajo":"1535820","nombre":"Malvina Leon","numero_cuota":"4/8","total_compra":850000,"monto_cuota":106250,"saldo_pendiente":425000}
-{"id":"DET-B28C223EEC","planilla_id":"PLA-D32092729D","legajo":"1535820","nombre":"Malvina Leon","numero_cuota":"4/10","total_compra":530000,"monto_cuota":53000,"saldo_pendiente":318000}
-{"id":"DET-D484FADA44","planilla_id":"PLA-D32092729D","legajo":"1997888","nombre":"Hugo Britos","numero_cuota":"4/7","total_compra":420000,"monto_cuota":60000,"saldo_pendiente":180000}
-{"id":"DET-2B3ED7BB51","planilla_id":"PLA-D32092729D","legajo":"4715384","nombre":"Rocio Meaurio","numero_cuota":"3/10","total_compra":1160000,"monto_cuota":116000,"saldo_pendiente":812000}
-{"id":"DET-84EFE33953","planilla_id":"PLA-D32092729D","legajo":"3194576","nombre":"Celeste Caceres","numero_cuota":"2/4","total_compra":1030000,"monto_cuota":257500,"saldo_pendiente":515000}
-{"id":"DET-55769412F5","planilla_id":"PLA-D32092729D","legajo":"4836504","nombre":"Venancio Montania","numero_cuota":"2/10","total_compra":2350000,"monto_cuota":235000,"saldo_pendiente":1880000}
-{"id":"DET-0F0A626A95","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"1/5","total_compra":430000,"monto_cuota":86000,"saldo_pendiente":344000}
-{"id":"DET-0A733DD934","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"1/10","total_compra":1200000,"monto_cuota":120000,"saldo_pendiente":1080000}
-{"id":"DET-DA01D5E4D8","planilla_id":"PLA-D32092729D","legajo":"3856294","nombre":"Rodolfo Cañete","numero_cuota":"1/5","total_compra":460000,"monto_cuota":92000,"saldo_pendiente":368000}
-{"id":"DET-3D6831F72D","planilla_id":"PLA-D32092729D","legajo":"2859429","nombre":"Cynthia Natalia Barrios","numero_cuota":"1/5","total_compra":425000,"monto_cuota":85000,"saldo_pendiente":340000}
-{"id":"DET-9D3089DFED","planilla_id":"PLA-D32092729D","legajo":"4645897","nombre":"Daniel Ayala","numero_cuota":"1/2","total_compra":250000,"monto_cuota":125000,"saldo_pendiente":125000}
-{"id":"DET-8360FE84A1","planilla_id":"PLA-D32092729D","legajo":"3664583","nombre":"Oscar Ramon Spelt","numero_cuota":"1/2","total_compra":280000,"monto_cuota":140000,"saldo_pendiente":140000}
-{"id":"DET-4B34B07985","planilla_id":"PLA-81CE63E4D1","legajo":"652720","nombre":"Angel Sandoval Sosa","numero_cuota":"10/10","total_compra":1080000,"monto_cuota":108000,"saldo_pendiente":972000}
-{"id":"DET-F4C4407E48","planilla_id":"PLA-81CE63E4D1","legajo":"583162","nombre":"Yolanda Caceres de Aquino","numero_cuota":"9/10","total_compra":2080000,"monto_cuota":208000,"saldo_pendiente":208000}
-{"id":"DET-5DA09831B2","planilla_id":"PLA-81CE63E4D1","legajo":"816770","nombre":"Fanny Elizabeth Ferreira Roa","numero_cuota":"9/10","total_compra":1490000,"monto_cuota":149000,"saldo_pendiente":149000}
-{"id":"DET-8554B097F5","planilla_id":"PLA-81CE63E4D1","legajo":"535954","nombre":"Ismelda Britez","numero_cuota":"9/10","total_compra":1160000,"monto_cuota":116000,"saldo_pendiente":116000}
-{"id":"DET-6F40263C38","planilla_id":"PLA-81CE63E4D1","legajo":"1918714","nombre":"Gladys Caballero","numero_cuota":"8/10","total_compra":910000,"monto_cuota":91000,"saldo_pendiente":182000}
-{"id":"DET-CBFF1EA042","planilla_id":"PLA-81CE63E4D1","legajo":"706512","nombre":"Cayo Franco","numero_cuota":"8/10","total_compra":1110000,"monto_cuota":111000,"saldo_pendiente":222000}
-{"id":"DET-6F5336C896","planilla_id":"PLA-81CE63E4D1","legajo":"706512","nombre":"Cayo Franco","numero_cuota":"8/10","total_compra":980000,"monto_cuota":98000,"saldo_pendiente":196000}
-{"id":"DET-CDA8688E67","planilla_id":"PLA-81CE63E4D1","legajo":"456382","nombre":"Elida Gonzalez","numero_cuota":"8/10","total_compra":2260000,"monto_cuota":226000,"saldo_pendiente":452000}
-{"id":"DET-A1F46494A5","planilla_id":"PLA-81CE63E4D1","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"7/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":498000}
-{"id":"DET-6BD64B28B9","planilla_id":"PLA-81CE63E4D1","legajo":"717561","nombre":"Carlos Orrego Meza","numero_cuota":"6/10","total_compra":920000,"monto_cuota":92000,"saldo_pendiente":368000}
-{"id":"DET-A3444D848C","planilla_id":"PLA-81CE63E4D1","legajo":"886796","nombre":"Antonia Figueredo","numero_cuota":"5/5","total_compra":510000,"monto_cuota":102000,"saldo_pendiente":408000}
-{"id":"DET-A02C1DA183","planilla_id":"PLA-81CE63E4D1","legajo":"404644","nombre":"María Cristina Fariña Vda. de Sanchez","numero_cuota":"5/10","total_compra":1110000,"monto_cuota":111000,"saldo_pendiente":555000}
-{"id":"DET-4F1D8CC31E","planilla_id":"PLA-81CE63E4D1","legajo":"535954","nombre":"Ismelda Britez","numero_cuota":"4/10","total_compra":1420000,"monto_cuota":142000,"saldo_pendiente":852000}
-{"id":"DET-9675A3D821","planilla_id":"PLA-81CE63E4D1","legajo":"1071553","nombre":"Maria Concepcion Fretes","numero_cuota":"4/8","total_compra":730000,"monto_cuota":91250,"saldo_pendiente":365000}
-{"id":"DET-B5655802DB","planilla_id":"PLA-81CE63E4D1","legajo":"367978","nombre":"Gladys Gregoria de Fernandez","numero_cuota":"3/8","total_compra":660000,"monto_cuota":82500,"saldo_pendiente":412500}
-{"id":"DET-2C2DD8050C","planilla_id":"PLA-81CE63E4D1","legajo":"1248568","nombre":"Jorgelina Cardozo","numero_cuota":"3/5","total_compra":365000,"monto_cuota":73000,"saldo_pendiente":146000}
-{"id":"DET-D3B1D9F515","planilla_id":"PLA-81CE63E4D1","legajo":"488599","nombre":"Luis Mauricio Igarza Duarte","numero_cuota":"2/2","total_compra":400000,"monto_cuota":200000,"saldo_pendiente":200000}
-{"id":"DET-8A98A39E65","planilla_id":"PLA-81CE63E4D1","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"2/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1680000}
-{"id":"DET-E679728A4C","planilla_id":"PLA-8192DE8F72","legajo":"1701375","nombre":"Juan Amarilla","numero_cuota":"6/10","total_compra":1690000,"monto_cuota":169000,"saldo_pendiente":676000}
-{"id":"DET-655C9AA726","planilla_id":"PLA-8192DE8F72","legajo":"450431","nombre":"Stella Galeano de Orue","numero_cuota":"6/10","total_compra":1290000,"monto_cuota":129000,"saldo_pendiente":516000}
-{"id":"DET-5CAA5F18A1","planilla_id":"PLA-8192DE8F72","legajo":"659227","nombre":"Viviana Brioschi","numero_cuota":"5/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1050000}
-{"id":"DET-A8EC10C94E","planilla_id":"PLA-2C791CC823","legajo":"1539826","nombre":"Pastora Blanca Mereles","numero_cuota":"1/8","total_compra":610000,"monto_cuota":76250,"saldo_pendiente":533750}
-{"id":"DET-4E1F9015D9","planilla_id":"PLA-8192DE8F72","legajo":"450431","nombre":"Stella Galeano de Orue","numero_cuota":"1/2","total_compra":260000,"monto_cuota":130000,"saldo_pendiente":130000}
-{"id":"DET-B4E6B897A3","planilla_id":"PLA-3EB49C34BA","legajo":"2343804","nombre":"Lilian Monzon","numero_cuota":"9/10","total_compra":830000,"monto_cuota":83000,"saldo_pendiente":83000}
-{"id":"DET-D68EADAB06","planilla_id":"PLA-3EB49C34BA","legajo":"2343804","nombre":"Lilian Monzon","numero_cuota":"9/10","total_compra":750000,"monto_cuota":75000,"saldo_pendiente":75000}
-{"id":"DET-E4C1834C85","planilla_id":"PLA-3EB49C34BA","legajo":"5473636","nombre":"Micaela Cespedes","numero_cuota":"1/2","total_compra":250000,"monto_cuota":125000,"saldo_pendiente":125000}
-{"id":"DET-685B85379D","planilla_id":"PLA-C158B8B2C9","legajo":"5930283","nombre":"Fiorella Beatriz Ovelar Sosa","numero_cuota":"4/5","total_compra":530000,"monto_cuota":106000,"saldo_pendiente":106000}
-{"id":"DET-EE8953475A","planilla_id":"PLA-D344B7E2D3","legajo":"2894198","nombre":"Yamili Mereles","numero_cuota":"2/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":1328000}
-{"id":"DET-535FDC4DE5","planilla_id":"PLA-3126FEF5E4","legajo":"583162","nombre":"Yolanda Caceres de Aquino","numero_cuota":"10/10","total_compra":2080000,"monto_cuota":208000,"saldo_pendiente":1872000}
-{"id":"DET-165873B9ED","planilla_id":"PLA-3126FEF5E4","legajo":"816770","nombre":"Fanny Elizabeth Ferreira Roa","numero_cuota":"10/10","total_compra":1490000,"monto_cuota":149000,"saldo_pendiente":1341000}
-{"id":"DET-F46AA09032","planilla_id":"PLA-3126FEF5E4","legajo":"535954","nombre":"Ismelda Britez","numero_cuota":"10/10","total_compra":1160000,"monto_cuota":116000,"saldo_pendiente":1044000}
-{"id":"DET-911CF492C0","planilla_id":"PLA-3126FEF5E4","legajo":"1918714","nombre":"Gladys Caballero","numero_cuota":"9/10","total_compra":910000,"monto_cuota":91000,"saldo_pendiente":91000}
+{"id":"DET-4B34B07985","planilla_id":"PLA-81CE63E4D1","legajo":"652720","nombre":"Angel Sandoval Sosa","numero_cuota":"10/10","total_compra":1080000,"monto_cuota":108000,"saldo_pendiente":0}
+{"id":"DET-165873B9ED","planilla_id":"PLA-3126FEF5E4","legajo":"816770","nombre":"Fanny Elizabeth Ferreira Roa","numero_cuota":"10/10","total_compra":1490000,"monto_cuota":149000,"saldo_pendiente":0}
+{"id":"DET-F46AA09032","planilla_id":"PLA-3126FEF5E4","legajo":"535954","nombre":"Ismelda Britez","numero_cuota":"10/10","total_compra":1160000,"monto_cuota":116000,"saldo_pendiente":0}
+{"id":"DET-55A38E6A89","planilla_id":"PLA-EA7905D5F9","legajo":"2343804","nombre":"Lilian Monzon","numero_cuota":"10/10","total_compra":830000,"monto_cuota":83000,"saldo_pendiente":0}
+{"id":"DET-7A47AC31C9","planilla_id":"PLA-EA7905D5F9","legajo":"2343804","nombre":"Lilian Monzon","numero_cuota":"10/10","total_compra":750000,"monto_cuota":75000,"saldo_pendiente":0}
+{"id":"DET-535FDC4DE5","planilla_id":"PLA-3126FEF5E4","legajo":"583162","nombre":"Yolanda Caceres de Aquino","numero_cuota":"10/10","total_compra":2080000,"monto_cuota":208000,"saldo_pendiente":0}
+{"id":"DET-2485368846","planilla_id":"PLA-D32092729D","legajo":"4222652","nombre":"Amelia Leticia Jimenez","numero_cuota":"6/6","total_compra":660000,"monto_cuota":110000,"saldo_pendiente":0}
+{"id":"DET-A3444D848C","planilla_id":"PLA-81CE63E4D1","legajo":"886796","nombre":"Antonia Figueredo","numero_cuota":"5/5","total_compra":510000,"monto_cuota":102000,"saldo_pendiente":0}
+{"id":"DET-0144B52B69","planilla_id":"PLA-043B2B53F4","legajo":"5930283","nombre":"Fiorella Beatriz Ovelar Sosa","numero_cuota":"5/5","total_compra":530000,"monto_cuota":106000,"saldo_pendiente":0}
+{"id":"DET-58354E2B14","planilla_id":"PLA-2C791CC823","legajo":"2160571","nombre":"Liz Carmen Velazquez","numero_cuota":"5/5","total_compra":460000,"monto_cuota":92000,"saldo_pendiente":0}
+{"id":"DET-9640251C0F","planilla_id":"PLA-2C791CC823","legajo":"4645897","nombre":"Daniel Ayala","numero_cuota":"2/2","total_compra":250000,"monto_cuota":125000,"saldo_pendiente":0}
+{"id":"DET-D3B1D9F515","planilla_id":"PLA-81CE63E4D1","legajo":"488599","nombre":"Luis Mauricio Igarza Duarte","numero_cuota":"2/2","total_compra":400000,"monto_cuota":200000,"saldo_pendiente":0}
+{"id":"DET-73181F2017","planilla_id":"PLA-EA7905D5F9","legajo":"5473636","nombre":"Micaela Cespedes","numero_cuota":"2/2","total_compra":250000,"monto_cuota":125000,"saldo_pendiente":0}
+{"id":"DET-B508107B0C","planilla_id":"PLA-2C791CC823","legajo":"3664583","nombre":"Oscar Ramon Spelt","numero_cuota":"2/2","total_compra":280000,"monto_cuota":140000,"saldo_pendiente":0}
+{"id":"DET-40E218139D","planilla_id":"PLA-C4C44309C3","legajo":"450431","nombre":"Stella Galeano de Orue","numero_cuota":"2/2","total_compra":260000,"monto_cuota":130000,"saldo_pendiente":0}
 {"id":"DET-3E1B69A328","planilla_id":"PLA-3126FEF5E4","legajo":"706512","nombre":"Cayo Franco","numero_cuota":"9/10","total_compra":1110000,"monto_cuota":111000,"saldo_pendiente":111000}
 {"id":"DET-67B5F316C0","planilla_id":"PLA-3126FEF5E4","legajo":"706512","nombre":"Cayo Franco","numero_cuota":"9/10","total_compra":980000,"monto_cuota":98000,"saldo_pendiente":98000}
-{"id":"DET-FB59D6CFAE","planilla_id":"PLA-3126FEF5E4","legajo":"456382","nombre":"Elida Gonzalez","numero_cuota":"9/10","total_compra":2260000,"monto_cuota":226000,"saldo_pendiente":226000}
-{"id":"DET-B0271AF7B5","planilla_id":"PLA-3126FEF5E4","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"8/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":332000}
-{"id":"DET-63B8FEAFC6","planilla_id":"PLA-3126FEF5E4","legajo":"717561","nombre":"Carlos Orrego Meza","numero_cuota":"7/10","total_compra":920000,"monto_cuota":92000,"saldo_pendiente":276000}
-{"id":"DET-DF08E4AE69","planilla_id":"PLA-3126FEF5E4","legajo":"404644","nombre":"María Cristina Fariña Vda. de Sanchez","numero_cuota":"6/10","total_compra":1110000,"monto_cuota":111000,"saldo_pendiente":444000}
-{"id":"DET-E61C3A77D2","planilla_id":"PLA-3126FEF5E4","legajo":"535954","nombre":"Ismelda Britez","numero_cuota":"5/10","total_compra":1420000,"monto_cuota":142000,"saldo_pendiente":710000}
-{"id":"DET-88C0F59EA2","planilla_id":"PLA-3126FEF5E4","legajo":"1071553","nombre":"Maria Concepcion Fretes","numero_cuota":"5/8","total_compra":730000,"monto_cuota":91250,"saldo_pendiente":273750}
-{"id":"DET-5BE49259B1","planilla_id":"PLA-3126FEF5E4","legajo":"367978","nombre":"Gladys Gregoria de Fernandez","numero_cuota":"4/8","total_compra":660000,"monto_cuota":82500,"saldo_pendiente":330000}
-{"id":"DET-BCC0332D97","planilla_id":"PLA-3126FEF5E4","legajo":"1248568","nombre":"Jorgelina Cardozo","numero_cuota":"4/5","total_compra":365000,"monto_cuota":73000,"saldo_pendiente":73000}
-{"id":"DET-122131A2FF","planilla_id":"PLA-3126FEF5E4","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"3/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1470000}
-{"id":"DET-55A38E6A89","planilla_id":"PLA-EA7905D5F9","legajo":"2343804","nombre":"Lilian Monzon","numero_cuota":"10/10","total_compra":830000,"monto_cuota":83000,"saldo_pendiente":747000}
-{"id":"DET-7A47AC31C9","planilla_id":"PLA-EA7905D5F9","legajo":"2343804","nombre":"Lilian Monzon","numero_cuota":"10/10","total_compra":750000,"monto_cuota":75000,"saldo_pendiente":675000}
-{"id":"DET-73181F2017","planilla_id":"PLA-EA7905D5F9","legajo":"5473636","nombre":"Micaela Cespedes","numero_cuota":"2/2","total_compra":250000,"monto_cuota":125000,"saldo_pendiente":125000}
-{"id":"DET-EB9A07DAE6","planilla_id":"PLA-8EB2BE4CF8","legajo":"2894198","nombre":"Yamili Mereles","numero_cuota":"3/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":1162000}
-{"id":"DET-0144B52B69","planilla_id":"PLA-043B2B53F4","legajo":"5930283","nombre":"Fiorella Beatriz Ovelar Sosa","numero_cuota":"5/5","total_compra":530000,"monto_cuota":106000,"saldo_pendiente":424000}
+{"id":"DET-9674E32073","planilla_id":"PLA-2C791CC823","legajo":"5148237","nombre":"Christian Martinez","numero_cuota":"9/10","total_compra":980000,"monto_cuota":98000,"saldo_pendiente":98000}
 {"id":"DET-80626602AB","planilla_id":"PLA-2C791CC823","legajo":"4348836","nombre":"Edgar Marcelo Perez","numero_cuota":"9/10","total_compra":1780000,"monto_cuota":178000,"saldo_pendiente":178000}
-{"id":"DET-B4D6007ABE","planilla_id":"PLA-2C791CC823","legajo":"1125864","nombre":"Raquel Lamas","numero_cuota":"9/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":166000}
+{"id":"DET-FB59D6CFAE","planilla_id":"PLA-3126FEF5E4","legajo":"456382","nombre":"Elida Gonzalez","numero_cuota":"9/10","total_compra":2260000,"monto_cuota":226000,"saldo_pendiente":226000}
 {"id":"DET-10054797D9","planilla_id":"PLA-2C791CC823","legajo":"2910153","nombre":"Evelin Cespedes","numero_cuota":"9/10","total_compra":1140000,"monto_cuota":114000,"saldo_pendiente":114000}
+{"id":"DET-5DA09831B2","planilla_id":"PLA-81CE63E4D1","legajo":"816770","nombre":"Fanny Elizabeth Ferreira Roa","numero_cuota":"9/10","total_compra":1490000,"monto_cuota":149000,"saldo_pendiente":149000}
+{"id":"DET-911CF492C0","planilla_id":"PLA-3126FEF5E4","legajo":"1918714","nombre":"Gladys Caballero","numero_cuota":"9/10","total_compra":910000,"monto_cuota":91000,"saldo_pendiente":91000}
+{"id":"DET-8554B097F5","planilla_id":"PLA-81CE63E4D1","legajo":"535954","nombre":"Ismelda Britez","numero_cuota":"9/10","total_compra":1160000,"monto_cuota":116000,"saldo_pendiente":116000}
+{"id":"DET-B4E6B897A3","planilla_id":"PLA-3EB49C34BA","legajo":"2343804","nombre":"Lilian Monzon","numero_cuota":"9/10","total_compra":830000,"monto_cuota":83000,"saldo_pendiente":83000}
+{"id":"DET-D68EADAB06","planilla_id":"PLA-3EB49C34BA","legajo":"2343804","nombre":"Lilian Monzon","numero_cuota":"9/10","total_compra":750000,"monto_cuota":75000,"saldo_pendiente":75000}
+{"id":"DET-3E5670A082","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"9/10","total_compra":1040000,"monto_cuota":104000,"saldo_pendiente":104000}
+{"id":"DET-B4D6007ABE","planilla_id":"PLA-2C791CC823","legajo":"1125864","nombre":"Raquel Lamas","numero_cuota":"9/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":166000}
 {"id":"DET-CF147CC9B4","planilla_id":"PLA-2C791CC823","legajo":"1848495","nombre":"Richard Medina","numero_cuota":"9/10","total_compra":1100000,"monto_cuota":110000,"saldo_pendiente":110000}
 {"id":"DET-32E91513F8","planilla_id":"PLA-2C791CC823","legajo":"3173376","nombre":"Rodrigo Caballero","numero_cuota":"9/10","total_compra":1320000,"monto_cuota":132000,"saldo_pendiente":132000}
-{"id":"DET-3E5670A082","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"9/10","total_compra":1040000,"monto_cuota":104000,"saldo_pendiente":104000}
-{"id":"DET-9674E32073","planilla_id":"PLA-2C791CC823","legajo":"5148237","nombre":"Christian Martinez","numero_cuota":"9/10","total_compra":980000,"monto_cuota":98000,"saldo_pendiente":98000}
-{"id":"DET-B9A6D6AABC","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"7/10","total_compra":910000,"monto_cuota":91000,"saldo_pendiente":273000}
+{"id":"DET-F4C4407E48","planilla_id":"PLA-81CE63E4D1","legajo":"583162","nombre":"Yolanda Caceres de Aquino","numero_cuota":"9/10","total_compra":2080000,"monto_cuota":208000,"saldo_pendiente":208000}
 {"id":"DET-F79365B955","planilla_id":"PLA-2C791CC823","legajo":"1848495","nombre":"Richard Medina","numero_cuota":"7/8","total_compra":880000,"monto_cuota":110000,"saldo_pendiente":110000}
+{"id":"DET-685B85379D","planilla_id":"PLA-C158B8B2C9","legajo":"5930283","nombre":"Fiorella Beatriz Ovelar Sosa","numero_cuota":"4/5","total_compra":530000,"monto_cuota":106000,"saldo_pendiente":106000}
+{"id":"DET-BCC0332D97","planilla_id":"PLA-3126FEF5E4","legajo":"1248568","nombre":"Jorgelina Cardozo","numero_cuota":"4/5","total_compra":365000,"monto_cuota":73000,"saldo_pendiente":73000}
+{"id":"DET-08ED7E1F76","planilla_id":"PLA-D32092729D","legajo":"2160571","nombre":"Liz Carmen Velazquez","numero_cuota":"4/5","total_compra":460000,"monto_cuota":92000,"saldo_pendiente":92000}
+{"id":"DET-988030BC68","planilla_id":"PLA-2C791CC823","legajo":"3194576","nombre":"Celeste Caceres","numero_cuota":"3/4","total_compra":1030000,"monto_cuota":257500,"saldo_pendiente":257500}
+{"id":"DET-9D3089DFED","planilla_id":"PLA-D32092729D","legajo":"4645897","nombre":"Daniel Ayala","numero_cuota":"1/2","total_compra":250000,"monto_cuota":125000,"saldo_pendiente":125000}
+{"id":"DET-E4C1834C85","planilla_id":"PLA-3EB49C34BA","legajo":"5473636","nombre":"Micaela Cespedes","numero_cuota":"1/2","total_compra":250000,"monto_cuota":125000,"saldo_pendiente":125000}
+{"id":"DET-8360FE84A1","planilla_id":"PLA-D32092729D","legajo":"3664583","nombre":"Oscar Ramon Spelt","numero_cuota":"1/2","total_compra":280000,"monto_cuota":140000,"saldo_pendiente":140000}
+{"id":"DET-1E3E8BB25C","planilla_id":"PLA-3126FEF5E4","legajo":"1524913","nombre":"Ruben Gustavo Caballero Candia","numero_cuota":"1/2","total_compra":280000,"monto_cuota":140000,"saldo_pendiente":140000}
+{"id":"DET-4E1F9015D9","planilla_id":"PLA-8192DE8F72","legajo":"450431","nombre":"Stella Galeano de Orue","numero_cuota":"1/2","total_compra":260000,"monto_cuota":130000,"saldo_pendiente":130000}
+{"id":"DET-CBFF1EA042","planilla_id":"PLA-81CE63E4D1","legajo":"706512","nombre":"Cayo Franco","numero_cuota":"8/10","total_compra":1110000,"monto_cuota":111000,"saldo_pendiente":222000}
+{"id":"DET-6F5336C896","planilla_id":"PLA-81CE63E4D1","legajo":"706512","nombre":"Cayo Franco","numero_cuota":"8/10","total_compra":980000,"monto_cuota":98000,"saldo_pendiente":196000}
+{"id":"DET-B0271AF7B5","planilla_id":"PLA-3126FEF5E4","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"8/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":332000}
+{"id":"DET-5046AAB022","planilla_id":"PLA-D32092729D","legajo":"5148237","nombre":"Christian Martinez","numero_cuota":"8/10","total_compra":980000,"monto_cuota":98000,"saldo_pendiente":196000}
+{"id":"DET-6E356BC58D","planilla_id":"PLA-D32092729D","legajo":"4348836","nombre":"Edgar Marcelo Perez","numero_cuota":"8/10","total_compra":1780000,"monto_cuota":178000,"saldo_pendiente":356000}
+{"id":"DET-CDA8688E67","planilla_id":"PLA-81CE63E4D1","legajo":"456382","nombre":"Elida Gonzalez","numero_cuota":"8/10","total_compra":2260000,"monto_cuota":226000,"saldo_pendiente":452000}
+{"id":"DET-014A0D8F2B","planilla_id":"PLA-D32092729D","legajo":"2910153","nombre":"Evelin Cespedes","numero_cuota":"8/10","total_compra":1140000,"monto_cuota":114000,"saldo_pendiente":228000}
+{"id":"DET-6F40263C38","planilla_id":"PLA-81CE63E4D1","legajo":"1918714","nombre":"Gladys Caballero","numero_cuota":"8/10","total_compra":910000,"monto_cuota":91000,"saldo_pendiente":182000}
+{"id":"DET-42E0942ACC","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"8/10","total_compra":1040000,"monto_cuota":104000,"saldo_pendiente":208000}
+{"id":"DET-376CF268EB","planilla_id":"PLA-D32092729D","legajo":"1125864","nombre":"Raquel Lamas","numero_cuota":"8/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":332000}
+{"id":"DET-09E7E03379","planilla_id":"PLA-D32092729D","legajo":"1848495","nombre":"Richard Medina","numero_cuota":"8/10","total_compra":1100000,"monto_cuota":110000,"saldo_pendiente":220000}
+{"id":"DET-89BE7AB1A7","planilla_id":"PLA-D32092729D","legajo":"3173376","nombre":"Rodrigo Caballero","numero_cuota":"8/10","total_compra":1320000,"monto_cuota":132000,"saldo_pendiente":264000}
+{"id":"DET-9E689452C3","planilla_id":"PLA-D32092729D","legajo":"1848495","nombre":"Richard Medina","numero_cuota":"6/8","total_compra":880000,"monto_cuota":110000,"saldo_pendiente":220000}
+{"id":"DET-52ADEDC497","planilla_id":"PLA-2C791CC823","legajo":"1997888","nombre":"Hugo Britos","numero_cuota":"5/7","total_compra":420000,"monto_cuota":60000,"saldo_pendiente":120000}
+{"id":"DET-2C2DD8050C","planilla_id":"PLA-81CE63E4D1","legajo":"1248568","nombre":"Jorgelina Cardozo","numero_cuota":"3/5","total_compra":365000,"monto_cuota":73000,"saldo_pendiente":146000}
+{"id":"DET-84EFE33953","planilla_id":"PLA-D32092729D","legajo":"3194576","nombre":"Celeste Caceres","numero_cuota":"2/4","total_compra":1030000,"monto_cuota":257500,"saldo_pendiente":515000}
+{"id":"DET-63B8FEAFC6","planilla_id":"PLA-3126FEF5E4","legajo":"717561","nombre":"Carlos Orrego Meza","numero_cuota":"7/10","total_compra":920000,"monto_cuota":92000,"saldo_pendiente":276000}
+{"id":"DET-A1F46494A5","planilla_id":"PLA-81CE63E4D1","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"7/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":498000}
+{"id":"DET-EB1030FA01","planilla_id":"PLA-C4C44309C3","legajo":"1701375","nombre":"Juan Amarilla","numero_cuota":"7/10","total_compra":1690000,"monto_cuota":169000,"saldo_pendiente":507000}
+{"id":"DET-B9A6D6AABC","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"7/10","total_compra":910000,"monto_cuota":91000,"saldo_pendiente":273000}
+{"id":"DET-1D344D3B53","planilla_id":"PLA-C4C44309C3","legajo":"450431","nombre":"Stella Galeano de Orue","numero_cuota":"7/10","total_compra":1290000,"monto_cuota":129000,"saldo_pendiente":387000}
+{"id":"DET-0CE3A5ACCD","planilla_id":"PLA-2C791CC823","legajo":"1535820","nombre":"Malvina Leon","numero_cuota":"5/8","total_compra":850000,"monto_cuota":106250,"saldo_pendiente":318750}
+{"id":"DET-88C0F59EA2","planilla_id":"PLA-3126FEF5E4","legajo":"1071553","nombre":"Maria Concepcion Fretes","numero_cuota":"5/8","total_compra":730000,"monto_cuota":91250,"saldo_pendiente":273750}
+{"id":"DET-D484FADA44","planilla_id":"PLA-D32092729D","legajo":"1997888","nombre":"Hugo Britos","numero_cuota":"4/7","total_compra":420000,"monto_cuota":60000,"saldo_pendiente":180000}
+{"id":"DET-9FB78FE6DD","planilla_id":"PLA-2C791CC823","legajo":"2859429","nombre":"Cynthia Natalia Barrios","numero_cuota":"2/5","total_compra":425000,"monto_cuota":85000,"saldo_pendiente":255000}
+{"id":"DET-71954B6EB6","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"2/5","total_compra":430000,"monto_cuota":86000,"saldo_pendiente":258000}
+{"id":"DET-696B1E2312","planilla_id":"PLA-2C791CC823","legajo":"3856294","nombre":"Rodolfo Cañete","numero_cuota":"2/5","total_compra":460000,"monto_cuota":92000,"saldo_pendiente":276000}
+{"id":"DET-6BD64B28B9","planilla_id":"PLA-81CE63E4D1","legajo":"717561","nombre":"Carlos Orrego Meza","numero_cuota":"6/10","total_compra":920000,"monto_cuota":92000,"saldo_pendiente":368000}
+{"id":"DET-E679728A4C","planilla_id":"PLA-8192DE8F72","legajo":"1701375","nombre":"Juan Amarilla","numero_cuota":"6/10","total_compra":1690000,"monto_cuota":169000,"saldo_pendiente":676000}
+{"id":"DET-DF08E4AE69","planilla_id":"PLA-3126FEF5E4","legajo":"404644","nombre":"María Cristina Fariña Vda. de Sanchez","numero_cuota":"6/10","total_compra":1110000,"monto_cuota":111000,"saldo_pendiente":444000}
+{"id":"DET-60AE9EE588","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"6/10","total_compra":910000,"monto_cuota":91000,"saldo_pendiente":364000}
+{"id":"DET-655C9AA726","planilla_id":"PLA-8192DE8F72","legajo":"450431","nombre":"Stella Galeano de Orue","numero_cuota":"6/10","total_compra":1290000,"monto_cuota":129000,"saldo_pendiente":516000}
+{"id":"DET-9853908E64","planilla_id":"PLA-C4C44309C3","legajo":"659227","nombre":"Viviana Brioschi","numero_cuota":"6/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":840000}
+{"id":"DET-5BE49259B1","planilla_id":"PLA-3126FEF5E4","legajo":"367978","nombre":"Gladys Gregoria de Fernandez","numero_cuota":"4/8","total_compra":660000,"monto_cuota":82500,"saldo_pendiente":330000}
+{"id":"DET-EB32D7604F","planilla_id":"PLA-D32092729D","legajo":"1535820","nombre":"Malvina Leon","numero_cuota":"4/8","total_compra":850000,"monto_cuota":106250,"saldo_pendiente":425000}
+{"id":"DET-9675A3D821","planilla_id":"PLA-81CE63E4D1","legajo":"1071553","nombre":"Maria Concepcion Fretes","numero_cuota":"4/8","total_compra":730000,"monto_cuota":91250,"saldo_pendiente":365000}
+{"id":"DET-3D6831F72D","planilla_id":"PLA-D32092729D","legajo":"2859429","nombre":"Cynthia Natalia Barrios","numero_cuota":"1/5","total_compra":425000,"monto_cuota":85000,"saldo_pendiente":340000}
+{"id":"DET-78ED52AD2D","planilla_id":"PLA-3126FEF5E4","legajo":"217281","nombre":"Monserrat Villagra Leal","numero_cuota":"1/5","total_compra":480000,"monto_cuota":96000,"saldo_pendiente":384000}
+{"id":"DET-0F0A626A95","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"1/5","total_compra":430000,"monto_cuota":86000,"saldo_pendiente":344000}
+{"id":"DET-DA01D5E4D8","planilla_id":"PLA-D32092729D","legajo":"3856294","nombre":"Rodolfo Cañete","numero_cuota":"1/5","total_compra":460000,"monto_cuota":92000,"saldo_pendiente":368000}
+{"id":"DET-E61C3A77D2","planilla_id":"PLA-3126FEF5E4","legajo":"535954","nombre":"Ismelda Britez","numero_cuota":"5/10","total_compra":1420000,"monto_cuota":142000,"saldo_pendiente":710000}
+{"id":"DET-F85B375BF4","planilla_id":"PLA-2C791CC823","legajo":"1535820","nombre":"Malvina Leon","numero_cuota":"5/10","total_compra":530000,"monto_cuota":53000,"saldo_pendiente":265000}
+{"id":"DET-A02C1DA183","planilla_id":"PLA-81CE63E4D1","legajo":"404644","nombre":"María Cristina Fariña Vda. de Sanchez","numero_cuota":"5/10","total_compra":1110000,"monto_cuota":111000,"saldo_pendiente":555000}
 {"id":"DET-AD7EA1C6F7","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"5/10","total_compra":970000,"monto_cuota":97000,"saldo_pendiente":485000}
 {"id":"DET-6544B74F3E","planilla_id":"PLA-2C791CC823","legajo":"3856294","nombre":"Rodofo Cañete","numero_cuota":"5/10","total_compra":960000,"monto_cuota":96000,"saldo_pendiente":480000}
-{"id":"DET-58354E2B14","planilla_id":"PLA-2C791CC823","legajo":"2160571","nombre":"Liz Carmen Velazquez","numero_cuota":"5/5","total_compra":460000,"monto_cuota":92000,"saldo_pendiente":368000}
-{"id":"DET-0CE3A5ACCD","planilla_id":"PLA-2C791CC823","legajo":"1535820","nombre":"Malvina Leon","numero_cuota":"5/8","total_compra":850000,"monto_cuota":106250,"saldo_pendiente":318750}
-{"id":"DET-F85B375BF4","planilla_id":"PLA-2C791CC823","legajo":"1535820","nombre":"Malvina Leon","numero_cuota":"5/10","total_compra":530000,"monto_cuota":53000,"saldo_pendiente":265000}
-{"id":"DET-52ADEDC497","planilla_id":"PLA-2C791CC823","legajo":"1997888","nombre":"Hugo Britos","numero_cuota":"5/7","total_compra":420000,"monto_cuota":60000,"saldo_pendiente":120000}
-{"id":"DET-35B586D9A2","planilla_id":"PLA-2C791CC823","legajo":"4715384","nombre":"Rocio Meaurio","numero_cuota":"4/10","total_compra":1160000,"monto_cuota":116000,"saldo_pendiente":696000}
-{"id":"DET-988030BC68","planilla_id":"PLA-2C791CC823","legajo":"3194576","nombre":"Celeste Caceres","numero_cuota":"3/4","total_compra":1030000,"monto_cuota":257500,"saldo_pendiente":257500}
-{"id":"DET-31D68E51F2","planilla_id":"PLA-2C791CC823","legajo":"4836504","nombre":"Venancio Montania","numero_cuota":"3/10","total_compra":2350000,"monto_cuota":235000,"saldo_pendiente":1645000}
-{"id":"DET-71954B6EB6","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"2/5","total_compra":430000,"monto_cuota":86000,"saldo_pendiente":258000}
-{"id":"DET-55972096B5","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"2/10","total_compra":1200000,"monto_cuota":120000,"saldo_pendiente":960000}
-{"id":"DET-696B1E2312","planilla_id":"PLA-2C791CC823","legajo":"3856294","nombre":"Rodolfo Cañete","numero_cuota":"2/5","total_compra":460000,"monto_cuota":92000,"saldo_pendiente":276000}
-{"id":"DET-9FB78FE6DD","planilla_id":"PLA-2C791CC823","legajo":"2859429","nombre":"Cynthia Natalia Barrios","numero_cuota":"2/5","total_compra":425000,"monto_cuota":85000,"saldo_pendiente":255000}
-{"id":"DET-9640251C0F","planilla_id":"PLA-2C791CC823","legajo":"4645897","nombre":"Daniel Ayala","numero_cuota":"2/2","total_compra":250000,"monto_cuota":125000,"saldo_pendiente":125000}
-{"id":"DET-B508107B0C","planilla_id":"PLA-2C791CC823","legajo":"3664583","nombre":"Oscar Ramon Spelt","numero_cuota":"2/2","total_compra":280000,"monto_cuota":140000,"saldo_pendiente":140000}
-{"id":"DET-EB1030FA01","planilla_id":"PLA-C4C44309C3","legajo":"1701375","nombre":"Juan Amarilla","numero_cuota":"7/10","total_compra":1690000,"monto_cuota":169000,"saldo_pendiente":507000}
-{"id":"DET-1D344D3B53","planilla_id":"PLA-C4C44309C3","legajo":"450431","nombre":"Stella Galeano de Orue","numero_cuota":"7/10","total_compra":1290000,"monto_cuota":129000,"saldo_pendiente":387000}
-{"id":"DET-9853908E64","planilla_id":"PLA-C4C44309C3","legajo":"659227","nombre":"Viviana Brioschi","numero_cuota":"6/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":840000}
-{"id":"DET-12254DFE7D","planilla_id":"PLA-C4C44309C3","legajo":"659227","nombre":"Viviana Brioschi","numero_cuota":"4/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1260000}
-{"id":"DET-40E218139D","planilla_id":"PLA-C4C44309C3","legajo":"450431","nombre":"Stella Galeano de Orue","numero_cuota":"2/2","total_compra":260000,"monto_cuota":130000,"saldo_pendiente":130000}
+{"id":"DET-5CAA5F18A1","planilla_id":"PLA-8192DE8F72","legajo":"659227","nombre":"Viviana Brioschi","numero_cuota":"5/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1050000}
+{"id":"DET-B5655802DB","planilla_id":"PLA-81CE63E4D1","legajo":"367978","nombre":"Gladys Gregoria de Fernandez","numero_cuota":"3/8","total_compra":660000,"monto_cuota":82500,"saldo_pendiente":412500}
 {"id":"DET-DE8FEF55F7","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"1/6","total_compra":540000,"monto_cuota":90000,"saldo_pendiente":450000}
 {"id":"DET-AFAB89C50B","planilla_id":"PLA-2C791CC823","legajo":"3840266","nombre":"Rossana Letizia Caceres Duré","numero_cuota":"1/6","total_compra":900000,"monto_cuota":150000,"saldo_pendiente":750000}
+{"id":"DET-4F1D8CC31E","planilla_id":"PLA-81CE63E4D1","legajo":"535954","nombre":"Ismelda Britez","numero_cuota":"4/10","total_compra":1420000,"monto_cuota":142000,"saldo_pendiente":852000}
+{"id":"DET-B28C223EEC","planilla_id":"PLA-D32092729D","legajo":"1535820","nombre":"Malvina Leon","numero_cuota":"4/10","total_compra":530000,"monto_cuota":53000,"saldo_pendiente":318000}
+{"id":"DET-51AABF3F14","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"4/10","total_compra":970000,"monto_cuota":97000,"saldo_pendiente":582000}
+{"id":"DET-35B586D9A2","planilla_id":"PLA-2C791CC823","legajo":"4715384","nombre":"Rocio Meaurio","numero_cuota":"4/10","total_compra":1160000,"monto_cuota":116000,"saldo_pendiente":696000}
+{"id":"DET-5C23F42092","planilla_id":"PLA-D32092729D","legajo":"3856294","nombre":"Rodofo Cañete","numero_cuota":"4/10","total_compra":960000,"monto_cuota":96000,"saldo_pendiente":576000}
+{"id":"DET-12254DFE7D","planilla_id":"PLA-C4C44309C3","legajo":"659227","nombre":"Viviana Brioschi","numero_cuota":"4/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1260000}
+{"id":"DET-122131A2FF","planilla_id":"PLA-3126FEF5E4","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"3/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1470000}
+{"id":"DET-2B3ED7BB51","planilla_id":"PLA-D32092729D","legajo":"4715384","nombre":"Rocio Meaurio","numero_cuota":"3/10","total_compra":1160000,"monto_cuota":116000,"saldo_pendiente":812000}
+{"id":"DET-31D68E51F2","planilla_id":"PLA-2C791CC823","legajo":"4836504","nombre":"Venancio Montania","numero_cuota":"3/10","total_compra":2350000,"monto_cuota":235000,"saldo_pendiente":1645000}
+{"id":"DET-EB9A07DAE6","planilla_id":"PLA-8EB2BE4CF8","legajo":"2894198","nombre":"Yamili Mereles","numero_cuota":"3/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":1162000}
+{"id":"DET-A8EC10C94E","planilla_id":"PLA-2C791CC823","legajo":"1539826","nombre":"Pastora Blanca Mereles","numero_cuota":"1/8","total_compra":610000,"monto_cuota":76250,"saldo_pendiente":533750}
+{"id":"DET-0A1A8F0D33","planilla_id":"PLA-41570C9D57","legajo":"293263","nombre":"Sandra Liz Medina Flor","numero_cuota":"1/8","total_compra":1300000,"monto_cuota":162500,"saldo_pendiente":1137500}
+{"id":"DET-8A98A39E65","planilla_id":"PLA-81CE63E4D1","legajo":"619486","nombre":"Celso Caballero","numero_cuota":"2/10","total_compra":2100000,"monto_cuota":210000,"saldo_pendiente":1680000}
+{"id":"DET-55972096B5","planilla_id":"PLA-2C791CC823","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"2/10","total_compra":1200000,"monto_cuota":120000,"saldo_pendiente":960000}
+{"id":"DET-55769412F5","planilla_id":"PLA-D32092729D","legajo":"4836504","nombre":"Venancio Montania","numero_cuota":"2/10","total_compra":2350000,"monto_cuota":235000,"saldo_pendiente":1880000}
+{"id":"DET-EE8953475A","planilla_id":"PLA-D344B7E2D3","legajo":"2894198","nombre":"Yamili Mereles","numero_cuota":"2/10","total_compra":1660000,"monto_cuota":166000,"saldo_pendiente":1328000}
 {"id":"DET-8B81EFEFA6","planilla_id":"PLA-3126FEF5E4","legajo":"903298","nombre":"Magin Alvarez","numero_cuota":"1/10","total_compra":1080000,"monto_cuota":108000,"saldo_pendiente":972000}
-{"id":"DET-1E3E8BB25C","planilla_id":"PLA-3126FEF5E4","legajo":"1524913","nombre":"Ruben Gustavo Caballero Candia","numero_cuota":"1/2","total_compra":280000,"monto_cuota":140000,"saldo_pendiente":140000}
-{"id":"DET-78ED52AD2D","planilla_id":"PLA-3126FEF5E4","legajo":"217281","nombre":"Monserrat Villagra Leal","numero_cuota":"1/5","total_compra":480000,"monto_cuota":96000,"saldo_pendiente":384000}
+{"id":"DET-0A733DD934","planilla_id":"PLA-D32092729D","legajo":"2355430","nombre":"Natalia Acosta","numero_cuota":"1/10","total_compra":1200000,"monto_cuota":120000,"saldo_pendiente":1080000}
+{"id":"DET-C56DB19930","planilla_id":"PLA-A7BA6F96E7","legajo":"293263","nombre":"Sandra Liz Medina Flor","numero_cuota":"2/8","total_compra":1300000,"monto_cuota":162500,"saldo_pendiente":975000}

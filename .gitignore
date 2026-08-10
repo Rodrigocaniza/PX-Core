@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 Respaldos/
 Respaldos/
+
+BC-Core/
+build/
+dist/
+*.spec
