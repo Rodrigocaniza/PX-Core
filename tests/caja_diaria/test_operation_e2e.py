@@ -5,7 +5,6 @@ import unittest
 from pathlib import Path
 
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
-from modulos.caja_diaria.domain.errors import InvalidCashDayError
 
 
 class CashOperationE2ETests(unittest.TestCase):
@@ -53,10 +52,10 @@ class CashOperationE2ETests(unittest.TestCase):
                 self.assertEqual(history.status.value, "CLOSED")
                 self.assertEqual(len(history.entries), 3)
                 self.assertEqual(history.closing_totals.expected_cash, 800000)
-                with self.assertRaises(InvalidCashDayError):
-                    restarted.open_or_load_day("02-08-2026", "PC", "")
+                carried = restarted.open_or_load_day("03-08-2026", "PC", "")
+                self.assertEqual(carried.opening_cash, 800000)
                 day2, _ = restarted.add_manual_entry({
-                    **base, "fecha": "02-08-2026", "caja_inicial": "800000",
+                    **base, "fecha": "03-08-2026", "caja_inicial": "",
                     "descripcion": "VENTA DÍA 2", "total": "100000", "efectivo": "100000",
                 })
                 self.assertEqual(day2.opening_cash, 800000)
@@ -66,7 +65,7 @@ class CashOperationE2ETests(unittest.TestCase):
 
             final_restart = build_cash_day_controller(database)
             try:
-                day2_reloaded = final_restart.list_history("02-08-2026", "PC")
+                day2_reloaded = final_restart.list_history("03-08-2026", "PC")
                 self.assertEqual(day2_reloaded.status.value, "OPEN")
                 self.assertEqual(day2_reloaded.totals().expected_cash, 900000)
             finally:

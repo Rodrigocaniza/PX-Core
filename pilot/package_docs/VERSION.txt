@@ -1,0 +1,4 @@
+BC Caja Pilot 001
+Mission: BC-CAJA-PILOT-001
+Source branch: feature/caja-diaria
+Data location: %LOCALAPPDATA%\BC\Caja

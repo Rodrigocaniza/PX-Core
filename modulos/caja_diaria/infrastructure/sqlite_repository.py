@@ -246,6 +246,16 @@ class SQLiteCashDayRepository:
         with self._connection() as connection:
             return [self._hydrate(connection, row) for row in connection.execute(query, params).fetchall()]
 
+    def get_latest_closed_before(self, business_date: date, unit: str) -> CashDay | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                """SELECT * FROM cash_days
+                   WHERE business_date < ? AND unit = ? AND status = 'CLOSED'
+                   ORDER BY business_date DESC LIMIT 1""",
+                (business_date.isoformat(), unit.strip().upper()),
+            ).fetchone()
+            return self._hydrate(connection, row) if row else None
+
     def _hydrate(self, connection: sqlite3.Connection, row: sqlite3.Row) -> CashDay:
         entry_rows = connection.execute(
             "SELECT * FROM cash_entries WHERE cash_day_id = ? ORDER BY rowid", (row["id"],)

@@ -11,8 +11,19 @@ from ..domain.models import CashCount, CashDay, CashEntry, CashTotals, parse_bus
 
 
 class CashDayService:
-    def __init__(self, repository: CashDayRepository) -> None:
+    def __init__(self, repository: CashDayRepository, carry_forward_policy: CarryForwardPolicy | None = None) -> None:
         self.repository = repository
+        self.carry_forward_policy = carry_forward_policy
+
+    def suggested_opening_cash(self, *, business_date: date | str, unit: str) -> int | None:
+        if self.carry_forward_policy is None:
+            return None
+        parsed_date = parse_business_date(business_date)
+        normalized_unit = unit.strip().upper()
+        previous = self.repository.get_latest_closed_before(parsed_date, normalized_unit)
+        if previous is None:
+            return None
+        return self.carry_forward_policy.opening_cash_for(previous, parsed_date)
 
     def open_day(self, *, business_date: date | str, unit: str, opening_cash: int | str) -> CashDay:
         parsed_date = parse_business_date(business_date)

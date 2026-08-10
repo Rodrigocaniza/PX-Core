@@ -128,6 +128,8 @@ def analizar_hoja(hoja, unidad, fecha_por_defecto=None):
     registros = []
     errores = []
     caja_inicial = None
+    declarados = None
+    efectivo_final_declarado = None
 
     fila_encabezado = None
     for numero in range(1, min(hoja.max_row, 6) + 1):
@@ -142,6 +144,21 @@ def analizar_hoja(hoja, unidad, fecha_por_defecto=None):
             "(TOTAL / Efectivo). Se omite la hoja."
         )
         return [], None, None, errores
+
+    # Las hojas futuras del libro real son plantillas con formulas en cero.
+    # No constituyen dias operativos y no deben crear cajas vacias ni errores.
+    filas_operativas = []
+    for numero in range(fila_encabezado + 1, hoja.max_row + 1):
+        fila = hoja[numero]
+        descripcion_normalizada = normalizar(_valor_celda(fila, 0))
+        if descripcion_normalizada in (
+            "", "totales", "efectivo final", normalizar(DESCRIPCION_CAJA_INICIAL)
+        ):
+            continue
+        if any(not celda_vacia(_valor_celda(fila, indice)) for indice in range(4, 14)):
+            filas_operativas.append(numero)
+    if not filas_operativas:
+        return [], None, None, []
 
     fecha_celda = hoja.cell(row=1, column=1).value
     try:
@@ -195,9 +212,28 @@ def analizar_hoja(hoja, unidad, fecha_por_defecto=None):
             caja_inicial = monto
             continue
 
-        if normalizar(descripcion) in ("totales", ""):
+        if normalizar(descripcion) == "totales":
+            valores_declarados = (total_val, efectivo_val, tarjeta_val, gastos_val)
+            if not any(isinstance(valor, str) and valor.startswith("=") for valor in valores_declarados):
+                declarados = {
+                    indice: _num_o_cero(valor, errores, hoja.title, numero, campo)
+                    for indice, (valor, campo) in enumerate(zip(
+                        valores_declarados,
+                        ("TOTAL declarado", "Efectivo declarado", "Tarj./Cheq. declarado", "Gastos declarados"),
+                    ))
+                    if not celda_vacia(valor)
+                }
+            continue
+
+        if normalizar(descripcion) in ("efectivo final", ""):
             # Fila de totales o vacía: no se importa como movimiento,
             # más abajo se recalcula y se compara contra lo declarado.
+            if not celda_vacia(efectivo_val) and not (
+                isinstance(efectivo_val, str) and efectivo_val.startswith("=")
+            ):
+                efectivo_final_declarado = _num_o_cero(
+                    efectivo_val, errores, hoja.title, numero, "Efectivo final declarado"
+                )
             continue
 
         total = _num_o_cero(total_val, errores, hoja.title, numero, "TOTAL")
@@ -257,6 +293,28 @@ def analizar_hoja(hoja, unidad, fecha_por_defecto=None):
         "efectivo_final": caja_inicial + suma_efectivo_ventas - suma_gastos,
     }
 
+    calculados_declarables = (
+        suma_total,
+        caja_inicial + suma_efectivo_ventas,
+        suma_tarjeta,
+        suma_gastos,
+    )
+    diferencias_declaradas = {
+        indice: (valor, calculados_declarables[indice])
+        for indice, valor in (declarados or {}).items()
+        if valor != calculados_declarables[indice]
+    }
+    if diferencias_declaradas:
+        errores.append(
+            f"Hoja '{hoja.title}': los TOTALES declarados no coinciden con los "
+            f"recalculados: {diferencias_declaradas}."
+        )
+    if efectivo_final_declarado is not None and efectivo_final_declarado != totales_hoja["efectivo_final"]:
+        errores.append(
+            f"Hoja '{hoja.title}': el efectivo final declarado {efectivo_final_declarado} "
+            f"no coincide con el recalculado {totales_hoja['efectivo_final']}."
+        )
+
     return registros, caja_inicial, totales_hoja, errores
 
 
@@ -294,7 +352,7 @@ def analizar_archivo(ruta, unidad=UNIDAD_POR_DEFECTO):
         )
         resultado["errores"].extend(errores)
 
-        if not registros and caja_inicial is None:
+        if not registros:
             continue
 
         fecha = registros[0]["fecha"] if registros else fecha_respaldo
@@ -929,3 +987,4 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     campos_manual["gastos"].bind("<Return>", lambda _event: guardar_manual())
 
     ventana.after(100, ventana.focus_set)
+    return ventana

@@ -40,7 +40,11 @@ class CashDayUIController:
             return self.load_day(date_text, unit)
         except CashDayNotFoundError:
             if opening_cash is None or (isinstance(opening_cash, str) and not opening_cash.strip()):
-                raise InvalidCashDayError("Ingresá la caja inicial para abrir este día.") from None
+                opening_cash = self.service.suggested_opening_cash(
+                    business_date=date_text, unit=unit
+                )
+                if opening_cash is None:
+                    raise InvalidCashDayError("Ingresá la caja inicial para abrir este día.") from None
             return self.service.open_day(
                 business_date=date_text, unit=unit, opening_cash=opening_cash
             )

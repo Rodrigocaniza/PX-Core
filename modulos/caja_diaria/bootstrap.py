@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from .application.services import CashDayService
+from .application.carry_forward import PreviousClosedDayCarryForwardPolicy
 from .config import CashDataPaths, resolve_data_paths
 from .infrastructure.backup import LocalBackupService
 from .infrastructure.sqlite_repository import SQLiteCashDayRepository
@@ -15,7 +16,7 @@ def build_cash_day_service(database_path: str | Path | None = None) -> CashDaySe
     path = Path(database_path) if database_path is not None else resolve_data_paths().ensure().database
     repository = SQLiteCashDayRepository(path)
     repository.integrity_check()
-    return CashDayService(repository)
+    return CashDayService(repository, PreviousClosedDayCarryForwardPolicy())
 
 
 def build_cash_day_controller(

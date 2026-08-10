@@ -62,11 +62,10 @@ class LegacyExcelContractTests(unittest.TestCase):
         })
         self.assertEqual([r["descripcion"] for r in records].count("CLIENTE MULTIFILA"), 2)
 
-    def test_empty_day_with_opening_is_a_valid_legacy_day(self):
+    def test_empty_template_with_opening_is_not_an_operational_day(self):
         case = load_cases()["cases"]["empty_day"]
         records, opening, totals, errors = CajaDiaria.analizar_hoja(build_sheet(case), "PC")
-        self.assertEqual((records, opening, errors), ([], 0, []))
-        self.assertEqual(totals["efectivo_final"], 0)
+        self.assertEqual((records, opening, totals, errors), ([], None, None, []))
 
     def test_optional_cells_become_empty_strings(self):
         case = load_cases()["cases"]["blank_optional_values"]
@@ -107,7 +106,41 @@ class LegacyExcelContractTests(unittest.TestCase):
         sheet.cell(5, 8, 900000)
         records, _, totals, _ = CajaDiaria.analizar_hoja(sheet, "PC")
         self.assertEqual(records, [])
-        self.assertEqual(totals["total"], 0)
+        self.assertIsNone(totals)
+
+    def test_real_like_values_are_preserved_and_calculation_rows_are_not_entries(self):
+        case = load_cases()["cases"]["blank_optional_values"]
+        sheet = build_sheet(case)
+        sheet.cell(5, 4, ".000037")
+        sheet.cell(5, 11, "Caja Muni")
+        sheet.cell(5, 12, 5)
+        sheet.cell(5, 13, "cancelado")
+        sheet.cell(6, 1, "TOTALES")
+        sheet.cell(6, 8, case["rows"][0][7] or 0)
+        sheet.cell(6, 9, case["opening_cash"] + (case["rows"][0][8] or 0))
+        sheet.cell(6, 10, case["rows"][0][9] or 0)
+        sheet.cell(6, 14, case["rows"][0][13] or 0)
+        sheet.cell(8, 9, sheet.cell(6, 9).value - sheet.cell(6, 14).value)
+
+        records, _, _, errors = CajaDiaria.analizar_hoja(sheet, "PC")
+
+        self.assertEqual(errors, [])
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["cod"], ".000037")
+        self.assertEqual(records[0]["ordenes"], "Caja Muni")
+        self.assertEqual(records[0]["cuotas"], "5")
+        self.assertEqual(records[0]["saldo"], "cancelado")
+
+    def test_declared_totals_mismatch_is_reported(self):
+        case = load_cases()["cases"]["blank_optional_values"]
+        sheet = build_sheet(case)
+        sheet.cell(6, 1, "TOTALES")
+        sheet.cell(6, 8, 999)
+        sheet.cell(6, 9, case["opening_cash"])
+        sheet.cell(6, 10, 0)
+        sheet.cell(6, 14, 0)
+        _, _, _, errors = CajaDiaria.analizar_hoja(sheet, "PC")
+        self.assertTrue(any("no coinciden" in error for error in errors))
 
 
 if __name__ == "__main__":

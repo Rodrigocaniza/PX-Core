@@ -4,3 +4,6 @@ Respaldos/
 Respaldos/
 
 BC-Core/
+build/
+dist/
+*.spec
