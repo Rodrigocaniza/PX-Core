@@ -42,14 +42,16 @@ class CashDayDomainTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(InvalidMoneyError):
                 CashEntry(description="INVÁLIDA", total=value)
 
-    def test_update_and_remove_are_allowed_only_while_open(self):
+    def test_update_and_logical_void_are_allowed_only_while_open(self):
         day = CashDay.open(date="2026-08-02", unit="PC", opening_cash=0)
         original = day.add_entry(CashEntry(description="ORIGINAL", total=100))
         updated = replace(original, description="ACTUALIZADA", updated_at=original.updated_at)
         day.update_entry(updated)
         self.assertEqual(day.entries[0].description, "ACTUALIZADA")
-        day.remove_entry(original.id)
-        self.assertEqual(day.entries, [])
+        day.void_entry(original.id, "Carga duplicada")
+        self.assertEqual(len(day.entries), 1)
+        self.assertEqual(day.entries[0].status.value, "VOIDED")
+        self.assertEqual(day.totals().entry_count, 0)
         day.close()
         with self.assertRaises(CashDayClosedError):
             day.add_entry(CashEntry(description="TARDE"))

@@ -79,9 +79,13 @@ class CashDayService:
         return updated
 
     def remove_entry(self, cash_day_id: str, entry_id: str) -> None:
+        raise NotImplementedError("el borrado físico fue reemplazado por void_entry")
+
+    def void_entry(self, cash_day_id: str, entry_id: str, reason: str) -> CashEntry:
         cash_day = self.get_day(cash_day_id)
-        cash_day.remove_entry(entry_id)
+        voided = cash_day.void_entry(entry_id, reason)
         self.repository.save(cash_day)
+        return voided
 
     def import_entries(self, cash_day_id: str, entries: Iterable[CashEntry]) -> CashDay:
         """Reemplaza el lote completo en una única operación de repositorio."""

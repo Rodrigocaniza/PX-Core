@@ -9,7 +9,15 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Iterator, Sequence
 
-from ..domain.models import CashCount, CashCountStatus, CashDay, CashDayStatus, CashEntry, CashTotals
+from ..domain.models import (
+    CashCount,
+    CashCountStatus,
+    CashDay,
+    CashDayStatus,
+    CashEntry,
+    CashEntryStatus,
+    CashTotals,
+)
 
 
 MIGRATIONS_DIR = Path(__file__).with_name("migrations")
@@ -38,6 +46,7 @@ class SQLiteCashDayRepository:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA busy_timeout = 5000")
+        connection.execute("PRAGMA synchronous = FULL")
         if self.database_path != Path(":memory:"):
             connection.execute("PRAGMA journal_mode = WAL")
         return connection
@@ -55,6 +64,24 @@ class SQLiteCashDayRepository:
         if self._memory_connection is not None:
             self._memory_connection.close()
             self._memory_connection = None
+
+    def integrity_check(self) -> None:
+        with self._connection() as connection:
+            result = connection.execute("PRAGMA quick_check").fetchone()[0]
+        if result != "ok":
+            raise sqlite3.DatabaseError(f"SQLite quick_check falló: {result}")
+
+    def backup_to(self, destination: str | Path) -> Path:
+        target_path = Path(destination)
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connection() as source:
+            target = sqlite3.connect(str(target_path))
+            try:
+                source.backup(target)
+                target.commit()
+            finally:
+                target.close()
+        return target_path
 
     def migrate(self) -> None:
         with self._connection() as connection:
@@ -108,13 +135,21 @@ class SQLiteCashDayRepository:
                         closing_entry_count=excluded.closing_entry_count, version=excluded.version""",
                     values,
                 )
+                existing_entries = {
+                    row["id"]: row
+                    for row in connection.execute(
+                        "SELECT * FROM cash_entries WHERE cash_day_id = ?", (cash_day.id,)
+                    ).fetchall()
+                }
+                self._record_entry_revisions(connection, cash_day.entries, existing_entries)
                 connection.execute("DELETE FROM cash_entries WHERE cash_day_id = ?", (cash_day.id,))
                 connection.executemany(
                     """INSERT INTO cash_entries(
                         id,cash_day_id,description,envelope,frame_origin,code,frame,lens,
                         prescription_doctor,total,cash,card_check,orders_text,installments_text,
-                        balance_text,expenses,origin,source_reference,created_at,updated_at
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        balance_text,expenses,origin,source_reference,created_at,updated_at,
+                        status,voided_at,void_reason,revision
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
                 connection.commit()
@@ -129,8 +164,64 @@ class SQLiteCashDayRepository:
             entry.code, entry.frame, entry.lens, entry.prescription_doctor, entry.total,
             entry.cash, entry.card_check, entry.orders, entry.installments, entry.balance,
             entry.expenses, entry.origin, entry.source_reference, _iso(entry.created_at),
-            _iso(entry.updated_at),
+            _iso(entry.updated_at), entry.status.value, _iso(entry.voided_at),
+            entry.void_reason, entry.revision,
         )
+
+    @classmethod
+    def _record_entry_revisions(
+        cls,
+        connection: sqlite3.Connection,
+        entries: Sequence[CashEntry],
+        existing_entries: dict[str, sqlite3.Row],
+    ) -> None:
+        for entry in entries:
+            existing = existing_entries.get(entry.id)
+            if existing is not None and entry.revision <= existing["revision"]:
+                continue
+            action = "CREATE" if existing is None else (
+                "VOID" if entry.status is CashEntryStatus.VOIDED else "UPDATE"
+            )
+            connection.execute(
+                """INSERT INTO cash_entry_revisions(
+                    entry_id,cash_day_id,revision,action,snapshot_json,recorded_at
+                ) VALUES (?,?,?,?,?,?)""",
+                (
+                    entry.id,
+                    entry.cash_day_id,
+                    entry.revision,
+                    action,
+                    json.dumps(cls._entry_snapshot(entry), ensure_ascii=False, sort_keys=True),
+                    _iso(entry.updated_at),
+                ),
+            )
+
+    @staticmethod
+    def _entry_snapshot(entry: CashEntry) -> dict:
+        return {
+            "id": entry.id,
+            "cash_day_id": entry.cash_day_id,
+            "description": entry.description,
+            "envelope": entry.envelope,
+            "frame_origin": entry.frame_origin,
+            "code": entry.code,
+            "frame": entry.frame,
+            "lens": entry.lens,
+            "prescription_doctor": entry.prescription_doctor,
+            "total": entry.total,
+            "cash": entry.cash,
+            "card_check": entry.card_check,
+            "orders": entry.orders,
+            "installments": entry.installments,
+            "balance": entry.balance,
+            "expenses": entry.expenses,
+            "origin": entry.origin,
+            "source_reference": entry.source_reference,
+            "status": entry.status.value,
+            "voided_at": _iso(entry.voided_at),
+            "void_reason": entry.void_reason,
+            "revision": entry.revision,
+        }
 
     def get(self, cash_day_id: str) -> CashDay | None:
         with self._connection() as connection:
@@ -167,7 +258,9 @@ class SQLiteCashDayRepository:
             orders=item["orders_text"], installments=item["installments_text"],
             balance=item["balance_text"], expenses=item["expenses"], origin=item["origin"],
             source_reference=item["source_reference"], created_at=_datetime(item["created_at"]),
-            updated_at=_datetime(item["updated_at"]),
+            updated_at=_datetime(item["updated_at"]), status=item["status"],
+            voided_at=_datetime(item["voided_at"]), void_reason=item["void_reason"],
+            revision=item["revision"],
         ) for item in entry_rows]
         closing_totals = None
         if row["status"] == CashDayStatus.CLOSED.value:
@@ -212,3 +305,20 @@ class SQLiteCashDayRepository:
             difference=row["difference"], status=CashCountStatus(row["status"]),
             recorded_at=_datetime(row["recorded_at"]),
         )
+
+    def list_entry_revisions(self, entry_id: str) -> Sequence[dict]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                """SELECT revision,action,snapshot_json,recorded_at
+                FROM cash_entry_revisions WHERE entry_id = ? ORDER BY revision""",
+                (entry_id,),
+            ).fetchall()
+        return [
+            {
+                "revision": row["revision"],
+                "action": row["action"],
+                "snapshot": json.loads(row["snapshot_json"]),
+                "recorded_at": row["recorded_at"],
+            }
+            for row in rows
+        ]

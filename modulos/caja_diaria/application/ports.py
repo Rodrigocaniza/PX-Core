@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Protocol, Sequence
+from typing import Any, Mapping, Protocol, Sequence
 
 from ..domain.models import CashCount, CashDay
 
@@ -20,6 +20,8 @@ class CashDayRepository(Protocol):
     def save_cash_count(self, cash_count: CashCount) -> None: ...
 
     def get_latest_cash_count(self, cash_day_id: str) -> CashCount | None: ...
+
+    def list_entry_revisions(self, entry_id: str) -> Sequence[Mapping[str, Any]]: ...
 
 
 class CarryForwardPolicy(Protocol):

@@ -1,4 +1,5 @@
 PRAGMA foreign_keys = ON;
+BEGIN IMMEDIATE;
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
     version TEXT PRIMARY KEY,
@@ -65,3 +66,7 @@ CREATE TABLE IF NOT EXISTS cash_counts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_cash_counts_day_time ON cash_counts(cash_day_id, recorded_at DESC);
+
+INSERT OR IGNORE INTO schema_migrations(version, applied_at)
+VALUES ('001', CURRENT_TIMESTAMP);
+COMMIT;

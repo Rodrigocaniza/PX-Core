@@ -66,6 +66,11 @@ class CashDayStatus(str, Enum):
     CLOSED = "CLOSED"
 
 
+class CashEntryStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    VOIDED = "VOIDED"
+
+
 class CashCountStatus(str, Enum):
     OK = "OK"
     SURPLUS = "SOBRA"
@@ -104,11 +109,16 @@ class CashEntry:
     cash_day_id: str | None = None
     created_at: datetime = field(default_factory=utc_now)
     updated_at: datetime = field(default_factory=utc_now)
+    status: CashEntryStatus = CashEntryStatus.ACTIVE
+    voided_at: datetime | None = None
+    void_reason: str = ""
+    revision: int = 0
 
     def __post_init__(self) -> None:
         if not isinstance(self.description, str) or not self.description.strip():
             raise InvalidCashDayError("la descripción de una entrada es obligatoria")
         object.__setattr__(self, "description", self.description.strip())
+        object.__setattr__(self, "status", CashEntryStatus(self.status))
         for name in ("total", "cash", "card_check", "expenses"):
             object.__setattr__(self, name, money(getattr(self, name), field_name=name, optional=True))
         for name in (
@@ -117,9 +127,40 @@ class CashEntry:
         ):
             value = getattr(self, name)
             object.__setattr__(self, name, "" if value is None else str(value).strip())
+        object.__setattr__(self, "void_reason", str(self.void_reason or "").strip())
+        if self.status is CashEntryStatus.VOIDED:
+            if self.voided_at is None or not self.void_reason:
+                raise InvalidCashDayError("una entrada anulada requiere fecha y motivo")
+        elif self.voided_at is not None or self.void_reason:
+            raise InvalidCashDayError("una entrada activa no puede tener datos de anulación")
+        if isinstance(self.revision, bool) or not isinstance(self.revision, int) or self.revision < 0:
+            raise InvalidCashDayError("la revisión de una entrada es inválida")
 
     def assigned_to(self, cash_day_id: str) -> "CashEntry":
         return replace(self, cash_day_id=cash_day_id, updated_at=utc_now())
+
+    def edited(self, **changes) -> "CashEntry":
+        if self.status is CashEntryStatus.VOIDED:
+            raise InvalidCashDayError("una entrada anulada no puede editarse")
+        protected = {"id", "cash_day_id", "created_at", "status", "voided_at", "void_reason", "revision"}
+        if protected.intersection(changes):
+            raise InvalidCashDayError("la edición intentó modificar campos protegidos")
+        return replace(self, **changes, revision=self.revision + 1, updated_at=utc_now())
+
+    def void(self, reason: str) -> "CashEntry":
+        normalized = str(reason or "").strip()
+        if not normalized:
+            raise InvalidCashDayError("el motivo de anulación es obligatorio")
+        if self.status is CashEntryStatus.VOIDED:
+            raise InvalidCashDayError("la entrada ya está anulada")
+        return replace(
+            self,
+            status=CashEntryStatus.VOIDED,
+            voided_at=utc_now(),
+            void_reason=normalized,
+            revision=self.revision + 1,
+            updated_at=utc_now(),
+        )
 
 
 @dataclass(frozen=True)
@@ -204,19 +245,25 @@ class CashDay:
         raise InvalidCashDayError(f"entrada inexistente: {entry.id}")
 
     def remove_entry(self, entry_id: str) -> None:
+        raise InvalidCashDayError("el borrado físico no está permitido; use void_entry")
+
+    def void_entry(self, entry_id: str, reason: str) -> CashEntry:
         self._require_open()
-        remaining = [entry for entry in self.entries if entry.id != entry_id]
-        if len(remaining) == len(self.entries):
-            raise InvalidCashDayError(f"entrada inexistente: {entry_id}")
-        self.entries = remaining
-        self.version += 1
+        for index, existing in enumerate(self.entries):
+            if existing.id == entry_id:
+                voided = existing.void(reason)
+                self.entries[index] = voided
+                self.version += 1
+                return voided
+        raise InvalidCashDayError(f"entrada inexistente: {entry_id}")
 
     def totals(self) -> CashTotals:
-        total = sum(entry.total or 0 for entry in self.entries)
-        cash = sum(entry.cash or 0 for entry in self.entries)
-        card_check = sum(entry.card_check or 0 for entry in self.entries)
-        expenses = sum(entry.expenses or 0 for entry in self.entries)
-        return CashTotals(total, cash, card_check, expenses, self.opening_cash + cash - expenses, len(self.entries))
+        active = [entry for entry in self.entries if entry.status is CashEntryStatus.ACTIVE]
+        total = sum(entry.total or 0 for entry in active)
+        cash = sum(entry.cash or 0 for entry in active)
+        card_check = sum(entry.card_check or 0 for entry in active)
+        expenses = sum(entry.expenses or 0 for entry in active)
+        return CashTotals(total, cash, card_check, expenses, self.opening_cash + cash - expenses, len(active))
 
     def close(self, *, closed_at: datetime | None = None) -> "CashDay":
         self._require_open()

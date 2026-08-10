@@ -8,7 +8,7 @@ from .errors import (
     InvalidCashDayError,
     InvalidMoneyError,
 )
-from .models import CashCount, CashDay, CashDayStatus, CashEntry, CashTotals
+from .models import CashCount, CashDay, CashDayStatus, CashEntry, CashEntryStatus, CashTotals
 
 __all__ = [
     "CashCount",
@@ -18,6 +18,7 @@ __all__ = [
     "CashDayNotFoundError",
     "CashDayStatus",
     "CashEntry",
+    "CashEntryStatus",
     "CashTotals",
     "InvalidCashCountError",
     "InvalidCashDayError",

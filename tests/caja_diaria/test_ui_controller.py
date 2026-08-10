@@ -3,6 +3,7 @@ from __future__ import annotations
 import sqlite3
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
@@ -89,6 +90,15 @@ class CashDayUIControllerTests(unittest.TestCase):
             self.assertEqual(reloaded.closing_totals.expected_cash, 800000)
             with self.assertRaises(CashDayClosedError):
                 reloaded_controller.add_manual_entry(self.manual_values(caja_inicial=""))
+            with self.assertRaises(CashDayClosedError):
+                reloaded_controller.update_manual_entry(
+                    reloaded.entries[0].id,
+                    self.manual_values(caja_inicial="", total="600000"),
+                )
+            with self.assertRaises(CashDayClosedError):
+                reloaded_controller.void_entry(
+                    "02-08-2026", "PC", reloaded.entries[0].id, "No permitido"
+                )
         finally:
             reloaded_controller.service.repository.close()
 
@@ -113,6 +123,43 @@ class CashDayUIControllerTests(unittest.TestCase):
         self.assertEqual(title, "No se pudo guardar")
         self.assertNotIn("SELECT", message)
         self.assertNotIn("Traceback", message)
+
+    def test_edit_and_void_update_totals_without_erasing_history(self):
+        day, entry = self.controller.add_manual_entry(self.manual_values())
+        edited_day, edited = self.controller.update_manual_entry(
+            entry.id,
+            self.manual_values(total="600000", efectivo="400000", tarjeta_cheque="200000"),
+        )
+        self.assertEqual(edited.revision, 1)
+        self.assertEqual(edited_day.totals().total, 600000)
+        voided_day = self.controller.void_entry(
+            "02-08-2026", "PC", entry.id, "Operación cancelada"
+        )
+        self.assertEqual(len(voided_day.entries), 1)
+        self.assertEqual(voided_day.entries[0].status.value, "VOIDED")
+        self.assertEqual(voided_day.totals().total, 0)
+        self.assertEqual(
+            [
+                revision["action"]
+                for revision in self.controller.service.repository.list_entry_revisions(entry.id)
+            ],
+            ["CREATE", "UPDATE", "VOID"],
+        )
+
+    def test_close_creates_a_valid_local_backup(self):
+        self.controller.add_manual_entry(self.manual_values())
+        self.controller.close_day("02-08-2026", "PC")
+        backup = self.controller.last_backup_path
+        self.assertIsNotNone(backup)
+        self.assertTrue(backup.is_file())
+        backup_repository = type(self.controller.service.repository)(backup)
+        try:
+            backup_repository.integrity_check()
+            restored = backup_repository.get_by_date_and_unit(date(2026, 8, 2), "PC")
+            self.assertEqual(restored.status.value, "CLOSED")
+            self.assertEqual(restored.totals().expected_cash, 800000)
+        finally:
+            backup_repository.close()
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ from pathlib import Path
 
 import customtkinter as ctk
 from openpyxl import load_workbook
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, simpledialog
 
 from ImportadorExcel import (
     COLOR_BORDE,
@@ -452,6 +452,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     tab_importar = pestañas.add("Importar Excel")
     tab_manual = pestañas.add("Cargar manual")
     tab_arqueo = pestañas.add("Arqueo")
+    tab_historial = pestañas.add("Historial")
 
     def mostrar_error(error):
         titulo, detalle = friendly_error(error)
@@ -598,7 +599,15 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         campo.grid(row=fila, column=columna + 1, padx=8, pady=6)
         campos_manual[clave] = campo
 
+    orden_teclado = [clave for clave, _ in etiquetas]
+    for indice, clave in enumerate(orden_teclado[:-1]):
+        siguiente = orden_teclado[indice + 1]
+        campos_manual[clave].bind(
+            "<Return>", lambda _event, destino=siguiente: campos_manual[destino].focus_set()
+        )
+
     campos_manual["fecha"].insert(0, date.today().strftime("%d-%m-%Y"))
+    estado_edicion = {"entry_id": None, "guardando": False}
 
     etiqueta_estado = ctk.CTkLabel(
         tab_manual,
@@ -610,9 +619,14 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     def texto_estado(cash_day):
         totales = cash_day.totals()
+        cierre = (
+            f" | Cierre: {cash_day.closed_at.astimezone().strftime('%d-%m-%Y %H:%M')}"
+            if cash_day.closed_at
+            else ""
+        )
         return (
             f"Caja {cash_day.business_date.strftime('%d-%m-%Y')} / {cash_day.unit} "
-            f"— {cash_day.status.value}\n"
+            f"— {cash_day.status.value}{cierre}\n"
             f"Inicial: {formatear_monto(cash_day.opening_cash)} | "
             f"Total: {formatear_monto(totales.total)} | "
             f"Efectivo: {formatear_monto(totales.cash)} | "
@@ -658,21 +672,47 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             return
         actualizar_estado(cash_day)
         messagebox.showinfo("Caja cerrada", texto_estado(cash_day), parent=ventana)
+        if controller.last_warning:
+            messagebox.showwarning("Backup pendiente", controller.last_warning, parent=ventana)
 
     def guardar_manual():
+        if estado_edicion["guardando"]:
+            return
+        estado_edicion["guardando"] = True
+        boton_guardar.configure(state="disabled")
         valores = {
             clave: campo.get().strip() for clave, campo in campos_manual.items()
         }
         try:
-            cash_day, _ = controller.add_manual_entry(valores)
+            if estado_edicion["entry_id"]:
+                cash_day, _ = controller.update_manual_entry(
+                    estado_edicion["entry_id"], valores
+                )
+            else:
+                cash_day, _ = controller.add_manual_entry(valores)
         except Exception as exc:
             mostrar_error(exc)
             return
+        finally:
+            estado_edicion["guardando"] = False
+            boton_guardar.configure(state="normal")
         actualizar_estado(cash_day)
-        messagebox.showinfo("Guardado", "Registro agregado.", parent=ventana)
+        mensaje = "Movimiento actualizado." if estado_edicion["entry_id"] else "Registro agregado."
+        messagebox.showinfo("Guardado", mensaje, parent=ventana)
+        estado_edicion["entry_id"] = None
+        boton_guardar.configure(text="Guardar registro")
         for clave, campo in campos_manual.items():
             if clave not in ("fecha", "unidad", "caja_inicial"):
                 campo.delete(0, "end")
+        campos_manual["descripcion"].focus_set()
+
+    def cancelar_edicion():
+        estado_edicion["entry_id"] = None
+        boton_guardar.configure(text="Guardar registro")
+        for clave, campo in campos_manual.items():
+            if clave not in ("fecha", "unidad", "caja_inicial"):
+                campo.delete(0, "end")
+        campos_manual["descripcion"].focus_set()
 
     acciones = ctk.CTkFrame(tab_manual, fg_color="transparent")
     acciones.pack(pady=6)
@@ -680,9 +720,14 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         acciones, text="Abrir / Consultar Caja", command=abrir_o_consultar,
         fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
     ).pack(side="left", padx=4)
-    ctk.CTkButton(
+    boton_guardar = ctk.CTkButton(
         acciones, text="Guardar registro", command=guardar_manual,
         fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO_HOVER,
+    )
+    boton_guardar.pack(side="left", padx=4)
+    ctk.CTkButton(
+        acciones, text="Cancelar edición", command=cancelar_edicion,
+        fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
     ).pack(side="left", padx=4)
     ctk.CTkButton(
         acciones, text="Cerrar Caja", command=cerrar_caja,
@@ -758,5 +803,129 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         tab_arqueo, text="Calcular y guardar arqueo", command=calcular_arqueo,
         fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO_HOVER,
     ).pack(pady=8)
+
+    # ---- Historial / edición / anulación ----
+    filtros_historial = ctk.CTkFrame(tab_historial, fg_color="transparent")
+    filtros_historial.pack(fill="x", padx=8, pady=8)
+    ctk.CTkLabel(filtros_historial, text="Fecha (DD-MM-AAAA)").pack(side="left")
+    entrada_historial = ctk.CTkEntry(filtros_historial, width=120)
+    entrada_historial.insert(0, date.today().strftime("%d-%m-%Y"))
+    entrada_historial.pack(side="left", padx=8)
+    unidad_historial = ctk.CTkComboBox(filtros_historial, values=UNIDADES, width=140)
+    unidad_historial.set(UNIDAD_POR_DEFECTO)
+    unidad_historial.pack(side="left", padx=8)
+
+    resumen_historial = ctk.CTkLabel(
+        tab_historial, text="", justify="left", text_color=COLOR_TEXTO_SUAVE
+    )
+    resumen_historial.pack(fill="x", padx=8, pady=(0, 4), anchor="w")
+    lista_historial = ctk.CTkScrollableFrame(tab_historial, fg_color=COLOR_PANEL_SECUNDARIO[1])
+    lista_historial.pack(fill="both", expand=True, padx=8, pady=8)
+
+    def cargar_para_editar(cash_day, entry):
+        valores = {
+            "fecha": cash_day.business_date.strftime("%d-%m-%Y"),
+            "unidad": cash_day.unit,
+            "caja_inicial": str(cash_day.opening_cash),
+            "descripcion": entry.description,
+            "sobre": entry.envelope,
+            "arm_org": entry.frame_origin,
+            "cod": entry.code,
+            "armazon": entry.frame,
+            "cristal": entry.lens,
+            "receta_dr": entry.prescription_doctor,
+            "total": "" if entry.total is None else str(entry.total),
+            "efectivo": "" if entry.cash is None else str(entry.cash),
+            "tarjeta_cheque": "" if entry.card_check is None else str(entry.card_check),
+            "ordenes": entry.orders,
+            "cuotas": entry.installments,
+            "saldo": entry.balance,
+            "gastos": "" if entry.expenses is None else str(entry.expenses),
+        }
+        for clave, valor in valores.items():
+            campo = campos_manual[clave]
+            if clave == "unidad":
+                campo.set(valor)
+            else:
+                campo.delete(0, "end")
+                campo.insert(0, valor)
+        estado_edicion["entry_id"] = entry.id
+        boton_guardar.configure(text="Guardar cambios")
+        pestañas.set("Cargar manual")
+        campos_manual["descripcion"].focus_set()
+
+    def anular_desde_historial(cash_day, entry):
+        motivo = simpledialog.askstring(
+            "Anular movimiento",
+            "Motivo de anulación:",
+            parent=ventana,
+        )
+        if not motivo:
+            return
+        if not messagebox.askyesno(
+            "Confirmar anulación",
+            f"¿Anular '{entry.description}'? El registro quedará en el historial.",
+            parent=ventana,
+        ):
+            return
+        try:
+            controller.void_entry(
+                cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit, entry.id, motivo
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        consultar_historial()
+
+    def consultar_historial():
+        try:
+            cash_day = controller.list_history(
+                entrada_historial.get().strip(), unidad_historial.get().strip()
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        for widget in lista_historial.winfo_children():
+            widget.destroy()
+        resumen_historial.configure(text=texto_estado(cash_day))
+        for entry in cash_day.entries:
+            fila = ctk.CTkFrame(lista_historial, fg_color="transparent")
+            fila.pack(fill="x", padx=4, pady=3)
+            estado_texto = "ANULADO" if entry.status.value == "VOIDED" else "ACTIVO"
+            detalle = (
+                f"{entry.description} | Total {formatear_monto(entry.total or 0)} | "
+                f"Efectivo {formatear_monto(entry.cash or 0)} | "
+                f"Tarj./Cheq. {formatear_monto(entry.card_check or 0)} | "
+                f"Gastos {formatear_monto(entry.expenses or 0)} | {estado_texto}"
+            )
+            if entry.void_reason:
+                detalle += f" ({entry.void_reason})"
+            ctk.CTkLabel(fila, text=detalle, anchor="w").pack(
+                side="left", fill="x", expand=True
+            )
+            habilitado = (
+                "normal"
+                if cash_day.status.value == "OPEN" and entry.status.value == "ACTIVE"
+                else "disabled"
+            )
+            ctk.CTkButton(
+                fila, text="Editar", width=65, state=habilitado,
+                command=lambda d=cash_day, e=entry: cargar_para_editar(d, e),
+            ).pack(side="left", padx=2)
+            ctk.CTkButton(
+                fila, text="Anular", width=65, state=habilitado,
+                fg_color=COLOR_ROJO,
+                command=lambda d=cash_day, e=entry: anular_desde_historial(d, e),
+            ).pack(side="left", padx=2)
+
+    ctk.CTkButton(
+        filtros_historial,
+        text="Consultar",
+        command=consultar_historial,
+        fg_color=COLOR_PRIMARIO,
+        hover_color=COLOR_PRIMARIO_HOVER,
+    ).pack(side="left", padx=8)
+
+    campos_manual["gastos"].bind("<Return>", lambda _event: guardar_manual())
 
     ventana.after(100, ventana.focus_set)

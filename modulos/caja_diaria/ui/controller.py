@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Mapping
 
 from ..application.services import CashDayService
@@ -25,8 +26,11 @@ class ImportSummary:
 
 
 class CashDayUIController:
-    def __init__(self, service: CashDayService) -> None:
+    def __init__(self, service: CashDayService, backup_service=None) -> None:
         self.service = service
+        self.backup_service = backup_service
+        self.last_backup_path: Path | None = None
+        self.last_warning: str | None = None
 
     def load_day(self, date_text: str, unit: str) -> CashDay:
         return self.service.get_by_date_and_unit(date_text, unit)
@@ -73,7 +77,57 @@ class CashDayUIController:
         return self.load_day(date_text, unit).totals()
 
     def close_day(self, date_text: str, unit: str) -> CashDay:
-        return self.service.close_day(self.load_day(date_text, unit).id)
+        cash_day = self.service.close_day(self.load_day(date_text, unit).id)
+        if self.backup_service is not None:
+            try:
+                self.last_backup_path = self.backup_service.create_backup("cierre")
+                self.last_warning = None
+            except (OSError, sqlite3.Error):
+                self.last_warning = (
+                    "La Caja quedó cerrada y guardada, pero no se pudo crear el backup local."
+                )
+        return cash_day
+
+    def create_backup(self, label: str = "manual") -> Path:
+        if self.backup_service is None:
+            raise InvalidCashDayError("el servicio de backup no está configurado")
+        self.last_backup_path = self.backup_service.create_backup(label)
+        return self.last_backup_path
+
+    def update_manual_entry(
+        self, entry_id: str, values: Mapping[str, Any]
+    ) -> tuple[CashDay, CashEntry]:
+        cash_day = self.load_day(str(values.get("fecha", "")), str(values.get("unidad", "")))
+        existing = next((entry for entry in cash_day.entries if entry.id == entry_id), None)
+        if existing is None:
+            raise InvalidCashDayError(f"movimiento inexistente: {entry_id}")
+        candidate = self._entry_from_legacy(values, origin=existing.origin)
+        updated = existing.edited(
+            description=candidate.description,
+            envelope=candidate.envelope,
+            frame_origin=candidate.frame_origin,
+            code=candidate.code,
+            frame=candidate.frame,
+            lens=candidate.lens,
+            prescription_doctor=candidate.prescription_doctor,
+            total=candidate.total,
+            cash=candidate.cash,
+            card_check=candidate.card_check,
+            orders=candidate.orders,
+            installments=candidate.installments,
+            balance=candidate.balance,
+            expenses=candidate.expenses,
+        )
+        saved = self.service.update_entry(cash_day.id, updated)
+        return self.service.get_day(cash_day.id), saved
+
+    def void_entry(self, date_text: str, unit: str, entry_id: str, reason: str) -> CashDay:
+        cash_day = self.load_day(date_text, unit)
+        self.service.void_entry(cash_day.id, entry_id, reason)
+        return self.service.get_day(cash_day.id)
+
+    def list_history(self, date_text: str, unit: str) -> CashDay:
+        return self.load_day(date_text, unit)
 
     def record_cash_count(self, date_text: str, unit: str, quantities: Mapping[int, int]):
         return self.service.record_cash_count(self.load_day(date_text, unit).id, quantities)
