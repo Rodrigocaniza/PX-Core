@@ -27,7 +27,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
         try:
             self.assertEqual(
                 connection.execute("SELECT version FROM schema_migrations ORDER BY version").fetchall(),
-                [("001",), ("002",)],
+                [("001",), ("002",), ("003",)],
             )
             tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         finally:
@@ -40,7 +40,8 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
         day = CashDay.open(date="2026-08-02", unit="pc", opening_cash=500000)
         day.add_entry(CashEntry(
             description="CLIENTE", envelope="S-1", frame_origin="ARM", code="A1",
-            frame="300000", lens="200000", prescription_doctor="DR A", total=500000,
+            frame="300000", lens="200000", laboratory="LAB CENTRAL",
+            prescription_doctor="DR A", total=500000,
             cash=250000, card_check=200000, orders="ORD-1", installments="2x25000",
             balance="cancelado", expenses=None, origin="excel", source_reference="fixture:5",
         ))
@@ -52,6 +53,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
         self.assertEqual(loaded.opening_cash, 500000)
         self.assertEqual(len(loaded.entries), 1)
         self.assertEqual(loaded.entries[0].balance, "cancelado")
+        self.assertEqual(loaded.entries[0].laboratory, "LAB CENTRAL")
         self.assertIsNone(loaded.entries[0].expenses)
         self.assertEqual(loaded.entries[0].source_reference, "fixture:5")
 
@@ -141,6 +143,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
         try:
             day = migrated.get("day-1")
             self.assertEqual(day.entries[0].status.value, "ACTIVE")
+            self.assertEqual(day.entries[0].laboratory, "")
             self.assertEqual(day.totals().expected_cash, 300000)
             check = sqlite3.connect(legacy_database)
             try:
@@ -149,7 +152,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
                 ).fetchall()
             finally:
                 check.close()
-            self.assertEqual(versions, [("001",), ("002",)])
+            self.assertEqual(versions, [("001",), ("002",), ("003",)])
         finally:
             migrated.close()
 

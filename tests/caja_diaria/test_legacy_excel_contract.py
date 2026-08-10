@@ -35,6 +35,16 @@ def build_sheet(case: dict, *, title: str = "Día"):
 
 
 class LegacyExcelContractTests(unittest.TestCase):
+    def test_operational_ui_columns_follow_the_confirmed_excel_like_order(self):
+        self.assertEqual(
+            [label for _, label, _ in CajaDiaria.COLUMNAS_OPERATIVAS],
+            [
+                "Descripción/Cliente", "Sobre", "Producto / Tipo", "Cod.",
+                "Precio Armazón", "Precio Cristal", "Laboratorio", "Receta Dr.",
+                "Total", "Efectivo", "Tarj./Cheq./Transf.", "Órdenes", "Cuotas",
+                "Saldo", "Gastos",
+            ],
+        )
     def test_reported_column_order_matches_legacy_positions(self):
         data = load_cases()
         self.assertEqual(len(data["headers"]), 14)

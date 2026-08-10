@@ -99,6 +99,7 @@ class CashEntry:
     code: str = ""
     frame: str = ""
     lens: str = ""
+    laboratory: str = ""
     prescription_doctor: str = ""
     orders: str = ""
     installments: str = ""
@@ -122,7 +123,7 @@ class CashEntry:
         for name in ("total", "cash", "card_check", "expenses"):
             object.__setattr__(self, name, money(getattr(self, name), field_name=name, optional=True))
         for name in (
-            "envelope", "frame_origin", "code", "frame", "lens", "prescription_doctor",
+            "envelope", "frame_origin", "code", "frame", "lens", "laboratory", "prescription_doctor",
             "orders", "installments", "balance", "origin", "source_reference",
         ):
             value = getattr(self, name)

@@ -145,11 +145,11 @@ class SQLiteCashDayRepository:
                 connection.execute("DELETE FROM cash_entries WHERE cash_day_id = ?", (cash_day.id,))
                 connection.executemany(
                     """INSERT INTO cash_entries(
-                        id,cash_day_id,description,envelope,frame_origin,code,frame,lens,
+                        id,cash_day_id,description,envelope,frame_origin,code,frame,lens,laboratory,
                         prescription_doctor,total,cash,card_check,orders_text,installments_text,
                         balance_text,expenses,origin,source_reference,created_at,updated_at,
                         status,voided_at,void_reason,revision
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
                 connection.commit()
@@ -161,7 +161,7 @@ class SQLiteCashDayRepository:
     def _entry_values(entry: CashEntry) -> tuple:
         return (
             entry.id, entry.cash_day_id, entry.description, entry.envelope, entry.frame_origin,
-            entry.code, entry.frame, entry.lens, entry.prescription_doctor, entry.total,
+            entry.code, entry.frame, entry.lens, entry.laboratory, entry.prescription_doctor, entry.total,
             entry.cash, entry.card_check, entry.orders, entry.installments, entry.balance,
             entry.expenses, entry.origin, entry.source_reference, _iso(entry.created_at),
             _iso(entry.updated_at), entry.status.value, _iso(entry.voided_at),
@@ -207,6 +207,7 @@ class SQLiteCashDayRepository:
             "code": entry.code,
             "frame": entry.frame,
             "lens": entry.lens,
+            "laboratory": entry.laboratory,
             "prescription_doctor": entry.prescription_doctor,
             "total": entry.total,
             "cash": entry.cash,
@@ -263,7 +264,8 @@ class SQLiteCashDayRepository:
         entries = [CashEntry(
             id=item["id"], cash_day_id=item["cash_day_id"], description=item["description"],
             envelope=item["envelope"], frame_origin=item["frame_origin"], code=item["code"],
-            frame=item["frame"], lens=item["lens"], prescription_doctor=item["prescription_doctor"],
+            frame=item["frame"], lens=item["lens"], laboratory=item["laboratory"],
+            prescription_doctor=item["prescription_doctor"],
             total=item["total"], cash=item["cash"], card_check=item["card_check"],
             orders=item["orders_text"], installments=item["installments_text"],
             balance=item["balance_text"], expenses=item["expenses"], origin=item["origin"],

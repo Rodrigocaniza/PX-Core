@@ -1,4 +1,6 @@
-BC Caja Pilot 001
-Mission: BC-CAJA-PILOT-001
+BC Caja UX Pilot 001
+Mission: BC-CAJA-UX-001
+Baseline: BC-CAJA-PILOT-001
 Source branch: feature/caja-diaria
 Data location: %LOCALAPPDATA%\BC\Caja
+Layout: Excel-like operational grid + Laboratory

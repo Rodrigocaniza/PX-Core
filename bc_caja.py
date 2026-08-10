@@ -54,7 +54,8 @@ def first_run_check(data_directory: Path) -> int:
     values = {
         "fecha": "01-01-2099", "unidad": "PC", "caja_inicial": "500000",
         "descripcion": "OPERACION PILOTO", "sobre": "", "arm_org": "",
-        "cod": "", "armazon": "", "cristal": "", "receta_dr": "",
+        "cod": "", "armazon": "", "cristal": "", "laboratorio": "LAB PILOTO",
+        "receta_dr": "",
         "total": "300000", "efectivo": "300000", "tarjeta_cheque": "",
         "ordenes": "", "cuotas": "", "saldo": "", "gastos": "",
     }
@@ -75,6 +76,8 @@ def first_run_check(data_directory: Path) -> int:
         recovered = restarted.list_history("01-01-2099", "PC")
         if recovered.closing_totals is None or recovered.closing_totals.expected_cash != 800000:
             raise RuntimeError("el reinicio no recupero el cierre sintetico")
+        if recovered.entries[0].laboratory != "LAB PILOTO":
+            raise RuntimeError("el reinicio no recupero el laboratorio sintetico")
     finally:
         restarted.service.repository.close()
     print("BC_CAJA_FIRST_RUN_OK opening=500000 cash=300000 final=800000 backup=OK restart=OK")
