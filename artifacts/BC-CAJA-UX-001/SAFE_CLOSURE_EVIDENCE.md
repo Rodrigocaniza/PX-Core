@@ -13,3 +13,7 @@
 - Productive data path: `%LOCALAPPDATA%\BC\Caja`, outside the application package.
 - Command Center was invoked repo-scoped for `BC-CAJA-UX-001`; it executed 0 actions because historical artifacts exist without a compatible WORKFLOW. No protected gate verdict was invented or bypassed.
 - Publication closure: explicit UX-001 staging, intentional commit, protected push and PR verification.
+- UX commit: `816accfcebc65aef57eeff3f79d779fcdf1c5bf2`.
+- Pull request: `#2`, Ready for review, verified `MERGEABLE/CLEAN`, with no pending checks or required review.
+- Integration: merged into `main` as `faee65355f16302f0d1c5c514c71ba95636b2376` on 2026-08-10.
+- Post-push feature branch status: clean working tree, ahead/behind `0/0`.
