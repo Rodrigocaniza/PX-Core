@@ -1,8 +1,8 @@
-"""Caja diaria de la óptica: importación desde Excel, carga manual y arqueo.
+"""Caja diaria de la óptica: UI legacy adaptada a Core + SQLite.
 
-Independiente de Movimientos por ahora. Cuando la importación esté validada
-al 100%, este módulo generará automáticamente los registros correspondientes
-en Movimientos (ver TODO más abajo).
+La ventana conserva el flujo CustomTkinter conocido. Toda operación nueva de
+UI usa ``modulos.caja_diaria``; las funciones TXT permanecen temporalmente
+solo como compatibilidad y caracterización, sin doble escritura.
 """
 
 from __future__ import annotations
@@ -32,6 +32,8 @@ from ImportadorExcel import (
 )
 from datos import guardar_datos, leer_datos
 from Movimientos import UNIDADES, formatear_monto
+from modulos.caja_diaria.bootstrap import build_cash_day_controller
+from modulos.caja_diaria.ui.controller import friendly_error
 
 
 RUTA_CAJA_DIARIA = "Datos/caja_diaria.txt"
@@ -52,7 +54,7 @@ CAMPOS = [
 
 
 # ------------------------------------------------------------------
-# Modelo y almacenamiento
+# Compatibilidad legacy TXT (no usada por el flujo normal de UI)
 # ------------------------------------------------------------------
 
 def _texto_archivo(valor):
@@ -436,7 +438,9 @@ def registrar_arqueo(fecha, unidad, conteo):
 # Interfaz gráfica
 # ------------------------------------------------------------------
 
-def abrir_caja_diaria(ventana_padre):
+def abrir_caja_diaria(ventana_padre, controller=None):
+    """Abre la UI conocida usando Core + SQLite para toda operación nueva."""
+    controller = controller or build_cash_day_controller()
     ventana = ctk.CTkToplevel(ventana_padre)
     ventana.title("Caja diaria - Óptica")
     ventana.geometry("880x640")
@@ -448,6 +452,10 @@ def abrir_caja_diaria(ventana_padre):
     tab_importar = pestañas.add("Importar Excel")
     tab_manual = pestañas.add("Cargar manual")
     tab_arqueo = pestañas.add("Arqueo")
+
+    def mostrar_error(error):
+        titulo, detalle = friendly_error(error)
+        messagebox.showerror(titulo, detalle, parent=ventana)
 
     # ---- Importar Excel ----
     estado = {"ruta": ctk.StringVar(), "resultado": None}
@@ -517,22 +525,37 @@ def abrir_caja_diaria(ventana_padre):
         estado["resultado"] = resultado
         mostrar(resumen_texto(resultado))
         boton_importar.configure(
-            state="normal" if resultado["por_dia"] else "disabled"
+            state="normal"
+            if resultado["por_dia"] and not resultado["errores"]
+            else "disabled"
         )
 
     def importar():
         resultado = estado["resultado"]
         if not resultado or not resultado["por_dia"]:
             return
+        if resultado["errores"]:
+            messagebox.showerror(
+                "Revisar importación",
+                "Corregí los avisos antes de importar. No se guardó ningún dato.",
+                parent=ventana,
+            )
+            return
         if not messagebox.askyesno(
             "Confirmar", f"Se cargarán {len(resultado['por_dia'])} días. "
-            "Los avisos NO impiden importar; revisalos igual. ¿Continuar?",
+            "Los datos se guardarán en SQLite. ¿Continuar?",
             parent=ventana,
         ):
             return
-        total = aplicar_importacion(resultado)
+        try:
+            resumen = controller.import_legacy_analysis(resultado)
+        except Exception as exc:
+            mostrar_error(exc)
+            return
         messagebox.showinfo(
-            "Listo", f"Se guardaron {total} registros.", parent=ventana
+            "Listo",
+            f"Se importaron {resumen.entries} registros en {resumen.days} días.",
+            parent=ventana,
         )
         boton_importar.configure(state="disabled")
 
@@ -553,6 +576,7 @@ def abrir_caja_diaria(ventana_padre):
 
     etiquetas = [
         ("fecha", "Fecha (DD-MM-AAAA)"), ("unidad", "Unidad"),
+        ("caja_inicial", "Caja inicial (solo apertura)"),
         ("descripcion", "Descripción/Cliente"), ("sobre", "Sobre"),
         ("arm_org", "Arm/Org"), ("cod", "Cód."), ("armazon", "Armazón"),
         ("cristal", "Cristal"), ("receta_dr", "Receta Dr."),
@@ -574,40 +598,96 @@ def abrir_caja_diaria(ventana_padre):
         campo.grid(row=fila, column=columna + 1, padx=8, pady=6)
         campos_manual[clave] = campo
 
-    def guardar_manual():
+    campos_manual["fecha"].insert(0, date.today().strftime("%d-%m-%Y"))
+
+    etiqueta_estado = ctk.CTkLabel(
+        tab_manual,
+        text="Seleccioná una fecha y abrí o consultá la Caja.",
+        justify="left",
+        text_color=COLOR_TEXTO_SUAVE,
+    )
+    etiqueta_estado.pack(padx=8, pady=(2, 4), anchor="w")
+
+    def texto_estado(cash_day):
+        totales = cash_day.totals()
+        return (
+            f"Caja {cash_day.business_date.strftime('%d-%m-%Y')} / {cash_day.unit} "
+            f"— {cash_day.status.value}\n"
+            f"Inicial: {formatear_monto(cash_day.opening_cash)} | "
+            f"Total: {formatear_monto(totales.total)} | "
+            f"Efectivo: {formatear_monto(totales.cash)} | "
+            f"Tarj./Cheq.: {formatear_monto(totales.card_check)} | "
+            f"Gastos: {formatear_monto(totales.expenses)} | "
+            f"Efectivo final: {formatear_monto(totales.expected_cash)}"
+        )
+
+    def actualizar_estado(cash_day):
+        etiqueta_estado.configure(
+            text=texto_estado(cash_day),
+            text_color=COLOR_VERDE
+            if cash_day.status.value == "OPEN"
+            else COLOR_TEXTO_SUAVE,
+        )
+
+    def abrir_o_consultar():
         try:
-            fecha, _ = parsear_fecha(campos_manual["fecha"].get().strip())
-        except ValueError:
-            messagebox.showerror(
-                "Fecha inválida", "Usá DD-MM-AAAA.", parent=ventana
+            cash_day = controller.open_or_load_day(
+                campos_manual["fecha"].get().strip(),
+                campos_manual["unidad"].get().strip(),
+                campos_manual["caja_inicial"].get().strip(),
             )
+        except Exception as exc:
+            mostrar_error(exc)
             return
-        registro = {"fecha": fecha, "origen": "manual"}
-        for clave in CAMPOS:
-            if clave in ("fecha", "origen"):
-                continue
-            registro[clave] = campos_manual[clave].get().strip() \
-                if clave in campos_manual else ""
-        for clave in ("total", "efectivo", "tarjeta_cheque", "gastos"):
-            valor = registro[clave]
-            if valor:
-                try:
-                    registro[clave] = parsear_monto(valor, permitir_cero=True)
-                except ValueError as exc:
-                    messagebox.showerror(
-                        "Monto inválido", f"{clave}: {exc}", parent=ventana
-                    )
-                    return
-        agregar_registros([registro])
+        actualizar_estado(cash_day)
+
+    def cerrar_caja():
+        if not messagebox.askyesno(
+            "Cerrar Caja",
+            "Después del cierre no se podrán cargar ni modificar movimientos. ¿Continuar?",
+            parent=ventana,
+        ):
+            return
+        try:
+            cash_day = controller.close_day(
+                campos_manual["fecha"].get().strip(),
+                campos_manual["unidad"].get().strip(),
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        actualizar_estado(cash_day)
+        messagebox.showinfo("Caja cerrada", texto_estado(cash_day), parent=ventana)
+
+    def guardar_manual():
+        valores = {
+            clave: campo.get().strip() for clave, campo in campos_manual.items()
+        }
+        try:
+            cash_day, _ = controller.add_manual_entry(valores)
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        actualizar_estado(cash_day)
         messagebox.showinfo("Guardado", "Registro agregado.", parent=ventana)
         for clave, campo in campos_manual.items():
-            if clave != "unidad":
+            if clave not in ("fecha", "unidad", "caja_inicial"):
                 campo.delete(0, "end")
 
+    acciones = ctk.CTkFrame(tab_manual, fg_color="transparent")
+    acciones.pack(pady=6)
     ctk.CTkButton(
-        tab_manual, text="Guardar registro", command=guardar_manual,
+        acciones, text="Abrir / Consultar Caja", command=abrir_o_consultar,
+        fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
+    ).pack(side="left", padx=4)
+    ctk.CTkButton(
+        acciones, text="Guardar registro", command=guardar_manual,
         fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO_HOVER,
-    ).pack(pady=8)
+    ).pack(side="left", padx=4)
+    ctk.CTkButton(
+        acciones, text="Cerrar Caja", command=cerrar_caja,
+        fg_color=COLOR_ROJO, hover_color="#B63D49",
+    ).pack(side="left", padx=4)
 
     # ---- Arqueo ----
     superior = ctk.CTkFrame(tab_arqueo, fg_color="transparent")
@@ -654,18 +734,22 @@ def abrir_caja_diaria(ventana_padre):
                     parent=ventana,
                 )
                 return
-        resultado = registrar_arqueo(
-            fecha, combo_unidad_arqueo.get(), conteo
-        )
+        try:
+            resultado = controller.record_cash_count(
+                fecha, combo_unidad_arqueo.get(), conteo
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
         color = {
             "OK": COLOR_VERDE, "SOBRA": COLOR_PRIMARIO, "FALTA": COLOR_ROJO,
-        }[resultado["estado"]]
+        }[resultado.status.value]
         etiqueta_resultado.configure(
             text=(
-                f"Contado: {formatear_monto(resultado['total_contado'])}\n"
-                f"Esperado: {formatear_monto(resultado['efectivo_esperado'])}\n"
-                f"Diferencia: {formatear_monto(resultado['diferencia'])} "
-                f"({resultado['estado']})"
+                f"Contado: {formatear_monto(resultado.counted_total)}\n"
+                f"Esperado: {formatear_monto(resultado.expected_total)}\n"
+                f"Diferencia: {formatear_monto(resultado.difference)} "
+                f"({resultado.status.value})"
             ),
             text_color=color,
         )

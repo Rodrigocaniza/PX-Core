@@ -25,6 +25,26 @@ class CashDayService:
         self.repository.save(cash_day)
         return cash_day
 
+    def open_day_with_entries(
+        self,
+        *,
+        business_date: date | str,
+        unit: str,
+        opening_cash: int | str,
+        entries: Iterable[CashEntry],
+    ) -> CashDay:
+        """Crea y persiste un día completo en una sola escritura atómica."""
+        parsed_date = parse_business_date(business_date)
+        normalized_unit = unit.strip().upper()
+        if self.repository.get_by_date_and_unit(parsed_date, normalized_unit) is not None:
+            raise CashDayAlreadyExistsError(
+                f"ya existe una Caja para {parsed_date.isoformat()} / {normalized_unit}"
+            )
+        cash_day = CashDay.open(date=parsed_date, unit=normalized_unit, opening_cash=opening_cash)
+        cash_day.replace_entries(entries)
+        self.repository.save(cash_day)
+        return cash_day
+
     def get_day(self, cash_day_id: str) -> CashDay:
         cash_day = self.repository.get(cash_day_id)
         if cash_day is None:
