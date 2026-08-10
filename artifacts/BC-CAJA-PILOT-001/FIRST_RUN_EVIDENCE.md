@@ -5,13 +5,13 @@ The packaged Windows executable was run from `C:\Windows\Temp` with a unique tem
 - First-run exit: 0.
 - Synthetic opening: 500,000.
 - Synthetic cash entry: 300,000.
+- Synthetic laboratory: `LAB PILOTO`.
 - Closed final cash: 800,000.
 - Backup count after close: 1.
-- Restart/self-check exit: 0.
-- SQLite hash unchanged by restart: yes.
-- Recovered closed history after restart: yes.
+- Recovered closed history and laboratory after restart: yes.
+- Migration `003_laboratory.sql` included: yes.
 - Data outside package: yes.
 - Internet required: no.
-- GUI smoke: process remained alive after five seconds from a foreign working directory.
+- GUI smoke: process remained alive after six seconds from a foreign working directory.
 
 No production database or personal data was used.

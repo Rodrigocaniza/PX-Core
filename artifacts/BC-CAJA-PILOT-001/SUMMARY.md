@@ -12,4 +12,4 @@ Production data remains external at `%LOCALAPPDATA%\BC\Caja`:
 
 Updating the application folder does not overwrite the database. The application folder and data folder are separate by construction.
 
-Final BC Caja regression: 52 tests plus 4 subtests passed. Packaged first-run, close, backup, restart and recovery passed on temporary storage.
+Final BC Caja regression: 53 tests plus 4 subtests passed. Packaged first-run, close, backup, restart and recovery passed on temporary storage.

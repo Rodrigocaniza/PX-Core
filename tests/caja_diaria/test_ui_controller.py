@@ -33,6 +33,7 @@ class CashDayUIControllerTests(unittest.TestCase):
             "cod": "A1",
             "armazon": "300000",
             "cristal": "200000",
+            "laboratorio": "LAB CENTRAL",
             "receta_dr": "DR A",
             "total": "500.000",
             "efectivo": "300.000",
@@ -49,6 +50,7 @@ class CashDayUIControllerTests(unittest.TestCase):
         day, entry = self.controller.add_manual_entry(self.manual_values())
         self.assertEqual(day.totals().expected_cash, 800000)
         self.assertEqual(entry.balance, "cancelado")
+        self.assertEqual(entry.laboratory, "LAB CENTRAL")
 
         self.controller.service.repository.close()
         reloaded_controller = build_cash_day_controller(self.database)
