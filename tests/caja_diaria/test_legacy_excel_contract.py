@@ -39,8 +39,8 @@ class LegacyExcelContractTests(unittest.TestCase):
         self.assertEqual(
             [label for _, label, _ in CajaDiaria.COLUMNAS_OPERATIVAS],
             [
-                "Descripción/Cliente", "Sobre", "Producto / Tipo", "Cod.",
-                "Precio Armazón", "Precio Cristal", "Laboratorio", "Receta Dr.",
+                "Descripción / Cliente", "Sobre", "Producto / Tipo", "Código",
+                "P. Armazón", "P. Cristal", "Laboratorio", "Receta Dr.",
                 "Total", "Efectivo", "Tarj./Cheq./Transf.", "Órdenes", "Cuotas",
                 "Saldo", "Gastos",
             ],
