@@ -1,4 +1,4 @@
-"""Captura reproducible del layout UX-002 usando almacenamiento temporal vacío."""
+"""Captura reproducible del layout de BC Caja con almacenamiento temporal vacío."""
 
 from __future__ import annotations
 
@@ -27,20 +27,24 @@ def main() -> int:
         root = ctk.CTk()
         root.withdraw()
         window = abrir_caja_diaria(root, controller=controller)
+        window.attributes("-topmost", True)
         window.update_idletasks()
         for child in window.winfo_children():
             if isinstance(child, ctk.CTkTabview):
                 child.set("Cargar manual")
                 break
         window.update_idletasks()
+        window.lift()
+        window.focus_force()
         window.update()
         x, y = window.winfo_rootx(), window.winfo_rooty()
         width, height = window.winfo_width(), window.winfo_height()
         ImageGrab.grab((x, y, x + width, y + height)).save(args.output)
+        window.attributes("-topmost", False)
         controller.service.repository.close()
         window.destroy()
         root.destroy()
-    print(f"BC_CAJA_UX002_CAPTURE_OK {args.output} 1366x768")
+    print(f"BC_CAJA_CAPTURE_OK {args.output} 1366x768")
     return 0
 
 
