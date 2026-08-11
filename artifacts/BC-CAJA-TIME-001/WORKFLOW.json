@@ -1,0 +1,23 @@
+{
+  "mission": "BC-CAJA-TIME-001",
+  "canonical_base": "e0e0c7f2b9a7cecf3d3a27d0cae5dff8b4efa7e4",
+  "branch": "agent/bc-caja-time-001",
+  "state": "PR_OPEN",
+  "implementation_commit": "c1eebd70cefa646ca5e54e04f250b5611214a2af",
+  "pull_request": 6,
+  "continuous_session": true,
+  "auto_resume": true,
+  "artifact_consistency": "PASS",
+  "tests": {
+    "full": "62/62 PASS",
+    "focal": "5/5 PASS"
+  },
+  "human_gate": {
+    "required_now": false,
+    "pending_policy": "overtime accumulation/rounding after first confirmed hour and Sunday policy"
+  },
+  "packaging": {
+    "status": "PENDING_WINDOWS_BUILD",
+    "reason": "canonical packaging pipeline requires PowerShell and Windows PyInstaller"
+  }
+}

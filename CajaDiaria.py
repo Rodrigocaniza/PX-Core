@@ -35,6 +35,7 @@ from datos import guardar_datos, leer_datos
 from Movimientos import UNIDADES, formatear_monto
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.config import resolve_data_paths
+from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE
 from modulos.caja_diaria.ui.controller import friendly_error
 
 
@@ -849,12 +850,28 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     def texto_estado(cash_day):
         totales = cash_day.totals()
-        return (
+        texto = (
             f"{cash_day.status.value}   ·   "
             f"Efectivo actual  {formatear_monto(totales.expected_cash)}    "
             f"Total ventas  {formatear_monto(totales.total)}\n"
             f"Gastos  {formatear_monto(totales.expenses)}    "
             f"Efectivo final  {formatear_monto(totales.expected_cash)}"
+        )
+        if cash_day.closed_at is None or cash_day.session_duration_seconds is None:
+            return texto
+        apertura = cash_day.opened_at.astimezone(BUSINESS_TIMEZONE).strftime("%H:%M:%S")
+        cierre = cash_day.closed_at.astimezone(BUSINESS_TIMEZONE).strftime("%H:%M:%S")
+        horas, resto = divmod(cash_day.session_duration_seconds, 3600)
+        minutos = resto // 60
+        if cash_day.overtime_triggered is None:
+            extra = "Hora extra: política pendiente para este día"
+        elif cash_day.overtime_triggered:
+            extra = "Hora extra: SÍ · mínimo confirmado 1 h"
+        else:
+            extra = "Hora extra: NO"
+        return (
+            f"{texto}\n\nApertura real  {apertura}    Cierre real  {cierre}\n"
+            f"Duración  {horas:02d}:{minutos:02d}    {extra}"
         )
 
     def valores_fila(entry):
