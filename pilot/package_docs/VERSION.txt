@@ -1,6 +1,6 @@
-BC Caja UX Pilot 002
-Mission: BC-CAJA-UX-002
+BC Caja UX Pilot 004
+Mission: BC-CAJA-UX-004
 Baseline: BC-CAJA-PILOT-001
-Source branch: feature/caja-diaria
+Source branch: feature/caja-ux-004
 Data location: %LOCALAPPDATA%\BC\Caja
-Layout: Definitive compact 1366x768 operational grid
+Layout: High-fidelity dark operational layout 1366x768

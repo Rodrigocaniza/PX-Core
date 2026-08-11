@@ -8,5 +8,5 @@ Verdict: PASS.
 - ZIP root is `BC-Caja/`: yes.
 - ZIP entries: 1,057.
 - Forbidden entries (`.git`, tests, artifacts, caches, `.pyc`, `.sqlite3`, workbook data): 0.
-- Migration 003 and UX-002 version marker are present: yes.
+- Migration 003 and UX-004 version marker are present: yes.
 - First-run data path is outside the extracted package: yes.
