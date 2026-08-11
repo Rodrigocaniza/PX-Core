@@ -7,5 +7,5 @@
 - Existing UX-004 visual contract: PASS.
 - Full test suite: 62/62 PASS.
 - Pending business rule invented: no.
-- Implementation commit: `7f4c0ba`.
-- Push/PR: pending protected publish step.
+- Remote implementation commit: `c1eebd70cefa646ca5e54e04f250b5611214a2af`.
+- PR #6: open as draft for protected review/merge.
