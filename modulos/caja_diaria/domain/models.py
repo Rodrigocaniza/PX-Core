@@ -7,7 +7,7 @@ deliberadamente como texto hasta resolver sus reglas de negocio.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from enum import Enum
 from typing import Iterable, Mapping
 from uuid import uuid4
@@ -16,6 +16,7 @@ from .errors import CashDayClosedError, InvalidCashCountError, InvalidCashDayErr
 
 
 DENOMINATIONS = (100000, 50000, 20000, 10000, 5000, 2000, 1000, 500, 100, 50)
+BUSINESS_TIMEZONE = timezone(timedelta(hours=-3), "America/Asuncion")
 
 
 def utc_now() -> datetime:
@@ -85,6 +86,42 @@ class CashTotals:
     expenses: int = 0
     expected_cash: int = 0
     entry_count: int = 0
+
+
+@dataclass(frozen=True)
+class SessionHours:
+    """Resultado auditable del horario de una Caja cerrada.
+
+    ``overtime_minutes`` conserva únicamente el mínimo confirmado. La regla
+    para acumular o redondear después de esa primera hora sigue pendiente.
+    En domingos, donde todavía no existe política, ambos campos quedan NULL.
+    """
+
+    duration_seconds: int
+    overtime_triggered: bool | None
+    overtime_minutes: int | None
+
+
+def calculate_session_hours(
+    *, business_date: date, opened_at: datetime, closed_at: datetime
+) -> SessionHours:
+    if opened_at.tzinfo is None or closed_at.tzinfo is None:
+        raise InvalidCashDayError("apertura y cierre requieren zona horaria")
+    duration_seconds = int((closed_at - opened_at).total_seconds())
+    if duration_seconds < 0:
+        raise InvalidCashDayError("la hora de cierre no puede ser anterior a la apertura")
+
+    weekday = business_date.weekday()
+    if weekday <= 4:
+        tolerance_end = time(18, 10)
+    elif weekday == 5:
+        tolerance_end = time(12, 10)
+    else:
+        return SessionHours(duration_seconds, None, None)
+
+    local_close = closed_at.astimezone(BUSINESS_TIMEZONE).time().replace(tzinfo=None)
+    triggered = local_close > tolerance_end
+    return SessionHours(duration_seconds, triggered, 60 if triggered else 0)
 
 
 @dataclass(frozen=True)
@@ -203,6 +240,9 @@ class CashDay:
     opened_at: datetime = field(default_factory=utc_now)
     closed_at: datetime | None = None
     closing_totals: CashTotals | None = None
+    session_duration_seconds: int | None = None
+    overtime_triggered: bool | None = None
+    overtime_minutes: int | None = None
     version: int = 0
 
     def __post_init__(self) -> None:
@@ -215,8 +255,18 @@ class CashDay:
         self.opening_cash = parsed_opening
         self.status = CashDayStatus(self.status)
         self.entries = [entry if entry.cash_day_id == self.id else entry.assigned_to(self.id) for entry in self.entries]
-        if self.status is CashDayStatus.CLOSED and (self.closed_at is None or self.closing_totals is None):
-            raise InvalidCashDayError("una Caja CLOSED requiere fecha y snapshot de cierre")
+        if self.status is CashDayStatus.CLOSED:
+            if self.closed_at is None or self.closing_totals is None:
+                raise InvalidCashDayError("una Caja CLOSED requiere fecha y snapshot de cierre")
+            if self.session_duration_seconds is None:
+                session = calculate_session_hours(
+                    business_date=self.business_date,
+                    opened_at=self.opened_at,
+                    closed_at=self.closed_at,
+                )
+                self.session_duration_seconds = session.duration_seconds
+                self.overtime_triggered = session.overtime_triggered
+                self.overtime_minutes = session.overtime_minutes
 
     @classmethod
     def open(cls, *, date: date | str, unit: str, opening_cash: int | str) -> "CashDay":
@@ -268,9 +318,18 @@ class CashDay:
 
     def close(self, *, closed_at: datetime | None = None) -> "CashDay":
         self._require_open()
+        actual_closed_at = closed_at or utc_now()
+        session = calculate_session_hours(
+            business_date=self.business_date,
+            opened_at=self.opened_at,
+            closed_at=actual_closed_at,
+        )
         self.closing_totals = self.totals()
         self.status = CashDayStatus.CLOSED
-        self.closed_at = closed_at or utc_now()
+        self.closed_at = actual_closed_at
+        self.session_duration_seconds = session.duration_seconds
+        self.overtime_triggered = session.overtime_triggered
+        self.overtime_minutes = session.overtime_minutes
         self.version += 1
         return self
 

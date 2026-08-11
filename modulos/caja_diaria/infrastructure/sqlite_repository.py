@@ -113,6 +113,9 @@ class SQLiteCashDayRepository:
             totals.total if totals else None, totals.cash if totals else None,
             totals.card_check if totals else None, totals.expenses if totals else None,
             totals.expected_cash if totals else None, totals.entry_count if totals else None,
+            cash_day.session_duration_seconds,
+            None if cash_day.overtime_triggered is None else int(cash_day.overtime_triggered),
+            cash_day.overtime_minutes,
             cash_day.version,
         )
         with self._connection() as connection:
@@ -122,8 +125,9 @@ class SQLiteCashDayRepository:
                     """INSERT INTO cash_days(
                         id,business_date,unit,opening_cash,status,opened_at,closed_at,
                         closing_total,closing_cash,closing_card_check,closing_expenses,
-                        closing_expected_cash,closing_entry_count,version
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        closing_expected_cash,closing_entry_count,session_duration_seconds,
+                        overtime_triggered,overtime_minutes,version
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         business_date=excluded.business_date, unit=excluded.unit,
                         opening_cash=excluded.opening_cash, status=excluded.status,
@@ -132,7 +136,10 @@ class SQLiteCashDayRepository:
                         closing_card_check=excluded.closing_card_check,
                         closing_expenses=excluded.closing_expenses,
                         closing_expected_cash=excluded.closing_expected_cash,
-                        closing_entry_count=excluded.closing_entry_count, version=excluded.version""",
+                        closing_entry_count=excluded.closing_entry_count,
+                        session_duration_seconds=excluded.session_duration_seconds,
+                        overtime_triggered=excluded.overtime_triggered,
+                        overtime_minutes=excluded.overtime_minutes, version=excluded.version""",
                     values,
                 )
                 existing_entries = {
@@ -284,7 +291,12 @@ class SQLiteCashDayRepository:
             id=row["id"], business_date=row["business_date"], unit=row["unit"],
             opening_cash=row["opening_cash"], status=row["status"], entries=entries,
             opened_at=_datetime(row["opened_at"]), closed_at=_datetime(row["closed_at"]),
-            closing_totals=closing_totals, version=row["version"],
+            closing_totals=closing_totals,
+            session_duration_seconds=row["session_duration_seconds"],
+            overtime_triggered=(
+                None if row["overtime_triggered"] is None else bool(row["overtime_triggered"])
+            ),
+            overtime_minutes=row["overtime_minutes"], version=row["version"],
         )
 
     def save_cash_count(self, cash_count: CashCount) -> None:
