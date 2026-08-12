@@ -17,8 +17,8 @@ class CashDayUX002ContractTests(unittest.TestCase):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         for contract_text in (
             'geometry("1366x768")',
-            '"PRODUCTO / TRABAJO"',
-            '"COBRO / PAGO"',
+            '"1  CLIENTE, COMPROBANTE Y DETALLE DE VENTA"',
+            '"2  IMPORTES, COBRO Y NOTAS"',
             '"acciones"',
             '"<F2>"',
             '"<F3>"',
