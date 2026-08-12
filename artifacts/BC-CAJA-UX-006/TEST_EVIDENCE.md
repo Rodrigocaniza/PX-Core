@@ -11,3 +11,7 @@ All data used for capture was empty or synthetic and stored in a temporary direc
 - Layout-overlap correction focal suite: 17 passed.
 - Post-correction Caja regression: 66 passed, 4 subtests passed.
 - Post-correction full regression: 66 passed, 4 subtests passed.
+
+- Final visible-behavior focal suite: 18 passed.
+- Final Caja regression: 67 passed, 4 subtests passed.
+- Empty and populated 1366x768 captures: PASS.

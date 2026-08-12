@@ -2,7 +2,7 @@
 
 Status: PASS
 
-Canonical reference, prior iterations, corrected real-entrypoint capture, test evidence, comparison, Command Center report, workflow, and recovery evidence are present.
+Canonical reference, iterations, final empty and populated entrypoint evidence, tests, comparison, workflow, and recovery evidence are present.
 
 ## SHA-256 inventory
 
@@ -11,16 +11,16 @@ The inventory intentionally excludes this self-referential file.
 - COMMAND_CENTER_REPORT.md: 6e36c24237dceac4f03923b04998b698c61ac16546436c43b365599403d550b9
 - correction-1.png: 7fa32b3246b6291075298a4f704a974acdb65d83858357b61ae806b5dd8785a9
 - entrypoint-correction-1.png: 986b0925c845b72322088bbfa4d3d2ede3a36171bbddf18fb2f8c139c95185c5
-- entrypoint-final-1366x768.png: c7d4ab76600262e7bda0aa9345e727282de5d0e31467666f6ba8ad14d36b977d
+- entrypoint-final-1366x768.png: ff9a5760e0bd0f7b43e4b7700cdaa1d95c9a545cda9ec41ce93400a3768422b6
 - entrypoint-layout-fix-1366x768.png: 0a6a2c4ed99039170a61fd3cdb4a9cf4a546a49c9c82d09fae1c0d75865bfd56
 - iteration-1.png: 6fa445537333ddb9f2c26914476282bca75b33dd9193b88b0f4df1513c7284a8
 - iteration-2.png: c020a9e21d78eef8d3ae3e0d0b9ba367d22bdc5016e74e3f5a25be6ffa203c05
 - iteration-3.png: 6b7ab2ae8d4eae9cdda8c2b2c60d607390763c231c31b15e861edd574048af3b
 - layout-corrected-1366x768.png: 745722d4a4bb247be40740129232c08170842174caa9af7c4ec67b553d841b6d
-- layout-final-1366x768.png: 06cc7c9f877d25f9f7f1dd0936553ffdac20a17341f4d9fcdb02431ac8e1fd23
+- layout-final-1366x768.png: 94fed78545585b7cec7687347013fc640e120c8f06e7273d4ce1abb837c1dea5
 - reference-canonical.png: b2e11e22cc5e8f23dd0859329e68f404874840d3912e1987f440ac6994305e4a
 - SAFE_CLOSURE_EVIDENCE.md: 58ff7fb57235b639e87121b7ae130fe0365856eaa82c05ee2392fceb213aaa33
-- SUMMARY.md: 9c439861ad775d756021616c6538c086f8389065df322fc0e8eacd1613a622b2
-- TEST_EVIDENCE.md: 8d4daea16dab07bc34a7c8b7bf2eb57ad3c9fd1f85b12ba55e87392d76c4e6f7
-- VISUAL_COMPARISON.md: e96201fd1a6410c26c4ea91fae918fbc5bf7677025c8ebe4ce273acf0c194675
+- SUMMARY.md: b3f27ce08dc5df898c9f48e03834bf6670a0bbbb554d4ed7f2e3878e64457397
+- TEST_EVIDENCE.md: 5c5d81545ccdbe832ab42939b19eddffa5b0d91d60446783ead6c71145077244
+- VISUAL_COMPARISON.md: 2779113836afd333bd8b26b36a2760491843b987f8215ef3eaa6de17b5e50222
 - WORKFLOW.json: 9529a7fa105c432a25b3d1b0903e1d4740cb2fd017ca889411a442df188384b6

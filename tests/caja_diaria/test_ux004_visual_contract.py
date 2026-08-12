@@ -22,7 +22,7 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
             '"CERRADA"',
             'Guardar venta  —  F9',
             'Resumen para arqueo',
-            'fg_color=color_verde',
+            'iconos_kpi = {',
             'pestañas._segmented_button.grid_forget()',
             'boton_cancelar.pack_forget()',
         ):

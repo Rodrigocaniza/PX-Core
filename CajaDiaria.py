@@ -73,6 +73,28 @@ COLUMNAS_OPERATIVAS = [
 ]
 PRODUCTO_TRABAJO = COLUMNAS_OPERATIVAS[:8]
 COBRO_PAGO = COLUMNAS_OPERATIVAS[8:]
+CAMPOS_MONETARIOS_UI = (
+    "caja_inicial", "armazon", "cristal", "total", "efectivo",
+    "tarjeta_cheque", "saldo", "gastos",
+)
+
+
+def formatear_importe_ui(valor):
+    """Formatea enteros monetarios para edición visual sin alterar su valor."""
+    texto = "" if valor is None else str(valor).strip()
+    if not texto:
+        return ""
+    limpio = texto.replace(".", "").replace(" ", "")
+    if not limpio.isdigit():
+        return texto
+    return f"{int(limpio):,}".replace(",", ".")
+
+
+def sumar_importes_formulario(armazon, cristal):
+    """Total visible canónico: únicamente precio de armazón más cristal."""
+    return parsear_monto(armazon or "0", permitir_cero=True) + parsear_monto(
+        cristal or "0", permitir_cero=True
+    )
 
 
 # ------------------------------------------------------------------
@@ -826,8 +848,12 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         )
         tarjeta.pack(side="left", padx=4, pady=2)
         tarjeta.pack_propagate(False)
+        iconos_kpi = {
+            "inicial": "▣", "ventas": "▤", "efectivo": "▭",
+            "tarjeta": "▱", "gastos": "⊖", "saldo": "△", "final": "✓",
+        }
         ctk.CTkLabel(
-            tarjeta, text=titulo, text_color=color_suave,
+            tarjeta, text=f"{iconos_kpi[clave]}   {titulo}", text_color=color_suave,
             font=ctk.CTkFont(size=9, weight="bold"),
         ).pack(padx=3, pady=(5, 0))
         valor = ctk.CTkLabel(
@@ -836,6 +862,30 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         )
         valor.pack(padx=3, pady=(0, 4))
         etiquetas_kpi[clave] = valor
+    def formatear_campo_monetario(clave):
+        campo = campos_manual[clave]
+        texto = formatear_importe_ui(campo.get())
+        if texto != campo.get():
+            campo.delete(0, "end")
+            campo.insert(0, texto)
+
+    def recalcular_total_visible(_event=None):
+        try:
+            total = sumar_importes_formulario(
+                campos_manual["armazon"].get(), campos_manual["cristal"].get()
+            )
+        except (TypeError, ValueError):
+            return
+        campo_total = campos_manual["total"]
+        campo_total.delete(0, "end")
+        campo_total.insert(0, formatear_importe_ui(total))
+
+    for clave in CAMPOS_MONETARIOS_UI:
+        campos_manual[clave].bind(
+            "<FocusOut>", lambda _event, campo=clave: formatear_campo_monetario(campo), add="+"
+        )
+    for clave in ("armazon", "cristal"):
+        campos_manual[clave].bind("<KeyRelease>", recalcular_total_visible, add="+")
     filtro_movimientos = ctk.StringVar(value="Todos")
     busqueda_movimientos = ctk.StringVar()
     toolbar_movimientos = ctk.CTkFrame(
@@ -954,12 +1004,13 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     def valores_fila(entry):
         return (
             entry.description, entry.envelope, entry.frame_origin, entry.code,
-            entry.frame, entry.lens, entry.laboratory, entry.prescription_doctor,
+            formatear_importe_ui(entry.frame), formatear_importe_ui(entry.lens),
+            entry.laboratory, entry.prescription_doctor,
             formatear_monto(entry.total or 0), formatear_monto(entry.cash or 0),
             formatear_monto(entry.card_check or 0), entry.orders, entry.installments,
-            entry.balance, formatear_monto(entry.expenses or 0), "Editar  ·  Anular",
+            formatear_importe_ui(entry.balance), formatear_monto(entry.expenses or 0),
+            "Editar  ·  Anular",
         )
-
     def refrescar_grilla(cash_day):
         for item in grilla_caja.get_children():
             grilla_caja.delete(item)
@@ -1090,6 +1141,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         campos_manual["descripcion"].focus_set()
 
     def guardar_manual():
+        recalcular_total_visible()
         if estado_edicion["guardando"]:
             return
         estado_edicion["guardando"] = True
@@ -1193,7 +1245,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         border_width=1, border_color=color_borde_suave,
     )
     titulo_arqueo = ctk.CTkFrame(resumen_dia, fg_color="transparent", width=205)
-    titulo_arqueo.pack(side="left", fill="y", padx=(12, 6), pady=6)
+    titulo_arqueo.pack(side="left", fill="y", padx=(12, 6), pady=4)
     titulo_arqueo.pack_propagate(False)
     ctk.CTkLabel(
         titulo_arqueo, text="▤  Resumen para arqueo", anchor="w",
@@ -1213,8 +1265,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ("retiros", "Retiros", "=", color_texto, False),
         ("entregar", "Efectivo a entregar", "", color_azul, True),
     ):
-        bloque = ctk.CTkFrame(resumen_dia, fg_color="transparent", width=160, height=54)
-        bloque.pack(side="left", fill="y", padx=2, pady=5)
+        bloque = ctk.CTkFrame(resumen_dia, fg_color="transparent", width=160, height=46)
+        bloque.pack(side="left", fill="y", padx=2, pady=3)
         bloque.pack_propagate(False)
         ctk.CTkLabel(
             bloque, text=titulo, text_color=color_suave,
@@ -1253,9 +1305,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     acciones = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=6)
     acciones.pack(fill="x", padx=6, pady=(1, 2))
     acciones_primarias = ctk.CTkFrame(acciones, fg_color="transparent")
-    acciones_primarias.pack(fill="x", padx=4, pady=(3, 0))
-    acciones_secundarias = ctk.CTkFrame(acciones, fg_color="transparent")
-    acciones_secundarias.pack(fill="x", padx=4, pady=(1, 3))
+    acciones_primarias.pack(fill="x", padx=4, pady=3)
     boton_abrir = ctk.CTkButton(
         estado_operativo, text="ABRIR / CONSULTAR", command=abrir_o_consultar,
         width=118, height=21, corner_radius=4, fg_color=color_azul,
@@ -1286,23 +1336,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         fg_color="#FFF7ED", text_color="#D96C2C", border_width=1,
         border_color="#F2C69F", hover_color="#FFEBD7",
     ).pack(side="left", padx=4, pady=3)
-    ctk.CTkButton(
-        acciones_secundarias, text="Editar", command=editar_seleccionado,
-        fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
-    ).pack(side="left", padx=3)
-    ctk.CTkButton(
-        acciones_secundarias, text="Anular", command=anular_seleccionado,
-        fg_color=COLOR_ROJO, hover_color="#B63D49",
-    ).pack(side="left", padx=3)
     boton_cancelar = ctk.CTkButton(
-        acciones_secundarias, text="Cancelar edición", command=cancelar_edicion,
+        acciones_primarias, text="Cancelar edición", command=cancelar_edicion,
         fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
     )
-    ctk.CTkButton(
-        acciones_secundarias, text="Cerrar caja — F12", command=cerrar_caja,
-        fg_color=color_verde, hover_color="#128654",
-    ).pack(side="right", padx=3)
-
     def accion_en_fila(event):
         if grilla_caja.identify_region(event.x, event.y) != "cell":
             return
@@ -1364,18 +1401,18 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     zona_estado.place(x=4, y=62)
     formulario.configure(width=570, height=330)
     formulario.place(x=4, y=146)
-    acciones.configure(width=570, height=76)
-    acciones.place(x=4, y=482)
+    acciones.configure(width=570, height=44)
+    acciones.place(x=4, y=514)
     toolbar_movimientos.configure(width=744, height=44)
     toolbar_movimientos.place(x=590, y=146)
     marco_grilla.configure(width=744, height=310)
     marco_grilla.place(x=590, y=196)
     pie_movimientos.configure(width=744, height=38)
     pie_movimientos.place(x=590, y=512)
-    resumen_dia.configure(width=1330, height=66)
+    resumen_dia.configure(width=1330, height=56)
     resumen_dia.place(x=4, y=570)
     pie.configure(width=1322, height=18)
-    pie.place(x=8, y=642)
+    pie.place(x=8, y=632)
     def actualizar_reloj():
         if reloj.winfo_exists():
             reloj.configure(text=datetime.now().strftime("%H:%M:%S"))

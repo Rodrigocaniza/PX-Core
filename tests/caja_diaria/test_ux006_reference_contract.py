@@ -28,10 +28,19 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             'pie_movimientos.place(x=590, y=512)',
             'resumen_dia.place(x=4, y=570)',
             'acciones_primarias = ctk.CTkFrame(acciones',
-            'acciones_secundarias = ctk.CTkFrame(acciones',
+            'iconos_kpi = {',
+            'recalcular_total_visible',
         ):
             self.assertIn(text, source)
 
+    def test_visible_money_format_and_total_rule(self):
+        self.assertEqual(CajaDiaria.formatear_importe_ui("1250000"), "1.250.000")
+        self.assertEqual(CajaDiaria.formatear_importe_ui("1.250.000"), "1.250.000")
+        self.assertEqual(CajaDiaria.formatear_importe_ui(""), "")
+        self.assertEqual(
+            CajaDiaria.sumar_importes_formulario("1.250.000", "1.450.000"),
+            2700000,
+        )
     def test_all_operational_fields_remain_mapped(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         self.assertIn('PRODUCTO_TRABAJO', source)
