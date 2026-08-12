@@ -1,0 +1,527 @@
+MISSION EVIDENCE SUMMARY - BC-COMUNICACIONES-INBOX-002
+
+Generated: 2026-08-11T23:11:10Z
+Status: PASSED
+
+1. REPOSITORY
+-------------
+Root: C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/comunicaciones-inbox-002
+Branch: feature/comunicaciones-inbox-002
+HEAD before: 5ed42aef6994bcbe491e8178c27bf5ded48c8414
+HEAD after: 5ed42aef6994bcbe491e8178c27bf5ded48c8414
+HEAD consistent: True
+
+git status --short (before):
+?? artifacts/BC-COMUNICACIONES-INBOX-002/
+?? artifacts/BC-COMUNICACIONES-MVP-001/
+?? bc_comunicaciones.py
+?? evidence/
+?? modulos/comunicaciones/
+?? tests/comunicaciones/
+?? tools/capture_comunicaciones.py
+?? tools/capture_comunicaciones_inbox.py
+
+git status --short (after):
+?? artifacts/BC-COMUNICACIONES-INBOX-002/
+?? artifacts/BC-COMUNICACIONES-MVP-001/
+?? bc_comunicaciones.py
+?? evidence/
+?? modulos/comunicaciones/
+?? tests/comunicaciones/
+?? tools/capture_comunicaciones.py
+?? tools/capture_comunicaciones_inbox.py
+
+2. FILES
+--------
+implementation:
+  - bc_comunicaciones.py (sha256: de0574a1f94bd42e5e786e28a72d33a534f5657a5f6e448177cdb43a75b37f94)
+  - modulos/comunicaciones/__init__.py (sha256: 5373a944d796451bdfbe3fd8969623d571d96db1be5108cd1e2d966067f24a82)
+  - modulos/comunicaciones/bootstrap.py (sha256: 83f8a3d0ae2e89ea98be9fdf3449a0016f6bac754a28067fdade4b32be1ecae1)
+  - modulos/comunicaciones/config.py (sha256: 5f838f1a207951a74086e80dd60b36d8f3356af1f8024df435b1f1122660e0e0)
+  - modulos/comunicaciones/application/__init__.py (sha256: 3fb0000ba88feb7481771e367fd33c2f3b2dc301296cfe632e5adb213b9b9ac8)
+  - modulos/comunicaciones/application/ports.py (sha256: e998d32fc0941ecbc7291148f9710635f2e3783f29955729402f0143062371ad)
+  - modulos/comunicaciones/application/seed.py (sha256: 6972c95bfad298f575264efc6fccc5490e87c5ffe3409721c1196b778ca4690f)
+  - modulos/comunicaciones/application/services.py (sha256: b5f74da1128289e186f4519798ddb66a92ca897a26aae664468a22f3f4f35c7f)
+  - modulos/comunicaciones/application/inbox_service.py (sha256: e184e1b3dee1afa3828fdaf6c64d119738016e6930d6e5a100729a414131789f)
+  - modulos/comunicaciones/domain/__init__.py (sha256: 6b88e711bf448390bfe99e04163905bbbdda62d5a6dcddb4e28e7f9098334351)
+  - modulos/comunicaciones/domain/errors.py (sha256: 52538a6ec47992090bab41bdc4e1fc147da0e37a4e252e7d343c70396a010a32)
+  - modulos/comunicaciones/domain/models.py (sha256: fb699791d75b389e02355dba96e14dbfd750bcbd80ea5d96a7f2b50904b82ccf)
+  - modulos/comunicaciones/domain/inbox.py (sha256: 3218d728b7a816fbc9599e081b6e0a339fd74f69926f7dfec2658127af82da35)
+  - modulos/comunicaciones/infrastructure/__init__.py (sha256: 1225d319f242214b93b4eb6a2ff1ed04b66ab91fe2085465f3f4d23b9b776868)
+  - modulos/comunicaciones/infrastructure/backup.py (sha256: 3dbf2154ce43818e51a76e016e4f8a1f87617d7f6a8d99af4e63ef3ca57e7eeb)
+  - modulos/comunicaciones/infrastructure/clipboard.py (sha256: d8d1201faea8521706c76eb9e031445d7353f8f8bb25a8e983614899be9e76be)
+  - modulos/comunicaciones/infrastructure/sqlite_repository.py (sha256: e4035b0ef58716707046c59cfebc77b55ae368513cc6b79e63dee9e9cf7b3a25)
+  - modulos/comunicaciones/infrastructure/inbox_repository.py (sha256: a8539518c8c9ff973790c33899bcff3f692b2da274bbd7f802d78c5b61fa57eb)
+  - modulos/comunicaciones/infrastructure/migrations/001_comunicaciones.sql (sha256: 62bac05c5dc0bc4f2669c63030d130fde110d9ffdbdd8a9f7c5ecb2daa4c1424)
+  - modulos/comunicaciones/infrastructure/migrations/002_inbox.sql (sha256: fff22115bb2b94912ec28d49e13c445734ad015285ccdc297604e15c8da914f3)
+  - modulos/comunicaciones/ui/__init__.py (sha256: 1767dc4eb876f9a55ffff0c98b6d7a59693eb78570f3f266ab1ba481567bc936)
+  - modulos/comunicaciones/ui/app.py (sha256: 45b340689fe126eb1797256a9713f4dd80b802723f96a4eb2dd0d05341cf3abf)
+  - modulos/comunicaciones/ui/controller.py (sha256: a2e89c2bbbb23ba620411e262b82c47eff103ca0e1bd8b867962d987f07a26fd)
+  - modulos/comunicaciones/ui/theme.py (sha256: eeaea091ba9a7f9de106f46d2ba57d67af058b8a25223161b6cfd7ba33f93cd0)
+  - modulos/comunicaciones/ui/inbox_app.py (sha256: 788276514f12037082c152d618f4e1c581848ed73dd6d2e7f694844af21323a6)
+  - tools/capture_comunicaciones.py (sha256: 7635bb78a8a38e648721c2bcd36b5c75bf582f3358b4086a7f7f938b83374106)
+  - tools/capture_comunicaciones_inbox.py (sha256: e88b409f4ce1ef9f46e688454e9a5f850f6796963c440561dc1adb4822f1efec)
+tests:
+  - tests/comunicaciones/__init__.py (sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)
+  - tests/comunicaciones/test_backup_restore.py (sha256: 25d3eb7641d18121acef3494b61070a275c6e057cf25fbda3b38a25552351d0c)
+  - tests/comunicaciones/test_data_paths.py (sha256: 357ce02938f1ac0dc6e5131ee46dfec31916e47f0967fd986a54b4d00f6430de)
+  - tests/comunicaciones/test_domain.py (sha256: 7c18d70b42b1d5bb6bbfa5618dbfe71c8a740273ec0c31af32201ca04a5db495)
+  - tests/comunicaciones/test_entrypoint.py (sha256: 9ac7b55a396af03e899978245a6d4cbc7947c9d1e9a60ce932e469d34c5a91c8)
+  - tests/comunicaciones/test_regressions.py (sha256: ab48b8248eb29c3836957f4800e6571e5d9434522905afc98f3cabe9454e43b7)
+  - tests/comunicaciones/test_services.py (sha256: 7aaec2272111571e96e39a17bd1129249fd68b1f18cfdec6fb7db09aa3c3ad6c)
+  - tests/comunicaciones/test_sqlite_repository.py (sha256: 73e179e6753a2bffbaeb36e5de8f83cc506b36318d81d94e52857277640f2893)
+  - tests/comunicaciones/test_ui_controller.py (sha256: c482d31c4a0829cd430fa2a1a4badf4adb434aa7a471eb97fdf8fa8411d1b8f1)
+  - tests/comunicaciones/test_ui_layout.py (sha256: 66cc47cc6806f5b0ad89a3d9298a9956a0a1861d9f6f1cbbbe84cabf5b69f21d)
+  - tests/comunicaciones/test_inbox.py (sha256: 16c6be0dc380d728fa943be62f197b129ecf94b27a77f51ea19ca5942ce8e255)
+  - tests/comunicaciones/test_inbox_ui_contract.py (sha256: 0496dcd24bbc3696527bfca60959208e6cc1d1278be69e5f92aa92d1c72514e6)
+dependencies:
+  - evidence/BC-COMUNICACIONES-INBOX-002/inbox-1366x768.png (sha256: a19b53b9a068dcb1d7d3f1b31de72bc5b22c468434a29968aac0b0dbe566d92e)
+  - evidence/BC-COMUNICACIONES-INBOX-002/MISSION.md (sha256: 135e5f3d39a1794d7fbbe4a8324f1859807db7347669579bf8d0060d578517f0)
+  - evidence/BC-COMUNICACIONES-INBOX-002/PRIVACY_NEXT_MISSION.md (sha256: aa1f7381548de130ee2299dbc67ed9a2418c7b245b0fdcd221aee046f73bf8e7)
+
+3. ZIP
+-----
+Path: BC-Core-BC-COMUNICACIONES-INBOX-002.zip
+sha256: ec69debdaa3afc4c8da76bd4b3a1368aa4a62fd1f2a01ea9c17775d90968fe1e
+Files: 42
+
+4. TARGETED TEST RUN
+---------------------
+Command: C:\Users\Usuario\AppData\Local\Programs\Python\Python313\python.exe -m pytest tests/comunicaciones/__init__.py tests/comunicaciones/test_backup_restore.py tests/comunicaciones/test_data_paths.py tests/comunicaciones/test_domain.py tests/comunicaciones/test_entrypoint.py tests/comunicaciones/test_regressions.py tests/comunicaciones/test_services.py tests/comunicaciones/test_sqlite_repository.py tests/comunicaciones/test_ui_controller.py tests/comunicaciones/test_ui_layout.py tests/comunicaciones/test_inbox.py tests/comunicaciones/test_inbox_ui_contract.py -v
+Exit code: 0
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\Usuario\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Usuario\Desktop\Proyecto X\PX-Core\.worktrees\comunicaciones-inbox-002
+collecting ... collected 172 items
+
+tests/comunicaciones/test_backup_restore.py::BackupTests::test_backup_creates_a_readable_copy_in_the_backup_folder PASSED [  0%]
+tests/comunicaciones/test_backup_restore.py::BackupTests::test_label_is_sanitized_into_a_safe_filename PASSED [  1%]
+tests/comunicaciones/test_backup_restore.py::BackupTests::test_listing_returns_backups_newest_first PASSED [  1%]
+tests/comunicaciones/test_backup_restore.py::BackupTests::test_retention_keeps_only_the_configured_amount PASSED [  2%]
+tests/comunicaciones/test_backup_restore.py::RestoreValidationTests::test_a_database_from_another_product_is_refused PASSED [  2%]
+tests/comunicaciones/test_backup_restore.py::RestoreValidationTests::test_a_file_that_is_not_a_database_is_refused PASSED [  3%]
+tests/comunicaciones/test_backup_restore.py::RestoreValidationTests::test_a_refused_restore_leaves_the_current_data_untouched PASSED [  4%]
+tests/comunicaciones/test_backup_restore.py::RestoreValidationTests::test_missing_file_is_reported_clearly PASSED [  4%]
+tests/comunicaciones/test_backup_restore.py::RestoreTests::test_restore_also_recovers_the_prepared_message_history PASSED [  5%]
+tests/comunicaciones/test_backup_restore.py::RestoreTests::test_restore_brings_back_the_state_captured_by_the_backup PASSED [  5%]
+tests/comunicaciones/test_backup_restore.py::RestoreTests::test_restore_saves_a_safety_copy_of_the_previous_state_first PASSED [  6%]
+tests/comunicaciones/test_backup_restore.py::RestoreTests::test_the_database_stays_usable_right_after_a_restore PASSED [  6%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_communications_data_is_separate_from_cash_data PASSED [  7%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_data_never_lands_inside_the_source_tree PASSED [  8%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_ensure_creates_the_full_layout_and_is_repeatable PASSED [  8%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_explicit_environment_variable_wins PASSED [  9%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_real_environment_resolves_without_raising PASSED [  9%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_windows_default_lives_under_local_appdata PASSED [ 10%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_blank_value_counts_as_missing PASSED [ 11%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_preview_never_fails_and_marks_pending_values PASSED [ 11%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_render_accepts_values_supplied_with_accents_or_capitals PASSED [ 12%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_render_refuses_missing_values_and_names_them_in_spanish PASSED [ 12%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_render_replaces_every_occurrence PASSED [ 13%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_text_without_variables_yields_none PASSED [ 13%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_variable_names_tolerate_spaces_accents_and_case PASSED [ 14%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_variables_are_extracted_in_order_without_repeating PASSED [ 15%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_category_is_required_and_normalized PASSED [ 15%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_editing_bumps_revision_and_refuses_protected_fields PASSED [ 16%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_favorite_active_and_usage_transitions PASSED [ 16%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_missing_for_reports_pending_variables PASSED [ 17%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_search_blob_is_accent_insensitive PASSED [ 18%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_title_and_body_are_required PASSED [ 18%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_variable_specs_cover_body_variables_and_drop_orphans PASSED [ 19%]
+tests/comunicaciones/test_domain.py::RankingTests::test_title_prefix_beats_keyword_match_and_favorites_beat_the_rest PASSED [ 19%]
+tests/comunicaciones/test_domain.py::RankingTests::test_without_query_favorites_and_usage_lead PASSED [ 20%]
+tests/comunicaciones/test_domain.py::PreparedMessageTests::test_empty_final_text_is_rejected PASSED [ 20%]
+tests/comunicaciones/test_domain.py::PreparedMessageTests::test_message_defaults_to_pending_and_normalizes_values PASSED [ 21%]
+tests/comunicaciones/test_domain.py::PreparedMessageTests::test_summary_collapses_and_truncates PASSED [ 22%]
+tests/comunicaciones/test_domain.py::UnsavedChangesTests::test_any_edited_field_marks_the_draft_dirty PASSED [ 22%]
+tests/comunicaciones/test_domain.py::UnsavedChangesTests::test_identical_draft_is_not_dirty PASSED [ 23%]
+tests/comunicaciones/test_domain.py::UnsavedChangesTests::test_new_template_is_dirty_only_once_something_was_typed PASSED [ 23%]
+tests/comunicaciones/test_domain.py::NormalizationTests::test_category_requires_slug_and_name PASSED [ 24%]
+tests/comunicaciones/test_domain.py::NormalizationTests::test_slug_and_search_normalization PASSED [ 25%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_cli_self_check_is_independent_of_the_current_directory PASSED [ 25%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_first_run_check_refuses_a_non_empty_target PASSED [ 26%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_first_run_check_walks_the_whole_operator_flow PASSED [ 26%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_self_check_creates_the_external_data_layout_and_is_repeatable PASSED [ 27%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_startup_failures_are_written_where_support_can_read_them PASSED [ 27%]
+tests/comunicaciones/test_regressions.py::RestoreRetentionRegressionTests::test_a_vanished_source_can_never_blank_the_database PASSED [ 28%]
+tests/comunicaciones/test_regressions.py::RestoreRetentionRegressionTests::test_restoring_the_oldest_backup_at_the_retention_cap_keeps_every_template PASSED [ 29%]
+tests/comunicaciones/test_regressions.py::RestoreRetentionRegressionTests::test_retention_never_deletes_the_backup_being_restored PASSED [ 29%]
+tests/comunicaciones/test_regressions.py::RestoreRetentionRegressionTests::test_retention_still_prunes_normally_outside_a_restore PASSED [ 30%]
+tests/comunicaciones/test_regressions.py::BackupPathRegressionTests::test_backups_in_folders_with_uri_characters_are_accepted PASSED [ 30%]
+tests/comunicaciones/test_regressions.py::MalformedVariableRegressionTests::test_every_shape_a_person_would_naturally_type_is_caught PASSED [ 31%]
+tests/comunicaciones/test_regressions.py::MalformedVariableRegressionTests::test_malformed_placeholders_are_detected_next_to_valid_ones PASSED [ 31%]
+tests/comunicaciones/test_regressions.py::MalformedVariableRegressionTests::test_the_editor_refuses_to_save_a_malformed_template PASSED [ 32%]
+tests/comunicaciones/test_regressions.py::MalformedVariableRegressionTests::test_valid_variables_are_never_flagged PASSED [ 33%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_a_hand_written_message_is_accepted_even_with_empty_fields PASSED [ 33%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_a_preview_placeholder_can_never_reach_the_customer PASSED [ 34%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_an_unreplaced_variable_can_never_reach_the_customer PASSED [ 34%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_pending_detection_matches_what_is_about_to_be_copied PASSED [ 35%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_unresolved_helper_ignores_text_that_merely_looks_like_a_marker PASSED [ 36%]
+tests/comunicaciones/test_services.py::SeedingTests::test_every_category_ships_with_templates PASSED [ 36%]
+tests/comunicaciones/test_services.py::SeedingTests::test_seed_templates_declare_a_spec_for_every_variable PASSED [ 37%]
+tests/comunicaciones/test_services.py::SeedingTests::test_seed_templates_have_no_leftover_braces_after_rendering PASSED [ 37%]
+tests/comunicaciones/test_services.py::SeedingTests::test_seeding_creates_the_five_required_categories PASSED [ 38%]
+tests/comunicaciones/test_services.py::SeedingTests::test_seeding_is_idempotent_and_never_overwrites_operator_edits PASSED [ 38%]
+tests/comunicaciones/test_services.py::SearchTests::test_category_filter_only_returns_that_category PASSED [ 39%]
+tests/comunicaciones/test_services.py::SearchTests::test_favorites_filter_returns_only_marked_templates PASSED [ 40%]
+tests/comunicaciones/test_services.py::SearchTests::test_getting_a_missing_template_raises_a_translatable_error PASSED [ 40%]
+tests/comunicaciones/test_services.py::SearchTests::test_search_finds_the_retrieval_template_by_everyday_words PASSED [ 41%]
+tests/comunicaciones/test_services.py::SearchTests::test_search_ignores_accents PASSED [ 41%]
+tests/comunicaciones/test_services.py::SearchTests::test_unknown_words_return_nothing_rather_than_everything PASSED [ 42%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_create_edit_and_deactivate_a_template PASSED [ 43%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_creating_in_an_unknown_category_is_refused PASSED [ 43%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_duplicate_titles_within_a_category_are_refused PASSED [ 44%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_empty_category_name_is_refused PASSED [ 44%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_new_category_can_be_created_and_reused PASSED [ 45%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_toggle_favorite_flips_both_ways_and_persists PASSED [ 45%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_valid_draft_reports_no_problems PASSED [ 46%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_validate_draft_catches_a_malformed_variable_next_to_a_valid_one PASSED [ 47%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_validate_draft_catches_malformed_variable_braces PASSED [ 47%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_validate_draft_reports_every_problem_in_plain_spanish PASSED [ 48%]
+tests/comunicaciones/test_services.py::PreparationTests::test_complete_preview_is_ready_to_copy PASSED [ 48%]
+tests/comunicaciones/test_services.py::PreparationTests::test_history_is_newest_first_and_respects_the_limit PASSED [ 49%]
+tests/comunicaciones/test_services.py::PreparationTests::test_inactive_template_cannot_be_used PASSED [ 50%]
+tests/comunicaciones/test_services.py::PreparationTests::test_manual_edit_is_copied_verbatim_and_flagged PASSED [ 50%]
+tests/comunicaciones/test_services.py::PreparationTests::test_missing_values_block_the_copy_and_leave_no_trace PASSED [ 51%]
+tests/comunicaciones/test_services.py::PreparationTests::test_preparing_copies_records_history_and_counts_usage PASSED [ 51%]
+tests/comunicaciones/test_services.py::PreparationTests::test_preparing_queues_a_local_outbox_event_for_future_delivery PASSED [ 52%]
+tests/comunicaciones/test_services.py::PreparationTests::test_preview_shows_pending_values_without_failing PASSED [ 52%]
+tests/comunicaciones/test_services.py::PreparationTests::test_template_without_variables_is_copied_as_is PASSED [ 53%]
+tests/comunicaciones/test_sqlite_repository.py::SchemaTests::test_integrity_check_passes_on_a_fresh_database PASSED [ 54%]
+tests/comunicaciones/test_sqlite_repository.py::SchemaTests::test_migration_creates_every_expected_table_once PASSED [ 54%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_duplicate_title_in_same_category_is_rejected_with_a_clear_error PASSED [ 55%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_same_title_in_another_category_is_allowed PASSED [ 55%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_saved_template_round_trips_with_its_variable_specs PASSED [ 56%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_saving_the_same_id_updates_instead_of_duplicating PASSED [ 56%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_unknown_category_is_refused_by_the_foreign_key PASSED [ 57%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_updating_variable_specs_removes_the_previous_ones PASSED [ 58%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_category_filter_restricts_results PASSED [ 58%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_favorites_filter PASSED [ 59%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_inactive_templates_are_hidden_by_default PASSED [ 59%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_like_wildcards_in_the_query_are_treated_as_plain_text PASSED [ 60%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_search_ignores_accents_and_case PASSED [ 61%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_search_matches_title_keywords_and_body PASSED [ 61%]
+tests/comunicaciones/test_sqlite_repository.py::HistoryAndOutboxTests::test_limit_is_respected PASSED [ 62%]
+tests/comunicaciones/test_sqlite_repository.py::HistoryAndOutboxTests::test_outbox_events_are_queued_as_pending PASSED [ 62%]
+tests/comunicaciones/test_sqlite_repository.py::HistoryAndOutboxTests::test_prepared_messages_round_trip_newest_first PASSED [ 63%]
+tests/comunicaciones/test_sqlite_repository.py::HistoryAndOutboxTests::test_settings_round_trip_and_overwrite PASSED [ 63%]
+tests/comunicaciones/test_sqlite_repository.py::FilePersistenceTests::test_data_survives_closing_and_reopening_the_database_file PASSED [ 64%]
+tests/comunicaciones/test_ui_controller.py::StartupTests::test_category_options_include_a_total_and_per_category_counts PASSED [ 65%]
+tests/comunicaciones/test_ui_controller.py::StartupTests::test_first_start_preloads_the_library_and_later_starts_do_not PASSED [ 65%]
+tests/comunicaciones/test_ui_controller.py::StartupTests::test_operator_name_is_remembered PASSED [ 66%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_deactivated_templates_disappear_unless_explicitly_requested PASSED [ 66%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_empty_state_messages_explain_what_to_do PASSED [ 67%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_opening_a_missing_template_raises PASSED [ 68%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_opening_a_template_can_prefill_known_values PASSED [ 68%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_opening_a_template_returns_blank_fields_for_each_variable PASSED [ 69%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_search_filters_combine PASSED [ 69%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_copy_is_blocked_while_values_are_missing PASSED [ 70%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_copy_records_the_edited_text_when_the_operator_adjusts_it PASSED [ 70%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_copy_uses_the_stored_operator_when_none_is_given PASSED [ 71%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_copying_a_deactivated_template_is_blocked PASSED [ 72%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_preview_updates_as_values_are_typed PASSED [ 72%]
+tests/comunicaciones/test_ui_controller.py::AdministrationTests::test_draft_for_a_new_template_starts_on_the_current_category PASSED [ 73%]
+tests/comunicaciones/test_ui_controller.py::AdministrationTests::test_draft_from_template_round_trips_through_save PASSED [ 73%]
+tests/comunicaciones/test_ui_controller.py::AdministrationTests::test_saving_a_duplicate_title_is_refused PASSED [ 74%]
+tests/comunicaciones/test_ui_controller.py::AdministrationTests::test_saving_an_incomplete_draft_is_refused_before_touching_the_database PASSED [ 75%]
+tests/comunicaciones/test_ui_controller.py::BackupTests::test_backup_and_restore_round_trip_through_the_controller PASSED [ 75%]
+tests/comunicaciones/test_ui_controller.py::BackupTests::test_restoring_an_invalid_file_is_reported_and_changes_nothing PASSED [ 76%]
+tests/comunicaciones/test_ui_controller.py::PersistenceAcrossRestartTests::test_everything_the_operator_did_survives_a_restart PASSED [ 76%]
+tests/comunicaciones/test_ui_controller.py::FriendlyErrorTests::test_every_expected_failure_has_a_title_and_a_plain_explanation PASSED [ 77%]
+tests/comunicaciones/test_ui_controller.py::FriendlyErrorTests::test_technical_errors_reassure_the_operator_that_nothing_was_lost PASSED [ 77%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_keyboard_accessibility_covers_every_main_action PASSED [ 78%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_main_actions_are_visible_and_bound_to_keys PASSED [ 79%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_operator_always_sees_where_the_data_lives PASSED [ 79%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_shortcut_hint_lives_in_the_footer_where_it_fits_uncut PASSED [ 80%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_shortcut_hint_shown_to_the_operator_matches_the_bindings PASSED [ 80%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_three_fixed_columns_fit_inside_the_target_width PASSED [ 81%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_variable_block_grows_with_the_fields_and_stays_bounded PASSED [ 81%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_window_accepts_an_injected_controller PASSED [ 82%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_window_targets_1366x768_and_never_demands_more PASSED [ 83%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_a_non_editing_keystroke_does_not_freeze_the_preview PASSED [ 83%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_a_placeholder_can_never_be_copied_even_via_the_shortcut PASSED [ 84%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_a_search_without_matches_shows_a_helpful_empty_state PASSED [ 84%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_a_second_copy_does_not_get_its_confirmation_wiped_by_the_first PASSED [ 85%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_category_filter_changes_the_visible_list PASSED [ 86%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_editing_the_final_text_before_copying_is_respected PASSED [ 86%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_editor_detects_variables_and_saves_a_new_template PASSED [ 87%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_editor_marks_unsaved_changes_before_leaving PASSED [ 87%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_favourite_toggle_updates_the_button_and_the_list PASSED [ 88%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_opening_filling_and_copying_a_message_end_to_end PASSED [ 88%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_recent_view_lists_the_copied_messages PASSED [ 89%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_searching_narrows_the_list_and_clearing_restores_it PASSED [ 90%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_switching_template_after_copying_leaves_no_timer_on_a_destroyed_widget PASSED [ 90%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_the_library_is_listed_on_first_paint PASSED [ 91%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_window_opens_at_the_requested_size PASSED [ 91%]
+tests/comunicaciones/test_inbox.py::PersistenceAndFlowTests::test_full_flow_is_persistent_and_audited PASSED [ 92%]
+tests/comunicaciones/test_inbox.py::PersistenceAndFlowTests::test_operator_is_required_for_reply PASSED [ 93%]
+tests/comunicaciones/test_inbox.py::PersistenceAndFlowTests::test_reply_moves_new_conversation_to_in_progress PASSED [ 93%]
+tests/comunicaciones/test_inbox.py::TransitionTests::test_resolved_can_be_reopened PASSED [ 94%]
+tests/comunicaciones/test_inbox.py::TransitionTests::test_resolved_cannot_go_directly_to_new PASSED [ 94%]
+tests/comunicaciones/test_inbox.py::FilterAndCounterTests::test_account_filter PASSED [ 95%]
+tests/comunicaciones/test_inbox.py::FilterAndCounterTests::test_counts_include_zero_states PASSED [ 95%]
+tests/comunicaciones/test_inbox.py::FilterAndCounterTests::test_filters_compose PASSED [ 96%]
+tests/comunicaciones/test_inbox.py::FilterAndCounterTests::test_text_filter_searches_message_body PASSED [ 97%]
+tests/comunicaciones/test_inbox.py::MigrationTests::test_second_migration_is_idempotent_and_schema_is_complete PASSED [ 97%]
+tests/comunicaciones/test_inbox.py::DemoTests::test_demo_seed_is_explicit_fictitious_and_idempotent PASSED [ 98%]
+tests/comunicaciones/test_inbox_ui_contract.py::InboxUIContractTests::test_demo_data_is_explicitly_labeled PASSED [ 98%]
+tests/comunicaciones/test_inbox_ui_contract.py::InboxUIContractTests::test_filters_are_labeled_and_statuses_have_distinct_colors PASSED [ 99%]
+tests/comunicaciones/test_inbox_ui_contract.py::InboxUIContractTests::test_window_targets_1366_by_768_and_has_three_operational_columns PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\_pytest\cacheprovider.py:475
+  C:\Users\Usuario\AppData\Local\Programs\Python\Python313\Lib\site-packages\_pytest\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\Users\Usuario\Desktop\Proyecto X\PX-Core\.worktrees\comunicaciones-inbox-002\.pytest_cache\v\cache\nodeids: [WinError 5] Acceso denegado: 'C:\\Users\\Usuario\\Desktop\\Proyecto X\\PX-Core\\.worktrees\\comunicaciones-inbox-002\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 172 passed, 1 warning in 31.55s =======================
+
+5. FULL SUITE RUN
+-----------------
+Command: C:\Users\Usuario\AppData\Local\Programs\Python\Python313\python.exe -m pytest -v
+Exit code: 0
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\Usuario\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Usuario\Desktop\Proyecto X\PX-Core\.worktrees\comunicaciones-inbox-002
+collecting ... collected 227 items
+
+tests/caja_diaria/test_data_paths.py::CashDataPathTests::test_configured_path_is_stable_and_separates_data_backups_logs PASSED [  0%]
+tests/caja_diaria/test_data_paths.py::CashDataPathTests::test_explicit_test_database_never_uses_production_backup_directory PASSED [  0%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_carry_forward_requires_an_explicit_approved_policy PASSED [  1%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_cash_day_has_open_and_closed_states PASSED [  1%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_closed_day_rejects_new_entries PASSED [  2%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_history_query_is_a_repository_contract PASSED [  2%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_invalid_money_is_rejected_instead_of_silently_becoming_zero PASSED [  3%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_cash_count_rejects_negative_or_unknown_denominations PASSED [  3%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_close_freezes_a_snapshot PASSED [  3%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_confirmed_legacy_totals_are_preserved PASSED [  4%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_negative_and_float_money_are_rejected PASSED [  4%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_optional_money_is_distinct_from_zero_and_text_is_preserved PASSED [  5%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_update_and_logical_void_are_allowed_only_while_open PASSED [  5%]
+tests/caja_diaria/test_legacy_calculations.py::LegacyCalculationTests::test_cash_count_classifies_ok_surplus_and_shortage PASSED [  6%]
+tests/caja_diaria/test_legacy_calculations.py::LegacyCalculationTests::test_closing_formula_uses_opening_cash_cash_sales_and_expenses PASSED [  6%]
+tests/caja_diaria/test_legacy_calculations.py::LegacyCalculationTests::test_deleting_a_day_is_the_only_legacy_edit_like_operation PASSED [  7%]
+tests/caja_diaria/test_legacy_calculations.py::LegacyCalculationTests::test_pipe_is_replaced_during_txt_serialization PASSED [  7%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_blank_description_with_amount_is_discarded PASSED [  7%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_declared_totals_mismatch_is_reported PASSED [  8%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_duplicate_opening_uses_last_value_with_warning PASSED [  8%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_empty_template_with_opening_is_not_an_operational_day PASSED [  9%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_invalid_money_becomes_zero_with_non_blocking_error PASSED [  9%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_missing_headers_omits_sheet PASSED [ 10%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_operational_ui_columns_follow_the_confirmed_excel_like_order PASSED [ 10%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_optional_cells_become_empty_strings PASSED [ 11%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_real_like_values_are_preserved_and_calculation_rows_are_not_entries PASSED [ 11%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_reported_column_order_matches_legacy_positions PASSED [ 11%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_representative_day_preserves_rows_text_balance_and_totals PASSED [ 12%]
+tests/caja_diaria/test_operation_e2e.py::CashOperationE2ETests::test_two_days_edit_void_close_backup_and_restart PASSED [ 12%]
+tests/caja_diaria/test_pilot_entrypoint.py::PilotEntrypointTests::test_cli_self_check_accepts_path_independent_of_current_directory PASSED [ 13%]
+tests/caja_diaria/test_pilot_entrypoint.py::PilotEntrypointTests::test_first_run_check_closes_restarts_and_creates_backup PASSED [ 13%]
+tests/caja_diaria/test_pilot_entrypoint.py::PilotEntrypointTests::test_first_run_check_refuses_non_empty_target PASSED [ 14%]
+tests/caja_diaria/test_pilot_entrypoint.py::PilotEntrypointTests::test_self_check_creates_external_data_layout_and_is_repeatable PASSED [ 14%]
+tests/caja_diaria/test_services.py::CashDayServiceTests::test_batch_import_replaces_entries_atomically PASSED [ 14%]
+tests/caja_diaria/test_services.py::CashDayServiceTests::test_duplicate_business_date_and_unit_is_rejected PASSED [ 15%]
+tests/caja_diaria/test_services.py::CashDayServiceTests::test_open_add_close_and_historical_query PASSED [ 15%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_closed_snapshot_and_history_queries_round_trip PASSED [ 16%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_edit_and_void_keep_append_only_revisions PASSED [ 16%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_existing_001_database_migrates_without_losing_entries PASSED [ 17%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_latest_cash_count_is_persisted PASSED [ 17%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_migration_is_versioned_idempotent_and_enables_foreign_keys PASSED [ 18%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_round_trip_preserves_all_entry_fields_and_null_money PASSED [ 18%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_save_is_transactional_when_an_entry_violates_database_constraints PASSED [ 18%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_close_creates_a_valid_local_backup PASSED [ 19%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_close_survives_reload_and_blocks_new_entry PASSED [ 19%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_edit_and_void_update_totals_without_erasing_history PASSED [ 20%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_friendly_errors_never_expose_tracebacks_or_sql PASSED [ 20%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_initial_cash_is_required_only_when_day_does_not_exist PASSED [ 21%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_invalid_input_does_not_create_day PASSED [ 21%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_legacy_analysis_imports_without_txt_dual_write PASSED [ 22%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_manual_flow_persists_and_reloads_with_new_controller PASSED [ 22%]
+tests/caja_diaria/test_ui_smoke.py::CashDayUISmokeTests::test_fresh_temporary_database_boots_without_development_data PASSED [ 22%]
+tests/caja_diaria/test_ui_smoke.py::CashDayUISmokeTests::test_legacy_window_accepts_injected_controller PASSED [ 23%]
+tests/caja_diaria/test_ux002_layout_contract.py::CashDayUX002ContractTests::test_capture_is_split_into_product_and_payment_rows PASSED [ 23%]
+tests/caja_diaria/test_ux002_layout_contract.py::CashDayUX002ContractTests::test_window_shortcuts_actions_footer_and_target_are_explicit PASSED [ 24%]
+tests/comunicaciones/test_backup_restore.py::BackupTests::test_backup_creates_a_readable_copy_in_the_backup_folder PASSED [ 24%]
+tests/comunicaciones/test_backup_restore.py::BackupTests::test_label_is_sanitized_into_a_safe_filename PASSED [ 25%]
+tests/comunicaciones/test_backup_restore.py::BackupTests::test_listing_returns_backups_newest_first PASSED [ 25%]
+tests/comunicaciones/test_backup_restore.py::BackupTests::test_retention_keeps_only_the_configured_amount PASSED [ 25%]
+tests/comunicaciones/test_backup_restore.py::RestoreValidationTests::test_a_database_from_another_product_is_refused PASSED [ 26%]
+tests/comunicaciones/test_backup_restore.py::RestoreValidationTests::test_a_file_that_is_not_a_database_is_refused PASSED [ 26%]
+tests/comunicaciones/test_backup_restore.py::RestoreValidationTests::test_a_refused_restore_leaves_the_current_data_untouched PASSED [ 27%]
+tests/comunicaciones/test_backup_restore.py::RestoreValidationTests::test_missing_file_is_reported_clearly PASSED [ 27%]
+tests/comunicaciones/test_backup_restore.py::RestoreTests::test_restore_also_recovers_the_prepared_message_history PASSED [ 28%]
+tests/comunicaciones/test_backup_restore.py::RestoreTests::test_restore_brings_back_the_state_captured_by_the_backup PASSED [ 28%]
+tests/comunicaciones/test_backup_restore.py::RestoreTests::test_restore_saves_a_safety_copy_of_the_previous_state_first PASSED [ 29%]
+tests/comunicaciones/test_backup_restore.py::RestoreTests::test_the_database_stays_usable_right_after_a_restore PASSED [ 29%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_communications_data_is_separate_from_cash_data PASSED [ 29%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_data_never_lands_inside_the_source_tree PASSED [ 30%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_ensure_creates_the_full_layout_and_is_repeatable PASSED [ 30%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_explicit_environment_variable_wins PASSED [ 31%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_real_environment_resolves_without_raising PASSED [ 31%]
+tests/comunicaciones/test_data_paths.py::DataPathTests::test_windows_default_lives_under_local_appdata PASSED [ 32%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_blank_value_counts_as_missing PASSED [ 32%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_preview_never_fails_and_marks_pending_values PASSED [ 33%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_render_accepts_values_supplied_with_accents_or_capitals PASSED [ 33%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_render_refuses_missing_values_and_names_them_in_spanish PASSED [ 33%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_render_replaces_every_occurrence PASSED [ 34%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_text_without_variables_yields_none PASSED [ 34%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_variable_names_tolerate_spaces_accents_and_case PASSED [ 35%]
+tests/comunicaciones/test_domain.py::VariableEngineTests::test_variables_are_extracted_in_order_without_repeating PASSED [ 35%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_category_is_required_and_normalized PASSED [ 36%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_editing_bumps_revision_and_refuses_protected_fields PASSED [ 36%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_favorite_active_and_usage_transitions PASSED [ 37%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_missing_for_reports_pending_variables PASSED [ 37%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_search_blob_is_accent_insensitive PASSED [ 37%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_title_and_body_are_required PASSED [ 38%]
+tests/comunicaciones/test_domain.py::TemplateTests::test_variable_specs_cover_body_variables_and_drop_orphans PASSED [ 38%]
+tests/comunicaciones/test_domain.py::RankingTests::test_title_prefix_beats_keyword_match_and_favorites_beat_the_rest PASSED [ 39%]
+tests/comunicaciones/test_domain.py::RankingTests::test_without_query_favorites_and_usage_lead PASSED [ 39%]
+tests/comunicaciones/test_domain.py::PreparedMessageTests::test_empty_final_text_is_rejected PASSED [ 40%]
+tests/comunicaciones/test_domain.py::PreparedMessageTests::test_message_defaults_to_pending_and_normalizes_values PASSED [ 40%]
+tests/comunicaciones/test_domain.py::PreparedMessageTests::test_summary_collapses_and_truncates PASSED [ 40%]
+tests/comunicaciones/test_domain.py::UnsavedChangesTests::test_any_edited_field_marks_the_draft_dirty PASSED [ 41%]
+tests/comunicaciones/test_domain.py::UnsavedChangesTests::test_identical_draft_is_not_dirty PASSED [ 41%]
+tests/comunicaciones/test_domain.py::UnsavedChangesTests::test_new_template_is_dirty_only_once_something_was_typed PASSED [ 42%]
+tests/comunicaciones/test_domain.py::NormalizationTests::test_category_requires_slug_and_name PASSED [ 42%]
+tests/comunicaciones/test_domain.py::NormalizationTests::test_slug_and_search_normalization PASSED [ 43%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_cli_self_check_is_independent_of_the_current_directory PASSED [ 43%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_first_run_check_refuses_a_non_empty_target PASSED [ 44%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_first_run_check_walks_the_whole_operator_flow PASSED [ 44%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_self_check_creates_the_external_data_layout_and_is_repeatable PASSED [ 44%]
+tests/comunicaciones/test_entrypoint.py::EntrypointTests::test_startup_failures_are_written_where_support_can_read_them PASSED [ 45%]
+tests/comunicaciones/test_inbox.py::PersistenceAndFlowTests::test_full_flow_is_persistent_and_audited PASSED [ 45%]
+tests/comunicaciones/test_inbox.py::PersistenceAndFlowTests::test_operator_is_required_for_reply PASSED [ 46%]
+tests/comunicaciones/test_inbox.py::PersistenceAndFlowTests::test_reply_moves_new_conversation_to_in_progress PASSED [ 46%]
+tests/comunicaciones/test_inbox.py::TransitionTests::test_resolved_can_be_reopened PASSED [ 47%]
+tests/comunicaciones/test_inbox.py::TransitionTests::test_resolved_cannot_go_directly_to_new PASSED [ 47%]
+tests/comunicaciones/test_inbox.py::FilterAndCounterTests::test_account_filter PASSED [ 48%]
+tests/comunicaciones/test_inbox.py::FilterAndCounterTests::test_counts_include_zero_states PASSED [ 48%]
+tests/comunicaciones/test_inbox.py::FilterAndCounterTests::test_filters_compose PASSED [ 48%]
+tests/comunicaciones/test_inbox.py::FilterAndCounterTests::test_text_filter_searches_message_body PASSED [ 49%]
+tests/comunicaciones/test_inbox.py::MigrationTests::test_second_migration_is_idempotent_and_schema_is_complete PASSED [ 49%]
+tests/comunicaciones/test_inbox.py::DemoTests::test_demo_seed_is_explicit_fictitious_and_idempotent PASSED [ 50%]
+tests/comunicaciones/test_inbox_ui_contract.py::InboxUIContractTests::test_demo_data_is_explicitly_labeled PASSED [ 50%]
+tests/comunicaciones/test_inbox_ui_contract.py::InboxUIContractTests::test_filters_are_labeled_and_statuses_have_distinct_colors PASSED [ 51%]
+tests/comunicaciones/test_inbox_ui_contract.py::InboxUIContractTests::test_window_targets_1366_by_768_and_has_three_operational_columns PASSED [ 51%]
+tests/comunicaciones/test_regressions.py::RestoreRetentionRegressionTests::test_a_vanished_source_can_never_blank_the_database PASSED [ 51%]
+tests/comunicaciones/test_regressions.py::RestoreRetentionRegressionTests::test_restoring_the_oldest_backup_at_the_retention_cap_keeps_every_template PASSED [ 52%]
+tests/comunicaciones/test_regressions.py::RestoreRetentionRegressionTests::test_retention_never_deletes_the_backup_being_restored PASSED [ 52%]
+tests/comunicaciones/test_regressions.py::RestoreRetentionRegressionTests::test_retention_still_prunes_normally_outside_a_restore PASSED [ 53%]
+tests/comunicaciones/test_regressions.py::BackupPathRegressionTests::test_backups_in_folders_with_uri_characters_are_accepted PASSED [ 53%]
+tests/comunicaciones/test_regressions.py::MalformedVariableRegressionTests::test_every_shape_a_person_would_naturally_type_is_caught PASSED [ 54%]
+tests/comunicaciones/test_regressions.py::MalformedVariableRegressionTests::test_malformed_placeholders_are_detected_next_to_valid_ones PASSED [ 54%]
+tests/comunicaciones/test_regressions.py::MalformedVariableRegressionTests::test_the_editor_refuses_to_save_a_malformed_template PASSED [ 55%]
+tests/comunicaciones/test_regressions.py::MalformedVariableRegressionTests::test_valid_variables_are_never_flagged PASSED [ 55%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_a_hand_written_message_is_accepted_even_with_empty_fields PASSED [ 55%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_a_preview_placeholder_can_never_reach_the_customer PASSED [ 56%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_an_unreplaced_variable_can_never_reach_the_customer PASSED [ 56%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_pending_detection_matches_what_is_about_to_be_copied PASSED [ 57%]
+tests/comunicaciones/test_regressions.py::FinalTextRegressionTests::test_unresolved_helper_ignores_text_that_merely_looks_like_a_marker PASSED [ 57%]
+tests/comunicaciones/test_services.py::SeedingTests::test_every_category_ships_with_templates PASSED [ 58%]
+tests/comunicaciones/test_services.py::SeedingTests::test_seed_templates_declare_a_spec_for_every_variable PASSED [ 58%]
+tests/comunicaciones/test_services.py::SeedingTests::test_seed_templates_have_no_leftover_braces_after_rendering PASSED [ 59%]
+tests/comunicaciones/test_services.py::SeedingTests::test_seeding_creates_the_five_required_categories PASSED [ 59%]
+tests/comunicaciones/test_services.py::SeedingTests::test_seeding_is_idempotent_and_never_overwrites_operator_edits PASSED [ 59%]
+tests/comunicaciones/test_services.py::SearchTests::test_category_filter_only_returns_that_category PASSED [ 60%]
+tests/comunicaciones/test_services.py::SearchTests::test_favorites_filter_returns_only_marked_templates PASSED [ 60%]
+tests/comunicaciones/test_services.py::SearchTests::test_getting_a_missing_template_raises_a_translatable_error PASSED [ 61%]
+tests/comunicaciones/test_services.py::SearchTests::test_search_finds_the_retrieval_template_by_everyday_words PASSED [ 61%]
+tests/comunicaciones/test_services.py::SearchTests::test_search_ignores_accents PASSED [ 62%]
+tests/comunicaciones/test_services.py::SearchTests::test_unknown_words_return_nothing_rather_than_everything PASSED [ 62%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_create_edit_and_deactivate_a_template PASSED [ 62%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_creating_in_an_unknown_category_is_refused PASSED [ 63%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_duplicate_titles_within_a_category_are_refused PASSED [ 63%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_empty_category_name_is_refused PASSED [ 64%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_new_category_can_be_created_and_reused PASSED [ 64%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_toggle_favorite_flips_both_ways_and_persists PASSED [ 65%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_valid_draft_reports_no_problems PASSED [ 65%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_validate_draft_catches_a_malformed_variable_next_to_a_valid_one PASSED [ 66%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_validate_draft_catches_malformed_variable_braces PASSED [ 66%]
+tests/comunicaciones/test_services.py::AdministrationTests::test_validate_draft_reports_every_problem_in_plain_spanish PASSED [ 66%]
+tests/comunicaciones/test_services.py::PreparationTests::test_complete_preview_is_ready_to_copy PASSED [ 67%]
+tests/comunicaciones/test_services.py::PreparationTests::test_history_is_newest_first_and_respects_the_limit PASSED [ 67%]
+tests/comunicaciones/test_services.py::PreparationTests::test_inactive_template_cannot_be_used PASSED [ 68%]
+tests/comunicaciones/test_services.py::PreparationTests::test_manual_edit_is_copied_verbatim_and_flagged PASSED [ 68%]
+tests/comunicaciones/test_services.py::PreparationTests::test_missing_values_block_the_copy_and_leave_no_trace PASSED [ 69%]
+tests/comunicaciones/test_services.py::PreparationTests::test_preparing_copies_records_history_and_counts_usage PASSED [ 69%]
+tests/comunicaciones/test_services.py::PreparationTests::test_preparing_queues_a_local_outbox_event_for_future_delivery PASSED [ 70%]
+tests/comunicaciones/test_services.py::PreparationTests::test_preview_shows_pending_values_without_failing PASSED [ 70%]
+tests/comunicaciones/test_services.py::PreparationTests::test_template_without_variables_is_copied_as_is PASSED [ 70%]
+tests/comunicaciones/test_sqlite_repository.py::SchemaTests::test_integrity_check_passes_on_a_fresh_database PASSED [ 71%]
+tests/comunicaciones/test_sqlite_repository.py::SchemaTests::test_migration_creates_every_expected_table_once PASSED [ 71%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_duplicate_title_in_same_category_is_rejected_with_a_clear_error PASSED [ 72%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_same_title_in_another_category_is_allowed PASSED [ 72%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_saved_template_round_trips_with_its_variable_specs PASSED [ 73%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_saving_the_same_id_updates_instead_of_duplicating PASSED [ 73%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_unknown_category_is_refused_by_the_foreign_key PASSED [ 74%]
+tests/comunicaciones/test_sqlite_repository.py::TemplatePersistenceTests::test_updating_variable_specs_removes_the_previous_ones PASSED [ 74%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_category_filter_restricts_results PASSED [ 74%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_favorites_filter PASSED [ 75%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_inactive_templates_are_hidden_by_default PASSED [ 75%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_like_wildcards_in_the_query_are_treated_as_plain_text PASSED [ 76%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_search_ignores_accents_and_case PASSED [ 76%]
+tests/comunicaciones/test_sqlite_repository.py::SearchTests::test_search_matches_title_keywords_and_body PASSED [ 77%]
+tests/comunicaciones/test_sqlite_repository.py::HistoryAndOutboxTests::test_limit_is_respected PASSED [ 77%]
+tests/comunicaciones/test_sqlite_repository.py::HistoryAndOutboxTests::test_outbox_events_are_queued_as_pending PASSED [ 77%]
+tests/comunicaciones/test_sqlite_repository.py::HistoryAndOutboxTests::test_prepared_messages_round_trip_newest_first PASSED [ 78%]
+tests/comunicaciones/test_sqlite_repository.py::HistoryAndOutboxTests::test_settings_round_trip_and_overwrite PASSED [ 78%]
+tests/comunicaciones/test_sqlite_repository.py::FilePersistenceTests::test_data_survives_closing_and_reopening_the_database_file PASSED [ 79%]
+tests/comunicaciones/test_ui_controller.py::StartupTests::test_category_options_include_a_total_and_per_category_counts PASSED [ 79%]
+tests/comunicaciones/test_ui_controller.py::StartupTests::test_first_start_preloads_the_library_and_later_starts_do_not PASSED [ 80%]
+tests/comunicaciones/test_ui_controller.py::StartupTests::test_operator_name_is_remembered PASSED [ 80%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_deactivated_templates_disappear_unless_explicitly_requested PASSED [ 81%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_empty_state_messages_explain_what_to_do PASSED [ 81%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_opening_a_missing_template_raises PASSED [ 81%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_opening_a_template_can_prefill_known_values PASSED [ 82%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_opening_a_template_returns_blank_fields_for_each_variable PASSED [ 82%]
+tests/comunicaciones/test_ui_controller.py::NavigationTests::test_search_filters_combine PASSED [ 83%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_copy_is_blocked_while_values_are_missing PASSED [ 83%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_copy_records_the_edited_text_when_the_operator_adjusts_it PASSED [ 84%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_copy_uses_the_stored_operator_when_none_is_given PASSED [ 84%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_copying_a_deactivated_template_is_blocked PASSED [ 85%]
+tests/comunicaciones/test_ui_controller.py::PreparationTests::test_preview_updates_as_values_are_typed PASSED [ 85%]
+tests/comunicaciones/test_ui_controller.py::AdministrationTests::test_draft_for_a_new_template_starts_on_the_current_category PASSED [ 85%]
+tests/comunicaciones/test_ui_controller.py::AdministrationTests::test_draft_from_template_round_trips_through_save PASSED [ 86%]
+tests/comunicaciones/test_ui_controller.py::AdministrationTests::test_saving_a_duplicate_title_is_refused PASSED [ 86%]
+tests/comunicaciones/test_ui_controller.py::AdministrationTests::test_saving_an_incomplete_draft_is_refused_before_touching_the_database PASSED [ 87%]
+tests/comunicaciones/test_ui_controller.py::BackupTests::test_backup_and_restore_round_trip_through_the_controller PASSED [ 87%]
+tests/comunicaciones/test_ui_controller.py::BackupTests::test_restoring_an_invalid_file_is_reported_and_changes_nothing PASSED [ 88%]
+tests/comunicaciones/test_ui_controller.py::PersistenceAcrossRestartTests::test_everything_the_operator_did_survives_a_restart PASSED [ 88%]
+tests/comunicaciones/test_ui_controller.py::FriendlyErrorTests::test_every_expected_failure_has_a_title_and_a_plain_explanation PASSED [ 88%]
+tests/comunicaciones/test_ui_controller.py::FriendlyErrorTests::test_technical_errors_reassure_the_operator_that_nothing_was_lost PASSED [ 89%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_keyboard_accessibility_covers_every_main_action PASSED [ 89%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_main_actions_are_visible_and_bound_to_keys PASSED [ 90%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_operator_always_sees_where_the_data_lives PASSED [ 90%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_shortcut_hint_lives_in_the_footer_where_it_fits_uncut PASSED [ 91%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_shortcut_hint_shown_to_the_operator_matches_the_bindings PASSED [ 91%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_three_fixed_columns_fit_inside_the_target_width PASSED [ 92%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_variable_block_grows_with_the_fields_and_stays_bounded PASSED [ 92%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_the_window_accepts_an_injected_controller PASSED [ 92%]
+tests/comunicaciones/test_ui_layout.py::LayoutContractTests::test_window_targets_1366x768_and_never_demands_more PASSED [ 93%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_a_non_editing_keystroke_does_not_freeze_the_preview PASSED [ 93%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_a_placeholder_can_never_be_copied_even_via_the_shortcut PASSED [ 94%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_a_search_without_matches_shows_a_helpful_empty_state PASSED [ 94%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_a_second_copy_does_not_get_its_confirmation_wiped_by_the_first PASSED [ 95%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_category_filter_changes_the_visible_list PASSED [ 95%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_editing_the_final_text_before_copying_is_respected PASSED [ 96%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_editor_detects_variables_and_saves_a_new_template PASSED [ 96%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_editor_marks_unsaved_changes_before_leaving PASSED [ 96%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_favourite_toggle_updates_the_button_and_the_list PASSED [ 97%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_opening_filling_and_copying_a_message_end_to_end PASSED [ 97%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_recent_view_lists_the_copied_messages PASSED [ 98%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_searching_narrows_the_list_and_clearing_restores_it PASSED [ 98%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_switching_template_after_copying_leaves_no_timer_on_a_destroyed_widget PASSED [ 99%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_the_library_is_listed_on_first_paint PASSED [ 99%]
+tests/comunicaciones/test_ui_layout.py::WindowSmokeTests::test_window_opens_at_the_requested_size PASSED [100%]
+
+============================== warnings summary ===============================
+..\..\..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\_pytest\cacheprovider.py:475
+  C:\Users\Usuario\AppData\Local\Programs\Python\Python313\Lib\site-packages\_pytest\cacheprovider.py:475: PytestCacheWarning: could not create cache path C:\Users\Usuario\Desktop\Proyecto X\PX-Core\.worktrees\comunicaciones-inbox-002\.pytest_cache\v\cache\nodeids: [WinError 5] Acceso denegado: 'C:\\Users\\Usuario\\Desktop\\Proyecto X\\PX-Core\\.worktrees\\comunicaciones-inbox-002\\.pytest_cache\\v\\cache'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 227 passed, 1 warning in 33.09s =======================
+
+6. WARNINGS
+-----------
+(none)

@@ -1,0 +1,59 @@
+Sos el QA de BC-Core.
+
+MISION: BC-COMUNICACIONES-INBOX-002
+
+Evidencia en artifacts/BC-COMUNICACIONES-INBOX-002/:
+- BC-Core-BC-COMUNICACIONES-INBOX-002.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- bc_comunicaciones.py (sha256: de0574a1f94bd42e5e786e28a72d33a534f5657a5f6e448177cdb43a75b37f94)
+- modulos/comunicaciones/__init__.py (sha256: 5373a944d796451bdfbe3fd8969623d571d96db1be5108cd1e2d966067f24a82)
+- modulos/comunicaciones/bootstrap.py (sha256: 83f8a3d0ae2e89ea98be9fdf3449a0016f6bac754a28067fdade4b32be1ecae1)
+- modulos/comunicaciones/config.py (sha256: 5f838f1a207951a74086e80dd60b36d8f3356af1f8024df435b1f1122660e0e0)
+- modulos/comunicaciones/application/__init__.py (sha256: 3fb0000ba88feb7481771e367fd33c2f3b2dc301296cfe632e5adb213b9b9ac8)
+- modulos/comunicaciones/application/ports.py (sha256: e998d32fc0941ecbc7291148f9710635f2e3783f29955729402f0143062371ad)
+- modulos/comunicaciones/application/seed.py (sha256: 6972c95bfad298f575264efc6fccc5490e87c5ffe3409721c1196b778ca4690f)
+- modulos/comunicaciones/application/services.py (sha256: b5f74da1128289e186f4519798ddb66a92ca897a26aae664468a22f3f4f35c7f)
+- modulos/comunicaciones/application/inbox_service.py (sha256: e184e1b3dee1afa3828fdaf6c64d119738016e6930d6e5a100729a414131789f)
+- modulos/comunicaciones/domain/__init__.py (sha256: 6b88e711bf448390bfe99e04163905bbbdda62d5a6dcddb4e28e7f9098334351)
+- modulos/comunicaciones/domain/errors.py (sha256: 52538a6ec47992090bab41bdc4e1fc147da0e37a4e252e7d343c70396a010a32)
+- modulos/comunicaciones/domain/models.py (sha256: fb699791d75b389e02355dba96e14dbfd750bcbd80ea5d96a7f2b50904b82ccf)
+- modulos/comunicaciones/domain/inbox.py (sha256: 3218d728b7a816fbc9599e081b6e0a339fd74f69926f7dfec2658127af82da35)
+- modulos/comunicaciones/infrastructure/__init__.py (sha256: 1225d319f242214b93b4eb6a2ff1ed04b66ab91fe2085465f3f4d23b9b776868)
+- modulos/comunicaciones/infrastructure/backup.py (sha256: 3dbf2154ce43818e51a76e016e4f8a1f87617d7f6a8d99af4e63ef3ca57e7eeb)
+- modulos/comunicaciones/infrastructure/clipboard.py (sha256: d8d1201faea8521706c76eb9e031445d7353f8f8bb25a8e983614899be9e76be)
+- modulos/comunicaciones/infrastructure/sqlite_repository.py (sha256: e4035b0ef58716707046c59cfebc77b55ae368513cc6b79e63dee9e9cf7b3a25)
+- modulos/comunicaciones/infrastructure/inbox_repository.py (sha256: a8539518c8c9ff973790c33899bcff3f692b2da274bbd7f802d78c5b61fa57eb)
+- modulos/comunicaciones/infrastructure/migrations/001_comunicaciones.sql (sha256: 62bac05c5dc0bc4f2669c63030d130fde110d9ffdbdd8a9f7c5ecb2daa4c1424)
+- modulos/comunicaciones/infrastructure/migrations/002_inbox.sql (sha256: fff22115bb2b94912ec28d49e13c445734ad015285ccdc297604e15c8da914f3)
+- modulos/comunicaciones/ui/__init__.py (sha256: 1767dc4eb876f9a55ffff0c98b6d7a59693eb78570f3f266ab1ba481567bc936)
+- modulos/comunicaciones/ui/app.py (sha256: 45b340689fe126eb1797256a9713f4dd80b802723f96a4eb2dd0d05341cf3abf)
+- modulos/comunicaciones/ui/controller.py (sha256: a2e89c2bbbb23ba620411e262b82c47eff103ca0e1bd8b867962d987f07a26fd)
+- modulos/comunicaciones/ui/theme.py (sha256: eeaea091ba9a7f9de106f46d2ba57d67af058b8a25223161b6cfd7ba33f93cd0)
+- modulos/comunicaciones/ui/inbox_app.py (sha256: 788276514f12037082c152d618f4e1c581848ed73dd6d2e7f694844af21323a6)
+- tools/capture_comunicaciones.py (sha256: 7635bb78a8a38e648721c2bcd36b5c75bf582f3358b4086a7f7f938b83374106)
+- tools/capture_comunicaciones_inbox.py (sha256: e88b409f4ce1ef9f46e688454e9a5f850f6796963c440561dc1adb4822f1efec)
+
+Archivos de test:
+- tests/comunicaciones/__init__.py (sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)
+- tests/comunicaciones/test_backup_restore.py (sha256: 25d3eb7641d18121acef3494b61070a275c6e057cf25fbda3b38a25552351d0c)
+- tests/comunicaciones/test_data_paths.py (sha256: 357ce02938f1ac0dc6e5131ee46dfec31916e47f0967fd986a54b4d00f6430de)
+- tests/comunicaciones/test_domain.py (sha256: 7c18d70b42b1d5bb6bbfa5618dbfe71c8a740273ec0c31af32201ca04a5db495)
+- tests/comunicaciones/test_entrypoint.py (sha256: 9ac7b55a396af03e899978245a6d4cbc7947c9d1e9a60ce932e469d34c5a91c8)
+- tests/comunicaciones/test_regressions.py (sha256: ab48b8248eb29c3836957f4800e6571e5d9434522905afc98f3cabe9454e43b7)
+- tests/comunicaciones/test_services.py (sha256: 7aaec2272111571e96e39a17bd1129249fd68b1f18cfdec6fb7db09aa3c3ad6c)
+- tests/comunicaciones/test_sqlite_repository.py (sha256: 73e179e6753a2bffbaeb36e5de8f83cc506b36318d81d94e52857277640f2893)
+- tests/comunicaciones/test_ui_controller.py (sha256: c482d31c4a0829cd430fa2a1a4badf4adb434aa7a471eb97fdf8fa8411d1b8f1)
+- tests/comunicaciones/test_ui_layout.py (sha256: 66cc47cc6806f5b0ad89a3d9298a9956a0a1861d9f6f1cbbbe84cabf5b69f21d)
+- tests/comunicaciones/test_inbox.py (sha256: 16c6be0dc380d728fa943be62f197b129ecf94b27a77f51ea19ca5942ce8e255)
+- tests/comunicaciones/test_inbox_ui_contract.py (sha256: 0496dcd24bbc3696527bfca60959208e6cc1d1278be69e5f92aa92d1c72514e6)
+
+Dependencias:
+- evidence/BC-COMUNICACIONES-INBOX-002/inbox-1366x768.png (sha256: a19b53b9a068dcb1d7d3f1b31de72bc5b22c468434a29968aac0b0dbe566d92e)
+- evidence/BC-COMUNICACIONES-INBOX-002/MISSION.md (sha256: 135e5f3d39a1794d7fbbe4a8324f1859807db7347669579bf8d0060d578517f0)
+- evidence/BC-COMUNICACIONES-INBOX-002/PRIVACY_NEXT_MISSION.md (sha256: aa1f7381548de130ee2299dbc67ed9a2418c7b245b0fdcd221aee046f73bf8e7)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.
