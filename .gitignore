@@ -7,3 +7,12 @@ BC-Core/
 build/
 dist/
 *.spec
+
+# BC Comunicaciones Privacy: fuentes, salidas y cuarentena siempre locales.
+privacy-input/
+privacy-output/
+privacy-quarantine/
+*.chat-export
+*.anonymized.txt
+*.anonymized.json
+*.anonymization-report.json
