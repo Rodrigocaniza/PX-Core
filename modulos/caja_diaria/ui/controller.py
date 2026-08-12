@@ -59,6 +59,19 @@ class CashDayUIController:
         saved = self.service.add_entry(cash_day.id, entry)
         return self.service.get_day(cash_day.id), saved
 
+    def add_expense(
+        self, date_text: str, unit: str, concept: str, amount: Any, observations: str = ""
+    ) -> tuple[CashDay, CashEntry]:
+        if not str(concept).strip():
+            raise InvalidCashDayError("Ingresá el concepto del gasto.")
+        cash_day = self.load_day(date_text, unit)
+        entry = CashEntry(
+            description=str(concept).strip(), expenses=amount,
+            origin="manual-expense", source_reference=str(observations).strip(),
+        )
+        saved = self.service.add_entry(cash_day.id, entry)
+        return self.service.get_day(cash_day.id), saved
+
     def import_legacy_analysis(self, result: Mapping[str, Any]) -> ImportSummary:
         imported_days = 0
         imported_entries = 0

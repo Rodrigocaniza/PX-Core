@@ -1,21 +1,11 @@
 # Test evidence
 
-- python -m pytest tests/caja_diaria -q
-- Result: 66 passed, 4 subtests passed
-- python -m pytest -q
-- Result: 66 passed, 4 subtests passed
-- python tools/capture_bc_caja_entrypoint.py artifacts/BC-CAJA-UX-006/entrypoint-final-1366x768.png
-- Result: BC_CAJA_REAL_ENTRYPOINT_CAPTURE_OK, 1366x768, result=0
-
-All data used for capture was empty or synthetic and stored in a temporary directory.
-- Layout-overlap correction focal suite: 17 passed.
-- Post-correction Caja regression: 66 passed, 4 subtests passed.
-- Post-correction full regression: 66 passed, 4 subtests passed.
-
-- Final visible-behavior focal suite: 18 passed.
-- Final Caja regression: 67 passed, 4 subtests passed.
-- Empty and populated 1366x768 captures: PASS.
-
-- Final layout focal suite: 18 passed.
-- Caja and full regression: 67 passed, 4 subtests passed.
-- Real populated entrypoint (30 synthetic rows): money/total PASS; scroll PASS; effective geometry PASS.
+- Focal controller/visual contracts: 21 passed.
+- Full regression: 72 passed, 4 subtests passed.
+- Real command: python tools/capture_bc_caja_entrypoint.py artifacts/BC-CAJA-UX-006/final-1366x768.png --rows 30
+- Entrypoint result: BC_CAJA_REAL_ENTRYPOINT_CAPTURE_OK, 1366x768, result=0.
+- Sale values: frame 1.500.000, lens 250.000, total 1.750.000, pending 250.000.
+- Expense: Ferretería, 200.000, no observations; persisted in temporary SQLite and included in 31 movements.
+- Closed day: new expense rejected with canonical CashDayClosedError.
+- Scroll: yview changed from (0.0, 0.3548387096774194) to (0.16129032258064516, 0.5161290322580645).
+- Capture data: synthetic/demo only.

@@ -106,6 +106,30 @@ class CashDayUIControllerTests(unittest.TestCase):
         finally:
             reloaded_controller.service.repository.close()
 
+    def test_simple_expense_only_requires_concept_and_amount(self):
+        self.controller.open_or_load_day("02-08-2026", "PC", "1.500.000")
+        day, expense = self.controller.add_expense(
+            "02-08-2026", "PC", "Ferretería", "200.000"
+        )
+        self.assertEqual(expense.description, "Ferretería")
+        self.assertEqual(expense.expenses, 200000)
+        self.assertEqual(expense.source_reference, "")
+        self.assertEqual(day.totals().expenses, 200000)
+        self.assertEqual(day.totals().expected_cash, 1300000)
+        self.assertEqual(day.totals().card_check, 0)
+
+    def test_expense_observations_are_optional_audit_context(self):
+        self.controller.open_or_load_day("02-08-2026", "PC", "500000")
+        _, expense = self.controller.add_expense(
+            "02-08-2026", "PC", "Internet", "100000", "Factura demo"
+        )
+        self.assertEqual(expense.source_reference, "Factura demo")
+
+    def test_closed_day_blocks_simple_expense(self):
+        self.controller.open_or_load_day("02-08-2026", "PC", "500000")
+        self.controller.close_day("02-08-2026", "PC")
+        with self.assertRaises(CashDayClosedError):
+            self.controller.add_expense("02-08-2026", "PC", "Taxi", "50000")
     def test_legacy_analysis_imports_without_txt_dual_write(self):
         result = {"por_dia": {"03-08-2026": {
             "unidad": "PC",

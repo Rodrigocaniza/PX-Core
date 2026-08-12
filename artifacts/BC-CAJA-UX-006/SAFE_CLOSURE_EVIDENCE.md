@@ -1,14 +1,11 @@
 # Safe closure evidence
 
-- Isolated branch/worktree from the required operations base: PASS.
-- Domain, SQLite, migrations, audit, backups, calculations and business rules modified: no.
-- Main UI and visual-contract/capture tooling only: PASS.
-- Canonical reference preserved: PASS.
-- Three real iterative captures and one final 1366x768 capture: PASS.
-- Synthetic-data-only final capture: PASS.
-- Full Caja regression: PASS.
-- Command Center workflow preserved unedited in its canonical INVALIDATED state.
-- Artifact consistency: recorded separately.
-
-- Real-entrypoint overlap correction at 1366x768: PASS.
-- Left/right panel gutter and bottom-summary separation: PASS.
+- Isolated UX-006 branch/worktree: PASS.
+- Domain, SQLite schema, migrations, audit, backups and operational rules changed: no.
+- Existing domain protection for closed days reused: PASS.
+- Existing cash invariant (opening + cash sales - expenses) reused: PASS.
+- Arqueo functionality remains in its dedicated tab: PASS.
+- Real 1366x768 entrypoint, synthetic expense, open/closed behavior and scroll: PASS.
+- Full regression: 72 passed, 4 subtests passed.
+- Command Center workflow preserved INVALIDATED; no fabricated gates.
+- Protected push: not authorized in this request and not executed.

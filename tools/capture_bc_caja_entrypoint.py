@@ -4,7 +4,7 @@ import argparse
 import os
 import sys
 import tempfile
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 import customtkinter as ctk
 from PIL import ImageGrab
@@ -12,6 +12,7 @@ from tkinter import ttk
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import bc_caja
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
+from modulos.caja_diaria.domain.errors import CashDayClosedError
 from modulos.caja_diaria.domain.models import CashEntry
 
 
@@ -43,6 +44,15 @@ def main() -> int:
                     total=2700000, cash=1500000, card_check=1200000,
                     balance="0", source_reference="DATOS SINTETICOS UX-006",
                 ))
+            controller.add_expense(date.today().strftime("%d-%m-%Y"), "PC", "Ferretería", "200000")
+            closed_date = date.today() - timedelta(days=1)
+            closed = controller.service.open_day(business_date=closed_date, unit="PC", opening_cash=500000)
+            controller.service.close_day(closed.id)
+            try:
+                controller.add_expense(closed_date.strftime("%d-%m-%Y"), "PC", "No permitido", "1000")
+                raise RuntimeError("la caja cerrada aceptó un gasto")
+            except CashDayClosedError:
+                print("BC_CAJA_CLOSED_PROTECTION_OK")
             controller.service.repository.close()
 
         def capture_mainloop(root):
@@ -78,10 +88,20 @@ def main() -> int:
                 frame_field._entry.event_generate("<FocusOut>")
                 lens_field._entry.event_generate("<FocusOut>")
                 window.update()
-                values = (frame_field.get(), lens_field.get(), total_field.get())
-                if values != ("1.500.000", "250.000", "1.750.000"):
-                    raise RuntimeError(f"formato/total visible inválido: {values}")
-                print(f"BC_CAJA_MONEY_TOTAL_OK values={values}")
+                cash_field = field_for("Efectivo")
+                card_field = field_for("Tarjeta / Cheque")
+                transfer_field = field_for("Transferencia")
+                balance_field = field_for("Saldo pendiente")
+                for field, value in ((cash_field, "1000000"), (card_field, "500000"), (transfer_field, "0")):
+                    field.delete(0, "end")
+                    field.insert(0, value)
+                    field._entry.event_generate("<KeyRelease>", keysym="0")
+                    field._entry.event_generate("<FocusOut>")
+                window.update()
+                values = (frame_field.get(), lens_field.get(), total_field.get(), balance_field.get())
+                if values != ("1.500.000", "250.000", "1.750.000", "250.000"):
+                    raise RuntimeError(f"formato/total/saldo visible inválido: {values}")
+                print(f"BC_CAJA_MONEY_TOTAL_BALANCE_OK values={values}")
                 trees = [w for w in descendants(window) if isinstance(w, ttk.Treeview)]
                 if len(trees) != 1:
                     raise RuntimeError(f"se esperó una tabla, encontradas={len(trees)}")
@@ -90,7 +110,7 @@ def main() -> int:
                 tree.yview_scroll(5, "units")
                 window.update_idletasks()
                 after = tree.yview()
-                if len(tree.get_children()) != args.rows or after == before:
+                if len(tree.get_children()) != args.rows + 1 or after == before:
                     raise RuntimeError(f"scroll no operativo rows={len(tree.get_children())} size={tree.winfo_width()}x{tree.winfo_height()} before={before} after={after}")
                 print(f"BC_CAJA_SCROLL_OK rows={args.rows} before={before} after={after}")
             visible = [w for w in descendants(window) if w.winfo_ismapped()]
@@ -105,25 +125,20 @@ def main() -> int:
             ]
             notes_titles = [
                 w for w in visible if isinstance(w, ctk.CTkLabel)
-                and w.cget("text") == "Notas y gastos"
+                and w.cget("text") == "Notas"
             ]
-            summary_titles = [
-                w for w in visible if isinstance(w, ctk.CTkLabel)
-                and "Resumen para arqueo" in w.cget("text")
-            ]
-            if len(action_buttons) != 3 or len(notes_titles) != 1 or len(summary_titles) != 1:
+            if len(action_buttons) != 3 or len(notes_titles) != 1:
                 raise RuntimeError("estructura visible incompleta para validar geometría")
             entry_bottom = max(w.winfo_rooty() + w.winfo_height() for w in left_entries)
             action_top = min(w.winfo_rooty() for w in action_buttons)
             action_bottom = max(w.winfo_rooty() + w.winfo_height() for w in action_buttons)
-            summary_top = summary_titles[0].winfo_rooty()
-            if not entry_bottom < action_top or not action_bottom < summary_top:
+            if not entry_bottom < action_top:
                 raise RuntimeError(
-                    f"solapamiento entry_bottom={entry_bottom} action={action_top}..{action_bottom} summary_top={summary_top}"
+                    f"solapamiento entry_bottom={entry_bottom} action={action_top}..{action_bottom}"
                 )
             print(
                 f"BC_CAJA_LAYOUT_OK entry_bottom={entry_bottom} action_top={action_top} "
-                f"action_bottom={action_bottom} summary_top={summary_top}"
+                f"action_bottom={action_bottom}"
             )
             window.lift()
             window.focus_force()

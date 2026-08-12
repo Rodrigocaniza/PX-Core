@@ -21,13 +21,12 @@ class CashDayUX002ContractTests(unittest.TestCase):
             '"Detalle de venta"',
             '"Importes"',
             '"Cobro"',
-            '"Notas y gastos"',
+            '"Notas"',
             '"acciones"',
             '"<F2>"',
             '"<F3>"',
             '"<F9>"',
             '"<F12>"',
-            'Resumen para arqueo',
             'resolve_data_paths().root',
         ):
             self.assertIn(contract_text, source)

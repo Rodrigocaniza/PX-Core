@@ -18,15 +18,15 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
             '"#FFFFFF"',
             '"CAJA INICIAL"',
             '"VENTA TOTAL"',
-            '"ABIERTA"',
-            '"CERRADA"',
+            '"Estado: ABIERTA"',
+            '"Estado: CERRADA"',
             'Guardar venta  —  F9',
-            'Resumen para arqueo',
             'iconos_kpi = {',
             'pestañas._segmented_button.grid_forget()',
             'boton_cancelar.pack_forget()',
         ):
             self.assertIn(text, source)
+        self.assertNotIn("Resumen para arqueo", source)
 
 
     def test_close_and_count_show_the_operational_breakdown(self):
@@ -41,6 +41,7 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
             'f"Diferencia:',
         ):
             self.assertIn(text, source)
+        self.assertNotIn("Resumen para arqueo", source)
 
 if __name__ == "__main__":
     unittest.main()

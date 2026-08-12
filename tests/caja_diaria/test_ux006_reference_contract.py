@@ -23,20 +23,21 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             '"SALDO PEND."',
             '"EFECTIVO FINAL"',
             'cabecera.place(x=4, y=4)',
+            'formulario.configure(width=570, height=400)',
             'formulario.place(x=4, y=146)',
             'toolbar_movimientos.place(x=590, y=146)',
-            'pie_movimientos.place(x=590, y=512)',
-            'resumen_dia.place(x=4, y=554)',
+            'pie_movimientos.place(x=590, y=556)',
             'acciones_primarias = ctk.CTkFrame(acciones',
             'iconos_kpi = {',
             'recalcular_total_visible',
             'formulario.grid_propagate(False)',
             'acciones.pack_propagate(False)',
-            'resumen_dia.pack_propagate(False)',
+            'marco_grilla.configure(width=744, height=354)',
             'marco_grilla.grid_propagate(False)',
             'grilla_caja.bind("<MouseWheel>"',
-            '"Efectivo contado"',
-            '"Diferencia"',
+            '"Estado: ABIERTA"',
+            '"Estado: CERRADA"',
+            'controller.add_expense(',
         ):
             self.assertIn(text, source)
 
@@ -48,6 +49,22 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             CajaDiaria.sumar_importes_formulario("1.250.000", "1.450.000"),
             2700000,
         )
+    def test_non_cash_payment_methods_are_combined_for_persistence(self):
+        self.assertEqual(
+            CajaDiaria.sumar_medios_no_efectivo("500.000", "250.000"), 750000
+        )
+
+    def test_pending_balance_is_automatic_and_never_negative(self):
+        self.assertEqual(
+            CajaDiaria.calcular_saldo_pendiente(
+                "1.750.000", "1.000.000", "500.000", "0"
+            ),
+            250000,
+        )
+        self.assertEqual(
+            CajaDiaria.calcular_saldo_pendiente("100", "200", "0", "0"), 0
+        )
+
     def test_all_operational_fields_remain_mapped(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         self.assertIn('PRODUCTO_TRABAJO', source)
