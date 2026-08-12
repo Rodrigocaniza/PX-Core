@@ -58,6 +58,7 @@ def first_run_check(data_directory: Path) -> int:
         "receta_dr": "",
         "total": "300000", "efectivo": "300000", "tarjeta_cheque": "",
         "ordenes": "", "cuotas": "", "saldo": "", "gastos": "",
+        "vendedora": "PILOTO",
     }
     controller = build_cash_day_controller()
     try:

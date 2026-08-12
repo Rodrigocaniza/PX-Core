@@ -50,6 +50,7 @@ class CashDayUIController:
             )
 
     def add_manual_entry(self, values: Mapping[str, Any]) -> tuple[CashDay, CashEntry]:
+        self._require_saleswoman(values)
         entry = self._entry_from_legacy(values, origin="manual")
         cash_day = self.open_or_load_day(
             str(values.get("fecha", "")),
@@ -114,6 +115,7 @@ class CashDayUIController:
     def update_manual_entry(
         self, entry_id: str, values: Mapping[str, Any]
     ) -> tuple[CashDay, CashEntry]:
+        self._require_saleswoman(values)
         cash_day = self.load_day(str(values.get("fecha", "")), str(values.get("unidad", "")))
         existing = next((entry for entry in cash_day.entries if entry.id == entry_id), None)
         if existing is None:
@@ -136,6 +138,10 @@ class CashDayUIController:
             balance=candidate.balance,
             expenses=candidate.expenses,
             source_reference=candidate.source_reference,
+            customer_document=candidate.customer_document,
+            saleswoman=candidate.saleswoman,
+            delivery_date=candidate.delivery_date,
+            observations=candidate.observations,
         )
         saved = self.service.update_entry(cash_day.id, updated)
         return self.service.get_day(cash_day.id), saved
@@ -153,6 +159,24 @@ class CashDayUIController:
 
     def latest_cash_count(self, cash_day_id: str):
         return self.service.repository.get_latest_cash_count(cash_day_id)
+
+    def list_orders(self, filter_name: str = "Todos", today=None):
+        return self.service.list_orders(filter_name=filter_name, today=today)
+
+    def update_order_status(self, order_id: str, status: str):
+        return self.service.update_order_status(order_id, status)
+
+    def order_counts(self, today=None) -> tuple[int, int]:
+        return (
+            len(self.list_orders("Hoy", today=today)),
+            len(self.list_orders("Atrasados", today=today)),
+        )
+
+    @staticmethod
+    def _require_saleswoman(values: Mapping[str, Any]) -> None:
+        saleswoman = str(values.get("vendedora", "")).strip()
+        if not saleswoman or saleswoman == "Seleccionar...":
+            raise InvalidCashDayError("Seleccione la vendedora antes de guardar.")
 
     @staticmethod
     def _entry_from_legacy(
@@ -176,6 +200,10 @@ class CashDayUIController:
             expenses=values.get("gastos"),
             origin=origin,
             source_reference=source_reference or values.get("notas", ""),
+            customer_document=values.get("cliente_documento", ""),
+            saleswoman=values.get("vendedora", ""),
+            delivery_date=values.get("fecha_entrega") or None,
+            observations=values.get("notas", ""),
         )
 
 

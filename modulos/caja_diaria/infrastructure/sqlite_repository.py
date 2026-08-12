@@ -9,6 +9,8 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Iterator, Sequence
 
+from ..domain.errors import InvalidCashDayError
+
 from ..domain.models import (
     CashCount,
     CashCountStatus,
@@ -17,6 +19,8 @@ from ..domain.models import (
     CashEntry,
     CashEntryStatus,
     CashTotals,
+    Order,
+    OrderStatus,
 )
 
 
@@ -154,9 +158,10 @@ class SQLiteCashDayRepository:
                     """INSERT INTO cash_entries(
                         id,cash_day_id,description,envelope,frame_origin,code,frame,lens,laboratory,
                         prescription_doctor,total,cash,card_check,orders_text,installments_text,
-                        balance_text,expenses,origin,source_reference,created_at,updated_at,
+                        balance_text,expenses,origin,source_reference,customer_document,
+                        saleswoman,delivery_date,observations,created_at,updated_at,
                         status,voided_at,void_reason,revision
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
                 connection.commit()
@@ -170,7 +175,8 @@ class SQLiteCashDayRepository:
             entry.id, entry.cash_day_id, entry.description, entry.envelope, entry.frame_origin,
             entry.code, entry.frame, entry.lens, entry.laboratory, entry.prescription_doctor, entry.total,
             entry.cash, entry.card_check, entry.orders, entry.installments, entry.balance,
-            entry.expenses, entry.origin, entry.source_reference, _iso(entry.created_at),
+            entry.expenses, entry.origin, entry.source_reference, entry.customer_document,
+            entry.saleswoman, _iso(entry.delivery_date), entry.observations, _iso(entry.created_at),
             _iso(entry.updated_at), entry.status.value, _iso(entry.voided_at),
             entry.void_reason, entry.revision,
         )
@@ -225,6 +231,10 @@ class SQLiteCashDayRepository:
             "expenses": entry.expenses,
             "origin": entry.origin,
             "source_reference": entry.source_reference,
+            "customer_document": entry.customer_document,
+            "saleswoman": entry.saleswoman,
+            "delivery_date": _iso(entry.delivery_date),
+            "observations": entry.observations,
             "status": entry.status.value,
             "voided_at": _iso(entry.voided_at),
             "void_reason": entry.void_reason,
@@ -277,6 +287,8 @@ class SQLiteCashDayRepository:
             orders=item["orders_text"], installments=item["installments_text"],
             balance=item["balance_text"], expenses=item["expenses"], origin=item["origin"],
             source_reference=item["source_reference"], created_at=_datetime(item["created_at"]),
+            customer_document=item["customer_document"], saleswoman=item["saleswoman"],
+            delivery_date=item["delivery_date"], observations=item["observations"],
             updated_at=_datetime(item["updated_at"]), status=item["status"],
             voided_at=_datetime(item["voided_at"]), void_reason=item["void_reason"],
             revision=item["revision"],
@@ -346,3 +358,72 @@ class SQLiteCashDayRepository:
             }
             for row in rows
         ]
+
+    @staticmethod
+    def _hydrate_order(row: sqlite3.Row) -> Order:
+        return Order(
+            id=row["id"], origin=row["origin"], source_reference=row["source_reference"],
+            delivery_date=row["delivery_date"], branch=row["branch"],
+            customer_name=row["customer_name"], customer_document=row["customer_document"],
+            envelope=row["envelope"], saleswoman=row["saleswoman"], status=row["status"],
+            observations=row["observations"], cash_entry_id=row["cash_entry_id"],
+            created_at=_datetime(row["created_at"]), updated_at=_datetime(row["updated_at"]),
+        )
+
+    def save_order(self, order: Order) -> Order:
+        """Persiste un pedido; cash_entry_id hace idempotente el origen CAJA."""
+        with self._connection() as connection:
+            connection.execute(
+                """INSERT INTO orders(
+                    id,origin,source_reference,delivery_date,branch,customer_name,
+                    customer_document,envelope,saleswoman,status,observations,cash_entry_id,
+                    created_at,updated_at
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ON CONFLICT(cash_entry_id) WHERE cash_entry_id IS NOT NULL DO UPDATE SET
+                    delivery_date=excluded.delivery_date, branch=excluded.branch,
+                    customer_name=excluded.customer_name,
+                    customer_document=excluded.customer_document, envelope=excluded.envelope,
+                    saleswoman=excluded.saleswoman, observations=excluded.observations,
+                    updated_at=excluded.updated_at""",
+                (
+                    order.id, order.origin.value, order.source_reference,
+                    _iso(order.delivery_date), order.branch, order.customer_name,
+                    order.customer_document, order.envelope, order.saleswoman,
+                    order.status.value, order.observations, order.cash_entry_id,
+                    _iso(order.created_at), _iso(order.updated_at),
+                ),
+            )
+            connection.commit()
+        return self.get_order_for_entry(order.cash_entry_id) if order.cash_entry_id else order
+
+    def get_order_for_entry(self, entry_id: str | None) -> Order | None:
+        if not entry_id:
+            return None
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM orders WHERE cash_entry_id = ?", (entry_id,)
+            ).fetchone()
+        return self._hydrate_order(row) if row else None
+
+    def list_orders(self) -> Sequence[Order]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                """SELECT * FROM orders
+                ORDER BY delivery_date,
+                CASE status WHEN 'PENDIENTE' THEN 0 WHEN 'LISTO' THEN 1 ELSE 2 END,
+                created_at"""
+            ).fetchall()
+        return [self._hydrate_order(row) for row in rows]
+
+    def update_order_status(self, order_id: str, status: OrderStatus | str) -> Order:
+        with self._connection() as connection:
+            row = connection.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+            if row is None:
+                raise InvalidCashDayError(f"pedido inexistente: {order_id}")
+            updated = self._hydrate_order(row).transition_to(status)
+            connection.execute(
+                "UPDATE orders SET status = ?, updated_at = ? WHERE id = ?",
+                (updated.status.value, _iso(updated.updated_at), updated.id),
+            )
+            connection.commit()
+        return updated

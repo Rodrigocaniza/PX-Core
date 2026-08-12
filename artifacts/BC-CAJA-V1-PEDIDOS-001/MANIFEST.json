@@ -1,0 +1,162 @@
+{
+  "manifest_version": "1.0",
+  "generator": "tools/package_mission_evidence.py",
+  "algorithm": "sha256",
+  "mission": "BC-CAJA-V1-PEDIDOS-001",
+  "generated_at": "2026-08-12T23:13:45Z",
+  "status": "PASSED",
+  "repository": {
+    "root": "C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/caja-pedidos-v1",
+    "branch": "feature/caja-pedidos-v1",
+    "head_before": "f4acea8d8cef9e87fad8456c928ef52e7a9eadb2",
+    "head_after": "f4acea8d8cef9e87fad8456c928ef52e7a9eadb2",
+    "head_consistent": true,
+    "status_before": [
+      "M CajaDiaria.py",
+      " M bc_caja.py",
+      " M modulos/caja_diaria/application/ports.py",
+      " M modulos/caja_diaria/application/services.py",
+      " M modulos/caja_diaria/domain/models.py",
+      " M modulos/caja_diaria/infrastructure/sqlite_repository.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      " M tests/caja_diaria/test_operation_e2e.py",
+      " M tests/caja_diaria/test_sqlite_repository.py",
+      " M tests/caja_diaria/test_ui_controller.py",
+      "?? .bc-command-center/",
+      "?? .command-center-materialize/",
+      "?? artifacts/BC-CAJA-V1-PEDIDOS-001-STALE-GEN-1/",
+      "?? artifacts/BC-CAJA-V1-PEDIDOS-001/",
+      "?? modulos/caja_diaria/infrastructure/migrations/005_orders.sql",
+      "?? modulos/caja_diaria/ui/privacy.py",
+      "?? tests/caja_diaria/test_financial_privacy.py",
+      "?? tests/caja_diaria/test_orders_v1.py"
+    ],
+    "status_after": [
+      "M CajaDiaria.py",
+      " M bc_caja.py",
+      " M modulos/caja_diaria/application/ports.py",
+      " M modulos/caja_diaria/application/services.py",
+      " M modulos/caja_diaria/domain/models.py",
+      " M modulos/caja_diaria/infrastructure/sqlite_repository.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      " M tests/caja_diaria/test_operation_e2e.py",
+      " M tests/caja_diaria/test_sqlite_repository.py",
+      " M tests/caja_diaria/test_ui_controller.py",
+      "?? .bc-command-center/",
+      "?? .command-center-materialize/",
+      "?? artifacts/BC-CAJA-V1-PEDIDOS-001-STALE-GEN-1/",
+      "?? artifacts/BC-CAJA-V1-PEDIDOS-001/",
+      "?? modulos/caja_diaria/infrastructure/migrations/005_orders.sql",
+      "?? modulos/caja_diaria/ui/privacy.py",
+      "?? tests/caja_diaria/test_financial_privacy.py",
+      "?? tests/caja_diaria/test_orders_v1.py"
+    ]
+  },
+  "files": {
+    "implementation": [
+      {
+        "path": "CajaDiaria.py",
+        "sha256": "74fe57f3091245713a6e44bb1ed9986cbca40cb8cb452912f90c300b561fbed0"
+      },
+      {
+        "path": "bc_caja.py",
+        "sha256": "f1ce44a06c14978828829b7a227829e8cb301607883cf85cb0a59b5bf2e56396"
+      },
+      {
+        "path": "modulos/caja_diaria/application/ports.py",
+        "sha256": "d1dcf357da4944a18055fde88e192544850a0eb3c2d0fedc395a745ade582c92"
+      },
+      {
+        "path": "modulos/caja_diaria/application/services.py",
+        "sha256": "f27cea2b22805d964e269a36eaf8ad0e1dc68db2c66da5d33aa434c044910bfd"
+      },
+      {
+        "path": "modulos/caja_diaria/domain/models.py",
+        "sha256": "3cd5ee10e7ad8aa443b9b2fc94e3c98b7878765e664c6e6785dc7f0219763b6d"
+      },
+      {
+        "path": "modulos/caja_diaria/infrastructure/sqlite_repository.py",
+        "sha256": "12ff528eb4a336c3d4556c7b013f2db521df4ac5ee88c2f2d83d793f9a6b3b96"
+      },
+      {
+        "path": "modulos/caja_diaria/infrastructure/migrations/005_orders.sql",
+        "sha256": "8734d9d9f761a840cfc27271c75266daf9a28b53a3e5578b8f15318e6e7bbc6c"
+      },
+      {
+        "path": "modulos/caja_diaria/ui/controller.py",
+        "sha256": "d8976a8ba071184cbbdc11a881ce54c1c57344b58a1d43fcc9823ee6e27fb2f6"
+      },
+      {
+        "path": "modulos/caja_diaria/ui/privacy.py",
+        "sha256": "a0b376fd2db6b4744616acdd1cf3e9f50a0dec4e2f83236336e93d0b0ace6ece"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/caja_diaria/test_orders_v1.py",
+        "sha256": "c5000f1b9a6842b056a62247ec78076c1a88d8b71fdcd42c4e3bfedfe204ee52"
+      },
+      {
+        "path": "tests/caja_diaria/test_financial_privacy.py",
+        "sha256": "54729ee00952894cf05b54dca99f1ec1d707be2fc0ff9744a36b0369048fa86d"
+      },
+      {
+        "path": "tests/caja_diaria/test_operation_e2e.py",
+        "sha256": "76de42735e5c898039de266ad32d5159c46584751acca57903398c8216d05b47"
+      },
+      {
+        "path": "tests/caja_diaria/test_sqlite_repository.py",
+        "sha256": "845bd3892df700d5eb32c4aa3da0a6154c2a78d7e684a4633b204075bfb5524b"
+      },
+      {
+        "path": "tests/caja_diaria/test_ui_controller.py",
+        "sha256": "6cf24de419c6576424d23358d522ec0f23a519d23593ddd540c1d1fc88be0b1b"
+      }
+    ],
+    "dependencies": [
+      {
+        "path": ".bc-command-center/verification.json",
+        "sha256": "d0f47e1dd7b0f7057565401a6c9e47ae4ac6559bc640e1989145b65ce65fa789"
+      }
+    ]
+  },
+  "tests": {
+    "targeted": {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "tests/caja_diaria/test_orders_v1.py",
+        "tests/caja_diaria/test_financial_privacy.py",
+        "tests/caja_diaria/test_operation_e2e.py",
+        "tests/caja_diaria/test_sqlite_repository.py",
+        "tests/caja_diaria/test_ui_controller.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "25 passed, 1 warning in 1.03s"
+    },
+    "full_suite": {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "80 passed, 1 warning in 1.98s"
+    }
+  },
+  "zip": {
+    "path": "BC-Core-BC-CAJA-V1-PEDIDOS-001.zip",
+    "sha256": "fb8a0b10fe1bc2c9ff8ddce3d69dbef6da26ec812fd808ae8ba09f4e18e4e81c",
+    "file_count": 15
+  },
+  "summary_file": "SUMMARY.txt",
+  "prompts": {
+    "librarian": "PROMPT_LIBRARIAN.txt",
+    "qa": "PROMPT_QA.txt",
+    "auditor": "PROMPT_AUDITOR.txt"
+  },
+  "warnings": []
+}

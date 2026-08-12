@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "BC-CAJA-V1-PEDIDOS-001",
+  "attempt_id": "ac3c5a67-363f-4682-9028-fd30e37373e0",
+  "gate_id": "librarian:1",
+  "generation": 1,
+  "expected_role": "librarian",
+  "expected_state": "LIBRARIAN",
+  "workflow_revision": 4,
+  "handoff_id": "691d3f58-b037-5548-967e-1bee555c1b7f",
+  "evidence_digest": "c46ede675125d0da3c2ddb5dc1040f899b60013da39176d19f2a53dd64f84561",
+  "session_id": "5a6531cb-c2e2-4389-988a-576b67fa6d30"
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "repository": "caja-pedidos-v1",
+  "missions": {
+    "BC-CAJA-V1-PEDIDOS-001": "bc-caja-pedidos-v1"
+  },
+  "runners": {
+    "bc-caja-pedidos-v1": {
+      "working_directory": ".",
+      "commands": {
+        "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_orders_v1.py", "tests/caja_diaria/test_financial_privacy.py", "-q"],
+        "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
+        "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
+      }
+    }
+  }
+}

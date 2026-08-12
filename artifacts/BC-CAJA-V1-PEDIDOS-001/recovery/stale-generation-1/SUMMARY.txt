@@ -1,0 +1,210 @@
+MISSION EVIDENCE SUMMARY - BC-CAJA-V1-PEDIDOS-001
+
+Generated: 2026-08-12T23:04:31Z
+Status: PASSED
+
+1. REPOSITORY
+-------------
+Root: C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/caja-pedidos-v1
+Branch: feature/caja-pedidos-v1
+HEAD before: f4acea8d8cef9e87fad8456c928ef52e7a9eadb2
+HEAD after: f4acea8d8cef9e87fad8456c928ef52e7a9eadb2
+HEAD consistent: True
+
+git status --short (before):
+M CajaDiaria.py
+ M bc_caja.py
+ M modulos/caja_diaria/application/ports.py
+ M modulos/caja_diaria/application/services.py
+ M modulos/caja_diaria/domain/models.py
+ M modulos/caja_diaria/infrastructure/sqlite_repository.py
+ M modulos/caja_diaria/ui/controller.py
+ M tests/caja_diaria/test_operation_e2e.py
+ M tests/caja_diaria/test_sqlite_repository.py
+ M tests/caja_diaria/test_ui_controller.py
+?? .bc-command-center/
+?? artifacts/BC-CAJA-V1-PEDIDOS-001/
+?? modulos/caja_diaria/infrastructure/migrations/005_orders.sql
+?? modulos/caja_diaria/ui/privacy.py
+?? tests/caja_diaria/test_financial_privacy.py
+?? tests/caja_diaria/test_orders_v1.py
+
+git status --short (after):
+M CajaDiaria.py
+ M bc_caja.py
+ M modulos/caja_diaria/application/ports.py
+ M modulos/caja_diaria/application/services.py
+ M modulos/caja_diaria/domain/models.py
+ M modulos/caja_diaria/infrastructure/sqlite_repository.py
+ M modulos/caja_diaria/ui/controller.py
+ M tests/caja_diaria/test_operation_e2e.py
+ M tests/caja_diaria/test_sqlite_repository.py
+ M tests/caja_diaria/test_ui_controller.py
+?? .bc-command-center/
+?? artifacts/BC-CAJA-V1-PEDIDOS-001/
+?? modulos/caja_diaria/infrastructure/migrations/005_orders.sql
+?? modulos/caja_diaria/ui/privacy.py
+?? tests/caja_diaria/test_financial_privacy.py
+?? tests/caja_diaria/test_orders_v1.py
+
+2. FILES
+--------
+implementation:
+  - CajaDiaria.py (sha256: 74fe57f3091245713a6e44bb1ed9986cbca40cb8cb452912f90c300b561fbed0)
+  - bc_caja.py (sha256: f1ce44a06c14978828829b7a227829e8cb301607883cf85cb0a59b5bf2e56396)
+  - modulos/caja_diaria/application/ports.py (sha256: d1dcf357da4944a18055fde88e192544850a0eb3c2d0fedc395a745ade582c92)
+  - modulos/caja_diaria/application/services.py (sha256: f27cea2b22805d964e269a36eaf8ad0e1dc68db2c66da5d33aa434c044910bfd)
+  - modulos/caja_diaria/domain/models.py (sha256: 3cd5ee10e7ad8aa443b9b2fc94e3c98b7878765e664c6e6785dc7f0219763b6d)
+  - modulos/caja_diaria/infrastructure/sqlite_repository.py (sha256: 12ff528eb4a336c3d4556c7b013f2db521df4ac5ee88c2f2d83d793f9a6b3b96)
+  - modulos/caja_diaria/infrastructure/migrations/005_orders.sql (sha256: 8734d9d9f761a840cfc27271c75266daf9a28b53a3e5578b8f15318e6e7bbc6c)
+  - modulos/caja_diaria/ui/controller.py (sha256: d8976a8ba071184cbbdc11a881ce54c1c57344b58a1d43fcc9823ee6e27fb2f6)
+  - modulos/caja_diaria/ui/privacy.py (sha256: a0b376fd2db6b4744616acdd1cf3e9f50a0dec4e2f83236336e93d0b0ace6ece)
+tests:
+  - tests/caja_diaria/test_orders_v1.py (sha256: c5000f1b9a6842b056a62247ec78076c1a88d8b71fdcd42c4e3bfedfe204ee52)
+  - tests/caja_diaria/test_financial_privacy.py (sha256: 54729ee00952894cf05b54dca99f1ec1d707be2fc0ff9744a36b0369048fa86d)
+  - tests/caja_diaria/test_operation_e2e.py (sha256: 76de42735e5c898039de266ad32d5159c46584751acca57903398c8216d05b47)
+  - tests/caja_diaria/test_sqlite_repository.py (sha256: 845bd3892df700d5eb32c4aa3da0a6154c2a78d7e684a4633b204075bfb5524b)
+  - tests/caja_diaria/test_ui_controller.py (sha256: 6cf24de419c6576424d23358d522ec0f23a519d23593ddd540c1d1fc88be0b1b)
+dependencies:
+  - .bc-command-center/verification.json (sha256: d0f47e1dd7b0f7057565401a6c9e47ae4ac6559bc640e1989145b65ce65fa789)
+
+3. ZIP
+-----
+Path: BC-Core-BC-CAJA-V1-PEDIDOS-001.zip
+sha256: 43770bfd93c2d3f4004f19c7927d38c8b8ec96dee1a1382feb35ec2199460f14
+Files: 15
+
+4. TARGETED TEST RUN
+---------------------
+Command: python -m pytest tests/caja_diaria/test_orders_v1.py tests/caja_diaria/test_financial_privacy.py tests/caja_diaria/test_operation_e2e.py tests/caja_diaria/test_sqlite_repository.py tests/caja_diaria/test_ui_controller.py -v
+Exit code: 0
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\Usuario\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Usuario\Desktop\Proyecto X\PX-Core\.worktrees\caja-pedidos-v1
+collecting ... collected 25 items
+
+tests/caja_diaria/test_orders_v1.py::OrdersV1Tests::test_delivery_creates_exactly_one_structured_order PASSED [  4%]
+tests/caja_diaria/test_orders_v1.py::OrdersV1Tests::test_filters_and_state_transitions_persist PASSED [  8%]
+tests/caja_diaria/test_orders_v1.py::OrdersV1Tests::test_saleswoman_is_required_and_document_is_optional PASSED [ 12%]
+tests/caja_diaria/test_financial_privacy.py::FinancialPrivacyTests::test_manual_hide_show_and_no_automatic_reveal PASSED [ 16%]
+tests/caja_diaria/test_financial_privacy.py::FinancialPrivacyTests::test_timeout_hides_and_activity_only_restarts_timer PASSED [ 20%]
+tests/caja_diaria/test_operation_e2e.py::CashOperationE2ETests::test_two_days_edit_void_close_backup_and_restart PASSED [ 24%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_cash_count_with_difference_persists_expected_counted_status_and_detail PASSED [ 28%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_closed_snapshot_and_history_queries_round_trip PASSED [ 32%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_edit_and_void_keep_append_only_revisions PASSED [ 36%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_existing_001_database_migrates_without_losing_entries PASSED [ 40%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_latest_cash_count_is_persisted PASSED [ 44%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_migration_is_versioned_idempotent_and_enables_foreign_keys PASSED [ 48%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_round_trip_preserves_all_entry_fields_and_null_money PASSED [ 52%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_save_is_transactional_when_an_entry_violates_database_constraints PASSED [ 56%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_close_creates_a_valid_local_backup PASSED [ 60%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_close_survives_reload_and_blocks_new_entry PASSED [ 64%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_closed_day_blocks_simple_expense PASSED [ 68%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_edit_and_void_update_totals_without_erasing_history PASSED [ 72%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_expense_observations_are_optional_audit_context PASSED [ 76%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_friendly_errors_never_expose_tracebacks_or_sql PASSED [ 80%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_initial_cash_is_required_only_when_day_does_not_exist PASSED [ 84%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_invalid_input_does_not_create_day PASSED [ 88%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_legacy_analysis_imports_without_txt_dual_write PASSED [ 92%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_manual_flow_persists_and_reloads_with_new_controller PASSED [ 96%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_simple_expense_only_requires_concept_and_amount PASSED [100%]
+
+============================= 25 passed in 1.06s ==============================
+
+5. FULL SUITE RUN
+-----------------
+Command: python -m pytest -v
+Exit code: 0
+============================= test session starts =============================
+platform win32 -- Python 3.13.14, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\Usuario\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Usuario\Desktop\Proyecto X\PX-Core\.worktrees\caja-pedidos-v1
+collecting ... collected 80 items
+
+tests/caja_diaria/test_data_paths.py::CashDataPathTests::test_configured_path_is_stable_and_separates_data_backups_logs PASSED [  1%]
+tests/caja_diaria/test_data_paths.py::CashDataPathTests::test_explicit_test_database_never_uses_production_backup_directory PASSED [  2%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_carry_forward_requires_an_explicit_approved_policy PASSED [  3%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_cash_day_has_open_and_closed_states PASSED [  5%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_closed_day_rejects_new_entries PASSED [  6%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_history_query_is_a_repository_contract PASSED [  7%]
+tests/caja_diaria/test_desired_mvp_behavior.py::DesiredMvpBehaviorTests::test_invalid_money_is_rejected_instead_of_silently_becoming_zero PASSED [  8%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_cash_count_rejects_negative_or_unknown_denominations PASSED [ 10%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_cash_count_reports_shortage_and_surplus_without_rejecting_them PASSED [ 11%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_close_freezes_a_snapshot PASSED [ 12%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_confirmed_legacy_totals_are_preserved PASSED [ 13%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_expenses_reduce_only_expected_cash_and_survive_close PASSED [ 15%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_negative_and_float_money_are_rejected PASSED [ 16%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_optional_money_is_distinct_from_zero_and_text_is_preserved PASSED [ 17%]
+tests/caja_diaria/test_domain.py::CashDayDomainTests::test_update_and_logical_void_are_allowed_only_while_open PASSED [ 18%]
+tests/caja_diaria/test_financial_privacy.py::FinancialPrivacyTests::test_manual_hide_show_and_no_automatic_reveal PASSED [ 20%]
+tests/caja_diaria/test_financial_privacy.py::FinancialPrivacyTests::test_timeout_hides_and_activity_only_restarts_timer PASSED [ 21%]
+tests/caja_diaria/test_legacy_calculations.py::LegacyCalculationTests::test_cash_count_classifies_ok_surplus_and_shortage PASSED [ 22%]
+tests/caja_diaria/test_legacy_calculations.py::LegacyCalculationTests::test_closing_formula_uses_opening_cash_cash_sales_and_expenses PASSED [ 23%]
+tests/caja_diaria/test_legacy_calculations.py::LegacyCalculationTests::test_deleting_a_day_is_the_only_legacy_edit_like_operation PASSED [ 25%]
+tests/caja_diaria/test_legacy_calculations.py::LegacyCalculationTests::test_pipe_is_replaced_during_txt_serialization PASSED [ 26%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_blank_description_with_amount_is_discarded PASSED [ 27%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_declared_totals_mismatch_is_reported PASSED [ 28%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_duplicate_opening_uses_last_value_with_warning PASSED [ 30%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_empty_template_with_opening_is_not_an_operational_day PASSED [ 31%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_invalid_money_becomes_zero_with_non_blocking_error PASSED [ 32%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_missing_headers_omits_sheet PASSED [ 33%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_operational_ui_columns_follow_the_confirmed_excel_like_order PASSED [ 35%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_optional_cells_become_empty_strings PASSED [ 36%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_real_like_values_are_preserved_and_calculation_rows_are_not_entries PASSED [ 37%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_reported_column_order_matches_legacy_positions PASSED [ 38%]
+tests/caja_diaria/test_legacy_excel_contract.py::LegacyExcelContractTests::test_representative_day_preserves_rows_text_balance_and_totals PASSED [ 40%]
+tests/caja_diaria/test_operation_e2e.py::CashOperationE2ETests::test_two_days_edit_void_close_backup_and_restart PASSED [ 41%]
+tests/caja_diaria/test_orders_v1.py::OrdersV1Tests::test_delivery_creates_exactly_one_structured_order PASSED [ 42%]
+tests/caja_diaria/test_orders_v1.py::OrdersV1Tests::test_filters_and_state_transitions_persist PASSED [ 43%]
+tests/caja_diaria/test_orders_v1.py::OrdersV1Tests::test_saleswoman_is_required_and_document_is_optional PASSED [ 45%]
+tests/caja_diaria/test_pilot_entrypoint.py::PilotEntrypointTests::test_cli_self_check_accepts_path_independent_of_current_directory PASSED [ 46%]
+tests/caja_diaria/test_pilot_entrypoint.py::PilotEntrypointTests::test_first_run_check_closes_restarts_and_creates_backup PASSED [ 47%]
+tests/caja_diaria/test_pilot_entrypoint.py::PilotEntrypointTests::test_first_run_check_refuses_non_empty_target PASSED [ 48%]
+tests/caja_diaria/test_pilot_entrypoint.py::PilotEntrypointTests::test_self_check_creates_external_data_layout_and_is_repeatable PASSED [ 50%]
+tests/caja_diaria/test_services.py::CashDayServiceTests::test_batch_import_replaces_entries_atomically PASSED [ 51%]
+tests/caja_diaria/test_services.py::CashDayServiceTests::test_duplicate_business_date_and_unit_is_rejected PASSED [ 52%]
+tests/caja_diaria/test_services.py::CashDayServiceTests::test_open_add_close_and_historical_query PASSED [ 53%]
+tests/caja_diaria/test_session_hours.py::SessionHoursTests::test_saturday_uses_1210_tolerance PASSED [ 55%]
+tests/caja_diaria/test_session_hours.py::SessionHoursTests::test_session_hours_survive_sqlite_reload PASSED [ 56%]
+tests/caja_diaria/test_session_hours.py::SessionHoursTests::test_sunday_is_explicitly_pending_policy PASSED [ 57%]
+tests/caja_diaria/test_session_hours.py::SessionHoursTests::test_weekday_after_tolerance_records_real_minutes_without_rounding PASSED [ 58%]
+tests/caja_diaria/test_session_hours.py::SessionHoursTests::test_weekday_tolerance_does_not_trigger_overtime PASSED [ 60%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_cash_count_with_difference_persists_expected_counted_status_and_detail PASSED [ 61%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_closed_snapshot_and_history_queries_round_trip PASSED [ 62%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_edit_and_void_keep_append_only_revisions PASSED [ 63%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_existing_001_database_migrates_without_losing_entries PASSED [ 65%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_latest_cash_count_is_persisted PASSED [ 66%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_migration_is_versioned_idempotent_and_enables_foreign_keys PASSED [ 67%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_round_trip_preserves_all_entry_fields_and_null_money PASSED [ 68%]
+tests/caja_diaria/test_sqlite_repository.py::SQLiteCashDayRepositoryTests::test_save_is_transactional_when_an_entry_violates_database_constraints PASSED [ 70%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_close_creates_a_valid_local_backup PASSED [ 71%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_close_survives_reload_and_blocks_new_entry PASSED [ 72%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_closed_day_blocks_simple_expense PASSED [ 73%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_edit_and_void_update_totals_without_erasing_history PASSED [ 75%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_expense_observations_are_optional_audit_context PASSED [ 76%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_friendly_errors_never_expose_tracebacks_or_sql PASSED [ 77%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_initial_cash_is_required_only_when_day_does_not_exist PASSED [ 78%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_invalid_input_does_not_create_day PASSED [ 80%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_legacy_analysis_imports_without_txt_dual_write PASSED [ 81%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_manual_flow_persists_and_reloads_with_new_controller PASSED [ 82%]
+tests/caja_diaria/test_ui_controller.py::CashDayUIControllerTests::test_simple_expense_only_requires_concept_and_amount PASSED [ 83%]
+tests/caja_diaria/test_ui_smoke.py::CashDayUISmokeTests::test_fresh_temporary_database_boots_without_development_data PASSED [ 85%]
+tests/caja_diaria/test_ui_smoke.py::CashDayUISmokeTests::test_legacy_window_accepts_injected_controller PASSED [ 86%]
+tests/caja_diaria/test_ux002_layout_contract.py::CashDayUX002ContractTests::test_capture_is_split_into_product_and_payment_rows PASSED [ 87%]
+tests/caja_diaria/test_ux002_layout_contract.py::CashDayUX002ContractTests::test_window_shortcuts_actions_footer_and_target_are_explicit PASSED [ 88%]
+tests/caja_diaria/test_ux004_visual_contract.py::CashDayUX004VisualContractTests::test_close_and_count_show_the_operational_breakdown PASSED [ 90%]
+tests/caja_diaria/test_ux004_visual_contract.py::CashDayUX004VisualContractTests::test_dense_grid_columns_fit_the_initial_1366_view PASSED [ 91%]
+tests/caja_diaria/test_ux004_visual_contract.py::CashDayUX004VisualContractTests::test_high_fidelity_elements_are_explicit PASSED [ 92%]
+tests/caja_diaria/test_ux006_reference_contract.py::CashDayUX006ReferenceContractTests::test_all_operational_fields_remain_mapped PASSED [ 93%]
+tests/caja_diaria/test_ux006_reference_contract.py::CashDayUX006ReferenceContractTests::test_cash_count_messages_cover_conforming_shortage_and_surplus PASSED [ 95%]
+tests/caja_diaria/test_ux006_reference_contract.py::CashDayUX006ReferenceContractTests::test_non_cash_payment_methods_are_combined_for_persistence PASSED [ 96%]
+tests/caja_diaria/test_ux006_reference_contract.py::CashDayUX006ReferenceContractTests::test_pending_balance_is_automatic_and_never_negative PASSED [ 97%]
+tests/caja_diaria/test_ux006_reference_contract.py::CashDayUX006ReferenceContractTests::test_reference_macro_layout_and_controls_are_explicit PASSED [ 98%]
+tests/caja_diaria/test_ux006_reference_contract.py::CashDayUX006ReferenceContractTests::test_visible_money_format_and_total_rule PASSED [100%]
+
+============================= 80 passed in 2.04s ==============================
+
+6. WARNINGS
+-----------
+(none)

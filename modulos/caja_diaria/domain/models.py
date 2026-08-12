@@ -78,6 +78,62 @@ class CashCountStatus(str, Enum):
     SHORTAGE = "FALTA"
 
 
+class OrderOrigin(str, Enum):
+    CASH_REGISTER = "CAJA"
+    WHATSAPP = "WHATSAPP"
+    WEB = "WEB"
+    WORKSHOP = "TALLER"
+
+
+class OrderStatus(str, Enum):
+    PENDING = "PENDIENTE"
+    READY = "LISTO"
+    DELIVERED = "ENTREGADO"
+
+
+@dataclass(frozen=True)
+class Order:
+    delivery_date: date | str
+    branch: str
+    customer_name: str
+    saleswoman: str
+    origin: OrderOrigin | str = OrderOrigin.CASH_REGISTER
+    source_reference: str = ""
+    customer_document: str = ""
+    envelope: str = ""
+    status: OrderStatus | str = OrderStatus.PENDING
+    observations: str = ""
+    cash_entry_id: str | None = None
+    id: str = field(default_factory=new_id)
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "delivery_date", parse_business_date(self.delivery_date))
+        object.__setattr__(self, "origin", OrderOrigin(self.origin))
+        object.__setattr__(self, "status", OrderStatus(self.status))
+        for name in ("branch", "customer_name", "saleswoman"):
+            value = str(getattr(self, name) or "").strip()
+            if not value:
+                raise InvalidCashDayError(f"{name} es obligatorio")
+            object.__setattr__(self, name, value)
+        for name in ("source_reference", "customer_document", "envelope", "observations"):
+            object.__setattr__(self, name, str(getattr(self, name) or "").strip())
+
+    def transition_to(self, status: OrderStatus | str) -> "Order":
+        target = OrderStatus(status)
+        allowed = {
+            OrderStatus.PENDING: {OrderStatus.READY},
+            OrderStatus.READY: {OrderStatus.DELIVERED},
+            OrderStatus.DELIVERED: set(),
+        }
+        if target not in allowed[self.status]:
+            raise InvalidCashDayError(
+                f"transición de pedido inválida: {self.status.value} → {target.value}"
+            )
+        return replace(self, status=target, updated_at=utc_now())
+
+
 @dataclass(frozen=True)
 class CashTotals:
     total: int = 0
@@ -148,6 +204,10 @@ class CashEntry:
     balance: str = ""
     origin: str = "manual"
     source_reference: str = ""
+    customer_document: str = ""
+    saleswoman: str = ""
+    delivery_date: date | str | None = None
+    observations: str = ""
     id: str = field(default_factory=new_id)
     cash_day_id: str | None = None
     created_at: datetime = field(default_factory=utc_now)
@@ -167,9 +227,14 @@ class CashEntry:
         for name in (
             "envelope", "frame_origin", "code", "frame", "lens", "laboratory", "prescription_doctor",
             "orders", "installments", "balance", "origin", "source_reference",
+            "customer_document", "saleswoman", "observations",
         ):
             value = getattr(self, name)
             object.__setattr__(self, name, "" if value is None else str(value).strip())
+        if self.delivery_date in (None, ""):
+            object.__setattr__(self, "delivery_date", None)
+        else:
+            object.__setattr__(self, "delivery_date", parse_business_date(self.delivery_date))
         object.__setattr__(self, "void_reason", str(self.void_reason or "").strip())
         if self.status is CashEntryStatus.VOIDED:
             if self.voided_at is None or not self.void_reason:

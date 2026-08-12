@@ -28,6 +28,7 @@ class CashDayUIControllerTests(unittest.TestCase):
             "unidad": "PC",
             "caja_inicial": "500.000",
             "descripcion": "CLIENTE",
+            "vendedora": "ANA",
             "sobre": "S-1",
             "arm_org": "ARM",
             "cod": "A1",

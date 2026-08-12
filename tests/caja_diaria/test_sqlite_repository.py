@@ -27,13 +27,13 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
         try:
             self.assertEqual(
                 connection.execute("SELECT version FROM schema_migrations ORDER BY version").fetchall(),
-                [("001",), ("002",), ("003",), ("004",)],
+                [("001",), ("002",), ("003",), ("004",), ("005",)],
             )
             tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         finally:
             connection.close()
         self.assertTrue(
-            {"cash_days", "cash_entries", "cash_counts", "cash_entry_revisions"}.issubset(tables)
+            {"cash_days", "cash_entries", "cash_counts", "cash_entry_revisions", "orders"}.issubset(tables)
         )
 
     def test_round_trip_preserves_all_entry_fields_and_null_money(self):
@@ -164,7 +164,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
                 ).fetchall()
             finally:
                 check.close()
-            self.assertEqual(versions, [("001",), ("002",), ("003",), ("004",)])
+            self.assertEqual(versions, [("001",), ("002",), ("003",), ("004",), ("005",)])
         finally:
             migrated.close()
 

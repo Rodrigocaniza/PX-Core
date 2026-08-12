@@ -7,7 +7,9 @@ from typing import Iterable, Mapping, Sequence
 
 from .ports import CashDayRepository, CarryForwardPolicy
 from ..domain.errors import CashDayAlreadyExistsError, CashDayNotFoundError
-from ..domain.models import CashCount, CashDay, CashEntry, CashTotals, parse_business_date
+from ..domain.models import (
+    CashCount, CashDay, CashEntry, CashTotals, Order, OrderStatus, parse_business_date
+)
 
 
 class CashDayService:
@@ -81,13 +83,45 @@ class CashDayService:
         cash_day = self.get_day(cash_day_id)
         assigned = cash_day.add_entry(entry)
         self.repository.save(cash_day)
+        self._ensure_order(cash_day, assigned)
         return assigned
 
     def update_entry(self, cash_day_id: str, entry: CashEntry) -> CashEntry:
         cash_day = self.get_day(cash_day_id)
         updated = cash_day.update_entry(entry)
         self.repository.save(cash_day)
+        self._ensure_order(cash_day, updated)
         return updated
+
+    def _ensure_order(self, cash_day: CashDay, entry: CashEntry) -> Order | None:
+        if entry.delivery_date is None or entry.status.value != "ACTIVE":
+            return None
+        order = Order(
+            delivery_date=entry.delivery_date, branch=cash_day.unit,
+            customer_name=entry.description, customer_document=entry.customer_document,
+            envelope=entry.envelope, saleswoman=entry.saleswoman,
+            observations=entry.observations, cash_entry_id=entry.id,
+            source_reference=entry.id,
+        )
+        return self.repository.save_order(order)
+
+    def list_orders(self, *, filter_name: str = "Todos", today: date | str | None = None):
+        reference = parse_business_date(today or date.today())
+        orders = list(self.repository.list_orders())
+        if filter_name == "Hoy":
+            orders = [item for item in orders if item.delivery_date == reference]
+        elif filter_name == "Atrasados":
+            orders = [item for item in orders if item.delivery_date < reference and item.status is not OrderStatus.DELIVERED]
+        elif filter_name == "Próximos":
+            orders = [item for item in orders if item.delivery_date > reference and item.status is not OrderStatus.DELIVERED]
+        return sorted(orders, key=lambda item: (
+            0 if item.delivery_date < reference and item.status is not OrderStatus.DELIVERED else
+            1 if item.delivery_date == reference else 2,
+            item.delivery_date, item.created_at,
+        ))
+
+    def update_order_status(self, order_id: str, status: OrderStatus | str) -> Order:
+        return self.repository.update_order_status(order_id, status)
 
     def remove_entry(self, cash_day_id: str, entry_id: str) -> None:
         raise NotImplementedError("el borrado físico fue reemplazado por void_entry")

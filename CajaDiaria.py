@@ -37,6 +37,7 @@ from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.config import resolve_data_paths
 from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE
 from modulos.caja_diaria.ui.controller import friendly_error
+from modulos.caja_diaria.ui.privacy import FinancialPrivacy
 
 
 RUTA_CAJA_DIARIA = "Datos/caja_diaria.txt"
@@ -604,6 +605,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         barra_superior, text="BC Caja Diaria   │   Óptica Central",
         text_color=color_texto, font=ctk.CTkFont(size=14, weight="bold"),
     ).pack(side="left", padx=(0, 12))
+    privacidad = FinancialPrivacy()
     navegacion = ctk.CTkFrame(
         ventana, height=50, fg_color="#FFFFFF", corner_radius=0,
         border_width=1, border_color=color_borde_suave,
@@ -621,6 +623,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     pestañas.pack(fill="both", expand=True, padx=8, pady=(2, 4))
     tab_importar = pestañas.add("Importar Excel")
     tab_manual = pestañas.add("Cargar manual")
+    tab_pedidos = pestañas.add("Pedidos")
     tab_arqueo = pestañas.add("Arqueo")
     tab_historial = pestañas.add("Historial")
     pestañas._segmented_button.grid_forget()
@@ -639,6 +642,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     for nombre, etiqueta_nav in (
         ("Cargar manual", "▣  Caja diaria"),
+        ("Pedidos", "📦  Pedidos"),
         ("Arqueo", "▤  Arqueo"),
         ("Importar Excel", "▣  Importar Excel"),
         ("Historial", "Historial"),
@@ -808,11 +812,11 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     formulario.grid_columnconfigure(0, weight=1)
 
     secciones_formulario = (
-        ("1", "Cliente y comprobante", PRODUCTO_TRABAJO[:2]),
+        ("1", "Cliente y comprobante", (("descripcion", "Cliente / Descripción", 230), ("cliente_documento", "CI / RUC", 115), ("sobre", "Sobre N.º", 75))),
         ("2", "Detalle de venta", PRODUCTO_TRABAJO[2:]),
         ("3", "Importes", (COBRO_PAGO[0], COBRO_PAGO[3], COBRO_PAGO[4])),
         ("4", "Cobro", (("efectivo", "Efectivo", 100), ("tarjeta_cheque", "Tarjeta / Cheque", 110), ("transferencia", "Transferencia", 105), ("saldo", "Saldo pendiente", 100))),
-        ("5", "Notas", (("notas", "Observaciones", 330),)),
+        ("5", "Notas", (("notas", "Observaciones", 330), ("fecha_entrega", "Fecha de entrega", 160), ("vendedora", "Vendedora *", 140))),
         ("6", "Gastos", (("gasto_descripcion", "Descripción *", 210), ("gasto_monto", "Monto *", 120), ("accion_gasto", "", 110))),
     )
     for indice_seccion, (numero, titulo, columnas) in enumerate(secciones_formulario):
@@ -840,6 +844,12 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                     text_color="#D96C2C", border_width=1, border_color="#F2C69F",
                     hover_color="#FFEBD7",
                 )
+            elif clave == "vendedora":
+                campo = ctk.CTkComboBox(
+                    seccion, values=["Seleccionar...", "Ana", "Belén", "Carla", "Diana"],
+                    width=ancho, height=24,
+                )
+                campo.set("Seleccionar...")
             else:
                 campo = ctk.CTkEntry(
                     seccion, width=ancho, height=24, fg_color="#F8FAFD",
@@ -850,6 +860,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             campos_manual[clave] = campo
 
     campos_manual["notas"].configure(placeholder_text="Observaciones de la operación")
+    campos_manual["fecha_entrega"].configure(placeholder_text="dd-mm-aaaa")
 
     bloque_producto = formulario
     columna_guardar = None
@@ -1057,14 +1068,15 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         )
 
     def valores_fila(entry):
+        importe = lambda value: privacidad.display(formatear_monto(value or 0))
         return (
             (f"GASTO - {entry.description}" if entry.expenses else entry.description),
             entry.envelope, entry.frame_origin, entry.code,
             formatear_importe_ui(entry.frame), formatear_importe_ui(entry.lens),
             entry.laboratory, entry.prescription_doctor,
-            formatear_monto(entry.total or 0), formatear_monto(entry.cash or 0),
-            formatear_monto(entry.card_check or 0), entry.orders, entry.installments,
-            formatear_importe_ui(entry.balance), formatear_monto(entry.expenses or 0),
+            importe(entry.total), importe(entry.cash),
+            importe(entry.card_check), entry.orders, entry.installments,
+            privacidad.display(formatear_importe_ui(entry.balance)), importe(entry.expenses),
             "Editar  ·  Anular",
         )
     def refrescar_grilla(cash_day):
@@ -1129,13 +1141,14 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 saldo_pendiente += parsear_monto(entry.balance, permitir_cero=True)
             except (TypeError, ValueError):
                 pass
-        etiquetas_kpi["inicial"].configure(text=formatear_monto(cash_day.opening_cash))
-        etiquetas_kpi["ventas"].configure(text=formatear_monto(totales.total))
-        etiquetas_kpi["efectivo"].configure(text=formatear_monto(totales.cash))
-        etiquetas_kpi["tarjeta"].configure(text=formatear_monto(totales.card_check))
-        etiquetas_kpi["gastos"].configure(text=formatear_monto(totales.expenses))
-        etiquetas_kpi["saldo"].configure(text=formatear_monto(saldo_pendiente))
-        etiquetas_kpi["final"].configure(text=formatear_monto(totales.expected_cash))
+        mostrar_importe = lambda value: privacidad.display(formatear_monto(value))
+        etiquetas_kpi["inicial"].configure(text=mostrar_importe(cash_day.opening_cash))
+        etiquetas_kpi["ventas"].configure(text=mostrar_importe(totales.total))
+        etiquetas_kpi["efectivo"].configure(text=mostrar_importe(totales.cash))
+        etiquetas_kpi["tarjeta"].configure(text=mostrar_importe(totales.card_check))
+        etiquetas_kpi["gastos"].configure(text=mostrar_importe(totales.expenses))
+        etiquetas_kpi["saldo"].configure(text=mostrar_importe(saldo_pendiente))
+        etiquetas_kpi["final"].configure(text=mostrar_importe(totales.expected_cash))
         refrescar_grilla(cash_day)
         estado_control = "normal" if cash_day.status.value == "OPEN" else "disabled"
         estado_edicion["caja_abierta"] = cash_day.status.value == "OPEN"
@@ -1144,6 +1157,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 campos_manual[clave].configure(state=estado_control)
         campos_manual["transferencia"].configure(state=estado_control)
         campos_manual["notas"].configure(state=estado_control)
+        campos_manual["cliente_documento"].configure(state=estado_control)
+        campos_manual["fecha_entrega"].configure(state=estado_control)
+        campos_manual["vendedora"].configure(state=estado_control)
         campos_manual["gasto_descripcion"].configure(state=estado_control)
         campos_manual["gasto_monto"].configure(state=estado_control)
         boton_guardar.configure(state=estado_control)
@@ -1201,6 +1217,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             if clave in campos_manual:
                 campos_manual[clave].delete(0, "end")
         campos_manual["notas"].delete(0, "end")
+        for clave in ("cliente_documento", "fecha_entrega"):
+            campos_manual[clave].delete(0, "end")
+        campos_manual["vendedora"].set("Seleccionar...")
         campos_manual["descripcion"].focus_set()
 
     def guardar_manual():
@@ -1245,6 +1264,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         "total": "total", "efectivo": "cash", "tarjeta_cheque": "card_check",
         "ordenes": "orders", "cuotas": "installments", "saldo": "balance",
         "gastos": "expenses", "notas": "source_reference",
+        "cliente_documento": "customer_document", "vendedora": "saleswoman",
+        "fecha_entrega": "delivery_date",
     }
 
     def movimiento_seleccionado():
@@ -1337,6 +1358,31 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     for clave in ("fecha", "unidad"):
         campos_manual[clave].bind("<FocusOut>", refrescar_estado_consultado, add="+")
+    def alternar_privacidad():
+        privacidad.show() if privacidad.hidden else privacidad.hide()
+        boton_privacidad.configure(text="Mostrar importes" if privacidad.hidden else "👁 Ocultar importes")
+        refrescar_estado_consultado()
+
+    boton_privacidad = ctk.CTkButton(
+        barra_superior, text="👁 Ocultar importes", width=145, height=28,
+        fg_color="transparent", text_color=color_texto, border_width=1,
+        border_color=color_borde_suave, command=alternar_privacidad,
+    )
+    boton_privacidad.pack(side="right", padx=6)
+
+    def registrar_actividad(_event=None):
+        privacidad.activity()
+
+    def revisar_auto_privacidad():
+        estaba_oculta = privacidad.hidden
+        if privacidad.check_timeout() and not estaba_oculta:
+            boton_privacidad.configure(text="Mostrar importes")
+            refrescar_estado_consultado()
+        ventana.after(1000, revisar_auto_privacidad)
+
+    for evento in ("<KeyPress>", "<Button>", "<Motion>"):
+        ventana.bind_all(evento, registrar_actividad, add="+")
+    ventana.after(1000, revisar_auto_privacidad)
     boton_guardar = ctk.CTkButton(
         acciones_primarias, text="Guardar venta  —  F9", command=guardar_manual,
         width=150, height=32, fg_color=color_azul, hover_color="#0F5FC7",
@@ -1745,6 +1791,78 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         fg_color=COLOR_PRIMARIO,
         hover_color=COLOR_PRIMARIO_HOVER,
     ).pack(side="left", padx=8)
+
+    # ---- Pedidos V1 (estado central; Caja es solamente el primer origen) ----
+    barra_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="transparent")
+    barra_pedidos.pack(fill="x", padx=10, pady=10)
+    filtro_pedidos = ctk.StringVar(value="Hoy")
+    marco_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="#FFFFFF")
+    marco_pedidos.pack(fill="both", expand=True, padx=10, pady=(0, 8))
+    columnas_pedido = ("entrega", "cliente", "documento", "sobre", "sucursal", "vendedora", "origen", "estado")
+    grilla_pedidos = ttk.Treeview(marco_pedidos, columns=columnas_pedido, show="headings", style="Caja.Treeview")
+    for clave, titulo, ancho in (
+        ("entrega", "Entrega", 100), ("cliente", "Cliente", 250),
+        ("documento", "CI/RUC", 120), ("sobre", "Sobre", 75),
+        ("sucursal", "Sucursal", 100), ("vendedora", "Vendedora", 120),
+        ("origen", "Origen", 90), ("estado", "Estado", 110),
+    ):
+        grilla_pedidos.heading(clave, text=titulo)
+        grilla_pedidos.column(clave, width=ancho, anchor="w")
+    grilla_pedidos.pack(fill="both", expand=True, padx=5, pady=5)
+
+    def refrescar_pedidos(nombre=None):
+        if nombre:
+            filtro_pedidos.set(nombre)
+        for item in grilla_pedidos.get_children():
+            grilla_pedidos.delete(item)
+        for pedido in controller.list_orders(filtro_pedidos.get()):
+            grilla_pedidos.insert("", "end", iid=pedido.id, values=(
+                pedido.delivery_date.strftime("%d-%m-%Y"), pedido.customer_name,
+                pedido.customer_document, pedido.envelope, pedido.branch,
+                pedido.saleswoman, pedido.origin.value, pedido.status.value,
+            ))
+
+    for nombre in ("Hoy", "Atrasados", "Próximos", "Todos"):
+        ctk.CTkButton(
+            barra_pedidos, text=nombre, width=95,
+            command=lambda valor=nombre: refrescar_pedidos(valor),
+        ).pack(side="left", padx=3)
+
+    def cambiar_estado_pedido(estado):
+        seleccion = grilla_pedidos.selection()
+        if not seleccion:
+            messagebox.showwarning("Seleccioná un pedido", "Elegí una fila.", parent=ventana)
+            return
+        try:
+            controller.update_order_status(seleccion[0], estado)
+            refrescar_pedidos()
+        except Exception as exc:
+            mostrar_error(exc)
+
+    ctk.CTkButton(barra_pedidos, text="Marcar listo", command=lambda: cambiar_estado_pedido("LISTO"), fg_color=color_verde).pack(side="right", padx=3)
+    ctk.CTkButton(barra_pedidos, text="Marcar entregado", command=lambda: cambiar_estado_pedido("ENTREGADO"), fg_color=color_azul).pack(side="right", padx=3)
+
+    aviso_entregas = ctk.CTkButton(
+        acciones_primarias, text="", width=210, height=32, fg_color="#FFF7ED",
+        text_color="#9A5B00", border_width=1, border_color="#F2C69F",
+        command=lambda: (seleccionar_pestaña("Pedidos"), refrescar_pedidos("Hoy")),
+    )
+
+    def refrescar_avisos():
+        hoy, atrasados = controller.order_counts()
+        partes = []
+        if hoy:
+            partes.append(f"📦 {hoy} pedidos para entregar hoy")
+        if atrasados:
+            partes.append(f"⚠ {atrasados} pedidos atrasados")
+        if partes:
+            aviso_entregas.configure(text="  ·  ".join(partes))
+            if not aviso_entregas.winfo_manager():
+                aviso_entregas.pack(side="left", padx=8)
+        else:
+            aviso_entregas.pack_forget()
+
+    refrescar_avisos()
 
 
     ventana.after(100, ventana.focus_set)
