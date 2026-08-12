@@ -92,9 +92,9 @@ class CashTotals:
 class SessionHours:
     """Resultado auditable del horario de una Caja cerrada.
 
-    ``overtime_minutes`` conserva únicamente el mínimo confirmado. La regla
-    para acumular o redondear después de esa primera hora sigue pendiente.
-    En domingos, donde todavía no existe política, ambos campos quedan NULL.
+    ``overtime_minutes`` conserva los minutos reales transcurridos desde el
+    final de la tolerancia. No aplica redondeo. En domingos, donde todavía no
+    existe política, ambos campos quedan NULL.
     """
 
     duration_seconds: int
@@ -119,9 +119,14 @@ def calculate_session_hours(
     else:
         return SessionHours(duration_seconds, None, None)
 
-    local_close = closed_at.astimezone(BUSINESS_TIMEZONE).time().replace(tzinfo=None)
-    triggered = local_close > tolerance_end
-    return SessionHours(duration_seconds, triggered, 60 if triggered else 0)
+    local_close_at = closed_at.astimezone(BUSINESS_TIMEZONE)
+    tolerance_end_at = datetime.combine(
+        local_close_at.date(), tolerance_end, tzinfo=BUSINESS_TIMEZONE
+    )
+    overtime_seconds = int((local_close_at - tolerance_end_at).total_seconds())
+    overtime_minutes = max(0, overtime_seconds // 60)
+    triggered = overtime_minutes > 0
+    return SessionHours(duration_seconds, triggered, overtime_minutes)
 
 
 @dataclass(frozen=True)

@@ -866,7 +866,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         if cash_day.overtime_triggered is None:
             extra = "Hora extra: política pendiente para este día"
         elif cash_day.overtime_triggered:
-            extra = "Hora extra: SÍ · mínimo confirmado 1 h"
+            extra = f"Hora extra: SÍ · {cash_day.overtime_minutes} min"
         else:
             extra = "Hora extra: NO"
         return (
@@ -934,9 +934,23 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         boton_abrir.pack_forget()
 
     def cerrar_caja():
+        try:
+            cash_day_abierta = controller.load_day(
+                campos_manual["fecha"].get().strip(),
+                campos_manual["unidad"].get().strip(),
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        totales = cash_day_abierta.totals()
         if not messagebox.askyesno(
             "Cerrar Caja",
-            "Después del cierre no se podrán cargar ni modificar movimientos. ¿Continuar?",
+            "Caja inicial: " + formatear_monto(cash_day_abierta.opening_cash) + "\n"
+            "Ventas en efectivo: " + formatear_monto(totales.cash) + "\n"
+            "Tarjeta / transferencia: " + formatear_monto(totales.card_check) + "\n"
+            "Gastos: " + formatear_monto(totales.expenses) + "\n"
+            "Efectivo esperado: " + formatear_monto(totales.expected_cash) + "\n\n"
+            "Después del cierre no se podrán modificar movimientos. ¿Cerrar caja?",
             parent=ventana,
         ):
             return
@@ -1251,6 +1265,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 )
                 return
         try:
+            cash_day = controller.load_day(fecha, combo_unidad_arqueo.get())
+            totales = cash_day.totals()
             resultado = controller.record_cash_count(
                 fecha, combo_unidad_arqueo.get(), conteo
             )
@@ -1262,8 +1278,12 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         }[resultado.status.value]
         etiqueta_resultado.configure(
             text=(
-                f"Contado: {formatear_monto(resultado.counted_total)}\n"
-                f"Esperado: {formatear_monto(resultado.expected_total)}\n"
+                f"Caja inicial: {formatear_monto(cash_day.opening_cash)}\n"
+                f"Ventas en efectivo: {formatear_monto(totales.cash)}\n"
+                f"Tarjeta / transferencia: {formatear_monto(totales.card_check)}\n"
+                f"Gastos: {formatear_monto(totales.expenses)}\n"
+                f"Efectivo esperado: {formatear_monto(resultado.expected_total)}\n"
+                f"Efectivo contado: {formatear_monto(resultado.counted_total)}\n"
                 f"Diferencia: {formatear_monto(resultado.difference)} "
                 f"({resultado.status.value})"
             ),

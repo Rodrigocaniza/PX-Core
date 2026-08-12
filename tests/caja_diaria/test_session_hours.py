@@ -29,11 +29,22 @@ class SessionHoursTests(unittest.TestCase):
         self.assertFalse(day.overtime_triggered)
         self.assertEqual(day.overtime_minutes, 0)
 
-    def test_weekday_after_tolerance_records_confirmed_minimum_only(self):
+        within_last_tolerance_minute = self.make_day("2026-08-10", (8, 0))
+        within_last_tolerance_minute.close(
+            closed_at=datetime(2026, 8, 10, 18, 10, 59, tzinfo=ASUNCION)
+        )
+        self.assertFalse(within_last_tolerance_minute.overtime_triggered)
+        self.assertEqual(within_last_tolerance_minute.overtime_minutes, 0)
+
+    def test_weekday_after_tolerance_records_real_minutes_without_rounding(self):
         day = self.make_day("2026-08-10", (8, 0))
         day.close(closed_at=datetime(2026, 8, 10, 18, 11, tzinfo=ASUNCION))
         self.assertTrue(day.overtime_triggered)
-        self.assertEqual(day.overtime_minutes, 60)
+        self.assertEqual(day.overtime_minutes, 1)
+
+        later = self.make_day("2026-08-11", (8, 0))
+        later.close(closed_at=datetime(2026, 8, 11, 19, 10, tzinfo=ASUNCION))
+        self.assertEqual(later.overtime_minutes, 60)
 
     def test_saturday_uses_1210_tolerance(self):
         at_limit = self.make_day("2026-08-15", (8, 0))
@@ -42,7 +53,7 @@ class SessionHoursTests(unittest.TestCase):
         after.close(closed_at=datetime(2026, 8, 22, 12, 11, tzinfo=ASUNCION))
         self.assertFalse(at_limit.overtime_triggered)
         self.assertTrue(after.overtime_triggered)
-        self.assertEqual(after.overtime_minutes, 60)
+        self.assertEqual(after.overtime_minutes, 1)
 
     def test_sunday_is_explicitly_pending_policy(self):
         day = self.make_day("2026-08-16", (8, 0))
@@ -62,7 +73,7 @@ class SessionHoursTests(unittest.TestCase):
         self.assertEqual(loaded.closed_at, day.closed_at)
         self.assertEqual(loaded.session_duration_seconds, day.session_duration_seconds)
         self.assertTrue(loaded.overtime_triggered)
-        self.assertEqual(loaded.overtime_minutes, 60)
+        self.assertEqual(loaded.overtime_minutes, 1)
 
 
 if __name__ == "__main__":

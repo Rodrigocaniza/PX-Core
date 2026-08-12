@@ -28,5 +28,18 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
             self.assertIn(text, source)
 
 
+    def test_close_and_count_show_the_operational_breakdown(self):
+        source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
+        for text in (
+            '"Caja inicial: "',
+            '"Ventas en efectivo: "',
+            '"Tarjeta / transferencia: "',
+            '"Gastos: "',
+            '"Efectivo esperado: "',
+            'f"Efectivo contado:',
+            'f"Diferencia:',
+        ):
+            self.assertIn(text, source)
+
 if __name__ == "__main__":
     unittest.main()
