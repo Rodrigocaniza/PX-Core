@@ -17,15 +17,17 @@ class CashDayUX002ContractTests(unittest.TestCase):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         for contract_text in (
             'geometry("1366x768")',
-            '"1  CLIENTE, COMPROBANTE Y DETALLE DE VENTA"',
-            '"2  IMPORTES, COBRO Y NOTAS"',
+            '"Cliente y comprobante"',
+            '"Detalle de venta"',
+            '"Importes"',
+            '"Cobro"',
+            '"Notas y gasto"',
             '"acciones"',
             '"<F2>"',
             '"<F3>"',
             '"<F9>"',
             '"<F12>"',
-            '"RESUMEN DEL DÍA"',
-            '"Saldo pendiente',
+            'Resumen para arqueo',
             'resolve_data_paths().root',
         ):
             self.assertIn(contract_text, source)

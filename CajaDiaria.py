@@ -541,16 +541,25 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     ventana.configure(fg_color=color_fondo)
 
     barra_superior = ctk.CTkFrame(
-        ventana, height=42, fg_color=color_panel, corner_radius=0
+        ventana, height=40, fg_color="#FFFFFF", corner_radius=0
     )
     barra_superior.pack(fill="x", padx=0, pady=0)
     barra_superior.pack_propagate(False)
     ctk.CTkLabel(
-        barra_superior, text="▣   BC Caja Diaria    │    Óptica Central",
-        font=ctk.CTkFont(size=17, weight="bold"), anchor="w",
-    ).pack(side="left", padx=(18, 20))
-    navegacion = ctk.CTkFrame(barra_superior, fg_color="transparent")
-    navegacion.pack(side="left", fill="y")
+        barra_superior, text="BC", width=32, height=28, corner_radius=6,
+        fg_color=color_azul, text_color="#FFFFFF",
+        font=ctk.CTkFont(size=15, weight="bold"), anchor="center",
+    ).pack(side="left", padx=(16, 8))
+    ctk.CTkLabel(
+        barra_superior, text="BC Caja Diaria   │   Óptica Central",
+        text_color=color_texto, font=ctk.CTkFont(size=14, weight="bold"),
+    ).pack(side="left", padx=(0, 12))
+    navegacion = ctk.CTkFrame(
+        ventana, height=50, fg_color="#FFFFFF", corner_radius=0,
+        border_width=1, border_color=color_borde_suave,
+    )
+    navegacion.pack(fill="x")
+    navegacion.pack_propagate(False)
     ctk.CTkLabel(
         barra_superior, text="⚙  Configuración        📅  " + date.today().strftime("Hoy, %d/%m/%Y"),
         text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=11, weight="bold"),
@@ -574,8 +583,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         pestañas.set(nombre)
         for etiqueta, boton in botones_navegacion.items():
             boton.configure(
-                fg_color=color_azul if etiqueta == nombre else "transparent",
-                text_color="#FFFFFF" if etiqueta == nombre else color_suave,
+                fg_color="#EAF3FF" if etiqueta == nombre else "transparent",
+                text_color=color_azul if etiqueta == nombre else color_suave,
             )
 
     for nombre, etiqueta_nav in (
@@ -585,12 +594,12 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ("Historial", "Historial"),
     ):
         boton = ctk.CTkButton(
-            navegacion, text=etiqueta_nav, width=132, height=34, corner_radius=0,
+            navegacion, text=etiqueta_nav, width=170, height=48, corner_radius=0,
             fg_color="transparent", hover_color=color_panel_alto,
             text_color=color_suave, font=ctk.CTkFont(size=11, weight="bold"),
             command=lambda destino=nombre: seleccionar_pestaña(destino),
         )
-        boton.pack(side="left", padx=1, pady=6)
+        boton.pack(side="left", padx=(16 if nombre == "Cargar manual" else 0, 0), pady=0)
         botones_navegacion[nombre] = boton
     seleccionar_pestaña("Cargar manual")
 
@@ -742,40 +751,48 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     columnas_operativas = COLUMNAS_OPERATIVAS
 
-    def crear_bloque_captura(titulo, columnas, acento, incluir_guardar=False):
-        bloque = ctk.CTkFrame(
-            tab_manual, fg_color=color_panel, corner_radius=8,
-            border_width=1, border_color=color_borde_suave,
-        )
-        bloque.pack(fill="x", padx=6, pady=2)
-        ctk.CTkLabel(
-            bloque, text=titulo, anchor="w",
-            font=ctk.CTkFont(size=13, weight="bold"), text_color=color_texto,
-        ).grid(row=0, column=0, columnspan=4, padx=12, pady=(7, 3), sticky="ew")
-        for indice, (clave, etiqueta, ancho) in enumerate(columnas):
-            columna = indice % 4
-            fila = 1 + (indice // 4) * 2
-            bloque.grid_columnconfigure(columna, weight=1, uniform="form")
-            ctk.CTkLabel(
-                bloque, text=etiqueta, font=ctk.CTkFont(size=9, weight="bold"),
-                text_color=color_suave, anchor="w",
-            ).grid(row=fila, column=columna, padx=6, pady=(2, 0), sticky="ew")
-            campo = ctk.CTkEntry(
-                bloque, width=ancho, height=28, fg_color="#F7F9FC",
-                border_color=color_borde_suave, text_color=color_texto,
-            )
-            campo.grid(row=fila + 1, column=columna, padx=6, pady=(0, 4), sticky="ew")
-            campos_manual[clave] = campo
-        if incluir_guardar:
-            return bloque, 4
-        return bloque, None
+    formulario = ctk.CTkFrame(
+        tab_manual, fg_color="#FFFFFF", corner_radius=9,
+        border_width=1, border_color=color_borde_suave,
+    )
+    formulario.grid_columnconfigure(0, weight=1)
 
-    bloque_producto, _ = crear_bloque_captura(
-        "1  CLIENTE, COMPROBANTE Y DETALLE DE VENTA", PRODUCTO_TRABAJO, color_azul
+    secciones_formulario = (
+        ("1", "Cliente y comprobante", PRODUCTO_TRABAJO[:2]),
+        ("2", "Detalle de venta", PRODUCTO_TRABAJO[2:]),
+        ("3", "Importes", COBRO_PAGO[:3]),
+        ("4", "Cobro", COBRO_PAGO[3:6]),
+        ("5", "Notas y gasto", COBRO_PAGO[6:]),
     )
-    bloque_cobro, columna_guardar = crear_bloque_captura(
-        "2  IMPORTES, COBRO Y NOTAS", COBRO_PAGO, color_verde, incluir_guardar=True
-    )
+    for indice_seccion, (numero, titulo, columnas) in enumerate(secciones_formulario):
+        seccion = ctk.CTkFrame(formulario, fg_color="transparent", corner_radius=0)
+        seccion.grid(row=indice_seccion, column=0, sticky="ew", padx=10, pady=(5, 1))
+        for columna in range(max(1, len(columnas))):
+            seccion.grid_columnconfigure(columna, weight=1, uniform=f"sec{indice_seccion}")
+        ctk.CTkLabel(
+            seccion, text=numero, width=22, height=22, corner_radius=11,
+            fg_color=color_azul, text_color="#FFFFFF",
+            font=ctk.CTkFont(size=10, weight="bold"),
+        ).grid(row=0, column=0, sticky="w", pady=(0, 3))
+        ctk.CTkLabel(
+            seccion, text=titulo, text_color=color_texto, anchor="w",
+            font=ctk.CTkFont(size=11, weight="bold"),
+        ).grid(row=0, column=0, columnspan=max(1, len(columnas)), sticky="w", padx=(30, 0), pady=(0, 3))
+        for columna, (clave, etiqueta, ancho) in enumerate(columnas):
+            ctk.CTkLabel(
+                seccion, text=etiqueta, text_color=color_suave, anchor="w",
+                font=ctk.CTkFont(size=8, weight="bold"),
+            ).grid(row=1, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0))
+            campo = ctk.CTkEntry(
+                seccion, width=ancho, height=27, fg_color="#F8FAFD",
+                border_width=1, border_color=color_borde_suave, text_color=color_texto,
+                font=ctk.CTkFont(size=9),
+            )
+            campo.grid(row=2, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0), pady=(0, 2))
+            campos_manual[clave] = campo
+
+    bloque_producto = formulario
+    columna_guardar = None
     orden_teclado = [clave for clave, _, _ in columnas_operativas]
     for indice, clave in enumerate(orden_teclado[:-1]):
         siguiente = orden_teclado[indice + 1]
@@ -783,10 +800,12 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             "<Return>", lambda _event, destino=siguiente: campos_manual[destino].focus_set()
         )
 
+    estado_operativo = ctk.CTkFrame(cabecera, fg_color="transparent")
+    estado_operativo.grid(row=0, column=6, rowspan=2, sticky="e", padx=8)
     zona_estado = ctk.CTkFrame(tab_manual, fg_color="transparent")
 
     estado_caja = ctk.CTkLabel(
-        zona_estado, text="SIN CONSULTAR", width=95, height=20, corner_radius=5,
+        estado_operativo, text="SIN CONSULTAR", width=95, height=20, corner_radius=5,
         fg_color=color_panel_alto, text_color=COLOR_TEXTO_SUAVE,
         font=ctk.CTkFont(size=9, weight="bold"),
     )
@@ -802,18 +821,18 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ("final", "EFECTIVO FINAL", color_azul),
     ):
         tarjeta = ctk.CTkFrame(
-            zona_estado, width=150, height=68, fg_color="#FFFFFF", corner_radius=7,
+            zona_estado, width=181, height=82, fg_color="#FFFFFF", corner_radius=7,
             border_width=1, border_color=color,
         )
-        tarjeta.pack(side="left", padx=3, pady=2)
+        tarjeta.pack(side="left", padx=4, pady=3)
         tarjeta.pack_propagate(False)
         ctk.CTkLabel(
             tarjeta, text=titulo, text_color=color_suave,
-            font=ctk.CTkFont(size=7, weight="bold"),
+            font=ctk.CTkFont(size=9, weight="bold"),
         ).pack(padx=3, pady=(5, 0))
         valor = ctk.CTkLabel(
             tarjeta, text="—", text_color=color,
-            font=ctk.CTkFont(size=11, weight="bold"),
+            font=ctk.CTkFont(size=15, weight="bold"),
         )
         valor.pack(padx=3, pady=(0, 4))
         etiquetas_kpi[clave] = valor
@@ -849,7 +868,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     estilo = ttk.Style(ventana)
     estilo.theme_use("clam")
     estilo.configure(
-        "Caja.Treeview", rowheight=23, font=("Segoe UI", 8),
+        "Caja.Treeview", rowheight=27, font=("Segoe UI", 9),
         background="#FFFFFF", fieldbackground="#FFFFFF", foreground="#24324A",
         borderwidth=0, relief="flat",
     )
@@ -859,7 +878,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         foreground=[("selected", "#FFFFFF")],
     )
     estilo.configure(
-        "Caja.Treeview.Heading", font=("Segoe UI", 8, "bold"),
+        "Caja.Treeview.Heading", font=("Segoe UI", 9, "bold"),
         background="#EDF3FA", foreground="#33425B", relief="flat", padding=(4, 5),
     )
     estilo.map("Caja.Treeview.Heading", background=[("active", "#245DA8")])
@@ -889,6 +908,22 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     scroll_horizontal.grid(row=1, column=0, sticky="ew")
     marco_grilla.grid_rowconfigure(0, weight=1)
     marco_grilla.grid_columnconfigure(0, weight=1)
+    pie_movimientos = ctk.CTkFrame(
+        tab_manual, fg_color="#FFFFFF", corner_radius=7,
+        border_width=1, border_color=color_borde_suave,
+    )
+    etiqueta_conteo_movimientos = ctk.CTkLabel(
+        pie_movimientos, text="Mostrando 0 de 0 movimientos", anchor="w",
+        text_color=color_suave, font=ctk.CTkFont(size=9),
+    )
+    etiqueta_conteo_movimientos.pack(side="left", padx=12)
+    for pagina in ("‹", "1", "2", "3", "›"):
+        ctk.CTkButton(
+            pie_movimientos, text=pagina, width=30, height=27, corner_radius=5,
+            fg_color=color_azul if pagina == "1" else "transparent",
+            text_color="#FFFFFF" if pagina == "1" else color_texto,
+            border_width=1, border_color=color_borde_suave,
+        ).pack(side="right", padx=2, pady=4)
 
     def texto_estado(cash_day):
         totales = cash_day.totals()
@@ -951,6 +986,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             if entry.status.value == "VOIDED":
                 values[0] = f"ANULADO · {values[0]}"
             grilla_caja.insert("", "end", iid=entry.id, values=values, tags=tags)
+        etiqueta_conteo_movimientos.configure(
+            text=f"Mostrando {len(grilla_caja.get_children())} de {len(cash_day.entries)} movimientos"
+        )
 
     def aplicar_filtro_movimientos(nombre):
         filtro_movimientos.set(nombre)
@@ -1150,34 +1188,49 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         except Exception as exc:
             mostrar_error(exc)
 
-    resumen_dia = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=6)
-    resumen_dia.pack(fill="x", padx=4, pady=2)
+    resumen_dia = ctk.CTkFrame(
+        tab_manual, fg_color="#FFFFFF", corner_radius=9,
+        border_width=1, border_color=color_borde_suave,
+    )
+    titulo_arqueo = ctk.CTkFrame(resumen_dia, fg_color="transparent", width=230)
+    titulo_arqueo.pack(side="left", fill="y", padx=(14, 8), pady=10)
+    titulo_arqueo.pack_propagate(False)
     ctk.CTkLabel(
-        resumen_dia, text="RESUMEN DEL DÍA", width=112, anchor="w",
-        font=ctk.CTkFont(size=10, weight="bold"), text_color=COLOR_TEXTO_SUAVE,
-    ).pack(side="left", padx=(8, 4), pady=4)
+        titulo_arqueo, text="▤  Resumen para arqueo", anchor="w",
+        text_color=color_texto, font=ctk.CTkFont(size=13, weight="bold"),
+    ).pack(fill="x")
+    ctk.CTkLabel(
+        titulo_arqueo, text="Cálculo del cierre de caja", anchor="w",
+        text_color=color_suave, font=ctk.CTkFont(size=9),
+    ).pack(fill="x", pady=(3, 0))
+
     etiquetas_resumen = {}
-    for clave, titulo, color in (
-        ("ventas", "Ventas totales", "#DCE7F5"),
-        ("efectivo", "Efectivo", color_verde),
-        ("tarjeta", "Tarj./Cheq./Transf.", color_azul),
-        ("ordenes", "Órdenes", "#B9C9DC"),
-        ("gastos", "Gastos", "#EF6B78"),
-        ("saldo", "Saldo pendiente", color_naranja),
+    for clave, titulo, operador, color, destacado in (
+        ("esperado", "Efectivo esperado", "=", color_texto, False),
+        ("inicial", "Caja inicial", "+", color_texto, False),
+        ("efectivo", "Ingresos en efectivo", "−", color_verde, False),
+        ("gastos", "Gastos en efectivo", "−", "#E8753B", False),
+        ("retiros", "Retiros", "=", color_texto, False),
+        ("entregar", "Efectivo a entregar", "", color_azul, True),
     ):
-        bloque = ctk.CTkFrame(resumen_dia, width=175, height=56, fg_color=color_panel_alto, corner_radius=4)
-        bloque.pack(side="left", padx=3, pady=3)
+        bloque = ctk.CTkFrame(resumen_dia, fg_color="transparent", width=165, height=68)
+        bloque.pack(side="left", fill="y", padx=2, pady=7)
         bloque.pack_propagate(False)
         ctk.CTkLabel(
-            bloque, text=titulo, text_color=COLOR_TEXTO_SUAVE,
+            bloque, text=titulo, text_color=color_suave,
             font=ctk.CTkFont(size=8, weight="bold"),
-        ).pack(pady=(1, 0))
+        ).pack(pady=(3, 0))
         valor = ctk.CTkLabel(
-            bloque, text="—", text_color=color, font=ctk.CTkFont(size=10, weight="bold")
+            bloque, text="0", text_color=color,
+            font=ctk.CTkFont(size=18 if destacado else 12, weight="bold"),
         )
-        valor.pack(pady=(0, 1))
+        valor.pack(pady=(2, 0))
         etiquetas_resumen[clave] = valor
-
+        if operador:
+            ctk.CTkLabel(
+                resumen_dia, text=operador, width=12, text_color=color_suave,
+                font=ctk.CTkFont(size=13, weight="bold"),
+            ).pack(side="left")
     def monto_texto_entradas(cash_day, atributo):
         total = 0
         for entry in cash_day.entries:
@@ -1191,23 +1244,16 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     def actualizar_resumen_dia(cash_day):
         totales = cash_day.totals()
-        ordenes = monto_texto_entradas(cash_day, "orders")
-        saldo = monto_texto_entradas(cash_day, "balance")
-        etiquetas_resumen["ventas"].configure(text=formatear_monto(totales.total))
+        etiquetas_resumen["esperado"].configure(text=formatear_monto(totales.expected_cash))
+        etiquetas_resumen["inicial"].configure(text=formatear_monto(cash_day.opening_cash))
         etiquetas_resumen["efectivo"].configure(text=formatear_monto(totales.cash))
-        etiquetas_resumen["tarjeta"].configure(text=formatear_monto(totales.card_check))
-        etiquetas_resumen["ordenes"].configure(text=formatear_monto(ordenes))
         etiquetas_resumen["gastos"].configure(text=formatear_monto(totales.expenses))
-        etiquetas_resumen["saldo"].configure(text=formatear_monto(saldo))
-
+        etiquetas_resumen["retiros"].configure(text=formatear_monto(0))
+        etiquetas_resumen["entregar"].configure(text=formatear_monto(totales.expected_cash))
     acciones = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=6)
     acciones.pack(fill="x", padx=6, pady=(1, 2))
-    ctk.CTkLabel(
-        acciones, text="ACCIONES DEL DÍA", width=112, anchor="w",
-        text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=10, weight="bold"),
-    ).pack(side="left", padx=(8, 4))
     boton_abrir = ctk.CTkButton(
-        zona_estado, text="ABRIR / CONSULTAR", command=abrir_o_consultar,
+        estado_operativo, text="ABRIR / CONSULTAR", command=abrir_o_consultar,
         width=118, height=21, corner_radius=4, fg_color=color_azul,
         hover_color="#1D65C5", font=ctk.CTkFont(size=9, weight="bold"),
     )
@@ -1221,16 +1267,27 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         campos_manual[clave].bind("<FocusIn>", mostrar_boton_abrir, add="+")
     boton_guardar = ctk.CTkButton(
         acciones, text="Guardar venta  —  F9", command=guardar_manual,
-        width=105, height=47, fg_color=color_verde, hover_color="#128654",
-        font=ctk.CTkFont(size=12, weight="bold"),
+        width=150, height=38, fg_color=color_azul, hover_color="#0F5FC7",
+        font=ctk.CTkFont(size=11, weight="bold"),
     )
-    boton_guardar.pack(side="left", padx=3, pady=5)
+    boton_guardar.pack(side="left", padx=(8, 4), pady=6)
     ctk.CTkButton(
-        acciones, text="Editar — F2", command=editar_seleccionado,
+        acciones, text="Limpiar", command=limpiar_operacion, width=100, height=38,
+        fg_color="#FFFFFF", text_color=color_texto, border_width=1,
+        border_color=color_borde_suave, hover_color="#F1F5FA",
+    ).pack(side="left", padx=4, pady=6)
+    ctk.CTkButton(
+        acciones, text="Registrar gasto",
+        command=lambda: campos_manual["gastos"].focus_set(), width=115, height=38,
+        fg_color="#FFF7ED", text_color="#D96C2C", border_width=1,
+        border_color="#F2C69F", hover_color="#FFEBD7",
+    ).pack(side="left", padx=4, pady=6)
+    ctk.CTkButton(
+        acciones, text="Editar", command=editar_seleccionado,
         fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
     ).pack(side="left", padx=3)
     ctk.CTkButton(
-        acciones, text="Anular — F3", command=anular_seleccionado,
+        acciones, text="Anular", command=anular_seleccionado,
         fg_color=COLOR_ROJO, hover_color="#B63D49",
     ).pack(side="left", padx=3)
     boton_cancelar = ctk.CTkButton(
@@ -1290,33 +1347,31 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         font=ctk.CTkFont(size=9),
     )
     reloj.pack(side="right")
-    # Macro-layout UX-006: cards arriba, formulario izquierda, movimientos derecha,
-    # resumen de arqueo horizontal abajo. Se usa posicionamiento fijo porque la
-    # pantalla operativa objetivo es deliberadamente 1366x768.
+    # Macro-layout UX-006: header context, KPI cards, five-section form,
+    # movements table with footer, and horizontal cash-count formula.
     for bloque in (
-        cabecera, zona_estado, bloque_producto, bloque_cobro, toolbar_movimientos,
-        marco_grilla, resumen_dia, acciones, pie,
+        cabecera, zona_estado, formulario, toolbar_movimientos,
+        marco_grilla, pie_movimientos, resumen_dia, acciones, pie,
     ):
         bloque.pack_forget()
     cabecera.configure(width=1330, height=42)
     cabecera.place(x=4, y=2)
-    zona_estado.configure(width=1330, height=74)
+    zona_estado.configure(width=1330, height=88)
     zona_estado.place(x=4, y=48)
-    bloque_producto.configure(width=550, height=150)
-    bloque_producto.place(x=4, y=128)
-    bloque_cobro.configure(width=550, height=150)
-    bloque_cobro.place(x=4, y=284)
-    acciones.configure(width=550, height=45)
-    acciones.place(x=4, y=440)
-    toolbar_movimientos.configure(width=772, height=43)
-    toolbar_movimientos.place(x=562, y=128)
-    marco_grilla.configure(width=772, height=370)
-    marco_grilla.place(x=562, y=176)
-    resumen_dia.configure(width=1330, height=65)
-    resumen_dia.place(x=4, y=553)
-    pie.configure(width=1322, height=20)
-    pie.place(x=8, y=624)
-
+    formulario.configure(width=550, height=365)
+    formulario.place(x=4, y=142)
+    acciones.configure(width=550, height=50)
+    acciones.place(x=4, y=512)
+    toolbar_movimientos.configure(width=772, height=48)
+    toolbar_movimientos.place(x=562, y=142)
+    marco_grilla.configure(width=772, height=310)
+    marco_grilla.place(x=562, y=195)
+    pie_movimientos.configure(width=772, height=40)
+    pie_movimientos.place(x=562, y=510)
+    resumen_dia.configure(width=1330, height=82)
+    resumen_dia.place(x=4, y=568)
+    pie.configure(width=1322, height=18)
+    pie.place(x=8, y=652)
     def actualizar_reloj():
         if reloj.winfo_exists():
             reloj.configure(text=datetime.now().strftime("%H:%M:%S"))

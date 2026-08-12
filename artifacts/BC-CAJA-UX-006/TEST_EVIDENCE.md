@@ -1,7 +1,10 @@
 # Test evidence
 
-- UX/smoke/controller focal suite: `17 passed in 2.42s`.
-- Full BC Caja regression: `66 passed, 4 subtests passed in 3.59s`.
-- Python compilation: PASS.
-- Diff whitespace validation: PASS.
-- Real GUI captures: three iterations plus final 1366x768 evidence.
+- python -m pytest tests/caja_diaria -q
+- Result: 66 passed, 4 subtests passed
+- python -m pytest -q
+- Result: 66 passed, 4 subtests passed
+- python tools/capture_bc_caja_entrypoint.py artifacts/BC-CAJA-UX-006/entrypoint-final-1366x768.png
+- Result: BC_CAJA_REAL_ENTRYPOINT_CAPTURE_OK, 1366x768, result=0
+
+All data used for capture was empty or synthetic and stored in a temporary directory.

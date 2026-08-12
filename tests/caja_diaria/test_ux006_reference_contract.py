@@ -23,9 +23,10 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             '"SALDO PEND."',
             '"EFECTIVO FINAL"',
             'cabecera.place(x=4, y=2)',
-            'bloque_producto.place(x=4, y=128)',
-            'toolbar_movimientos.place(x=562, y=128)',
-            'resumen_dia.place(x=4, y=553)',
+            'formulario.place(x=4, y=142)',
+            'toolbar_movimientos.place(x=562, y=142)',
+            'pie_movimientos.place(x=562, y=510)',
+            'resumen_dia.place(x=4, y=568)',
         ):
             self.assertIn(text, source)
 

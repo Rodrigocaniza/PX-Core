@@ -1,15 +1,10 @@
-# Visual comparison
+# Visual comparison — A vs previous B
 
-The canonical reference establishes a light desktop dashboard with:
+Canonical Image A remains preserved as reference-canonical.png. The prior captures remain recovery evidence for Image B and the intermediate iterations.
 
-1. brand and navigation header;
-2. one horizontal KPI-card row;
-3. structured form on the left;
-4. movements toolbar and table on the right;
-5. horizontal cash summary at the bottom.
+The final implementation corrects the structural differences: compact branded header plus separate navigation, seven balanced KPI cards, a 550/772 two-column body, five numbered form sections, movement search/filter/table with count and pagination, primary/secondary/gasto actions, and a full-width horizontal arqueo formula with the delivery amount emphasized.
 
-UX-006 reproduces that macro-layout at 1366x768. All main blocks fit without vertical scrolling or clipped controls. Existing extra Caja fields remain available in the same form and horizontally scrollable table.
+The canvas remains #F3F6FA; white is limited to cards, fields, table, and bounded panels. This preserves luminosity without a full-screen white surface.
 
-## Fatigue review
-
-Pure white was not used as the full-screen background. The application uses `#F3F6FA` for the canvas, `#FBFCFE` for panels and white only for cards/fields, with subtle blue-gray borders. The real capture retains the clean reference aesthetic without a bright white wash.
+Final real-entrypoint capture: entrypoint-final-1366x768.png (718fb09a2eb63850c018e19246c5516939497e491c6876875ba9227b54e285bb).
+Final populated-state capture: layout-final-1366x768.png (06cc7c9f877d25f9f7f1dd0936553ffdac20a17341f4d9fcdb02431ac8e1fd23).
