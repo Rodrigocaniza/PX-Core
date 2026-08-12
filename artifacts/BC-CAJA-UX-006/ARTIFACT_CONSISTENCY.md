@@ -2,7 +2,7 @@
 
 Status: PASS
 
-Canonical reference, iterations, final empty and populated entrypoint evidence, tests, comparison, workflow, and recovery evidence are present.
+Canonical reference, iterations, final populated real-entrypoint evidence, tests, comparison, workflow, and recovery evidence are present.
 
 ## SHA-256 inventory
 
@@ -11,7 +11,7 @@ The inventory intentionally excludes this self-referential file.
 - COMMAND_CENTER_REPORT.md: 6e36c24237dceac4f03923b04998b698c61ac16546436c43b365599403d550b9
 - correction-1.png: 7fa32b3246b6291075298a4f704a974acdb65d83858357b61ae806b5dd8785a9
 - entrypoint-correction-1.png: 986b0925c845b72322088bbfa4d3d2ede3a36171bbddf18fb2f8c139c95185c5
-- entrypoint-final-1366x768.png: ff9a5760e0bd0f7b43e4b7700cdaa1d95c9a545cda9ec41ce93400a3768422b6
+- entrypoint-final-1366x768.png: 9fabf28e61e5c8647463d4398cfe375c15470f67698b80114381cb012fb86bcb
 - entrypoint-layout-fix-1366x768.png: 0a6a2c4ed99039170a61fd3cdb4a9cf4a546a49c9c82d09fae1c0d75865bfd56
 - iteration-1.png: 6fa445537333ddb9f2c26914476282bca75b33dd9193b88b0f4df1513c7284a8
 - iteration-2.png: c020a9e21d78eef8d3ae3e0d0b9ba367d22bdc5016e74e3f5a25be6ffa203c05
@@ -20,7 +20,7 @@ The inventory intentionally excludes this self-referential file.
 - layout-final-1366x768.png: 94fed78545585b7cec7687347013fc640e120c8f06e7273d4ce1abb837c1dea5
 - reference-canonical.png: b2e11e22cc5e8f23dd0859329e68f404874840d3912e1987f440ac6994305e4a
 - SAFE_CLOSURE_EVIDENCE.md: 58ff7fb57235b639e87121b7ae130fe0365856eaa82c05ee2392fceb213aaa33
-- SUMMARY.md: b3f27ce08dc5df898c9f48e03834bf6670a0bbbb554d4ed7f2e3878e64457397
-- TEST_EVIDENCE.md: 5c5d81545ccdbe832ab42939b19eddffa5b0d91d60446783ead6c71145077244
-- VISUAL_COMPARISON.md: 2779113836afd333bd8b26b36a2760491843b987f8215ef3eaa6de17b5e50222
+- SUMMARY.md: 744191923e417ba60301fd7eab06a2fba0d98d1babc2c5e7ae01854e2a0381f3
+- TEST_EVIDENCE.md: 645ca0320a873f0d234d13b2e1feafc3610da415bd5b207d30c06b8f089c8475
+- VISUAL_COMPARISON.md: e8a7f8056e51d085b399cd25aac59496ee94533812c2f2c578cbfa8c87d14026
 - WORKFLOW.json: 9529a7fa105c432a25b3d1b0903e1d4740cb2fd017ca889411a442df188384b6

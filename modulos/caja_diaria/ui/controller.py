@@ -122,6 +122,7 @@ class CashDayUIController:
             installments=candidate.installments,
             balance=candidate.balance,
             expenses=candidate.expenses,
+            source_reference=candidate.source_reference,
         )
         saved = self.service.update_entry(cash_day.id, updated)
         return self.service.get_day(cash_day.id), saved
@@ -136,6 +137,9 @@ class CashDayUIController:
 
     def record_cash_count(self, date_text: str, unit: str, quantities: Mapping[int, int]):
         return self.service.record_cash_count(self.load_day(date_text, unit).id, quantities)
+
+    def latest_cash_count(self, cash_day_id: str):
+        return self.service.repository.get_latest_cash_count(cash_day_id)
 
     @staticmethod
     def _entry_from_legacy(
@@ -158,7 +162,7 @@ class CashDayUIController:
             balance=values.get("saldo", ""),
             expenses=values.get("gastos"),
             origin=origin,
-            source_reference=source_reference,
+            source_reference=source_reference or values.get("notas", ""),
         )
 
 

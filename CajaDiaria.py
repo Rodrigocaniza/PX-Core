@@ -784,25 +784,25 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ("2", "Detalle de venta", PRODUCTO_TRABAJO[2:]),
         ("3", "Importes", COBRO_PAGO[:3]),
         ("4", "Cobro", COBRO_PAGO[3:6]),
-        ("5", "Notas y gasto", COBRO_PAGO[6:]),
+        ("5", "Notas y gastos", (("notas", "Observaciones", 330),) + tuple(COBRO_PAGO[6:])),
     )
     for indice_seccion, (numero, titulo, columnas) in enumerate(secciones_formulario):
         seccion = ctk.CTkFrame(formulario, fg_color="transparent", corner_radius=0)
-        seccion.grid(row=indice_seccion, column=0, sticky="ew", padx=10, pady=(3, 0))
+        seccion.grid(row=indice_seccion, column=0, sticky="ew", padx=10, pady=0)
         for columna in range(max(1, len(columnas))):
             seccion.grid_columnconfigure(columna, weight=1, uniform=f"sec{indice_seccion}")
         ctk.CTkLabel(
-            seccion, text=numero, width=20, height=20, corner_radius=10,
+            seccion, text=numero, width=18, height=18, corner_radius=9,
             fg_color=color_azul, text_color="#FFFFFF",
             font=ctk.CTkFont(size=10, weight="bold"),
-        ).grid(row=0, column=0, sticky="w", pady=(0, 3))
+        ).grid(row=0, column=0, sticky="w", pady=0)
         ctk.CTkLabel(
-            seccion, text=titulo, text_color=color_texto, anchor="w",
+            seccion, text=titulo, height=18, text_color=color_texto, anchor="w",
             font=ctk.CTkFont(size=11, weight="bold"),
-        ).grid(row=0, column=0, columnspan=max(1, len(columnas)), sticky="w", padx=(30, 0), pady=(0, 3))
+        ).grid(row=0, column=0, columnspan=max(1, len(columnas)), sticky="w", padx=(26, 0), pady=0)
         for columna, (clave, etiqueta, ancho) in enumerate(columnas):
             ctk.CTkLabel(
-                seccion, text=etiqueta, text_color=color_suave, anchor="w",
+                seccion, text=etiqueta, height=14, text_color=color_suave, anchor="w",
                 font=ctk.CTkFont(size=8, weight="bold"),
             ).grid(row=1, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0))
             campo = ctk.CTkEntry(
@@ -810,8 +810,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 border_width=1, border_color=color_borde_suave, text_color=color_texto,
                 font=ctk.CTkFont(size=9),
             )
-            campo.grid(row=2, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0), pady=(0, 2))
+            campo.grid(row=2, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0), pady=0)
             campos_manual[clave] = campo
+
+    campos_manual["notas"].configure(placeholder_text="Observaciones de la operación")
 
     bloque_producto = formulario
     columna_guardar = None
@@ -886,6 +888,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         )
     for clave in ("armazon", "cristal"):
         campos_manual[clave].bind("<KeyRelease>", recalcular_total_visible, add="+")
+        campos_manual[clave].bind("<FocusOut>", recalcular_total_visible, add="+")
     filtro_movimientos = ctk.StringVar(value="Todos")
     busqueda_movimientos = ctk.StringVar()
     toolbar_movimientos = ctk.CTkFrame(
@@ -1138,6 +1141,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     def limpiar_operacion():
         for clave, _, _ in columnas_operativas:
             campos_manual[clave].delete(0, "end")
+        campos_manual["notas"].delete(0, "end")
         campos_manual["descripcion"].focus_set()
 
     def guardar_manual():
@@ -1177,7 +1181,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         "laboratorio": "laboratory", "receta_dr": "prescription_doctor",
         "total": "total", "efectivo": "cash", "tarjeta_cheque": "card_check",
         "ordenes": "orders", "cuotas": "installments", "saldo": "balance",
-        "gastos": "expenses",
+        "gastos": "expenses", "notas": "source_reference",
     }
 
     def movimiento_seleccionado():
@@ -1251,38 +1255,25 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         titulo_arqueo, text="▤  Resumen para arqueo", anchor="w",
         text_color=color_texto, font=ctk.CTkFont(size=13, weight="bold"),
     ).pack(fill="x")
-    ctk.CTkLabel(
-        titulo_arqueo, text="Cálculo del cierre de caja", anchor="w",
-        text_color=color_suave, font=ctk.CTkFont(size=9),
-    ).pack(fill="x", pady=(3, 0))
 
     etiquetas_resumen = {}
-    for clave, titulo, operador, color, destacado in (
-        ("esperado", "Efectivo esperado", "=", color_texto, False),
-        ("inicial", "Caja inicial", "+", color_texto, False),
-        ("efectivo", "Ingresos en efectivo", "−", color_verde, False),
-        ("gastos", "Gastos en efectivo", "−", "#E8753B", False),
-        ("retiros", "Retiros", "=", color_texto, False),
-        ("entregar", "Efectivo a entregar", "", color_azul, True),
+    for clave, titulo, color, destacado in (
+        ("inicial", "Caja inicial", color_texto, False),
+        ("esperado", "Efectivo esperado", color_texto, False),
+        ("contado", "Efectivo contado", color_verde, False),
+        ("diferencia", "Diferencia", color_azul, True),
     ):
-        bloque = ctk.CTkFrame(resumen_dia, fg_color="transparent", width=160, height=46)
-        bloque.pack(side="left", fill="y", padx=2, pady=3)
+        bloque = ctk.CTkFrame(resumen_dia, fg_color="transparent", width=245, height=42)
+        bloque.pack(side="left", fill="y", padx=5, pady=2)
         bloque.pack_propagate(False)
-        ctk.CTkLabel(
-            bloque, text=titulo, text_color=color_suave,
-            font=ctk.CTkFont(size=8, weight="bold"),
-        ).pack(pady=(3, 0))
+        ctk.CTkLabel(bloque, text=titulo, text_color=color_suave,
+                     font=ctk.CTkFont(size=8, weight="bold")).pack(pady=(1, 0))
         valor = ctk.CTkLabel(
-            bloque, text="0", text_color=color,
-            font=ctk.CTkFont(size=16 if destacado else 11, weight="bold"),
+            bloque, text="—", text_color=color,
+            font=ctk.CTkFont(size=14 if destacado else 11, weight="bold"),
         )
-        valor.pack(pady=(2, 0))
+        valor.pack(pady=0)
         etiquetas_resumen[clave] = valor
-        if operador:
-            ctk.CTkLabel(
-                resumen_dia, text=operador, width=12, text_color=color_suave,
-                font=ctk.CTkFont(size=13, weight="bold"),
-            ).pack(side="left")
     def monto_texto_entradas(cash_day, atributo):
         total = 0
         for entry in cash_day.entries:
@@ -1296,12 +1287,17 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     def actualizar_resumen_dia(cash_day):
         totales = cash_day.totals()
-        etiquetas_resumen["esperado"].configure(text=formatear_monto(totales.expected_cash))
+        conteo = controller.latest_cash_count(cash_day.id)
+        contado = conteo.counted_total if conteo is not None else None
+        diferencia = conteo.difference if conteo is not None else None
         etiquetas_resumen["inicial"].configure(text=formatear_monto(cash_day.opening_cash))
-        etiquetas_resumen["efectivo"].configure(text=formatear_monto(totales.cash))
-        etiquetas_resumen["gastos"].configure(text=formatear_monto(totales.expenses))
-        etiquetas_resumen["retiros"].configure(text=formatear_monto(0))
-        etiquetas_resumen["entregar"].configure(text=formatear_monto(totales.expected_cash))
+        etiquetas_resumen["esperado"].configure(text=formatear_monto(totales.expected_cash))
+        etiquetas_resumen["contado"].configure(
+            text="—" if contado is None else formatear_monto(contado)
+        )
+        etiquetas_resumen["diferencia"].configure(
+            text="—" if diferencia is None else formatear_monto(diferencia)
+        )
     acciones = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=6)
     acciones.pack(fill="x", padx=6, pady=(1, 2))
     acciones_primarias = ctk.CTkFrame(acciones, fg_color="transparent")
@@ -1355,6 +1351,12 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         else:
             anular_seleccionado()
 
+    def desplazar_movimientos(event):
+        pasos = -1 if event.delta > 0 else 1
+        grilla_caja.yview_scroll(pasos, "units")
+        return "break"
+
+    grilla_caja.bind("<MouseWheel>", desplazar_movimientos, add="+")
     grilla_caja.bind("<Double-1>", editar_seleccionado)
     grilla_caja.bind("<ButtonRelease-1>", accion_en_fila, add="+")
     ventana.bind("<F2>", editar_seleccionado)
@@ -1399,20 +1401,24 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     cabecera.place(x=4, y=4)
     zona_estado.configure(width=1330, height=74)
     zona_estado.place(x=4, y=62)
-    formulario.configure(width=570, height=330)
+    formulario.configure(width=570, height=356)
+    formulario.grid_propagate(False)
     formulario.place(x=4, y=146)
-    acciones.configure(width=570, height=44)
-    acciones.place(x=4, y=514)
+    acciones.configure(width=570, height=38)
+    acciones.pack_propagate(False)
+    acciones.place(x=4, y=508)
     toolbar_movimientos.configure(width=744, height=44)
     toolbar_movimientos.place(x=590, y=146)
     marco_grilla.configure(width=744, height=310)
+    marco_grilla.grid_propagate(False)
     marco_grilla.place(x=590, y=196)
     pie_movimientos.configure(width=744, height=38)
     pie_movimientos.place(x=590, y=512)
-    resumen_dia.configure(width=1330, height=56)
-    resumen_dia.place(x=4, y=570)
+    resumen_dia.configure(width=1330, height=48)
+    resumen_dia.pack_propagate(False)
+    resumen_dia.place(x=4, y=554)
     pie.configure(width=1322, height=18)
-    pie.place(x=8, y=632)
+    pie.place(x=8, y=606)
     def actualizar_reloj():
         if reloj.winfo_exists():
             reloj.configure(text=datetime.now().strftime("%H:%M:%S"))
@@ -1533,6 +1539,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             "cuotas": entry.installments,
             "saldo": entry.balance,
             "gastos": "" if entry.expenses is None else str(entry.expenses),
+            "notas": entry.source_reference,
         }
         for clave, valor in valores.items():
             campo = campos_manual[clave]

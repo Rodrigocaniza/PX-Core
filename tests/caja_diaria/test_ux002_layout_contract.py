@@ -21,7 +21,7 @@ class CashDayUX002ContractTests(unittest.TestCase):
             '"Detalle de venta"',
             '"Importes"',
             '"Cobro"',
-            '"Notas y gasto"',
+            '"Notas y gastos"',
             '"acciones"',
             '"<F2>"',
             '"<F3>"',

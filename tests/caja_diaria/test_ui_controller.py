@@ -42,6 +42,7 @@ class CashDayUIControllerTests(unittest.TestCase):
             "cuotas": "",
             "saldo": "cancelado",
             "gastos": "",
+            "notas": "Entrega prioritaria",
         }
         values.update(overrides)
         return values
@@ -51,6 +52,7 @@ class CashDayUIControllerTests(unittest.TestCase):
         self.assertEqual(day.totals().expected_cash, 800000)
         self.assertEqual(entry.balance, "cancelado")
         self.assertEqual(entry.laboratory, "LAB CENTRAL")
+        self.assertEqual(entry.source_reference, "Entrega prioritaria")
 
         self.controller.service.repository.close()
         reloaded_controller = build_cash_day_controller(self.database)

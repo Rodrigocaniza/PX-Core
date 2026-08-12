@@ -26,10 +26,17 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             'formulario.place(x=4, y=146)',
             'toolbar_movimientos.place(x=590, y=146)',
             'pie_movimientos.place(x=590, y=512)',
-            'resumen_dia.place(x=4, y=570)',
+            'resumen_dia.place(x=4, y=554)',
             'acciones_primarias = ctk.CTkFrame(acciones',
             'iconos_kpi = {',
             'recalcular_total_visible',
+            'formulario.grid_propagate(False)',
+            'acciones.pack_propagate(False)',
+            'resumen_dia.pack_propagate(False)',
+            'marco_grilla.grid_propagate(False)',
+            'grilla_caja.bind("<MouseWheel>"',
+            '"Efectivo contado"',
+            '"Diferencia"',
         ):
             self.assertIn(text, source)
 
