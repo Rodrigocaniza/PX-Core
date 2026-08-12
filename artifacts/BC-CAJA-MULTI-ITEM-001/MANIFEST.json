@@ -1,0 +1,123 @@
+{
+  "manifest_version": "1.0",
+  "generator": "tools/package_mission_evidence.py",
+  "algorithm": "sha256",
+  "mission": "BC-CAJA-MULTI-ITEM-001",
+  "generated_at": "2026-08-12T23:37:18Z",
+  "status": "PASSED",
+  "repository": {
+    "root": "C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/caja-multi-item",
+    "branch": "feature/caja-multi-item",
+    "head_before": "03ed5c2e03c63131991712bc2b41e5a6d52dd2ab",
+    "head_after": "03ed5c2e03c63131991712bc2b41e5a6d52dd2ab",
+    "head_consistent": true,
+    "status_before": [
+      "M .bc-command-center/verification.json",
+      " M CajaDiaria.py",
+      " M modulos/caja_diaria/domain/models.py",
+      " M modulos/caja_diaria/infrastructure/sqlite_repository.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      " M tests/caja_diaria/test_sqlite_repository.py",
+      "?? .binding-multi-librarian-1-readable.json",
+      "?? .binding-multi-librarian-1.json",
+      "?? artifacts/BC-CAJA-MULTI-ITEM-001/",
+      "?? docs/",
+      "?? modulos/caja_diaria/infrastructure/migrations/006_sale_items.sql",
+      "?? tests/caja_diaria/test_multi_item_sales.py"
+    ],
+    "status_after": [
+      "M .bc-command-center/verification.json",
+      " M CajaDiaria.py",
+      " M modulos/caja_diaria/domain/models.py",
+      " M modulos/caja_diaria/infrastructure/sqlite_repository.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      " M tests/caja_diaria/test_sqlite_repository.py",
+      "?? .binding-multi-librarian-1-readable.json",
+      "?? .binding-multi-librarian-1.json",
+      "?? artifacts/BC-CAJA-MULTI-ITEM-001/",
+      "?? docs/",
+      "?? modulos/caja_diaria/infrastructure/migrations/006_sale_items.sql",
+      "?? tests/caja_diaria/test_multi_item_sales.py"
+    ]
+  },
+  "files": {
+    "implementation": [
+      {
+        "path": "CajaDiaria.py",
+        "sha256": "5778fee723924cd9059057bfae4200dca899ebbe3fe1f8879d8162ed367dffef"
+      },
+      {
+        "path": "modulos/caja_diaria/domain/models.py",
+        "sha256": "e1410bc75e1e25304b223280763fa43e963db62c05a657ff6f5d29fca945dce8"
+      },
+      {
+        "path": "modulos/caja_diaria/infrastructure/sqlite_repository.py",
+        "sha256": "54efc433302400240df4e59916a823097668f7f781ee78721cb7c8b6ac14846d"
+      },
+      {
+        "path": "modulos/caja_diaria/infrastructure/migrations/006_sale_items.sql",
+        "sha256": "50c17807badf5906a7ea0c0dc5b8b2d1a50c43c9cc0cc9246b2d134901f71f6e"
+      },
+      {
+        "path": "modulos/caja_diaria/ui/controller.py",
+        "sha256": "6e0bc270d49c80bfeb938ca7541d54ba7a4ee027c59264c86b2b2e742c92ec36"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/caja_diaria/test_multi_item_sales.py",
+        "sha256": "87b66aa4747a1052067276a04abd9b4263e225dd466eda0502dfee152165bdc6"
+      },
+      {
+        "path": "tests/caja_diaria/test_sqlite_repository.py",
+        "sha256": "c9173ac897dfa0bf422f9a8061f59e71ab52aff07e3788c13e9655790017f6ab"
+      }
+    ],
+    "dependencies": [
+      {
+        "path": ".bc-command-center/verification.json",
+        "sha256": "1a4a4797a3e0f637a14101cf6e87ca34b906621201ec4fde6da0c2551945daca"
+      },
+      {
+        "path": "docs/BC-CAJA-MULTI-ITEM-COMPATIBILITY.md",
+        "sha256": "320a10b8322feba3b4b51556b97bfede7d6047c852949957547499edefe77d54"
+      }
+    ]
+  },
+  "tests": {
+    "targeted": {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "tests/caja_diaria/test_multi_item_sales.py",
+        "tests/caja_diaria/test_sqlite_repository.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "12 passed, 1 warning in 0.34s"
+    },
+    "full_suite": {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "84 passed, 1 warning in 1.92s"
+    }
+  },
+  "zip": {
+    "path": "BC-Core-BC-CAJA-MULTI-ITEM-001.zip",
+    "sha256": "c192fd4380e3098417ee260923a4908d78b32f77b73768334508dbc3887d1b1d",
+    "file_count": 9
+  },
+  "summary_file": "SUMMARY.txt",
+  "prompts": {
+    "librarian": "PROMPT_LIBRARIAN.txt",
+    "qa": "PROMPT_QA.txt",
+    "auditor": "PROMPT_AUDITOR.txt"
+  },
+  "warnings": []
+}

@@ -1,0 +1,12 @@
+{
+  "mission_id": "BC-CAJA-MULTI-ITEM-001",
+  "attempt_id": "a65e5b8d-31af-4950-b3c2-895746199ab6",
+  "gate_id": "auditor:1",
+  "generation": 1,
+  "workflow_revision": 10,
+  "handoff_id": "b9df74c8-9c18-541d-bf7f-53be87e6b6c5",
+  "expected_role": "auditor",
+  "expected_state": "AUDITOR",
+  "evidence_digest": "6dfa35e937a1e0c5f4e17efb4b0cc87f09ee21c70a877774c2169e3d56ae02e8",
+  "session_id": "7183aabc-7127-4368-af92-8d07d041dbcd"
+}

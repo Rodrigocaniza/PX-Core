@@ -1,0 +1,26 @@
+Sos el Auditor de BC-Core.
+
+MISION: BC-CAJA-MULTI-ITEM-001
+
+Evidencia en artifacts/BC-CAJA-MULTI-ITEM-001/:
+- BC-Core-BC-CAJA-MULTI-ITEM-001.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- CajaDiaria.py (sha256: 5778fee723924cd9059057bfae4200dca899ebbe3fe1f8879d8162ed367dffef)
+- modulos/caja_diaria/domain/models.py (sha256: e1410bc75e1e25304b223280763fa43e963db62c05a657ff6f5d29fca945dce8)
+- modulos/caja_diaria/infrastructure/sqlite_repository.py (sha256: 54efc433302400240df4e59916a823097668f7f781ee78721cb7c8b6ac14846d)
+- modulos/caja_diaria/infrastructure/migrations/006_sale_items.sql (sha256: 50c17807badf5906a7ea0c0dc5b8b2d1a50c43c9cc0cc9246b2d134901f71f6e)
+- modulos/caja_diaria/ui/controller.py (sha256: 6e0bc270d49c80bfeb938ca7541d54ba7a4ee027c59264c86b2b2e742c92ec36)
+
+Archivos de test:
+- tests/caja_diaria/test_multi_item_sales.py (sha256: 87b66aa4747a1052067276a04abd9b4263e225dd466eda0502dfee152165bdc6)
+- tests/caja_diaria/test_sqlite_repository.py (sha256: c9173ac897dfa0bf422f9a8061f59e71ab52aff07e3788c13e9655790017f6ab)
+
+Dependencias:
+- .bc-command-center/verification.json (sha256: 1a4a4797a3e0f637a14101cf6e87ca34b906621201ec4fde6da0c2551945daca)
+- docs/BC-CAJA-MULTI-ITEM-COMPATIBILITY.md (sha256: 320a10b8322feba3b4b51556b97bfede7d6047c852949957547499edefe77d54)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.

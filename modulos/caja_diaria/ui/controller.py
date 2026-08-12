@@ -51,6 +51,8 @@ class CashDayUIController:
 
     def add_manual_entry(self, values: Mapping[str, Any]) -> tuple[CashDay, CashEntry]:
         self._require_saleswoman(values)
+        if "items" in values and not values.get("items"):
+            raise InvalidCashDayError("Agregue al menos un producto antes de guardar.")
         entry = self._entry_from_legacy(values, origin="manual")
         cash_day = self.open_or_load_day(
             str(values.get("fecha", "")),
@@ -142,6 +144,7 @@ class CashDayUIController:
             saleswoman=candidate.saleswoman,
             delivery_date=candidate.delivery_date,
             observations=candidate.observations,
+            items=candidate.items,
         )
         saved = self.service.update_entry(cash_day.id, updated)
         return self.service.get_day(cash_day.id), saved
@@ -204,6 +207,7 @@ class CashDayUIController:
             saleswoman=values.get("vendedora", ""),
             delivery_date=values.get("fecha_entrega") or None,
             observations=values.get("notas", ""),
+            items=tuple(values.get("items") or ()),
         )
 
 

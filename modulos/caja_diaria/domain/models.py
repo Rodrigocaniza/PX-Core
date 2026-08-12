@@ -92,6 +92,47 @@ class OrderStatus(str, Enum):
 
 
 @dataclass(frozen=True)
+class SaleItem:
+    description: str = "Producto"
+    code: str = ""
+    item_type: str = ""
+    frame_price: int | str | None = None
+    lens_price: int | str | None = None
+    laboratory: str = ""
+    prescription_doctor: str = ""
+    id: str = field(default_factory=new_id)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "description", str(self.description or "Producto").strip())
+        for name in ("code", "item_type", "laboratory", "prescription_doctor"):
+            object.__setattr__(self, name, str(getattr(self, name) or "").strip())
+        for name in ("frame_price", "lens_price"):
+            object.__setattr__(self, name, money(getattr(self, name), field_name=name, optional=True))
+
+    @property
+    def subtotal(self) -> int:
+        return (self.frame_price or 0) + (self.lens_price or 0)
+
+
+@dataclass
+class SaleDraft:
+    items: list[SaleItem] = field(default_factory=list)
+
+    @property
+    def total(self) -> int:
+        return sum(item.subtotal for item in self.items)
+
+    def add(self, item: SaleItem) -> None:
+        self.items.append(item)
+
+    def edit(self, index: int, item: SaleItem) -> None:
+        self.items[index] = item
+
+    def remove(self, index: int) -> SaleItem:
+        return self.items.pop(index)
+
+
+@dataclass(frozen=True)
 class Order:
     delivery_date: date | str
     branch: str
@@ -208,6 +249,7 @@ class CashEntry:
     saleswoman: str = ""
     delivery_date: date | str | None = None
     observations: str = ""
+    items: tuple[SaleItem, ...] = ()
     id: str = field(default_factory=new_id)
     cash_day_id: str | None = None
     created_at: datetime = field(default_factory=utc_now)
@@ -235,6 +277,23 @@ class CashEntry:
             object.__setattr__(self, "delivery_date", None)
         else:
             object.__setattr__(self, "delivery_date", parse_business_date(self.delivery_date))
+        object.__setattr__(self, "items", tuple(
+            item if isinstance(item, SaleItem) else SaleItem(**item) for item in self.items
+        ))
+        if self.items:
+            object.__setattr__(self, "total", sum(item.subtotal for item in self.items))
+
+    @property
+    def effective_items(self) -> tuple[SaleItem, ...]:
+        if self.items:
+            return self.items
+        if self.expenses:
+            return ()
+        return (SaleItem(
+            description=self.description, code=self.code, item_type=self.frame_origin,
+            frame_price=self.frame, lens_price=self.lens, laboratory=self.laboratory,
+            prescription_doctor=self.prescription_doctor,
+        ),)
         object.__setattr__(self, "void_reason", str(self.void_reason or "").strip())
         if self.status is CashEntryStatus.VOIDED:
             if self.voided_at is None or not self.void_reason:

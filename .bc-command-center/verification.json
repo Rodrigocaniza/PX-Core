@@ -1,14 +1,23 @@
 {
   "schema_version": "1.0",
-  "repository": "caja-pedidos-v1",
+  "repository": "caja-multi-item",
   "missions": {
-    "BC-CAJA-V1-PEDIDOS-001": "bc-caja-pedidos-v1"
+    "BC-CAJA-V1-PEDIDOS-001": "bc-caja-pedidos-v1",
+    "BC-CAJA-MULTI-ITEM-001": "bc-caja-multi-item"
   },
   "runners": {
     "bc-caja-pedidos-v1": {
       "working_directory": ".",
       "commands": {
         "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_orders_v1.py", "tests/caja_diaria/test_financial_privacy.py", "-q"],
+        "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
+        "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
+      }
+    },
+    "bc-caja-multi-item": {
+      "working_directory": ".",
+      "commands": {
+        "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_multi_item_sales.py", "tests/caja_diaria/test_orders_v1.py", "tests/caja_diaria/test_financial_privacy.py", "-q"],
         "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
         "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
       }

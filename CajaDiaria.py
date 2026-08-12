@@ -35,7 +35,7 @@ from datos import guardar_datos, leer_datos
 from Movimientos import UNIDADES, formatear_monto
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.config import resolve_data_paths
-from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE
+from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE, SaleItem
 from modulos.caja_diaria.ui.controller import friendly_error
 from modulos.caja_diaria.ui.privacy import FinancialPrivacy
 
@@ -776,6 +776,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     # ---- Caja operativa (disposición tipo planilla) ----
     campos_manual = {}
     estado_edicion = {"entry_id": None, "guardando": False, "caja_abierta": True}
+    items_venta = []
+    item_editando = {"index": None}
 
     cabecera = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=7)
     cabecera.pack(fill="x", padx=4, pady=(2, 2))
@@ -819,8 +821,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ("5", "Notas", (("notas", "Observaciones", 330), ("fecha_entrega", "Fecha de entrega", 160), ("vendedora", "Vendedora *", 140))),
         ("6", "Gastos", (("gasto_descripcion", "Descripción *", 210), ("gasto_monto", "Monto *", 120), ("accion_gasto", "", 110))),
     )
+    secciones_widgets = {}
     for indice_seccion, (numero, titulo, columnas) in enumerate(secciones_formulario):
         seccion = ctk.CTkFrame(formulario, fg_color="transparent", corner_radius=0)
+        secciones_widgets[titulo] = seccion
         seccion.grid(row=indice_seccion, column=0, sticky="ew", padx=10, pady=0)
         for columna in range(max(1, len(columnas))):
             seccion.grid_columnconfigure(columna, weight=1, uniform=f"sec{indice_seccion}")
@@ -861,6 +865,21 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     campos_manual["notas"].configure(placeholder_text="Observaciones de la operación")
     campos_manual["fecha_entrega"].configure(placeholder_text="dd-mm-aaaa")
+
+    lista_productos = ctk.CTkFrame(formulario, fg_color="#F8FAFD", corner_radius=5)
+    lista_productos.grid(row=6, column=0, sticky="ew", padx=10, pady=(3, 0))
+    columnas_items = ("numero", "producto", "codigo", "tipo", "armazon", "cristal", "subtotal")
+    grilla_items = ttk.Treeview(lista_productos, columns=columnas_items, show="headings", height=3)
+    for clave, titulo, ancho in (
+        ("numero", "#", 28), ("producto", "Producto", 110), ("codigo", "Código", 65),
+        ("tipo", "Tipo", 65), ("armazon", "Armazón", 75), ("cristal", "Cristal", 75),
+        ("subtotal", "Subtotal", 85),
+    ):
+        grilla_items.heading(clave, text=titulo)
+        grilla_items.column(clave, width=ancho, anchor="w", stretch=clave == "producto")
+    grilla_items.pack(side="left", fill="x", expand=True)
+    acciones_item = ctk.CTkFrame(lista_productos, fg_color="transparent")
+    acciones_item.pack(side="right", padx=3)
 
     bloque_producto = formulario
     columna_guardar = None
@@ -919,6 +938,13 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             campo.insert(0, texto)
 
     def recalcular_total_visible(_event=None):
+        if items_venta:
+            total = sum(item.subtotal for item in items_venta)
+            campo_total = campos_manual["total"]
+            campo_total.delete(0, "end")
+            campo_total.insert(0, formatear_importe_ui(total))
+            recalcular_saldo_visible()
+            return
         try:
             total = sumar_importes_formulario(
                 campos_manual["armazon"].get(), campos_manual["cristal"].get()
@@ -929,6 +955,62 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         campo_total.delete(0, "end")
         campo_total.insert(0, formatear_importe_ui(total))
         recalcular_saldo_visible()
+
+    def refrescar_items():
+        for row in grilla_items.get_children():
+            grilla_items.delete(row)
+        for index, item in enumerate(items_venta):
+            grilla_items.insert("", "end", iid=str(index), values=(
+                index + 1, item.description, item.code, item.item_type,
+                privacidad.display(formatear_monto(item.frame_price or 0)),
+                privacidad.display(formatear_monto(item.lens_price or 0)),
+                privacidad.display(formatear_monto(item.subtotal)),
+            ))
+        recalcular_total_visible()
+
+    def agregar_producto():
+        try:
+            item = SaleItem(
+                description=campos_manual["arm_org"].get() or campos_manual["cod"].get() or "Producto",
+                code=campos_manual["cod"].get(), item_type=campos_manual["arm_org"].get(),
+                frame_price=campos_manual["armazon"].get(), lens_price=campos_manual["cristal"].get(),
+                laboratory=campos_manual["laboratorio"].get(),
+                prescription_doctor=campos_manual["receta_dr"].get(),
+            )
+            if item.subtotal <= 0:
+                raise ValueError("El producto debe tener un precio de armazón o cristal.")
+        except Exception as exc:
+            messagebox.showwarning("Producto inválido", str(exc), parent=ventana)
+            return
+        index = item_editando["index"]
+        if index is None:
+            items_venta.append(item)
+        else:
+            items_venta[index] = item
+            item_editando["index"] = None
+        for clave in ("arm_org", "cod", "armazon", "cristal", "laboratorio", "receta_dr"):
+            campos_manual[clave].delete(0, "end")
+        refrescar_items()
+
+    def editar_item():
+        selected = grilla_items.selection()
+        if not selected:
+            return
+        index = int(selected[0]); item = items_venta[index]; item_editando["index"] = index
+        values = {"arm_org": item.item_type, "cod": item.code, "armazon": item.frame_price,
+                  "cristal": item.lens_price, "laboratorio": item.laboratory,
+                  "receta_dr": item.prescription_doctor}
+        for clave, value in values.items():
+            campos_manual[clave].delete(0, "end"); campos_manual[clave].insert(0, "" if value is None else str(value))
+
+    def quitar_item():
+        selected = grilla_items.selection()
+        if selected:
+            items_venta.pop(int(selected[0])); item_editando["index"] = None; refrescar_items()
+
+    ctk.CTkButton(acciones_item, text="+ Agregar producto", width=125, height=24, command=agregar_producto).pack(pady=1)
+    ctk.CTkButton(acciones_item, text="Editar", width=60, height=22, command=editar_item).pack(side="left", padx=1)
+    ctk.CTkButton(acciones_item, text="Quitar", width=60, height=22, command=quitar_item, fg_color="#D9534F").pack(side="left", padx=1)
 
     def recalcular_saldo_visible(_event=None):
         try:
@@ -1069,8 +1151,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     def valores_fila(entry):
         importe = lambda value: privacidad.display(formatear_monto(value or 0))
+        item_count = len(entry.effective_items)
+        description = f"{entry.description} · {item_count} producto{'s' if item_count != 1 else ''}"
         return (
-            (f"GASTO - {entry.description}" if entry.expenses else entry.description),
+            (f"GASTO - {entry.description}" if entry.expenses else description),
             entry.envelope, entry.frame_origin, entry.code,
             formatear_importe_ui(entry.frame), formatear_importe_ui(entry.lens),
             entry.laboratory, entry.prescription_doctor,
@@ -1220,6 +1304,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         for clave in ("cliente_documento", "fecha_entrega"):
             campos_manual[clave].delete(0, "end")
         campos_manual["vendedora"].set("Seleccionar...")
+        items_venta.clear()
+        item_editando["index"] = None
+        refrescar_items()
         campos_manual["descripcion"].focus_set()
 
     def guardar_manual():
@@ -1230,6 +1317,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         estado_edicion["guardando"] = True
         boton_guardar.configure(state="disabled")
         valores = {clave: campo.get().strip() for clave, campo in campos_manual.items()}
+        valores["items"] = tuple(items_venta)
         valores["tarjeta_cheque"] = str(sumar_medios_no_efectivo(
             valores["tarjeta_cheque"], valores["transferencia"]
         ))
@@ -1361,7 +1449,16 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     def alternar_privacidad():
         privacidad.show() if privacidad.hidden else privacidad.hide()
         boton_privacidad.configure(text="Mostrar importes" if privacidad.hidden else "👁 Ocultar importes")
+        aplicar_privacidad_campos()
         refrescar_estado_consultado()
+        refrescar_items()
+
+    def aplicar_privacidad_campos():
+        mascara = "•" if privacidad.hidden else ""
+        for clave in CAMPOS_MONETARIOS_UI:
+            campo = campos_manual.get(clave)
+            if campo is not None:
+                campo.configure(show=mascara)
 
     boton_privacidad = ctk.CTkButton(
         barra_superior, text="👁 Ocultar importes", width=145, height=28,
@@ -1377,7 +1474,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         estaba_oculta = privacidad.hidden
         if privacidad.check_timeout() and not estaba_oculta:
             boton_privacidad.configure(text="Mostrar importes")
+            aplicar_privacidad_campos()
             refrescar_estado_consultado()
+            refrescar_items()
         ventana.after(1000, revisar_auto_privacidad)
 
     for evento in ("<KeyPress>", "<Button>", "<Motion>"):
@@ -1715,6 +1814,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 campo.delete(0, "end")
                 campo.insert(0, valor)
         estado_edicion["entry_id"] = entry.id
+        items_venta[:] = list(entry.effective_items)
+        refrescar_items()
         boton_guardar.configure(text="Guardar cambios")
         boton_cancelar.pack(side="left", padx=3)
         pestañas.set("Cargar manual")

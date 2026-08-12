@@ -21,6 +21,7 @@ from ..domain.models import (
     CashTotals,
     Order,
     OrderStatus,
+    SaleItem,
 )
 
 
@@ -164,6 +165,21 @@ class SQLiteCashDayRepository:
                     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
+                connection.executemany(
+                    """INSERT INTO sale_items(
+                        id,cash_entry_id,position,description,code,item_type,frame_price,
+                        lens_price,laboratory,prescription_doctor
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                    [
+                        (
+                            item.id, entry.id, position, item.description, item.code,
+                            item.item_type, item.frame_price, item.lens_price,
+                            item.laboratory, item.prescription_doctor,
+                        )
+                        for entry in cash_day.entries
+                        for position, item in enumerate(entry.items)
+                    ],
+                )
                 connection.commit()
             except Exception:
                 connection.rollback()
@@ -235,6 +251,15 @@ class SQLiteCashDayRepository:
             "saleswoman": entry.saleswoman,
             "delivery_date": _iso(entry.delivery_date),
             "observations": entry.observations,
+            "items": [
+                {
+                    "id": item.id, "description": item.description, "code": item.code,
+                    "item_type": item.item_type, "frame_price": item.frame_price,
+                    "lens_price": item.lens_price, "laboratory": item.laboratory,
+                    "prescription_doctor": item.prescription_doctor,
+                }
+                for item in entry.items
+            ],
             "status": entry.status.value,
             "voided_at": _iso(entry.voided_at),
             "void_reason": entry.void_reason,
@@ -278,6 +303,18 @@ class SQLiteCashDayRepository:
         entry_rows = connection.execute(
             "SELECT * FROM cash_entries WHERE cash_day_id = ? ORDER BY rowid", (row["id"],)
         ).fetchall()
+        item_rows = connection.execute(
+            "SELECT * FROM sale_items WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id = ?) ORDER BY cash_entry_id, position",
+            (row["id"],),
+        ).fetchall()
+        items_by_entry: dict[str, list[SaleItem]] = {}
+        for item in item_rows:
+            items_by_entry.setdefault(item["cash_entry_id"], []).append(SaleItem(
+                id=item["id"], description=item["description"], code=item["code"],
+                item_type=item["item_type"], frame_price=item["frame_price"],
+                lens_price=item["lens_price"], laboratory=item["laboratory"],
+                prescription_doctor=item["prescription_doctor"],
+            ))
         entries = [CashEntry(
             id=item["id"], cash_day_id=item["cash_day_id"], description=item["description"],
             envelope=item["envelope"], frame_origin=item["frame_origin"], code=item["code"],
@@ -289,6 +326,7 @@ class SQLiteCashDayRepository:
             source_reference=item["source_reference"], created_at=_datetime(item["created_at"]),
             customer_document=item["customer_document"], saleswoman=item["saleswoman"],
             delivery_date=item["delivery_date"], observations=item["observations"],
+            items=tuple(items_by_entry.get(item["id"], ())),
             updated_at=_datetime(item["updated_at"]), status=item["status"],
             voided_at=_datetime(item["voided_at"]), void_reason=item["void_reason"],
             revision=item["revision"],
