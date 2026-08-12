@@ -6,5 +6,6 @@ The final implementation corrects the structural differences: compact branded he
 
 The canvas remains #F3F6FA; white is limited to cards, fields, table, and bounded panels. This preserves luminosity without a full-screen white surface.
 
-Final real-entrypoint capture: entrypoint-final-1366x768.png (718fb09a2eb63850c018e19246c5516939497e491c6876875ba9227b54e285bb).
+Final real-entrypoint capture: entrypoint-final-1366x768.png (c7d4ab76600262e7bda0aa9345e727282de5d0e31467666f6ba8ad14d36b977d).
 Final populated-state capture: layout-final-1366x768.png (06cc7c9f877d25f9f7f1dd0936553ffdac20a17341f4d9fcdb02431ac8e1fd23).
+The overlap correction establishes explicit non-intersecting bounds: left content x=4..574, right content x=590..1334, actions y=482..558, and cash-count summary y=570..636. Header controls and KPI cards occupy separate bands.

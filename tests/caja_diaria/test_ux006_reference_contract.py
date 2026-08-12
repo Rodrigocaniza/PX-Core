@@ -22,11 +22,13 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             '"GASTOS"',
             '"SALDO PEND."',
             '"EFECTIVO FINAL"',
-            'cabecera.place(x=4, y=2)',
-            'formulario.place(x=4, y=142)',
-            'toolbar_movimientos.place(x=562, y=142)',
-            'pie_movimientos.place(x=562, y=510)',
-            'resumen_dia.place(x=4, y=568)',
+            'cabecera.place(x=4, y=4)',
+            'formulario.place(x=4, y=146)',
+            'toolbar_movimientos.place(x=590, y=146)',
+            'pie_movimientos.place(x=590, y=512)',
+            'resumen_dia.place(x=4, y=570)',
+            'acciones_primarias = ctk.CTkFrame(acciones',
+            'acciones_secundarias = ctk.CTkFrame(acciones',
         ):
             self.assertIn(text, source)
 

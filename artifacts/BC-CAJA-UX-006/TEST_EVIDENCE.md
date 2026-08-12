@@ -8,3 +8,6 @@
 - Result: BC_CAJA_REAL_ENTRYPOINT_CAPTURE_OK, 1366x768, result=0
 
 All data used for capture was empty or synthetic and stored in a temporary directory.
+- Layout-overlap correction focal suite: 17 passed.
+- Post-correction Caja regression: 66 passed, 4 subtests passed.
+- Post-correction full regression: 66 passed, 4 subtests passed.

@@ -9,3 +9,6 @@
 - Full Caja regression: PASS.
 - Command Center workflow preserved unedited in its canonical INVALIDATED state.
 - Artifact consistency: recorded separately.
+
+- Real-entrypoint overlap correction at 1366x768: PASS.
+- Left/right panel gutter and bottom-summary separation: PASS.
