@@ -38,6 +38,10 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             '"Estado: ABIERTA"',
             '"Estado: CERRADA"',
             'controller.add_expense(',
+            '("6", "Gastos"',
+            'text="Guardar gasto"',
+            '"Efectivo esperado por sistema: —"',
+            'describir_diferencia_arqueo',
         ):
             self.assertIn(text, source)
 
@@ -64,6 +68,12 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
         self.assertEqual(
             CajaDiaria.calcular_saldo_pendiente("100", "200", "0", "0"), 0
         )
+
+    def test_cash_count_messages_cover_conforming_shortage_and_surplus(self):
+        self.assertEqual(CajaDiaria.describir_diferencia_arqueo(0)[0], "ARQUEO CONFORME")
+        self.assertEqual(CajaDiaria.describir_diferencia_arqueo(-50000)[1], "Faltan 50.000")
+        self.assertEqual(CajaDiaria.describir_diferencia_arqueo(50000)[1], "Sobran 50.000")
+        self.assertEqual(CajaDiaria.formatear_diferencia_ui(50000), "+50.000")
 
     def test_all_operational_fields_remain_mapped(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)

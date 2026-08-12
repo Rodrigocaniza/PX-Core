@@ -11,6 +11,7 @@ from PIL import ImageGrab
 from tkinter import ttk
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import bc_caja
+import CajaDiaria
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.domain.errors import CashDayClosedError
 from modulos.caja_diaria.domain.models import CashEntry
@@ -29,6 +30,10 @@ def main() -> int:
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     original_mainloop = ctk.CTk.mainloop
+    original_showinfo = CajaDiaria.messagebox.showinfo
+    original_showwarning = CajaDiaria.messagebox.showwarning
+    CajaDiaria.messagebox.showinfo = lambda *args, **kwargs: None
+    CajaDiaria.messagebox.showwarning = lambda *args, **kwargs: None
     with tempfile.TemporaryDirectory(prefix="bc-caja-entrypoint-") as directory:
         os.environ["BC_CAJA_DATA_DIR"] = directory
         if args.rows:
@@ -45,6 +50,8 @@ def main() -> int:
                     balance="0", source_reference="DATOS SINTETICOS UX-006",
                 ))
             controller.add_expense(date.today().strftime("%d-%m-%Y"), "PC", "Ferretería", "200000")
+            audit_date = date.today() - timedelta(days=2)
+            controller.service.open_day(business_date=audit_date, unit="PC", opening_cash=1500000)
             closed_date = date.today() - timedelta(days=1)
             closed = controller.service.open_day(business_date=closed_date, unit="PC", opening_cash=500000)
             controller.service.close_day(closed.id)
@@ -102,6 +109,20 @@ def main() -> int:
                 if values != ("1.500.000", "250.000", "1.750.000", "250.000"):
                     raise RuntimeError(f"formato/total/saldo visible inválido: {values}")
                 print(f"BC_CAJA_MONEY_TOTAL_BALANCE_OK values={values}")
+                expense_description = field_for("Descripción *")
+                expense_amount = field_for("Monto *")
+                expense_description.insert(0, "Ferretería")
+                expense_amount.insert(0, "200000")
+                expense_amount._entry.event_generate("<FocusOut>")
+                expense_buttons = [
+                    w for w in descendants(window) if isinstance(w, ctk.CTkButton)
+                    and w.cget("text") == "Guardar gasto"
+                ]
+                if expense_amount.get() != "200.000" or len(expense_buttons) != 1:
+                    raise RuntimeError("sección integrada de gasto inválida")
+                expense_buttons[0].invoke()
+                window.update()
+                print("BC_CAJA_INTEGRATED_EXPENSE_OK amount=200.000")
                 trees = [w for w in descendants(window) if isinstance(w, ttk.Treeview)]
                 if len(trees) != 1:
                     raise RuntimeError(f"se esperó una tabla, encontradas={len(trees)}")
@@ -110,13 +131,13 @@ def main() -> int:
                 tree.yview_scroll(5, "units")
                 window.update_idletasks()
                 after = tree.yview()
-                if len(tree.get_children()) != args.rows + 1 or after == before:
+                if len(tree.get_children()) != args.rows + 2 or after == before:
                     raise RuntimeError(f"scroll no operativo rows={len(tree.get_children())} size={tree.winfo_width()}x{tree.winfo_height()} before={before} after={after}")
                 print(f"BC_CAJA_SCROLL_OK rows={args.rows} before={before} after={after}")
             visible = [w for w in descendants(window) if w.winfo_ismapped()]
             action_buttons = [
                 w for w in visible if isinstance(w, ctk.CTkButton)
-                and w.cget("text") in ("Guardar venta  —  F9", "Limpiar", "Registrar gasto")
+                and w.cget("text") in ("Guardar venta  —  F9", "Limpiar")
             ]
             left_entries = [
                 w for w in visible if isinstance(w, ctk.CTkEntry)
@@ -127,7 +148,15 @@ def main() -> int:
                 w for w in visible if isinstance(w, ctk.CTkLabel)
                 and w.cget("text") == "Notas"
             ]
-            if len(action_buttons) != 3 or len(notes_titles) != 1:
+            expense_buttons = [
+                w for w in visible if isinstance(w, ctk.CTkButton)
+                and w.cget("text") == "Guardar gasto"
+            ]
+            expense_titles = [
+                w for w in visible if isinstance(w, ctk.CTkLabel)
+                and w.cget("text") == "Gastos"
+            ]
+            if len(action_buttons) != 2 or len(notes_titles) != 1 or len(expense_buttons) != 1 or len(expense_titles) != 1:
                 raise RuntimeError("estructura visible incompleta para validar geometría")
             entry_bottom = max(w.winfo_rooty() + w.winfo_height() for w in left_entries)
             action_top = min(w.winfo_rooty() for w in action_buttons)
@@ -146,6 +175,76 @@ def main() -> int:
             x, y = window.winfo_rootx(), window.winfo_rooty()
             width, height = window.winfo_width(), window.winfo_height()
             ImageGrab.grab((x, y, x + width, y + height)).save(args.output)
+            if args.rows:
+                arqueo_buttons = [
+                    w for w in descendants(window) if isinstance(w, ctk.CTkButton)
+                    and str(w.cget("text")).strip().endswith("Arqueo")
+                ]
+                if len(arqueo_buttons) != 1:
+                    raise RuntimeError("navegación de Arqueo no disponible")
+                arqueo_buttons[0].invoke()
+                window.update()
+                visible_entries = [
+                    w for w in descendants(window) if isinstance(w, ctk.CTkEntry)
+                    and w.winfo_ismapped()
+                ]
+                date_field = next(w for w in visible_entries if w.get() == date.today().strftime("%d-%m-%Y"))
+                date_field.delete(0, "end")
+                date_field.insert(0, (date.today() - timedelta(days=2)).strftime("%d-%m-%Y"))
+                consult = next(
+                    w for w in descendants(window) if isinstance(w, ctk.CTkButton)
+                    and w.cget("text") == "Consultar caja"
+                )
+                consult.invoke()
+                window.update()
+                def denomination_field(text_value):
+                    label = next(
+                        w for w in descendants(window) if isinstance(w, ctk.CTkLabel)
+                        and w.winfo_ismapped() and w.cget("text") == text_value
+                    )
+                    row = label.grid_info()["row"]
+                    return next(
+                        w for w in label.master.winfo_children()
+                        if isinstance(w, ctk.CTkEntry) and w.grid_info().get("row") == row
+                    )
+                hundred = denomination_field("100.000")
+                fifty = denomination_field("50.000")
+                hundred.insert(0, "15")
+                hundred._entry.event_generate("<KeyRelease>", keysym="5")
+                save = next(w for w in descendants(window) if isinstance(w, ctk.CTkButton) and w.cget("text") == "Guardar arqueo")
+                save.invoke()
+                window.update()
+                visible_texts = {
+                    w.cget("text") for w in descendants(window)
+                    if isinstance(w, ctk.CTkLabel) and w.winfo_ismapped()
+                }
+                required = {
+                    "Efectivo esperado por sistema: 1.500.000",
+                    "Efectivo contado: 1.500.000",
+                    "Diferencia: 0",
+                    "ARQUEO CONFORME\nCaja conforme",
+                }
+                if not required.issubset(visible_texts):
+                    raise RuntimeError(f"arqueo conforme inválido: {required - visible_texts}")
+                hundred.delete(0, "end")
+                hundred.insert(0, "14")
+                fifty.insert(0, "1")
+                hundred._entry.event_generate("<KeyRelease>", keysym="4")
+                save.invoke()
+                window.update()
+                texts = {w.cget("text") for w in descendants(window) if isinstance(w, ctk.CTkLabel) and w.winfo_ismapped()}
+                if "Diferencia: -50.000" not in texts or "ARQUEO CON DIFERENCIA\nFaltan 50.000" not in texts:
+                    raise RuntimeError("arqueo con faltante inválido")
+                hundred.delete(0, "end")
+                hundred.insert(0, "15")
+                hundred._entry.event_generate("<KeyRelease>", keysym="5")
+                save.invoke()
+                window.update()
+                texts = {w.cget("text") for w in descendants(window) if isinstance(w, ctk.CTkLabel) and w.winfo_ismapped()}
+                if "Diferencia: +50.000" not in texts or "ARQUEO CON DIFERENCIA\nSobran 50.000" not in texts:
+                    raise RuntimeError("arqueo con sobrante inválido")
+                save.invoke()
+                print("BC_CAJA_CASH_COUNT_OK conforming=0 shortage=-50.000 surplus=+50.000")
             window.attributes("-topmost", False)
             window.destroy()
             root.destroy()
@@ -155,6 +254,8 @@ def main() -> int:
             result = bc_caja.main([])
         finally:
             ctk.CTk.mainloop = original_mainloop
+            CajaDiaria.messagebox.showinfo = original_showinfo
+            CajaDiaria.messagebox.showwarning = original_showwarning
             os.environ.pop("BC_CAJA_DATA_DIR", None)
     print(f"BC_CAJA_REAL_ENTRYPOINT_CAPTURE_OK {args.output} 1366x768 result={result}")
     return 0

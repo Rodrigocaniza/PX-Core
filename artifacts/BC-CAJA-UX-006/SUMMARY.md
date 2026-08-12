@@ -1,18 +1,18 @@
-# BC-CAJA-UX-006 — Final operational and layout adjustment
+# BC-CAJA-UX-006 — Integrated expenses and real cash count
 
 - Mission: BC-CAJA-UX-006
 - State: IMPLEMENTED_AND_VERIFIED — LOCAL_COMMIT_CREATED
-- Base: 394a793b719b0e0d13f23eefff3fbd9d71b3dc9c
+- Base: 9a01037281db580af713f059283d90b58af6dfd1
 - Real entrypoint: bc_caja.main([])
 - Final capture: final-1366x768.png
-- Data in capture: synthetic/demo only
+- Capture data: synthetic/demo only
 
 ## Delivered
 
-The daily screen now calculates pending balance from Total minus Cash, Card/Cheque and Transfer, clamped to zero. It displays a passive Estado: ABIERTA/CERRADA badge, provides a dedicated expense dialog requiring only concept and amount, identifies expenses in movements, and delegates closed-day protection and cash-only expense subtraction to the existing domain.
+Caja diaria now contains compact section 6 Gastos with only required Description and Amount plus its own Guardar gasto action. The former separate Registrar gasto action and modal were removed. Amount uses Paraguayan dot formatting; the existing controller/domain persist the expense, identify it in movements, update the Gastos KPI and subtract it only from expected cash. Closed boxes disable this section.
 
-The lower Resumen para arqueo was removed only from Caja diaria; the Arqueo tab remains. The form grew from 356 to 400 px and the movement grid from 310 to 354 px, preserving wheel/scrollbar behavior and the two-column high-fidelity composition.
+Arqueo now presents the system expected cash, denomination quantities and live subtotals, physical counted cash, signed difference and a clear conforming/difference alert. Differences never block saving. Existing CashCount persistence stores date/day link, branch, expected, counted, difference, status, denomination detail and timestamp.
 
 ## Validation
 
-Real 1366x768 entrypoint with 30 synthetic sales plus one synthetic expense: PASS. Sale case 1.500.000 + 250.000 = 1.750.000, payments 1.000.000 + 500.000 + 0, pending 250.000: PASS. Closed-day expense rejection: PASS. Full regression: 72 passed + 4 subtests passed.
+Real 1366x768 entrypoint: integrated Ferretería expense 200.000 PASS; 32 movement rows and scroll PASS. Expected 1.500.000 with conforming count 1.500.000, shortage 1.450.000 (-50.000), and surplus 1.550.000 (+50.000): visible and saved PASS. Full regression: 75 passed + 4 subtests passed.

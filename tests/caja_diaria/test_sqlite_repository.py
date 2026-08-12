@@ -7,7 +7,7 @@ from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
-from modulos.caja_diaria.domain.models import CashDay, CashDayStatus, CashEntry
+from modulos.caja_diaria.domain.models import CashCountStatus, CashDay, CashDayStatus, CashEntry
 from modulos.caja_diaria.infrastructure.sqlite_repository import SQLiteCashDayRepository
 
 
@@ -91,6 +91,18 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
         self.assertEqual(loaded.counted_total, 150000)
         self.assertEqual(dict(loaded.quantities), {50000: 1, 100000: 1})
 
+    def test_cash_count_with_difference_persists_expected_counted_status_and_detail(self):
+        day = CashDay.open(date="2026-08-02", unit="PC", opening_cash=1500000)
+        self.repository.save(day)
+        shortage = day.count_cash({100000: 14, 50000: 1})
+        self.repository.save_cash_count(shortage)
+        loaded = self.repository.get_latest_cash_count(day.id)
+        self.assertEqual(loaded.expected_total, 1500000)
+        self.assertEqual(loaded.counted_total, 1450000)
+        self.assertEqual(loaded.difference, -50000)
+        self.assertEqual(loaded.status, CashCountStatus.SHORTAGE)
+        self.assertEqual(dict(loaded.quantities), {50000: 1, 100000: 14})
+        self.assertIsNotNone(loaded.recorded_at)
     def test_edit_and_void_keep_append_only_revisions(self):
         day = CashDay.open(date="2026-08-02", unit="PC", opening_cash=100000)
         created = day.add_entry(CashEntry(description="VENTA", total=200000, cash=200000))

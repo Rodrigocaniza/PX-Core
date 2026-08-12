@@ -75,7 +75,7 @@ PRODUCTO_TRABAJO = COLUMNAS_OPERATIVAS[:8]
 COBRO_PAGO = COLUMNAS_OPERATIVAS[8:]
 CAMPOS_MONETARIOS_UI = (
     "caja_inicial", "armazon", "cristal", "total", "efectivo",
-    "tarjeta_cheque", "transferencia", "saldo",
+    "tarjeta_cheque", "transferencia", "saldo", "gasto_monto",
 )
 
 
@@ -112,6 +112,18 @@ def calcular_saldo_pendiente(total, efectivo, tarjeta_cheque, transferencia):
     ]
     return max(0, montos[0] - sum(montos[1:]))
 
+
+def formatear_diferencia_ui(diferencia):
+    prefijo = "+" if diferencia > 0 else ""
+    return prefijo + formatear_monto(diferencia)
+
+
+def describir_diferencia_arqueo(diferencia):
+    if diferencia == 0:
+        return "ARQUEO CONFORME", "Caja conforme"
+    if diferencia < 0:
+        return "ARQUEO CON DIFERENCIA", f"Faltan {formatear_monto(abs(diferencia))}"
+    return "ARQUEO CON DIFERENCIA", f"Sobran {formatear_monto(diferencia)}"
 
 # ------------------------------------------------------------------
 # Compatibilidad legacy TXT (no usada por el flujo normal de UI)
@@ -801,6 +813,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ("3", "Importes", (COBRO_PAGO[0], COBRO_PAGO[3], COBRO_PAGO[4])),
         ("4", "Cobro", (("efectivo", "Efectivo", 100), ("tarjeta_cheque", "Tarjeta / Cheque", 110), ("transferencia", "Transferencia", 105), ("saldo", "Saldo pendiente", 100))),
         ("5", "Notas", (("notas", "Observaciones", 330),)),
+        ("6", "Gastos", (("gasto_descripcion", "Descripción *", 210), ("gasto_monto", "Monto *", 120), ("accion_gasto", "", 110))),
     )
     for indice_seccion, (numero, titulo, columnas) in enumerate(secciones_formulario):
         seccion = ctk.CTkFrame(formulario, fg_color="transparent", corner_radius=0)
@@ -821,11 +834,18 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 seccion, text=etiqueta, height=14, text_color=color_suave, anchor="w",
                 font=ctk.CTkFont(size=8, weight="bold"),
             ).grid(row=1, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0))
-            campo = ctk.CTkEntry(
-                seccion, width=ancho, height=24, fg_color="#F8FAFD",
-                border_width=1, border_color=color_borde_suave, text_color=color_texto,
-                font=ctk.CTkFont(size=9),
-            )
+            if clave == "accion_gasto":
+                campo = ctk.CTkButton(
+                    seccion, text="Guardar gasto", height=24, fg_color="#FFF7ED",
+                    text_color="#D96C2C", border_width=1, border_color="#F2C69F",
+                    hover_color="#FFEBD7",
+                )
+            else:
+                campo = ctk.CTkEntry(
+                    seccion, width=ancho, height=24, fg_color="#F8FAFD",
+                    border_width=1, border_color=color_borde_suave, text_color=color_texto,
+                    font=ctk.CTkFont(size=9),
+                )
             campo.grid(row=2, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0), pady=0)
             campos_manual[clave] = campo
 
@@ -1124,6 +1144,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 campos_manual[clave].configure(state=estado_control)
         campos_manual["transferencia"].configure(state=estado_control)
         campos_manual["notas"].configure(state=estado_control)
+        campos_manual["gasto_descripcion"].configure(state=estado_control)
+        campos_manual["gasto_monto"].configure(state=estado_control)
         boton_guardar.configure(state=estado_control)
         boton_gasto.configure(state=estado_control)
 
@@ -1326,58 +1348,28 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         fg_color="#FFFFFF", text_color=color_texto, border_width=1,
         border_color=color_borde_suave, hover_color="#F1F5FA",
     ).pack(side="left", padx=4, pady=3)
-    def abrir_dialogo_gasto():
-        dialogo = ctk.CTkToplevel(ventana)
-        dialogo.title("Registrar gasto")
-        dialogo.geometry("430x270")
-        dialogo.transient(ventana)
-        dialogo.grab_set()
-        campos_gasto = {}
-        for fila, (clave, etiqueta) in enumerate((
-            ("concepto", "Concepto / Origen *"),
-            ("monto", "Monto *"),
-            ("observaciones", "Observaciones (opcional)"),
-        )):
-            ctk.CTkLabel(dialogo, text=etiqueta, anchor="w").grid(
-                row=fila * 2, column=0, sticky="ew", padx=20, pady=(12, 2)
+    def guardar_gasto_integrado():
+        try:
+            cash_day, _ = controller.add_expense(
+                campos_manual["fecha"].get().strip(),
+                campos_manual["unidad"].get().strip(),
+                campos_manual["gasto_descripcion"].get(),
+                campos_manual["gasto_monto"].get(),
+                campos_manual["notas"].get(),
             )
-            campo = ctk.CTkEntry(dialogo, width=390)
-            campo.grid(row=fila * 2 + 1, column=0, padx=20)
-            campos_gasto[clave] = campo
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        actualizar_estado(cash_day)
+        campos_manual["gasto_descripcion"].delete(0, "end")
+        campos_manual["gasto_monto"].delete(0, "end")
+        messagebox.showinfo("Gasto guardado", "El gasto se registró en la Caja.", parent=ventana)
 
-        def guardar_gasto():
-            try:
-                cash_day, _ = controller.add_expense(
-                    campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip(),
-                    campos_gasto["concepto"].get(), campos_gasto["monto"].get(),
-                    campos_gasto["observaciones"].get(),
-                )
-            except Exception as exc:
-                mostrar_error(exc)
-                return
-            actualizar_estado(cash_day)
-            dialogo.destroy()
-
-        campos_gasto["monto"].bind(
-            "<FocusOut>", lambda _event: formatear_entry_gasto(campos_gasto["monto"])
-        )
-        ctk.CTkButton(dialogo, text="Guardar gasto", command=guardar_gasto).grid(
-            row=6, column=0, pady=16
-        )
-        campos_gasto["concepto"].focus_set()
-
-    def formatear_entry_gasto(campo):
-        valor = formatear_importe_ui(campo.get())
-        campo.delete(0, "end")
-        campo.insert(0, valor)
-
-    boton_gasto = ctk.CTkButton(
-        acciones_primarias, text="Registrar gasto",
-        command=abrir_dialogo_gasto, width=115, height=32,
-        fg_color="#FFF7ED", text_color="#D96C2C", border_width=1,
-        border_color="#F2C69F", hover_color="#FFEBD7",
+    boton_gasto = campos_manual["accion_gasto"]
+    boton_gasto.configure(command=guardar_gasto_integrado)
+    campos_manual["gasto_monto"].bind(
+        "<Return>", lambda _event: guardar_gasto_integrado()
     )
-    boton_gasto.pack(side="left", padx=4, pady=3)
     boton_cancelar = ctk.CTkButton(
         acciones_primarias, text="Cancelar edición", command=cancelar_edicion,
         fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
@@ -1468,81 +1460,165 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     actualizar_reloj()
     # ---- Arqueo ----
-    superior = ctk.CTkFrame(tab_arqueo, fg_color="transparent")
-    superior.pack(fill="x", padx=8, pady=8)
-    ctk.CTkLabel(superior, text="Fecha (DD-MM-AAAA)").pack(side="left")
+    superior = ctk.CTkFrame(
+        tab_arqueo, fg_color="#FFFFFF", corner_radius=8,
+        border_width=1, border_color=color_borde_suave,
+    )
+    superior.pack(fill="x", padx=12, pady=(10, 6))
+    ctk.CTkLabel(superior, text="Resumen esperado", font=ctk.CTkFont(size=14, weight="bold")).pack(
+        side="left", padx=12, pady=10
+    )
     entrada_fecha = ctk.CTkEntry(superior, width=120)
-    entrada_fecha.pack(side="left", padx=8)
+    entrada_fecha.insert(0, date.today().strftime("%d-%m-%Y"))
+    entrada_fecha.pack(side="left", padx=6)
     combo_unidad_arqueo = ctk.CTkComboBox(superior, values=UNIDADES, width=140)
     combo_unidad_arqueo.set(UNIDAD_POR_DEFECTO)
-    combo_unidad_arqueo.pack(side="left", padx=8)
+    combo_unidad_arqueo.pack(side="left", padx=6)
+    etiqueta_esperado = ctk.CTkLabel(
+        superior, text="Efectivo esperado por sistema: —",
+        font=ctk.CTkFont(size=13, weight="bold"), text_color=color_azul,
+    )
+    etiqueta_esperado.pack(side="right", padx=16)
 
-    grilla = ctk.CTkFrame(tab_arqueo, fg_color="transparent")
-    grilla.pack(fill="x", padx=8, pady=8)
+    cuerpo_arqueo = ctk.CTkFrame(tab_arqueo, fg_color="transparent")
+    cuerpo_arqueo.pack(fill="both", expand=True, padx=12, pady=4)
+    cuerpo_arqueo.grid_columnconfigure(0, weight=3)
+    cuerpo_arqueo.grid_columnconfigure(1, weight=2)
+
+    conteo_frame = ctk.CTkFrame(
+        cuerpo_arqueo, fg_color="#FFFFFF", corner_radius=8,
+        border_width=1, border_color=color_borde_suave,
+    )
+    conteo_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+    ctk.CTkLabel(
+        conteo_frame, text="Conteo físico", font=ctk.CTkFont(size=14, weight="bold")
+    ).grid(row=0, column=0, columnspan=3, sticky="w", padx=12, pady=(8, 4))
+    for columna, titulo in enumerate(("Denominación", "Cantidad", "Subtotal")):
+        ctk.CTkLabel(
+            conteo_frame, text=titulo, text_color=color_suave,
+            font=ctk.CTkFont(size=9, weight="bold"),
+        ).grid(row=1, column=columna, padx=12, pady=2, sticky="w")
+
     campos_conteo = {}
-    for indice, denominacion in enumerate(DENOMINACIONES):
-        ctk.CTkLabel(grilla, text=formatear_monto(denominacion)).grid(
-            row=indice, column=0, sticky="w", padx=8, pady=4
+    etiquetas_subtotal = {}
+    estado_arqueo = {"esperado": None}
+    for indice, denominacion in enumerate(DENOMINACIONES, start=2):
+        ctk.CTkLabel(conteo_frame, text=formatear_monto(denominacion)).grid(
+            row=indice, column=0, sticky="w", padx=12, pady=2
         )
-        campo = ctk.CTkEntry(grilla, width=100, placeholder_text="0")
-        campo.grid(row=indice, column=1, padx=8, pady=4)
+        campo = ctk.CTkEntry(conteo_frame, width=100, height=25, placeholder_text="0")
+        campo.grid(row=indice, column=1, padx=12, pady=2)
+        subtotal = ctk.CTkLabel(conteo_frame, text="0", width=120, anchor="e")
+        subtotal.grid(row=indice, column=2, padx=12, pady=2, sticky="e")
         campos_conteo[denominacion] = campo
+        etiquetas_subtotal[denominacion] = subtotal
 
-    etiqueta_resultado = ctk.CTkLabel(tab_arqueo, text="", justify="left")
-    etiqueta_resultado.pack(padx=8, pady=8, anchor="w")
+    resultado_frame = ctk.CTkFrame(
+        cuerpo_arqueo, fg_color="#FFFFFF", corner_radius=8,
+        border_width=1, border_color=color_borde_suave,
+    )
+    resultado_frame.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+    ctk.CTkLabel(
+        resultado_frame, text="Resultado del arqueo",
+        font=ctk.CTkFont(size=14, weight="bold"),
+    ).pack(anchor="w", padx=16, pady=(14, 10))
+    etiqueta_contado = ctk.CTkLabel(resultado_frame, text="Efectivo contado: 0", anchor="w")
+    etiqueta_contado.pack(fill="x", padx=16, pady=5)
+    etiqueta_diferencia = ctk.CTkLabel(resultado_frame, text="Diferencia: —", anchor="w")
+    etiqueta_diferencia.pack(fill="x", padx=16, pady=5)
+    etiqueta_estado_arqueo = ctk.CTkLabel(
+        resultado_frame, text="Consultá una caja", anchor="w", justify="left",
+        corner_radius=6, fg_color="#EEF3F8",
+    )
+    etiqueta_estado_arqueo.pack(fill="x", padx=16, pady=(10, 16), ipady=10)
 
-    def calcular_arqueo():
-        fecha = entrada_fecha.get().strip()
-        try:
-            fecha, _ = parsear_fecha(fecha)
-        except ValueError:
-            messagebox.showerror(
-                "Fecha inválida", "Usá DD-MM-AAAA.", parent=ventana
-            )
-            return
-        conteo = {}
+    def cantidades_arqueo():
+        cantidades = {}
         for denominacion, campo in campos_conteo.items():
             texto = campo.get().strip() or "0"
-            try:
-                conteo[denominacion] = int(texto)
-            except ValueError:
-                messagebox.showerror(
-                    "Cantidad inválida",
-                    f"Revisá la cantidad de {formatear_monto(denominacion)}.",
-                    parent=ventana,
-                )
-                return
+            cantidades[denominacion] = int(texto)
+        return cantidades
+
+    def actualizar_previsualizacion(_event=None):
         try:
-            cash_day = controller.load_day(fecha, combo_unidad_arqueo.get())
-            totales = cash_day.totals()
-            resultado = controller.record_cash_count(
-                fecha, combo_unidad_arqueo.get(), conteo
+            cantidades = cantidades_arqueo()
+        except ValueError:
+            etiqueta_estado_arqueo.configure(
+                text="Revisá las cantidades", fg_color="#FFF1F2", text_color=COLOR_ROJO
+            )
+            return
+        contado = sum(denominacion * cantidad for denominacion, cantidad in cantidades.items())
+        for denominacion, cantidad in cantidades.items():
+            etiquetas_subtotal[denominacion].configure(
+                text=formatear_monto(denominacion * cantidad)
+            )
+        etiqueta_contado.configure(text=f"Efectivo contado: {formatear_monto(contado)}")
+        esperado = estado_arqueo["esperado"]
+        if esperado is None:
+            return
+        diferencia = contado - esperado
+        estado_texto, detalle = describir_diferencia_arqueo(diferencia)
+        etiqueta_diferencia.configure(
+            text=f"Diferencia: {formatear_diferencia_ui(diferencia)}"
+        )
+        etiqueta_estado_arqueo.configure(
+            text=f"{estado_texto}\n{detalle}",
+            fg_color="#EAF8F1" if diferencia == 0 else "#FFF7E6",
+            text_color=color_verde if diferencia == 0 else "#B45309",
+        )
+
+    def consultar_arqueo():
+        try:
+            cash_day = controller.load_day(
+                entrada_fecha.get().strip(), combo_unidad_arqueo.get().strip()
             )
         except Exception as exc:
             mostrar_error(exc)
             return
-        color = {
-            "OK": COLOR_VERDE, "SOBRA": COLOR_PRIMARIO, "FALTA": COLOR_ROJO,
-        }[resultado.status.value]
-        etiqueta_resultado.configure(
-            text=(
-                f"Caja inicial: {formatear_monto(cash_day.opening_cash)}\n"
-                f"Ventas en efectivo: {formatear_monto(totales.cash)}\n"
-                f"Tarjeta / transferencia: {formatear_monto(totales.card_check)}\n"
-                f"Gastos: {formatear_monto(totales.expenses)}\n"
-                f"Efectivo esperado: {formatear_monto(resultado.expected_total)}\n"
-                f"Efectivo contado: {formatear_monto(resultado.counted_total)}\n"
-                f"Diferencia: {formatear_monto(resultado.difference)} "
-                f"({resultado.status.value})"
-            ),
-            text_color=color,
+        estado_arqueo["esperado"] = cash_day.totals().expected_cash
+        etiqueta_esperado.configure(
+            text="Efectivo esperado por sistema: "
+            + formatear_monto(estado_arqueo["esperado"])
         )
+        actualizar_previsualizacion()
 
+    def guardar_arqueo():
+        try:
+            resultado = controller.record_cash_count(
+                entrada_fecha.get().strip(), combo_unidad_arqueo.get().strip(),
+                cantidades_arqueo(),
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        estado_arqueo["esperado"] = resultado.expected_total
+        actualizar_previsualizacion()
+        if resultado.difference:
+            messagebox.showwarning(
+                "Arqueo con diferencia",
+                describir_diferencia_arqueo(resultado.difference)[1]
+                + ". El arqueo fue guardado correctamente.",
+                parent=ventana,
+            )
+        else:
+            messagebox.showinfo(
+                "Arqueo conforme", "El arqueo fue guardado correctamente.", parent=ventana
+            )
+
+    for campo in campos_conteo.values():
+        campo.bind("<KeyRelease>", actualizar_previsualizacion, add="+")
+
+    botones_arqueo = ctk.CTkFrame(resultado_frame, fg_color="transparent")
+    botones_arqueo.pack(fill="x", padx=12, pady=8)
     ctk.CTkButton(
-        tab_arqueo, text="Calcular y guardar arqueo", command=calcular_arqueo,
+        botones_arqueo, text="Consultar caja", command=consultar_arqueo,
+        fg_color="#FFFFFF", text_color=color_texto, border_width=1,
+        border_color=color_borde_suave,
+    ).pack(side="left", padx=4)
+    ctk.CTkButton(
+        botones_arqueo, text="Guardar arqueo", command=guardar_arqueo,
         fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO_HOVER,
-    ).pack(pady=8)
-
+    ).pack(side="left", padx=4)
     # ---- Historial / edición / anulación ----
     filtros_historial = ctk.CTkFrame(tab_historial, fg_color="transparent")
     filtros_historial.pack(fill="x", padx=8, pady=8)
