@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from contextlib import contextmanager
 from datetime import date, datetime
@@ -111,6 +112,7 @@ class SQLiteCashDayRepository:
         ).fetchone() is not None
 
     def save(self, cash_day: CashDay) -> None:
+        stage = "cash_day_upsert"
         totals = cash_day.closing_totals
         values = (
             cash_day.id, cash_day.business_date.isoformat(), cash_day.unit, cash_day.opening_cash,
@@ -167,8 +169,9 @@ class SQLiteCashDayRepository:
                         "SELECT * FROM cash_entries WHERE cash_day_id = ?", (cash_day.id,)
                     ).fetchall()
                 }
+                stage = "entry_audit"
                 self._record_entry_revisions(connection, cash_day.entries, existing_entries)
-                connection.execute("DELETE FROM cash_entries WHERE cash_day_id = ?", (cash_day.id,))
+                stage = "cash_entry_upsert"
                 connection.executemany(
                     """INSERT INTO cash_entries(
                         id,cash_day_id,description,envelope,frame_origin,code,frame,lens,laboratory,
@@ -177,8 +180,33 @@ class SQLiteCashDayRepository:
                         saleswoman,delivery_date,observations,customer_phone,created_at,updated_at,
                         status,voided_at,void_reason,revision,withdrawal,
                         withdrawal_destination,performed_by
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        cash_day_id=excluded.cash_day_id, description=excluded.description,
+                        envelope=excluded.envelope, frame_origin=excluded.frame_origin,
+                        code=excluded.code, frame=excluded.frame, lens=excluded.lens,
+                        laboratory=excluded.laboratory,
+                        prescription_doctor=excluded.prescription_doctor,
+                        total=excluded.total, cash=excluded.cash,
+                        card_check=excluded.card_check, orders_text=excluded.orders_text,
+                        installments_text=excluded.installments_text,
+                        balance_text=excluded.balance_text, expenses=excluded.expenses,
+                        origin=excluded.origin, source_reference=excluded.source_reference,
+                        customer_document=excluded.customer_document,
+                        saleswoman=excluded.saleswoman, delivery_date=excluded.delivery_date,
+                        observations=excluded.observations,
+                        customer_phone=excluded.customer_phone,
+                        updated_at=excluded.updated_at, status=excluded.status,
+                        voided_at=excluded.voided_at, void_reason=excluded.void_reason,
+                        revision=excluded.revision, withdrawal=excluded.withdrawal,
+                        withdrawal_destination=excluded.withdrawal_destination,
+                        performed_by=excluded.performed_by""",
                     [self._entry_values(entry) for entry in cash_day.entries],
+                )
+                stage = "sale_items_refresh"
+                connection.executemany(
+                    "DELETE FROM sale_items WHERE cash_entry_id = ?",
+                    [(entry.id,) for entry in cash_day.entries],
                 )
                 connection.executemany(
                     """INSERT INTO sale_items(
@@ -196,9 +224,33 @@ class SQLiteCashDayRepository:
                     ],
                 )
                 connection.commit()
-            except Exception:
+            except Exception as error:
                 connection.rollback()
+                if isinstance(error, sqlite3.Error):
+                    self._log_sqlite_failure(error, stage=stage, cash_day_id=cash_day.id)
                 raise
+
+    def _log_sqlite_failure(self, error: sqlite3.Error, *, stage: str, cash_day_id: str) -> None:
+        """Registra diagnóstico técnico local sin exponer SQL a la operadora."""
+        try:
+            log_dir = self.database_path.parent / "Logs"
+            log_dir.mkdir(parents=True, exist_ok=True)
+            logger = logging.getLogger(f"bc-caja-sqlite-{self.database_path}")
+            logger.setLevel(logging.ERROR)
+            handler = logging.FileHandler(log_dir / "sqlite-errors.log", encoding="utf-8")
+            try:
+                logger.addHandler(handler)
+                logger.error(
+                    "sqlite save failed stage=%s cash_day_id=%s class=%s code=%s name=%s detail=%s",
+                    stage, cash_day_id, type(error).__name__,
+                    getattr(error, "sqlite_errorcode", None),
+                    getattr(error, "sqlite_errorname", None), str(error),
+                )
+            finally:
+                logger.removeHandler(handler)
+                handler.close()
+        except OSError:
+            pass
 
     @staticmethod
     def _entry_values(entry: CashEntry) -> tuple:
