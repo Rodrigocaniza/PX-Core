@@ -665,18 +665,25 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     else:
         ancho_disponible, alto_disponible = ventana.winfo_screenwidth(), ventana.winfo_screenheight()
     perfil = perfil_visual(ancho_disponible, alto_disponible)
-    # En Windows con DPI 125%, Tk informa un escritorio lógico menor que los
-    # píxeles físicos. La referencia selecciona el perfil, pero la geometría
-    # nunca debe exceder el escritorio lógico o ImageGrab capturará fuera de
-    # pantalla y los controles derechos quedarán recortados.
+    # El perfil describe la UI interna. La ventana conserva siempre el marco
+    # nativo: maximizar no equivale a forzar una geometría fullscreen.
     ancho_logico = min(ancho_disponible, ventana.winfo_screenwidth())
     alto_logico = min(alto_disponible, ventana.winfo_screenheight())
-    # Compensa el marco no-cliente de Windows: el área de contenido comienza
-    # exactamente en el origen físico y no se captura fuera del monitor.
-    posicion = "+-8+-31" if sys.platform == "win32" else "+0+0"
-    ventana.geometry(f"{ancho_logico}x{alto_logico}{posicion}")
+    tamano_de_prueba = len(tamano_forzado) == 2 and all(
+        valor.isdigit() for valor in tamano_forzado
+    )
+    if tamano_de_prueba:
+        ventana.geometry(f"{ancho_logico}x{alto_logico}+0+0")
+    else:
+        ancho_inicial = min(1440, max(1100, ancho_logico - 120))
+        alto_inicial = min(900, max(680, alto_logico - 100))
+        ventana.geometry(f"{ancho_inicial}x{alto_inicial}+40+30")
     ventana.minsize(1100, 680)
     ventana.resizable(True, True)
+    ventana.overrideredirect(False)
+    ventana.attributes("-fullscreen", False)
+    if sys.platform == "win32" and not tamano_de_prueba:
+        ventana.after_idle(lambda: ventana.state("zoomed"))
 
     color_fondo = "#EAF2FB"
     color_panel = "#F4F8FD"

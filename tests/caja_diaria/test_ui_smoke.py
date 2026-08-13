@@ -20,6 +20,10 @@ class CashDayUISmokeTests(unittest.TestCase):
     def test_window_is_resizable_and_not_forced_modal(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         self.assertIn("ventana.resizable(True, True)", source)
+        self.assertIn("ventana.overrideredirect(False)", source)
+        self.assertIn('ventana.attributes("-fullscreen", False)', source)
+        self.assertIn('ventana.state("zoomed")', source)
+        self.assertNotIn('posicion = "+-8+-31"', source)
         self.assertNotIn("ventana.grab_set()", source)
         self.assertNotIn("ventana.transient(ventana_padre)", source)
 

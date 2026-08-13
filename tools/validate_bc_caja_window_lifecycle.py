@@ -5,6 +5,7 @@ import os
 import sqlite3
 import sys
 import tempfile
+import ctypes
 from contextlib import closing
 from pathlib import Path
 
@@ -21,6 +22,14 @@ def window_exists(window) -> bool:
         return False
 
 
+def native_window_style(window) -> int:
+    user32 = ctypes.windll.user32
+    hwnd = user32.FindWindowW(None, window.title())
+    if not hwnd:
+        raise RuntimeError("main Win32 window not found")
+    return user32.GetWindowLongW(hwnd, -16)
+
+
 def main() -> int:
     original_mainloop = ctk.CTk.mainloop
     cycle = {"number": 0}
@@ -35,6 +44,24 @@ def main() -> int:
             window.update()
             if tuple(bool(value) for value in window.resizable()) != (True, True):
                 raise RuntimeError("resize horizontal/vertical deshabilitado")
+            if bool(window.overrideredirect()):
+                raise RuntimeError("overrideredirect activo")
+            if bool(window.attributes("-fullscreen")):
+                raise RuntimeError("fullscreen activo")
+            style = native_window_style(window)
+            required_style = {
+                "caption": 0x00C00000,
+                "system_menu": 0x00080000,
+                "thick_frame": 0x00040000,
+                "minimize_box": 0x00020000,
+                "maximize_box": 0x00010000,
+            }
+            missing = [
+                name for name, flag in required_style.items()
+                if style & flag != flag
+            ]
+            if missing:
+                raise RuntimeError(f"native chrome incompleto: {missing}")
             minimum = tuple(
                 int(value) for value in window.tk.splitlist(
                     window.tk.call("wm", "minsize", window._w)
@@ -42,6 +69,16 @@ def main() -> int:
             )
             if minimum[0] > 1100 or minimum[1] > 680:
                 raise RuntimeError(f"mínimo inesperado: {minimum}")
+
+            window.iconify()
+            window.update_idletasks()
+            window.update()
+            if window.state() != "iconic":
+                raise RuntimeError(f"minimizar falló: state={window.state()}")
+            window.deiconify()
+            window.state("normal")
+            window.update_idletasks()
+            window.update()
 
             window.state("zoomed")
             window.update_idletasks()
@@ -57,6 +94,8 @@ def main() -> int:
             restored = (window.winfo_width(), window.winfo_height())
             if restored != (1200, 700):
                 raise RuntimeError(f"restaurar/resize falló: {restored}")
+            if (window.winfo_x(), window.winfo_y()) != (20, 20):
+                raise RuntimeError("la ventana restaurada no se pudo mover")
 
             window.geometry("1250x720+20+20")
             window.update_idletasks()
@@ -79,6 +118,7 @@ def main() -> int:
                 raise RuntimeError(f"{close_method} no destruyó la ventana raíz")
             print(
                 f"BC_CAJA_WINDOW_CYCLE_OK cycle={cycle['number']} "
+                f"chrome=0x{style:08x} minimized=ok "
                 f"zoomed={zoomed} restored={restored} resized={resized} "
                 f"closed_by={close_method}"
             )

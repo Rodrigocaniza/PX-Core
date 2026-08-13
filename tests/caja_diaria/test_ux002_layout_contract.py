@@ -15,7 +15,7 @@ class CashDayUX002ContractTests(unittest.TestCase):
     def test_window_shortcuts_actions_footer_and_target_are_explicit(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         for contract_text in (
-            'ventana.geometry(f"{ancho_logico}x{alto_logico}{posicion}")',
+            'ventana.geometry(f"{ancho_logico}x{alto_logico}+0+0")',
             '"CLIENTE Y COMPROBANTE"',
             '"DETALLE DE VENTA"',
             '"PAGO"',
