@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from CajaDiaria import completar_items_para_guardar, escribir_importe_formateado
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.models import SaleDraft, SaleItem
@@ -65,6 +66,48 @@ class MultiItemSalesTests(unittest.TestCase):
         _, entry = self.controller.add_manual_entry(values)
         self.assertEqual(len(entry.effective_items), 1)
         self.assertEqual(entry.effective_items[0].subtotal, 750000)
+
+    def test_single_product_sale_can_be_saved_directly_from_visible_form(self):
+        values = {
+            **self.values,
+            "caja_inicial": "1.500.000", "descripcion": "Prueba Uno",
+            "cliente_documento": "", "sobre": "123", "arm_org": "Armazón",
+            "cod": "456", "armazon": "1.500.000", "cristal": "250.000",
+            "total": "1.750.000", "efectivo": "1.000.000",
+            "tarjeta_cheque": "", "transferencia": "", "saldo": "750.000",
+            "notas": "",
+        }
+        values["items"] = completar_items_para_guardar(values, ())
+
+        day, entry = self.controller.add_manual_entry(values)
+        reloaded = self.controller.load_day("12-08-2026", "PC")
+
+        self.assertEqual(len(day.entries), 1)
+        self.assertEqual(len(entry.items), 1)
+        self.assertEqual(entry.total, 1_750_000)
+        self.assertEqual(entry.balance, "750.000")
+        self.assertEqual(len(reloaded.entries), 1)
+        self.assertEqual(len(reloaded.entries[0].items), 1)
+        self.assertEqual(reloaded.entries[0].total, 1_750_000)
+
+    def test_initial_cash_uses_paraguayan_thousands_separator(self):
+        class VisibleEntry:
+            def __init__(self):
+                self.value = "1500000"
+
+            def get(self):
+                return self.value
+
+            def delete(self, _start, _end):
+                self.value = ""
+
+            def insert(self, _index, value):
+                self.value = value
+
+        field = VisibleEntry()
+        self.assertEqual(escribir_importe_formateado(field, field.get()), "1.500.000")
+        self.assertEqual(field.get(), "1.500.000")
+        self.assertEqual(escribir_importe_formateado(field, 1_500_000), "1.500.000")
 
 
 if __name__ == "__main__":

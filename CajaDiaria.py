@@ -114,6 +114,33 @@ def calcular_saldo_pendiente(total, efectivo, tarjeta_cheque, transferencia):
     return max(0, montos[0] - sum(montos[1:]))
 
 
+def construir_item_producto_visible(valores):
+    """Convierte el producto actualmente visible en el primer item de la venta."""
+    item = SaleItem(
+        description=valores.get("arm_org") or valores.get("cod") or "Producto",
+        code=valores.get("cod", ""), item_type=valores.get("arm_org", ""),
+        frame_price=valores.get("armazon", ""), lens_price=valores.get("cristal", ""),
+        laboratory=valores.get("laboratorio", ""),
+        prescription_doctor=valores.get("receta_dr", ""),
+    )
+    if item.subtotal <= 0:
+        raise ValueError("El producto debe tener un precio de armazón o cristal.")
+    return item
+
+
+def completar_items_para_guardar(valores, items):
+    """Conserva N items o promueve el producto visible para la venta habitual."""
+    return tuple(items) if items else (construir_item_producto_visible(valores),)
+
+
+def escribir_importe_formateado(campo, valor):
+    """Escribe un importe legible en UI sin alterar su valor numérico."""
+    texto = formatear_importe_ui(valor)
+    campo.delete(0, "end")
+    campo.insert(0, texto)
+    return texto
+
+
 def formatear_diferencia_ui(diferencia):
     prefijo = "+" if diferencia > 0 else ""
     return prefijo + formatear_monto(diferencia)
@@ -934,8 +961,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         campo = campos_manual[clave]
         texto = formatear_importe_ui(campo.get())
         if texto != campo.get():
-            campo.delete(0, "end")
-            campo.insert(0, texto)
+            escribir_importe_formateado(campo, texto)
 
     def recalcular_total_visible(_event=None):
         if items_venta:
@@ -970,12 +996,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     def agregar_producto():
         try:
-            item = SaleItem(
-                description=campos_manual["arm_org"].get() or campos_manual["cod"].get() or "Producto",
-                code=campos_manual["cod"].get(), item_type=campos_manual["arm_org"].get(),
-                frame_price=campos_manual["armazon"].get(), lens_price=campos_manual["cristal"].get(),
-                laboratory=campos_manual["laboratorio"].get(),
-                prescription_doctor=campos_manual["receta_dr"].get(),
+            item = construir_item_producto_visible(
+                {clave: campos_manual[clave].get() for clave in (
+                    "arm_org", "cod", "armazon", "cristal", "laboratorio", "receta_dr"
+                )}
             )
             if item.subtotal <= 0:
                 raise ValueError("El producto debe tener un precio de armazón o cristal.")
@@ -1226,6 +1250,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             except (TypeError, ValueError):
                 pass
         mostrar_importe = lambda value: privacidad.display(formatear_monto(value))
+        escribir_importe_formateado(campos_manual["caja_inicial"], cash_day.opening_cash)
         etiquetas_kpi["inicial"].configure(text=mostrar_importe(cash_day.opening_cash))
         etiquetas_kpi["ventas"].configure(text=mostrar_importe(totales.total))
         etiquetas_kpi["efectivo"].configure(text=mostrar_importe(totales.cash))
@@ -1317,6 +1342,13 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         estado_edicion["guardando"] = True
         boton_guardar.configure(state="disabled")
         valores = {clave: campo.get().strip() for clave, campo in campos_manual.items()}
+        if not items_venta:
+            try:
+                items_venta[:] = completar_items_para_guardar(valores, items_venta)
+                refrescar_items()
+                valores = {clave: campo.get().strip() for clave, campo in campos_manual.items()}
+            except (TypeError, ValueError):
+                pass
         valores["items"] = tuple(items_venta)
         valores["tarjeta_cheque"] = str(sumar_medios_no_efectivo(
             valores["tarjeta_cheque"], valores["transferencia"]
@@ -1812,7 +1844,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 campo.set(valor)
             else:
                 campo.delete(0, "end")
-                campo.insert(0, valor)
+                campo.insert(
+                    0, formatear_importe_ui(valor) if clave in CAMPOS_MONETARIOS_UI else valor
+                )
         estado_edicion["entry_id"] = entry.id
         items_venta[:] = list(entry.effective_items)
         refrescar_items()

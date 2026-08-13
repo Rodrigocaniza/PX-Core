@@ -3,7 +3,10 @@
   "repository": "caja-multi-item",
   "missions": {
     "BC-CAJA-V1-PEDIDOS-001": "bc-caja-pedidos-v1",
-    "BC-CAJA-MULTI-ITEM-001": "bc-caja-multi-item"
+    "BC-CAJA-MULTI-ITEM-001": "bc-caja-multi-item",
+    "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX": "bc-caja-multi-item",
+    "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R2": "bc-caja-multi-item",
+    "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3": "bc-caja-multi-item"
   },
   "runners": {
     "bc-caja-pedidos-v1": {

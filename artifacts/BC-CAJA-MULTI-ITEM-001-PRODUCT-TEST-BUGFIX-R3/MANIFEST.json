@@ -1,0 +1,106 @@
+{
+  "manifest_version": "1.0",
+  "generator": "tools/package_mission_evidence.py",
+  "algorithm": "sha256",
+  "mission": "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3",
+  "generated_at": "2026-08-13T00:36:33Z",
+  "status": "PASSED",
+  "repository": {
+    "root": "C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/caja-multi-item",
+    "branch": "feature/caja-multi-item",
+    "head_before": "0891ff50dd18ab089c8e045f518b4f28793306fb",
+    "head_after": "0891ff50dd18ab089c8e045f518b4f28793306fb",
+    "head_consistent": true,
+    "status_before": [
+      "M .bc-command-center/verification.json",
+      " M CajaDiaria.py",
+      " M tests/caja_diaria/test_multi_item_sales.py",
+      "?? .binding-r3-librarian-fail.json",
+      "?? artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R2/",
+      "?? artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3/",
+      "?? artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX/"
+    ],
+    "status_after": [
+      "M .bc-command-center/verification.json",
+      " M CajaDiaria.py",
+      " M tests/caja_diaria/test_multi_item_sales.py",
+      "?? .binding-r3-librarian-fail.json",
+      "?? artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R2/",
+      "?? artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3/",
+      "?? artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX/"
+    ]
+  },
+  "files": {
+    "implementation": [
+      {
+        "path": "CajaDiaria.py",
+        "sha256": "f36d1abd85b85cd25654971cc8e8fa49715ab1995930dc52214def9f88f10f73"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/caja_diaria/test_multi_item_sales.py",
+        "sha256": "f9305e6e9f2ffe3790f29229b1f02cf67fd92123ba4ec19d0361c82b3d54496f"
+      },
+      {
+        "path": "tests/caja_diaria/test_orders_v1.py",
+        "sha256": "c5000f1b9a6842b056a62247ec78076c1a88d8b71fdcd42c4e3bfedfe204ee52"
+      },
+      {
+        "path": "tests/caja_diaria/test_financial_privacy.py",
+        "sha256": "54729ee00952894cf05b54dca99f1ec1d707be2fc0ff9744a36b0369048fa86d"
+      }
+    ],
+    "dependencies": [
+      {
+        "path": ".bc-command-center/verification.json",
+        "sha256": "dd86e060ba94070f7838c5af0197e383a65161768eab9863ff5694c5d3d93355"
+      },
+      {
+        "path": "artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX/WORKFLOW.json",
+        "sha256": "4d4e0f40b22d12db76a70c142287a81388b76c87f5588fdf95b8898aa57a23d5"
+      },
+      {
+        "path": "artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R2/WORKFLOW.json",
+        "sha256": "dd51c66ee92dabc087e14ba057a3db3a4a331e1b3156f9afb136723aa36586fe"
+      }
+    ]
+  },
+  "tests": {
+    "targeted": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "tests/caja_diaria/test_multi_item_sales.py",
+        "tests/caja_diaria/test_orders_v1.py",
+        "tests/caja_diaria/test_financial_privacy.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "11 passed, 1 warning in 0.73s"
+    },
+    "full_suite": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "86 passed, 1 warning in 1.87s"
+    }
+  },
+  "zip": {
+    "path": "BC-Core-BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3.zip",
+    "sha256": "26dab0f1b266fa2c89ac4edf0b0ef95b150f3d1f5f66589439b0722079285f7e",
+    "file_count": 7
+  },
+  "summary_file": "SUMMARY.txt",
+  "prompts": {
+    "librarian": "PROMPT_LIBRARIAN.txt",
+    "qa": "PROMPT_QA.txt",
+    "auditor": "PROMPT_AUDITOR.txt"
+  },
+  "warnings": []
+}
