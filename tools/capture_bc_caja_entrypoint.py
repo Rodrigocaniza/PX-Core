@@ -66,9 +66,11 @@ def main() -> int:
             root.update_idletasks()
             root.update()
             windows = [child for child in root.winfo_children() if isinstance(child, ctk.CTkToplevel)]
-            if len(windows) != 1:
-                raise RuntimeError(f"entrypoint creó {len(windows)} ventanas de Caja")
-            window = windows[0]
+            if windows:
+                raise RuntimeError(f"entrypoint creó {len(windows)} Toplevel inesperados")
+            window = root
+            if tuple(bool(value) for value in window.resizable()) != (True, True):
+                raise RuntimeError("la ventana raíz no permite redimensionar")
             window.attributes("-topmost", True)
             window.update_idletasks()
             if args.rows:
@@ -319,7 +321,6 @@ def main() -> int:
                 print("BC_CAJA_CASH_COUNT_OK conforming=0 shortage=-50.000 surplus=+50.000")
             window.attributes("-topmost", False)
             window.destroy()
-            root.destroy()
 
         ctk.CTk.mainloop = capture_mainloop
         try:

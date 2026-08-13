@@ -653,11 +653,11 @@ def registrar_arqueo(fecha, unidad, conteo):
 # Interfaz gráfica
 # ------------------------------------------------------------------
 
-def abrir_caja_diaria(ventana_padre, controller=None):
+def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     """Abre la UI conocida usando Core + SQLite para toda operación nueva."""
     controller = controller or build_cash_day_controller()
     ctk.set_appearance_mode("light")
-    ventana = ctk.CTkToplevel(ventana_padre)
+    ventana = ventana_padre if usar_ventana_raiz else ctk.CTkToplevel(ventana_padre)
     ventana.title("Caja diaria - Óptica")
     tamano_forzado = os.environ.get("BC_CAJA_WINDOW_SIZE", "").lower().split("x")
     if len(tamano_forzado) == 2 and all(valor.isdigit() for valor in tamano_forzado):
@@ -676,8 +676,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     posicion = "+-8+-31" if sys.platform == "win32" else "+0+0"
     ventana.geometry(f"{ancho_logico}x{alto_logico}{posicion}")
     ventana.minsize(1100, 680)
-    ventana.transient(ventana_padre)
-    ventana.grab_set()
+    ventana.resizable(True, True)
 
     color_fondo = "#EAF2FB"
     color_panel = "#F4F8FD"
