@@ -8,7 +8,8 @@
     "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R2": "bc-caja-multi-item",
     "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3": "bc-caja-multi-item",
     "BC-CAJA-PRODUCT-TEST-COMBINED-001": "bc-caja-multi-item",
-    "BC-CAJA-CASH-CONTINUITY-001": "bc-caja-multi-item"
+    "BC-CAJA-CASH-CONTINUITY-001": "bc-caja-multi-item",
+    "BC-CAJA-MULTI-ITEM-UX-002": "bc-caja-multi-item"
   },
   "runners": {
     "bc-caja-pedidos-v1": {

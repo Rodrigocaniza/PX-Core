@@ -150,6 +150,21 @@ def leer_valores_formulario(campos):
     }
 
 
+def resumen_venta_en_curso(cliente, items, privacidad):
+    """Modelo visual del draft; no persiste ni altera sus artículos."""
+    total = sum(item.subtotal for item in items)
+    return {
+        "cliente": str(cliente or "").strip() or "Cliente sin nombre",
+        "cantidad": len(items),
+        "total": privacidad.display(formatear_monto(total)),
+        "estado": "EN CURSO",
+        "items": tuple(
+            (item.description, privacidad.display(formatear_monto(item.subtotal)))
+            for item in items
+        ),
+    }
+
+
 def mostrar_error_guardado(error, parent=None):
     """Hace visible cualquier rechazo del guardado usando mensajes seguros."""
     titulo, detalle = friendly_error(error)
@@ -908,8 +923,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     campos_manual["notas"].configure(placeholder_text="Observaciones de la operación")
     campos_manual["fecha_entrega"].configure(placeholder_text="dd-mm-aaaa")
 
-    lista_productos = ctk.CTkFrame(formulario, fg_color="#F8FAFD", corner_radius=5)
-    lista_productos.grid(row=6, column=0, sticky="ew", padx=10, pady=(3, 0))
+    # El draft multi-item se representa en Movimientos del día, no debajo del formulario.
+    lista_productos = ctk.CTkFrame(formulario, fg_color="transparent", height=1)
+    # Sin grid/place: libera el espacio inferior y evita solapamientos.
     columnas_items = ("numero", "producto", "codigo", "tipo", "armazon", "cristal", "subtotal")
     grilla_items = ttk.Treeview(lista_productos, columns=columnas_items, show="headings", height=3)
     for clave, titulo, ancho in (
@@ -919,7 +935,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     ):
         grilla_items.heading(clave, text=titulo)
         grilla_items.column(clave, width=ancho, anchor="w", stretch=clave == "producto")
-    grilla_items.pack(side="left", fill="x", expand=True)
+    # Treeview legacy conservado sin montar; el panel derecho es la vista canónica.
     acciones_item = ctk.CTkFrame(lista_productos, fg_color="transparent")
     acciones_item.pack(side="right", padx=3)
 
@@ -1008,6 +1024,12 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 privacidad.display(formatear_monto(item.subtotal)),
             ))
         recalcular_total_visible()
+        try:
+            refrescar_grilla(controller.load_day(
+                campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip()
+            ))
+        except (NameError, Exception):
+            pass
 
     def agregar_producto():
         try:
@@ -1032,10 +1054,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         refrescar_items()
 
     def editar_item():
-        selected = grilla_items.selection()
-        if not selected:
+        selected = grilla_caja.selection()
+        if not selected or not selected[0].startswith("draft:"):
             return
-        index = int(selected[0]); item = items_venta[index]; item_editando["index"] = index
+        index = int(selected[0].split(":", 1)[1]); item = items_venta[index]; item_editando["index"] = index
         values = {"arm_org": item.item_type, "cod": item.code, "armazon": item.frame_price,
                   "cristal": item.lens_price, "laboratorio": item.laboratory,
                   "receta_dr": item.prescription_doctor}
@@ -1043,9 +1065,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             campos_manual[clave].delete(0, "end"); campos_manual[clave].insert(0, "" if value is None else str(value))
 
     def quitar_item():
-        selected = grilla_items.selection()
-        if selected:
-            items_venta.pop(int(selected[0])); item_editando["index"] = None; refrescar_items()
+        selected = grilla_caja.selection()
+        if selected and selected[0].startswith("draft:"):
+            items_venta.pop(int(selected[0].split(":", 1)[1])); item_editando["index"] = None; refrescar_items()
 
     ctk.CTkButton(acciones_item, text="+ Agregar producto", width=125, height=24, command=agregar_producto).pack(pady=1)
     ctk.CTkButton(acciones_item, text="Editar", width=60, height=22, command=editar_item).pack(side="left", padx=1)
@@ -1100,6 +1122,18 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         )
         boton_filtro.pack(side="left", padx=1, pady=6)
         botones_filtro[nombre_filtro] = boton_filtro
+    ctk.CTkButton(
+        toolbar_movimientos, text="+ Agregar artículo", width=118, height=28,
+        command=agregar_producto,
+    ).pack(side="right", padx=2, pady=6)
+    ctk.CTkButton(
+        toolbar_movimientos, text="Editar", width=58, height=28,
+        command=editar_item,
+    ).pack(side="right", padx=2, pady=6)
+    ctk.CTkButton(
+        toolbar_movimientos, text="Quitar", width=58, height=28,
+        command=quitar_item, fg_color="#D9534F",
+    ).pack(side="right", padx=2, pady=6)
     marco_grilla = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=5)
     marco_grilla.pack(fill="both", expand=True, padx=6, pady=3)
     estilo = ttk.Style(ventana)
@@ -1131,6 +1165,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     grilla_caja.tag_configure("voided", foreground="#E0717C", background="#241824")
     grilla_caja.tag_configure("expense", foreground="#F5A3AA")
     grilla_caja.tag_configure("pending", foreground="#F7BF62")
+    grilla_caja.tag_configure("draft", foreground="#174A7E", background="#EAF3FF")
+    grilla_caja.tag_configure("draft_item", foreground="#42627F", background="#F5F9FE")
     scroll_horizontal = ttk.Scrollbar(
         marco_grilla, orient="horizontal", command=grilla_caja.xview
     )
@@ -1213,6 +1249,25 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             grilla_caja.delete(item)
         consulta = busqueda_movimientos.get().strip().casefold()
         filtro = filtro_movimientos.get()
+        if items_venta:
+            draft = resumen_venta_en_curso(
+                campos_manual["descripcion"].get(), items_venta, privacidad
+            )
+            values = [""] * len(claves_grilla)
+            values[0] = f"VENTA EN CURSO — {draft['cliente']} · {draft['cantidad']} artículos"
+            values[8] = draft["total"]
+            values[-1] = "EN CURSO"
+            grilla_caja.insert("", 0, iid="draft", values=values, tags=("draft",), open=True)
+            for index, draft_item in enumerate(items_venta):
+                detail = [""] * len(claves_grilla)
+                detail[0] = f"↳ {draft_item.description}"
+                detail[3] = draft_item.code
+                detail[8] = privacidad.display(formatear_monto(draft_item.subtotal))
+                detail[-1] = "Editar · Quitar"
+                grilla_caja.insert(
+                    "draft", "end", iid=f"draft:{index}", values=detail,
+                    tags=("draft_item",),
+                )
         for entry in cash_day.entries:
             if consulta and consulta not in " ".join(str(value) for value in valores_fila(entry)).casefold():
                 continue
