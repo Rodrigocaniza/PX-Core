@@ -251,6 +251,7 @@ class CashEntry:
     source_reference: str = ""
     customer_document: str = ""
     saleswoman: str = ""
+    customer_phone: str = ""
     delivery_date: date | str | None = None
     observations: str = ""
     items: tuple[SaleItem, ...] = ()
@@ -273,7 +274,7 @@ class CashEntry:
         for name in (
             "envelope", "frame_origin", "code", "frame", "lens", "laboratory", "prescription_doctor",
             "orders", "installments", "balance", "origin", "source_reference",
-            "customer_document", "saleswoman", "observations", "withdrawal_destination",
+            "customer_document", "customer_phone", "saleswoman", "observations", "withdrawal_destination",
             "performed_by",
         ):
             value = getattr(self, name)

@@ -16,7 +16,7 @@ from ..domain.errors import (
     InvalidCashDayError,
     InvalidMoneyError,
 )
-from ..domain.models import CashDay, CashEntry, CashTotals, money
+from ..domain.models import CashDay, CashEntry, CashTotals, money, parse_business_date
 
 
 @dataclass(frozen=True)
@@ -181,6 +181,7 @@ class CashDayUIController:
             expenses=candidate.expenses,
             source_reference=candidate.source_reference,
             customer_document=candidate.customer_document,
+            customer_phone=candidate.customer_phone,
             saleswoman=candidate.saleswoman,
             delivery_date=candidate.delivery_date,
             observations=candidate.observations,
@@ -196,6 +197,29 @@ class CashDayUIController:
 
     def list_history(self, date_text: str, unit: str) -> CashDay:
         return self.load_day(date_text, unit)
+
+    def list_history_range(self, start_text: str, end_text: str, unit: str):
+        start = parse_business_date(start_text)
+        end = parse_business_date(end_text)
+        if start > end:
+            raise InvalidCashDayError("Desde debe ser anterior o igual a Hasta.")
+        return self.service.repository.list_between(start, end, unit)
+
+    def correct_opening_cash(
+        self, date_text: str, unit: str, new_value: Any, reason: str, user: str
+    ) -> CashDay:
+        day = self.load_day(date_text, unit)
+        parsed = money(new_value, field_name="caja inicial")
+        if not str(reason or "").strip():
+            raise InvalidCashDayError("El motivo de la corrección es obligatorio.")
+        if not str(user or "").strip():
+            raise InvalidCashDayError("El usuario de la corrección es obligatorio.")
+        return self.service.repository.correct_opening_cash(
+            day.id, parsed, str(reason).strip(), str(user).strip()
+        )
+
+    def opening_cash_corrections(self, cash_day_id: str):
+        return self.service.repository.list_day_corrections(cash_day_id)
 
     def record_cash_count(self, date_text: str, unit: str, quantities: Mapping[int, int]):
         return self.service.record_cash_count(self.load_day(date_text, unit).id, quantities)
@@ -244,6 +268,7 @@ class CashDayUIController:
             origin=origin,
             source_reference=source_reference or values.get("notas", ""),
             customer_document=values.get("cliente_documento", ""),
+            customer_phone=values.get("cliente_telefono", ""),
             saleswoman=values.get("vendedora", ""),
             delivery_date=values.get("fecha_entrega") or None,
             observations=values.get("notas", ""),

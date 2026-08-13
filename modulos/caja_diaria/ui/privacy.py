@@ -8,7 +8,7 @@ import time
 class FinancialPrivacy:
     MASK = "••••••••"
 
-    def __init__(self, timeout_seconds: int = 120, clock=time.monotonic) -> None:
+    def __init__(self, timeout_seconds: int = 300, clock=time.monotonic) -> None:
         self.timeout_seconds = timeout_seconds
         self.clock = clock
         self.hidden = False

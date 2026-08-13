@@ -9,7 +9,9 @@
     "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3": "bc-caja-multi-item",
     "BC-CAJA-PRODUCT-TEST-COMBINED-001": "bc-caja-multi-item",
     "BC-CAJA-CASH-CONTINUITY-001": "bc-caja-multi-item",
-    "BC-CAJA-MULTI-ITEM-UX-002": "bc-caja-multi-item"
+    "BC-CAJA-MULTI-ITEM-UX-002": "bc-caja-multi-item",
+    "BC-CAJA-UX-CONTROL-003": "bc-caja-ux-control",
+    "BC-CAJA-UX-CONTROL-003-R2": "bc-caja-ux-control"
   },
   "runners": {
     "bc-caja-pedidos-v1": {
@@ -24,6 +26,14 @@
       "working_directory": ".",
       "commands": {
         "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_multi_item_sales.py", "tests/caja_diaria/test_orders_v1.py", "tests/caja_diaria/test_financial_privacy.py", "-q"],
+        "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
+        "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
+      }
+    },
+    "bc-caja-ux-control": {
+      "working_directory": ".",
+      "commands": {
+        "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_ux_control_privacy.py", "tests/caja_diaria/test_ux_control_history.py", "tests/caja_diaria/test_ux_control_phone_contrast.py", "tests/caja_diaria/test_multi_item_draft_ux.py", "tests/caja_diaria/test_sqlite_repository.py", "-q"],
         "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
         "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
       }

@@ -32,10 +32,10 @@ class MultiItemDraftUXTests(unittest.TestCase):
         draft.remove(0)
         self.assertEqual(draft.total, 1_200_000)
 
-    def test_privacy_masks_draft_amounts(self):
+    def test_privacy_keeps_draft_amounts_visible_for_active_operation(self):
         self.privacy.hide()
         result = resumen_venta_en_curso("Juan", self.items, self.privacy)
-        self.assertNotIn("1.850.000", result["total"])
+        self.assertEqual("1.850.000", result["total"])
 
 
 if __name__ == "__main__":

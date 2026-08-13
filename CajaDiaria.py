@@ -156,10 +156,10 @@ def resumen_venta_en_curso(cliente, items, privacidad):
     return {
         "cliente": str(cliente or "").strip() or "Cliente sin nombre",
         "cantidad": len(items),
-        "total": privacidad.display(formatear_monto(total)),
+        "total": formatear_monto(total),
         "estado": "EN CURSO",
         "items": tuple(
-            (item.description, privacidad.display(formatear_monto(item.subtotal)))
+            (item.description, formatear_monto(item.subtotal))
             for item in items
         ),
     }
@@ -662,7 +662,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         barra_superior, text="BC Caja Diaria   │   Óptica Central",
         text_color=color_texto, font=ctk.CTkFont(size=14, weight="bold"),
     ).pack(side="left", padx=(0, 12))
-    privacidad = FinancialPrivacy()
+    privacidad = FinancialPrivacy(timeout_seconds=300)
     navegacion = ctk.CTkFrame(
         ventana, height=50, fg_color="#FFFFFF", corner_radius=0,
         border_width=1, border_color=color_borde_suave,
@@ -871,7 +871,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     formulario.grid_columnconfigure(0, weight=1)
 
     secciones_formulario = (
-        ("1", "Cliente y comprobante", (("descripcion", "Cliente / Descripción", 230), ("cliente_documento", "CI / RUC", 115), ("sobre", "Sobre N.º", 75))),
+        ("1", "Cliente y comprobante", (("descripcion", "Cliente / Descripción", 185), ("cliente_documento", "CI / RUC", 100), ("sobre", "Sobre N.º", 68), ("cliente_telefono", "Teléfono", 140))),
         ("2", "Detalle de venta", PRODUCTO_TRABAJO[2:]),
         ("3", "Importes", (COBRO_PAGO[0], COBRO_PAGO[3], COBRO_PAGO[4])),
         ("4", "Cobro", (("efectivo", "Efectivo", 100), ("tarjeta_cheque", "Tarjeta / Cheque", 110), ("transferencia", "Transferencia", 105), ("saldo", "Saldo pendiente", 100))),
@@ -1164,7 +1164,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     grilla_caja.column("acciones", width=105, minwidth=105, stretch=False, anchor="center")
     grilla_caja.tag_configure("voided", foreground="#E0717C", background="#241824")
     grilla_caja.tag_configure("expense", foreground="#F5A3AA")
-    grilla_caja.tag_configure("pending", foreground="#F7BF62")
+    grilla_caja.tag_configure("pending", foreground="#3B2A05", background="#FFF3CD")
     grilla_caja.tag_configure("draft", foreground="#174A7E", background="#EAF3FF")
     grilla_caja.tag_configure("draft_item", foreground="#42627F", background="#F5F9FE")
     scroll_horizontal = ttk.Scrollbar(
@@ -1226,7 +1226,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         )
 
     def valores_fila(entry):
-        importe = lambda value: privacidad.display(formatear_monto(value or 0))
+        importe = lambda value: formatear_monto(value or 0)
         item_count = len(entry.effective_items)
         description = f"{entry.description} · {item_count} producto{'s' if item_count != 1 else ''}"
         label = (
@@ -1240,7 +1240,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             entry.laboratory, entry.prescription_doctor,
             importe(entry.total), importe(entry.cash),
             importe(entry.card_check), entry.orders, entry.installments,
-            privacidad.display(formatear_importe_ui(entry.balance)),
+            formatear_importe_ui(entry.balance),
             importe(entry.withdrawal or entry.expenses),
             "Editar  ·  Anular",
         )
@@ -1262,7 +1262,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 detail = [""] * len(claves_grilla)
                 detail[0] = f"↳ {draft_item.description}"
                 detail[3] = draft_item.code
-                detail[8] = privacidad.display(formatear_monto(draft_item.subtotal))
+                detail[8] = formatear_monto(draft_item.subtotal)
                 detail[-1] = "Editar · Quitar"
                 grilla_caja.insert(
                     "draft", "end", iid=f"draft:{index}", values=detail,
@@ -1343,6 +1343,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         campos_manual["transferencia"].configure(state=estado_control)
         campos_manual["notas"].configure(state=estado_control)
         campos_manual["cliente_documento"].configure(state=estado_control)
+        campos_manual["cliente_telefono"].configure(state=estado_control)
         campos_manual["fecha_entrega"].configure(state=estado_control)
         campos_manual["vendedora"].configure(state=estado_control)
         campos_manual["gasto_descripcion"].configure(state=estado_control)
@@ -1407,7 +1408,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             if clave in campos_manual:
                 campos_manual[clave].delete(0, "end")
         campos_manual["notas"].delete(0, "end")
-        for clave in ("cliente_documento", "fecha_entrega"):
+        for clave in ("cliente_documento", "cliente_telefono", "fecha_entrega"):
             campos_manual[clave].delete(0, "end")
         campos_manual["vendedora"].set("Seleccionar...")
         items_venta.clear()
@@ -1462,7 +1463,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         "total": "total", "efectivo": "cash", "tarjeta_cheque": "card_check",
         "ordenes": "orders", "cuotas": "installments", "saldo": "balance",
         "gastos": "expenses", "notas": "source_reference",
-        "cliente_documento": "customer_document", "vendedora": "saleswoman",
+        "cliente_documento": "customer_document", "cliente_telefono": "customer_phone", "vendedora": "saleswoman",
         "fecha_entrega": "delivery_date",
     }
 
@@ -1558,20 +1559,16 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         campos_manual[clave].bind("<FocusOut>", refrescar_estado_consultado, add="+")
     def alternar_privacidad():
         privacidad.show() if privacidad.hidden else privacidad.hide()
-        boton_privacidad.configure(text="Mostrar importes" if privacidad.hidden else "👁 Ocultar importes")
-        aplicar_privacidad_campos()
+        boton_privacidad.configure(text="👁 Mostrar totales" if privacidad.hidden else "👁 Ocultar totales")
         refrescar_estado_consultado()
         refrescar_items()
 
     def aplicar_privacidad_campos():
-        mascara = "•" if privacidad.hidden else ""
-        for clave in CAMPOS_MONETARIOS_UI:
-            campo = campos_manual.get(clave)
-            if campo is not None:
-                campo.configure(show=mascara)
+        # El modo privacidad sólo afecta KPIs globales, nunca la operación en curso.
+        return None
 
     boton_privacidad = ctk.CTkButton(
-        barra_superior, text="👁 Ocultar importes", width=145, height=28,
+        barra_superior, text="👁 Ocultar totales", width=145, height=28,
         fg_color="transparent", text_color=color_texto, border_width=1,
         border_color=color_borde_suave, command=alternar_privacidad,
     )
@@ -1583,8 +1580,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     def revisar_auto_privacidad():
         estaba_oculta = privacidad.hidden
         if privacidad.check_timeout() and not estaba_oculta:
-            boton_privacidad.configure(text="Mostrar importes")
-            aplicar_privacidad_campos()
+            boton_privacidad.configure(text="👁 Mostrar totales")
             refrescar_estado_consultado()
             refrescar_items()
         ventana.after(1000, revisar_auto_privacidad)
@@ -1904,10 +1900,14 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     # ---- Historial / edición / anulación ----
     filtros_historial = ctk.CTkFrame(tab_historial, fg_color="transparent")
     filtros_historial.pack(fill="x", padx=8, pady=8)
-    ctk.CTkLabel(filtros_historial, text="Fecha (DD-MM-AAAA)").pack(side="left")
-    entrada_historial = ctk.CTkEntry(filtros_historial, width=120)
+    ctk.CTkLabel(filtros_historial, text="Desde").pack(side="left")
+    entrada_historial = ctk.CTkEntry(filtros_historial, width=105)
     entrada_historial.insert(0, date.today().strftime("%d-%m-%Y"))
-    entrada_historial.pack(side="left", padx=8)
+    entrada_historial.pack(side="left", padx=(4, 8))
+    ctk.CTkLabel(filtros_historial, text="Hasta").pack(side="left")
+    entrada_historial_hasta = ctk.CTkEntry(filtros_historial, width=105)
+    entrada_historial_hasta.insert(0, date.today().strftime("%d-%m-%Y"))
+    entrada_historial_hasta.pack(side="left", padx=(4, 8))
     unidad_historial = ctk.CTkComboBox(filtros_historial, values=UNIDADES, width=140)
     unidad_historial.set(UNIDAD_POR_DEFECTO)
     unidad_historial.pack(side="left", padx=8)
@@ -1983,46 +1983,106 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             return
         consultar_historial()
 
+    def editar_caja(cash_day):
+        nuevo = simpledialog.askinteger(
+            "Editar caja", "Nueva caja inicial:", initialvalue=cash_day.opening_cash,
+            minvalue=0, parent=ventana,
+        )
+        if nuevo is None or nuevo == cash_day.opening_cash:
+            return
+        motivo = simpledialog.askstring(
+            "Corrección auditada", "Motivo obligatorio:", parent=ventana
+        )
+        if not motivo:
+            messagebox.showwarning("Motivo requerido", "La corrección no fue guardada.", parent=ventana)
+            return
+        usuario = simpledialog.askstring(
+            "Corrección auditada", "Usuario responsable:", parent=ventana
+        )
+        if not usuario:
+            return
+        try:
+            controller.correct_opening_cash(
+                cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit,
+                nuevo, motivo, usuario,
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        consultar_historial()
+
     def consultar_historial():
         try:
-            cash_day = controller.list_history(
-                entrada_historial.get().strip(), unidad_historial.get().strip()
+            cash_days = controller.list_history_range(
+                entrada_historial.get().strip(), entrada_historial_hasta.get().strip(),
+                unidad_historial.get().strip(),
             )
         except Exception as exc:
             mostrar_error(exc)
             return
         for widget in lista_historial.winfo_children():
             widget.destroy()
-        resumen_historial.configure(text=texto_estado(cash_day))
-        for entry in cash_day.entries:
-            fila = ctk.CTkFrame(lista_historial, fg_color="transparent")
-            fila.pack(fill="x", padx=4, pady=3)
-            estado_texto = "ANULADO" if entry.status.value == "VOIDED" else "ACTIVO"
-            detalle = (
+        resumen_historial.configure(text=f"{len(cash_days)} jornadas en el período")
+        for cash_day in cash_days:
+            cabecera = ctk.CTkFrame(lista_historial, fg_color="#EAF3FF")
+            cabecera.pack(fill="x", padx=4, pady=(7, 2))
+            ctk.CTkLabel(
+                cabecera,
+                text=f"{cash_day.business_date.strftime('%d-%m-%Y')} · {texto_estado(cash_day)}",
+                anchor="w", text_color="#174A7E",
+            ).pack(side="left", fill="x", expand=True, padx=6)
+            ctk.CTkButton(
+                cabecera, text="Editar caja", width=90,
+                command=lambda d=cash_day: editar_caja(d),
+            ).pack(side="right", padx=4, pady=3)
+            for entry in cash_day.entries:
+                fila = ctk.CTkFrame(lista_historial, fg_color="transparent")
+                fila.pack(fill="x", padx=12, pady=3)
+                estado_texto = "ANULADO" if entry.status.value == "VOIDED" else "ACTIVO"
+                detalle = (
                 f"{entry.description} | Total {formatear_monto(entry.total or 0)} | "
                 f"Efectivo {formatear_monto(entry.cash or 0)} | "
                 f"Tarj./Cheq. {formatear_monto(entry.card_check or 0)} | "
                 f"Gastos {formatear_monto(entry.expenses or 0)} | {estado_texto}"
-            )
-            if entry.void_reason:
-                detalle += f" ({entry.void_reason})"
-            ctk.CTkLabel(fila, text=detalle, anchor="w").pack(
+                )
+                if entry.void_reason:
+                    detalle += f" ({entry.void_reason})"
+                ctk.CTkLabel(fila, text=detalle, anchor="w").pack(
                 side="left", fill="x", expand=True
-            )
-            habilitado = (
+                )
+                habilitado = (
                 "normal"
                 if cash_day.status.value == "OPEN" and entry.status.value == "ACTIVE"
                 else "disabled"
-            )
-            ctk.CTkButton(
+                )
+                ctk.CTkButton(
                 fila, text="Editar", width=65, state=habilitado,
                 command=lambda d=cash_day, e=entry: cargar_para_editar(d, e),
-            ).pack(side="left", padx=2)
-            ctk.CTkButton(
+                ).pack(side="left", padx=2)
+                ctk.CTkButton(
                 fila, text="Anular", width=65, state=habilitado,
                 fg_color=COLOR_ROJO,
                 command=lambda d=cash_day, e=entry: anular_desde_historial(d, e),
-            ).pack(side="left", padx=2)
+                ).pack(side="left", padx=2)
+
+    def rango_rapido(dias=None, mes=False):
+        hoy = date.today()
+        desde = hoy.replace(day=1) if mes else hoy - timedelta(days=(dias or 1) - 1)
+        for campo, valor in ((entrada_historial, desde), (entrada_historial_hasta, hoy)):
+            campo.delete(0, "end")
+            campo.insert(0, valor.strftime("%d-%m-%Y"))
+        consultar_historial()
+
+    for texto, comando in (
+        ("Hoy", lambda: rango_rapido(1)),
+        ("7 días", lambda: rango_rapido(7)),
+        ("Este mes", lambda: rango_rapido(mes=True)),
+    ):
+        ctk.CTkButton(
+            filtros_historial, text=texto, width=68, command=comando,
+            fg_color="#FFFFFF", text_color=color_texto, border_width=1,
+            border_color=color_borde_suave,
+        ).pack(side="right", padx=2)
 
     ctk.CTkButton(
         filtros_historial,
