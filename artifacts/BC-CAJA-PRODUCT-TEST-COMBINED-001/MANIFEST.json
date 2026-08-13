@@ -1,0 +1,95 @@
+{
+  "manifest_version": "1.0",
+  "generator": "tools/package_mission_evidence.py",
+  "algorithm": "sha256",
+  "mission": "BC-CAJA-PRODUCT-TEST-COMBINED-001",
+  "generated_at": "2026-08-13T00:54:20Z",
+  "status": "PASSED",
+  "repository": {
+    "root": "C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/caja-product-test-combined",
+    "branch": "feature/caja-product-test-combined",
+    "head_before": "cb171a04e7130655965555f3453b06445211e6fe",
+    "head_after": "cb171a04e7130655965555f3453b06445211e6fe",
+    "head_consistent": true,
+    "status_before": [
+      "M .bc-command-center/verification.json",
+      " M CajaDiaria.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      " M tests/caja_diaria/test_multi_item_sales.py",
+      " M tests/caja_diaria/test_ui_controller.py",
+      "?? artifacts/BC-CAJA-PRODUCT-TEST-COMBINED-001/"
+    ],
+    "status_after": [
+      "M .bc-command-center/verification.json",
+      " M CajaDiaria.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      " M tests/caja_diaria/test_multi_item_sales.py",
+      " M tests/caja_diaria/test_ui_controller.py",
+      "?? artifacts/BC-CAJA-PRODUCT-TEST-COMBINED-001/"
+    ]
+  },
+  "files": {
+    "implementation": [
+      {
+        "path": "CajaDiaria.py",
+        "sha256": "95129c4a4b07d78439a41c0cfeaf0628b3bd3dfe40afda41436458f825972c68"
+      },
+      {
+        "path": "modulos/caja_diaria/ui/controller.py",
+        "sha256": "0cb1f29890a4b8fc22b92a11d94516daba1aac81c4d64b320fe7e40c4ec06ec3"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/caja_diaria/test_multi_item_sales.py",
+        "sha256": "a96f16a782b6afaf2e2bc9b62e47aa6ad45eaa19a1b94b5957c9345f780eadd6"
+      },
+      {
+        "path": "tests/caja_diaria/test_ui_controller.py",
+        "sha256": "379fca76a3934550bb9fb13cf070b199f6e6e9344da09d74a695185ce1e674dd"
+      }
+    ],
+    "dependencies": [
+      {
+        "path": ".bc-command-center/verification.json",
+        "sha256": "4536ecd3fbe02ce7a169fdcb53103339eb9f7645a130bd968271193e3af329f7"
+      }
+    ]
+  },
+  "tests": {
+    "targeted": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "tests/caja_diaria/test_multi_item_sales.py",
+        "tests/caja_diaria/test_ui_controller.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "24 passed, 1 warning in 1.26s"
+    },
+    "full_suite": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "93 passed, 1 warning in 2.38s"
+    }
+  },
+  "zip": {
+    "path": "BC-Core-BC-CAJA-PRODUCT-TEST-COMBINED-001.zip",
+    "sha256": "13aaeaaf9de5ee5cc47d12d80652396c91159faa02495d763bce786dfeef3ceb",
+    "file_count": 5
+  },
+  "summary_file": "SUMMARY.txt",
+  "prompts": {
+    "librarian": "PROMPT_LIBRARIAN.txt",
+    "qa": "PROMPT_QA.txt",
+    "auditor": "PROMPT_AUDITOR.txt"
+  },
+  "warnings": []
+}

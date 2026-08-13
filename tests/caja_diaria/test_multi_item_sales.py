@@ -3,7 +3,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from CajaDiaria import completar_items_para_guardar, escribir_importe_formateado
+from unittest.mock import patch
+
+from CajaDiaria import (
+    completar_items_para_guardar, escribir_importe_formateado,
+    leer_valores_formulario, mostrar_error_guardado,
+)
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.models import SaleDraft, SaleItem
@@ -108,6 +113,37 @@ class MultiItemSalesTests(unittest.TestCase):
         self.assertEqual(escribir_importe_formateado(field, field.get()), "1.500.000")
         self.assertEqual(field.get(), "1.500.000")
         self.assertEqual(escribir_importe_formateado(field, 1_500_000), "1.500.000")
+
+    def test_single_item_sale_with_optional_fields_blank_can_save(self):
+        values = {**self.values, "ordenes": "", "cuotas": "", "tarjeta_cheque": "",
+                  "transferencia": "", "notas": "", "cliente_documento": ""}
+        values.update(arm_org="Armazon", cod="100234", armazon="280.000",
+                      cristal="350.000", total="630.000", efectivo="400.000",
+                      saldo="230.000")
+        values["items"] = completar_items_para_guardar(values, ())
+        _, entry = self.controller.add_manual_entry(values)
+        self.assertEqual((entry.total, entry.cash, entry.balance), (630000, 400000, "230.000"))
+
+    def test_single_item_visible_product_is_materialized_on_save(self):
+        values = {**self.values, "arm_org": "Armazon", "cod": "100234",
+                  "armazon": "280.000", "cristal": "350.000"}
+        items = completar_items_para_guardar(values, ())
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].subtotal, 630000)
+        self.assertIs(completar_items_para_guardar(values, items)[0], items[0])
+
+    def test_save_validation_errors_are_visible(self):
+        with patch("CajaDiaria.messagebox.showerror") as visible_error:
+            mostrar_error_guardado(InvalidCashDayError("Seleccione la vendedora."))
+        visible_error.assert_called_once()
+        self.assertIn("Seleccione la vendedora.", visible_error.call_args.args[1])
+
+    def test_form_reader_ignores_non_input_widgets(self):
+        class Field:
+            def get(self): return " Sol "
+        class Button: pass
+        self.assertEqual(leer_valores_formulario({"descripcion": Field(), "accion_gasto": Button()}),
+                         {"descripcion": "Sol"})
 
 
 if __name__ == "__main__":

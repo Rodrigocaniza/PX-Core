@@ -141,6 +141,21 @@ def escribir_importe_formateado(campo, valor):
     return texto
 
 
+def leer_valores_formulario(campos):
+    """Lee únicamente controles de entrada; los botones no forman parte del payload."""
+    return {
+        clave: getter().strip()
+        for clave, campo in campos.items()
+        if callable(getter := getattr(campo, "get", None))
+    }
+
+
+def mostrar_error_guardado(error, parent=None):
+    """Hace visible cualquier rechazo del guardado usando mensajes seguros."""
+    titulo, detalle = friendly_error(error)
+    messagebox.showerror(titulo, detalle, parent=parent)
+
+
 def formatear_diferencia_ui(diferencia):
     prefijo = "+" if diferencia > 0 else ""
     return prefijo + formatear_monto(diferencia)
@@ -1276,7 +1291,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     def abrir_o_consultar():
         try:
-            cash_day = controller.open_or_load_day(
+            cash_day, aviso = controller.open_or_load_day_with_notice(
                 campos_manual["fecha"].get().strip(),
                 campos_manual["unidad"].get().strip(),
                 campos_manual["caja_inicial"].get().strip(),
@@ -1285,6 +1300,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             mostrar_error(exc)
             return
         actualizar_estado(cash_day)
+        if aviso:
+            messagebox.showinfo("Caja existente", aviso, parent=ventana)
         boton_abrir.pack_forget()
 
     def cerrar_caja():
@@ -1335,31 +1352,28 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         campos_manual["descripcion"].focus_set()
 
     def guardar_manual():
-        recalcular_total_visible()
-        recalcular_saldo_visible()
         if estado_edicion["guardando"]:
             return
         estado_edicion["guardando"] = True
         boton_guardar.configure(state="disabled")
-        valores = {clave: campo.get().strip() for clave, campo in campos_manual.items()}
-        if not items_venta:
-            try:
+        try:
+            recalcular_total_visible()
+            recalcular_saldo_visible()
+            valores = leer_valores_formulario(campos_manual)
+            if not items_venta:
                 items_venta[:] = completar_items_para_guardar(valores, items_venta)
                 refrescar_items()
-                valores = {clave: campo.get().strip() for clave, campo in campos_manual.items()}
-            except (TypeError, ValueError):
-                pass
-        valores["items"] = tuple(items_venta)
-        valores["tarjeta_cheque"] = str(sumar_medios_no_efectivo(
-            valores["tarjeta_cheque"], valores["transferencia"]
-        ))
-        try:
+                valores = leer_valores_formulario(campos_manual)
+            valores["items"] = tuple(items_venta)
+            valores["tarjeta_cheque"] = str(sumar_medios_no_efectivo(
+                valores["tarjeta_cheque"], valores["transferencia"]
+            ))
             if estado_edicion["entry_id"]:
                 cash_day, _ = controller.update_manual_entry(estado_edicion["entry_id"], valores)
             else:
                 cash_day, _ = controller.add_manual_entry(valores)
         except Exception as exc:
-            mostrar_error(exc)
+            mostrar_error_guardado(exc, ventana)
             return
         finally:
             estado_edicion["guardando"] = False

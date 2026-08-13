@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "handoff_id": "c609f534-0464-5fa1-82ba-b0f1694919e4",
+  "mission_id": "BC-CAJA-PRODUCT-TEST-COMBINED-001",
+  "gate_id": "auditor:1",
+  "gate_generation": 1,
+  "required_role": "auditor",
+  "workflow_reference": {
+    "path": "artifacts/BC-CAJA-PRODUCT-TEST-COMBINED-001/WORKFLOW.json",
+    "event_index": 6
+  },
+  "workflow_state_at_build": "AUDITOR",
+  "workflow_digest_at_build": "f852206d7ee50ff5aa7db4bad61f5aa3486ba77427cd7acb88375e97234cdef2",
+  "artifact_manifest_digest": "893965f5696d57c928505a3cbc8869273dd966732a539b2ab0d3d1b35616488a",
+  "canonical_zip_sha256": "13aaeaaf9de5ee5cc47d12d80652396c91159faa02495d763bce786dfeef3ceb",
+  "included_files": [
+    {
+      "path": "PROMPT_AUDITOR.txt",
+      "sha256": "ab1cbad1a42fd86037dbdc48c64a708f8a43fe066a3b3bc24a87cbdf20c11a11"
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "893965f5696d57c928505a3cbc8869273dd966732a539b2ab0d3d1b35616488a"
+    },
+    {
+      "path": "SUMMARY.txt",
+      "sha256": "9cdd72b75cff3053e924df2666ad4b2dc3335896d97cb821a67fd0ccf50e0c5b"
+    },
+    {
+      "path": "EVIDENCE/BC-Core-BC-CAJA-PRODUCT-TEST-COMBINED-001.zip",
+      "sha256": "13aaeaaf9de5ee5cc47d12d80652396c91159faa02495d763bce786dfeef3ceb"
+    }
+  ],
+  "evidence_bindings": [
+    {
+      "evidence": "canonical_prompt",
+      "included_file": "PROMPT_AUDITOR.txt",
+      "sha256": "ab1cbad1a42fd86037dbdc48c64a708f8a43fe066a3b3bc24a87cbdf20c11a11"
+    },
+    {
+      "evidence": "artifact_manifest",
+      "included_file": "MANIFEST.json",
+      "sha256": "893965f5696d57c928505a3cbc8869273dd966732a539b2ab0d3d1b35616488a"
+    },
+    {
+      "evidence": "summary",
+      "included_file": "SUMMARY.txt",
+      "sha256": "9cdd72b75cff3053e924df2666ad4b2dc3335896d97cb821a67fd0ccf50e0c5b"
+    },
+    {
+      "evidence": "canonical_audit_zip",
+      "included_file": "EVIDENCE/BC-Core-BC-CAJA-PRODUCT-TEST-COMBINED-001.zip",
+      "sha256": "13aaeaaf9de5ee5cc47d12d80652396c91159faa02495d763bce786dfeef3ceb"
+    }
+  ],
+  "session_id": "ae6459b3-1742-438c-accf-6858d5c3bba5",
+  "mission_lease_reference": {
+    "lease_id": "ae6459b3-1742-438c-accf-6858d5c3bba5",
+    "session_id": "ae6459b3-1742-438c-accf-6858d5c3bba5",
+    "repository_identity": "6bf71e1fa4c625fd7c82e15d67cb6368c76094f946dbf02ec196cd1fa6e7c2ce"
+  },
+  "created_at": "2026-08-13T00:58:04Z",
+  "verdict_vocabulary": [
+    "PASS",
+    "FAIL"
+  ]
+}

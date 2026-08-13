@@ -73,6 +73,32 @@ class CashDayUIControllerTests(unittest.TestCase):
         loaded = self.controller.open_or_load_day("02-08-2026", "PC", "")
         self.assertEqual(loaded.opening_cash, 100000)
 
+    def test_new_cash_day_respects_entered_initial_cash(self):
+        day, notice = self.controller.open_or_load_day_with_notice(
+            "04-08-2026", "PC", "1.500.000"
+        )
+        self.assertEqual(day.opening_cash, 1_500_000)
+        self.assertIsNone(notice)
+
+    def test_existing_cash_day_preserves_original_initial_cash(self):
+        self.controller.open_or_load_day("04-08-2026", "PC", "1.500.000")
+        day, notice = self.controller.open_or_load_day_with_notice(
+            "04-08-2026", "PC", "1.900.000"
+        )
+        self.assertEqual(day.opening_cash, 1_500_000)
+        self.assertIn("1.500.000", notice)
+
+    def test_cash_days_do_not_leak_initial_cash_between_dates_or_branches(self):
+        first, _ = self.controller.open_or_load_day_with_notice(
+            "04-08-2026", "PC", "1.500.000"
+        )
+        second, _ = self.controller.open_or_load_day_with_notice(
+            "05-08-2026", "Sucursal 2", "2.300.000"
+        )
+        self.assertEqual(first.opening_cash, 1_500_000)
+        self.assertEqual(second.opening_cash, 2_300_000)
+        self.assertEqual(self.controller.load_day("04-08-2026", "PC").opening_cash, 1_500_000)
+
     def test_invalid_input_does_not_create_day(self):
         with self.assertRaises(InvalidMoneyError):
             self.controller.add_manual_entry(self.manual_values(total="importe malo"))

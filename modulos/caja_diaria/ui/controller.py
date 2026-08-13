@@ -16,7 +16,7 @@ from ..domain.errors import (
     InvalidCashDayError,
     InvalidMoneyError,
 )
-from ..domain.models import CashDay, CashEntry, CashTotals
+from ..domain.models import CashDay, CashEntry, CashTotals, money
 
 
 @dataclass(frozen=True)
@@ -48,6 +48,24 @@ class CashDayUIController:
             return self.service.open_day(
                 business_date=date_text, unit=unit, opening_cash=opening_cash
             )
+
+    def open_or_load_day_with_notice(
+        self, date_text: str, unit: str, opening_cash: Any = None
+    ) -> tuple[CashDay, str | None]:
+        """Abre con el monto visible o explica por qué se conserva una caja existente."""
+        try:
+            existing = self.load_day(date_text, unit)
+        except CashDayNotFoundError:
+            return self.open_or_load_day(date_text, unit, opening_cash), None
+        if opening_cash is None or (isinstance(opening_cash, str) and not opening_cash.strip()):
+            return existing, None
+        requested = money(opening_cash, field_name="caja inicial")
+        if requested == existing.opening_cash:
+            return existing, None
+        return existing, (
+            "La caja de esta fecha ya fue abierta con caja inicial "
+            f"{existing.opening_cash:,}.".replace(",", ".")
+        )
 
     def add_manual_entry(self, values: Mapping[str, Any]) -> tuple[CashDay, CashEntry]:
         self._require_saleswoman(values)
