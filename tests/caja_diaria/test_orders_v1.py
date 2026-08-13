@@ -14,11 +14,12 @@ class OrdersV1Tests(unittest.TestCase):
         self.values = {
             "fecha": "12-08-2026", "unidad": "PC", "caja_inicial": "500000",
             "descripcion": "Juan Pérez", "cliente_documento": "4.123.456",
+            "cliente_telefono": "0981 555 444",
             "sobre": "583", "vendedora": "Ana", "fecha_entrega": "14-08-2026",
             "notas": "Entregar por la tarde", "arm_org": "", "cod": "",
             "armazon": "100000", "cristal": "200000", "laboratorio": "LAB",
             "receta_dr": "DR", "total": "300000", "efectivo": "300000",
-            "tarjeta_cheque": "", "ordenes": "", "cuotas": "", "saldo": "",
+            "tarjeta_cheque": "", "ordenes": "Caja Municipal", "cuotas": "3", "saldo": "",
             "gastos": "",
         }
 
@@ -41,10 +42,18 @@ class OrdersV1Tests(unittest.TestCase):
         self.assertEqual(len(first), 1)
         order = first[0]
         self.assertEqual((order.origin.value, order.customer_document, order.envelope), ("CAJA", "4.123.456", "583"))
+        self.assertEqual(order.customer_phone, "0981 555 444")
+        self.assertEqual((entry.orders, entry.installments), ("Caja Municipal", "3"))
         self.assertEqual(order.cash_entry_id, entry.id)
         day = self.controller.load_day("12-08-2026", "PC")
         self.controller.service._ensure_order(day, day.entries[0])
         self.assertEqual(len(self.controller.list_orders("Todos", today="12-08-2026")), 1)
+
+        self.controller.service.repository.close()
+        self.controller = build_cash_day_controller(Path(self.directory.name) / "caja.sqlite3")
+        recovered = self.controller.list_orders("Todos", today="12-08-2026")
+        self.assertEqual(len(recovered), 1)
+        self.assertEqual(recovered[0].customer_phone, "0981 555 444")
 
     def test_filters_and_state_transitions_persist(self):
         _, entry = self.controller.add_manual_entry(self.values)

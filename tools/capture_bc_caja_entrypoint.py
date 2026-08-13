@@ -90,7 +90,7 @@ def main() -> int:
                         and (
                             (
                                 w.grid_info().get("row") == info["row"]
-                                and w.grid_info().get("column") == 1
+                                and w.grid_info().get("column") == info["column"] + 1
                             )
                             or (
                                 w.grid_info().get("row") == info["row"] + 1
@@ -139,25 +139,33 @@ def main() -> int:
                 window.update()
                 if len(item_tree.get_children()) != 2 or total_field.get() != "2.050.000":
                     raise RuntimeError("agregado multi-item no recalculó el draft")
-                second = item_tree.get_children()[1]
-                item_tree.selection_set(second)
+                rows = item_tree.get_children()
+                for row in rows:
+                    bbox = item_tree.bbox(row)
+                    values = item_tree.item(row, "values")
+                    if not bbox or bbox[3] <= 0 or not values or not values[-1]:
+                        raise RuntimeError(f"item draft invisible row={row} bbox={bbox} values={values}")
+                first, second = rows
+                item_tree.selection_set(first)
                 edit_button = next(
                     w for w in descendants(window) if isinstance(w, ctk.CTkButton)
                     and w.cget("text") == "Editar artículo seleccionado"
                 )
                 edit_button.invoke()
                 frame_field.delete(0, "end")
-                frame_field.insert(0, "350000")
+                frame_field.insert(0, "1550000")
                 add_button.invoke()
                 window.update()
-                item_tree.selection_set(item_tree.get_children()[1])
+                if total_field.get() != "2.100.000":
+                    raise RuntimeError(f"item 1 edit total invalid={total_field.get()}")
+                item_tree.selection_set(second)
                 remove_button = next(
                     w for w in descendants(window) if isinstance(w, ctk.CTkButton)
                     and w.cget("text") == "Quitar"
                 )
                 remove_button.invoke()
                 window.update()
-                if len(item_tree.get_children()) != 1 or total_field.get() != "1.750.000":
+                if len(item_tree.get_children()) != 1 or total_field.get() != "1.800.000":
                     raise RuntimeError("editar/quitar no mantuvo el total del draft")
                 total_labels = [
                     w for w in descendants(window) if isinstance(w, ctk.CTkLabel)
@@ -165,7 +173,7 @@ def main() -> int:
                 ]
                 if len(total_labels) != 1 or not total_labels[0].winfo_ismapped():
                     raise RuntimeError("total lateral de Venta en curso no visible")
-                print("BC_CAJA_MULTI_ITEM_DRAFT_OK add=2 edit=2.100.000 remove=1 total=1.750.000")
+                print("BC_CAJA_MULTI_ITEM_DRAFT_OK visible=2 edit_item=1 remove_item=2 total=1.800.000")
                 expense_description = next(
                     w for w in descendants(window) if isinstance(w, ctk.CTkEntry)
                     and w.cget("placeholder_text") == "Descripción del gasto"

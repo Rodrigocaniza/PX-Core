@@ -80,16 +80,19 @@ CAMPOS = [
     "armazon", "cristal", "receta_dr", "total", "efectivo",
     "tarjeta_cheque", "ordenes", "cuotas", "saldo", "gastos", "origen",
 ]
+MOVEMENT_COLUMN_SPECS = (
+    ("hora", "Hora", 62, "center"),
+    ("descripcion", "Cliente", 180, "w"),
+    ("cliente_telefono", "Teléfono", 110, "w"),
+    ("tipo_resumen", "Tipo / resumen", 185, "w"),
+    ("sobre", "Comprobante / Sobre", 125, "w"),
+    ("total", "Total", 95, "e"),
+    ("saldo", "Saldo", 95, "e"),
+    ("vendedora", "Vendedora", 100, "w"),
+    ("estado", "Estado", 90, "center"),
+)
 COLUMNAS_OPERATIVAS = [
-    ("hora", "Hora", 62),
-    ("descripcion", "Cliente", 180),
-    ("cliente_telefono", "Teléfono", 110),
-    ("tipo_resumen", "Tipo / resumen", 185),
-    ("sobre", "Comprobante / Sobre", 125),
-    ("total", "Total", 95),
-    ("saldo", "Saldo", 95),
-    ("vendedora", "Vendedora", 100),
-    ("estado", "Estado", 90),
+    (key, title, width) for key, title, width, _anchor in MOVEMENT_COLUMN_SPECS
 ]
 PRODUCTO_TRABAJO = (
     ("arm_org", "Tipo / Producto", 150), ("cod", "Código", 90),
@@ -99,7 +102,9 @@ PRODUCTO_TRABAJO = (
 COBRO_PAGO = (
     ("total", "Total de la venta", 150), ("efectivo", "Efectivo", 125),
     ("tarjeta_cheque", "Tarjeta / Cheque", 135),
-    ("transferencia", "Transferencia", 125), ("saldo", "Saldo", 125),
+    ("transferencia", "Transferencia", 125),
+    ("ordenes", "Orden / Convenio", 150), ("cuotas", "Cuotas", 75),
+    ("saldo", "Saldo", 125),
 )
 CAMPOS_MONETARIOS_UI = (
     "caja_inicial", "armazon", "cristal", "total", "efectivo",
@@ -939,6 +944,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         formulario.grid_rowconfigure(fila_bloque, weight=1)
         seccion.grid_columnconfigure(0, weight=0, minsize=(116 if perfil["nombre"] == "full-hd" else 90))
         seccion.grid_columnconfigure(1, weight=1)
+        es_pago = titulo == "PAGO"
+        if es_pago:
+            seccion.grid_columnconfigure(2, weight=0, minsize=(116 if perfil["nombre"] == "full-hd" else 90))
+            seccion.grid_columnconfigure(3, weight=1)
         ctk.CTkLabel(
             seccion, text=numero, width=18, height=18, corner_radius=9,
             fg_color=color_azul, text_color="#FFFFFF",
@@ -948,11 +957,26 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             seccion, text=titulo, height=22, text_color=color_texto, anchor="w",
             font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold"),
         ).grid(row=0, column=0, columnspan=2, sticky="w", padx=(38, 10), pady=(8, 4))
-        for fila_campo, (clave, etiqueta, ancho) in enumerate(columnas, start=1):
+        for indice_campo, (clave, etiqueta, ancho) in enumerate(columnas):
+            if es_pago and clave not in ("saldo", "notas"):
+                fila_campo = 1 + (indice_campo // 2)
+                columna_etiqueta = (indice_campo % 2) * 2
+                columna_campo = columna_etiqueta + 1
+                expansion = 1
+            elif es_pago:
+                fila_campo = 4 if clave == "saldo" else 5
+                columna_etiqueta = 0
+                columna_campo = 1
+                expansion = 3
+            else:
+                fila_campo = indice_campo + 1
+                columna_etiqueta = 0
+                columna_campo = 1
+                expansion = 1
             ctk.CTkLabel(
                 seccion, text=etiqueta, height=perfil["campo_alto"], text_color=color_suave, anchor="w",
                 font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
-            ).grid(row=fila_campo, column=0, sticky="ew", padx=(10, 5), pady=2)
+            ).grid(row=fila_campo, column=columna_etiqueta, sticky="ew", padx=(10, 5), pady=2)
             if clave == "vendedora":
                 campo = ctk.CTkComboBox(
                     seccion, values=["Seleccionar...", "Ana", "Belén", "Carla", "Diana"],
@@ -966,7 +990,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                     border_width=1, border_color=color_borde_suave, text_color=color_texto,
                     font=ctk.CTkFont(size=perfil["fuente"]),
                 )
-            campo.grid(row=fila_campo, column=1, sticky="ew", padx=(0, 10), pady=2)
+            campo.grid(
+                row=fila_campo, column=columna_campo, columnspan=expansion,
+                sticky="ew", padx=(0, 10), pady=2,
+            )
             campos_manual[clave] = campo
 
     campos_manual["notas"].configure(placeholder_text="Observaciones de la operación")
@@ -994,15 +1021,22 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     # El draft es una zona propia: nunca cuenta como movimiento persistido.
     lista_productos = ctk.CTkFrame(tab_manual, fg_color="#F7FAFF", corner_radius=9,
                                    border_width=2, border_color="#8FB3D9")
-    columnas_items = ("producto", "cantidad", "precio", "subtotal", "acciones")
-    grilla_items = ttk.Treeview(lista_productos, columns=columnas_items, show="headings", height=3)
+    columnas_items = ("producto", "codigo", "tipo", "armazon", "cristal", "subtotal")
+    grilla_items = ttk.Treeview(
+        lista_productos, columns=columnas_items, show="headings", height=2,
+        style="Caja.Treeview",
+    )
     for clave, titulo, ancho in (
-        ("producto", "Artículo", 260), ("cantidad", "Cant.", 55),
-        ("precio", "Precio", 100), ("subtotal", "Subtotal", 105),
-        ("acciones", "Editar / Quitar", 115),
+        ("producto", "Artículo", 220), ("codigo", "Código", 90),
+        ("tipo", "Tipo", 115), ("armazon", "P. Armazón", 100),
+        ("cristal", "P. Cristal", 100), ("subtotal", "Subtotal", 110),
     ):
         grilla_items.heading(clave, text=titulo)
-        grilla_items.column(clave, width=ancho, anchor="w", stretch=clave == "producto")
+        anchor = "e" if clave in ("armazon", "cristal", "subtotal") else "w"
+        grilla_items.column(
+            clave, width=ancho, minwidth=70, anchor=anchor,
+            stretch=clave == "producto",
+        )
     ctk.CTkLabel(lista_productos, text="VENTA EN CURSO", text_color=color_texto,
                  font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold")).place(x=12, y=6)
     cuerpo_draft = ctk.CTkFrame(lista_productos, fg_color="transparent")
@@ -1014,9 +1048,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     cuerpo_draft.grid_rowconfigure(0, weight=1)
     panel_items = ctk.CTkFrame(cuerpo_draft, fg_color="transparent")
     panel_items.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
-    grilla_items.pack(in_=panel_items, fill="both", expand=True)
+    panel_items.grid_rowconfigure(0, weight=1)
+    panel_items.grid_columnconfigure(0, weight=1)
+    grilla_items.grid(in_=panel_items, row=0, column=0, sticky="nsew")
     acciones_item = ctk.CTkFrame(panel_items, fg_color="transparent")
-    acciones_item.pack(fill="x", pady=(3, 0))
+    acciones_item.grid(row=1, column=0, sticky="ew", pady=(3, 0))
     panel_total_draft = ctk.CTkFrame(
         cuerpo_draft, fg_color="#E7F1FC", corner_radius=8,
         border_width=1, border_color="#7DA9D7",
@@ -1041,7 +1077,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             "descripcion", "cliente_telefono", "cliente_documento", "sobre",
             "fecha_entrega", "vendedora", "arm_org", "cod", "laboratorio",
             "armazon", "cristal", "receta_dr", "total", "efectivo",
-            "tarjeta_cheque", "transferencia", "saldo", "notas",
+            "tarjeta_cheque", "transferencia", "ordenes", "cuotas", "saldo", "notas",
         ) if clave in campos_manual
     )
     orden_teclado = list(claves_operacion)
@@ -1118,9 +1154,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             grilla_items.delete(row)
         for index, item in enumerate(items_venta):
             grilla_items.insert("", "end", iid=str(index), values=(
-                f"{item.description} · {item.code}", 1,
-                formatear_monto(item.subtotal), formatear_monto(item.subtotal),
-                "Editar · Quitar",
+                item.description, item.code, item.item_type,
+                formatear_monto(item.frame_price or 0),
+                formatear_monto(item.lens_price or 0),
+                formatear_monto(item.subtotal),
             ))
         recalcular_total_visible()
         try:
@@ -1258,11 +1295,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     grilla_caja = ttk.Treeview(
         marco_grilla, columns=claves_grilla, show="headings", style="Caja.Treeview"
     )
-    for clave, etiqueta, ancho in columnas_operativas:
-        grilla_caja.heading(clave, text=etiqueta)
+    for clave, etiqueta, ancho, anchor in MOVEMENT_COLUMN_SPECS:
+        grilla_caja.heading(clave, text=etiqueta, anchor=anchor)
         ancho_perfil = int(ancho * (1.24 if perfil["nombre"] == "full-hd" else 1.0))
-        grilla_caja.column(clave, width=ancho_perfil, minwidth=65, stretch=False, anchor="w")
-    grilla_caja.heading("acciones", text="Acciones")
+        grilla_caja.column(
+            clave, width=ancho_perfil, minwidth=65, stretch=False, anchor=anchor
+        )
+    grilla_caja.heading("acciones", text="Acciones", anchor="center")
     grilla_caja.column("acciones", width=105, minwidth=105, stretch=False, anchor="center")
     grilla_caja.tag_configure("voided", foreground="#E0717C", background="#241824")
     grilla_caja.tag_configure("expense", foreground="#F5A3AA")
@@ -1667,7 +1706,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
     )
     boton_guardar.grid(
-        row=7, column=0, columnspan=2, sticky="ew", padx=10, pady=(5, 9)
+        row=6, column=0, columnspan=4, sticky="ew", padx=10, pady=(5, 9)
     )
     ctk.CTkButton(
         acciones_primarias, text="Limpiar", command=limpiar_operacion, width=100, height=32,
@@ -1791,8 +1830,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     y_cabecera = 4
     es_full_hd = perfil["nombre"] == "full-hd"
     alto_kpi = 74 if es_full_hd else 58
-    alto_form = 332 if es_full_hd else 230
-    alto_draft = 145 if es_full_hd else 100
+    alto_form = 310 if es_full_hd else 220
+    alto_draft = 167 if es_full_hd else 120
     alto_secundario = 44 if es_full_hd else 42
     alto_grilla = 140 if es_full_hd else 85
     separacion_vertical = 7 if es_full_hd else 4
@@ -2194,10 +2233,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     filtro_pedidos = ctk.StringVar(value="Hoy")
     marco_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="#FFFFFF")
     marco_pedidos.pack(fill="both", expand=True, padx=10, pady=(0, 8))
-    columnas_pedido = ("entrega", "cliente", "documento", "sobre", "sucursal", "vendedora", "origen", "estado")
+    columnas_pedido = ("entrega", "cliente", "telefono", "documento", "sobre", "sucursal", "vendedora", "origen", "estado")
     grilla_pedidos = ttk.Treeview(marco_pedidos, columns=columnas_pedido, show="headings", style="Caja.Treeview")
     for clave, titulo, ancho in (
-        ("entrega", "Entrega", 100), ("cliente", "Cliente", 250),
+        ("entrega", "Entrega", 100), ("cliente", "Cliente", 220),
+        ("telefono", "Teléfono", 125),
         ("documento", "CI/RUC", 120), ("sobre", "Sobre", 75),
         ("sucursal", "Sucursal", 100), ("vendedora", "Vendedora", 120),
         ("origen", "Origen", 90), ("estado", "Estado", 110),
@@ -2214,7 +2254,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         for pedido in controller.list_orders(filtro_pedidos.get()):
             grilla_pedidos.insert("", "end", iid=pedido.id, values=(
                 pedido.delivery_date.strftime("%d-%m-%Y"), pedido.customer_name,
-                pedido.customer_document, pedido.envelope, pedido.branch,
+                pedido.customer_phone, pedido.customer_document, pedido.envelope, pedido.branch,
                 pedido.saleswoman, pedido.origin.value, pedido.status.value,
             ))
 

@@ -139,6 +139,7 @@ class CashDayService:
         order = Order(
             delivery_date=entry.delivery_date, branch=cash_day.unit,
             customer_name=entry.description, customer_document=entry.customer_document,
+            customer_phone=entry.customer_phone,
             envelope=entry.envelope, saleswoman=entry.saleswoman,
             observations=entry.observations, cash_entry_id=entry.id,
             source_reference=entry.id,

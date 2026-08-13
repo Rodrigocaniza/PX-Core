@@ -141,6 +141,7 @@ class Order:
     origin: OrderOrigin | str = OrderOrigin.CASH_REGISTER
     source_reference: str = ""
     customer_document: str = ""
+    customer_phone: str = ""
     envelope: str = ""
     status: OrderStatus | str = OrderStatus.PENDING
     observations: str = ""
@@ -158,7 +159,10 @@ class Order:
             if not value:
                 raise InvalidCashDayError(f"{name} es obligatorio")
             object.__setattr__(self, name, value)
-        for name in ("source_reference", "customer_document", "envelope", "observations"):
+        for name in (
+            "source_reference", "customer_document", "customer_phone",
+            "envelope", "observations",
+        ):
             object.__setattr__(self, name, str(getattr(self, name) or "").strip())
 
     def transition_to(self, status: OrderStatus | str) -> "Order":

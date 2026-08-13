@@ -536,6 +536,7 @@ class SQLiteCashDayRepository:
             id=row["id"], origin=row["origin"], source_reference=row["source_reference"],
             delivery_date=row["delivery_date"], branch=row["branch"],
             customer_name=row["customer_name"], customer_document=row["customer_document"],
+            customer_phone=row["customer_phone"],
             envelope=row["envelope"], saleswoman=row["saleswoman"], status=row["status"],
             observations=row["observations"], cash_entry_id=row["cash_entry_id"],
             created_at=_datetime(row["created_at"]), updated_at=_datetime(row["updated_at"]),
@@ -547,19 +548,21 @@ class SQLiteCashDayRepository:
             connection.execute(
                 """INSERT INTO orders(
                     id,origin,source_reference,delivery_date,branch,customer_name,
-                    customer_document,envelope,saleswoman,status,observations,cash_entry_id,
-                    created_at,updated_at
-                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    customer_document,customer_phone,envelope,saleswoman,status,observations,
+                    cash_entry_id,created_at,updated_at
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                 ON CONFLICT(cash_entry_id) WHERE cash_entry_id IS NOT NULL DO UPDATE SET
                     delivery_date=excluded.delivery_date, branch=excluded.branch,
                     customer_name=excluded.customer_name,
-                    customer_document=excluded.customer_document, envelope=excluded.envelope,
+                    customer_document=excluded.customer_document,
+                    customer_phone=excluded.customer_phone, envelope=excluded.envelope,
                     saleswoman=excluded.saleswoman, observations=excluded.observations,
                     updated_at=excluded.updated_at""",
                 (
                     order.id, order.origin.value, order.source_reference,
                     _iso(order.delivery_date), order.branch, order.customer_name,
-                    order.customer_document, order.envelope, order.saleswoman,
+                    order.customer_document, order.customer_phone,
+                    order.envelope, order.saleswoman,
                     order.status.value, order.observations, order.cash_entry_id,
                     _iso(order.created_at), _iso(order.updated_at),
                 ),
