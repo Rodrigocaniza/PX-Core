@@ -111,7 +111,9 @@ class SQLiteCashDayRepository:
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)
         ).fetchone() is not None
 
-    def save(self, cash_day: CashDay) -> None:
+    def save(
+        self, cash_day: CashDay, *, audit_reason: str = "", edited_by: str = ""
+    ) -> None:
         stage = "cash_day_upsert"
         totals = cash_day.closing_totals
         values = (
@@ -170,7 +172,10 @@ class SQLiteCashDayRepository:
                     ).fetchall()
                 }
                 stage = "entry_audit"
-                self._record_entry_revisions(connection, cash_day.entries, existing_entries)
+                self._record_entry_revisions(
+                    connection, cash_day.entries, existing_entries,
+                    audit_reason=audit_reason, edited_by=edited_by,
+                )
                 stage = "cash_entry_upsert"
                 connection.executemany(
                     """INSERT INTO cash_entries(
@@ -179,8 +184,8 @@ class SQLiteCashDayRepository:
                         balance_text,expenses,origin,source_reference,customer_document,
                         saleswoman,delivery_date,observations,customer_phone,created_at,updated_at,
                         status,voided_at,void_reason,revision,withdrawal,
-                        withdrawal_destination,performed_by
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        withdrawal_destination,performed_by,agreement_amount
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         cash_day_id=excluded.cash_day_id, description=excluded.description,
                         envelope=excluded.envelope, frame_origin=excluded.frame_origin,
@@ -200,7 +205,8 @@ class SQLiteCashDayRepository:
                         voided_at=excluded.voided_at, void_reason=excluded.void_reason,
                         revision=excluded.revision, withdrawal=excluded.withdrawal,
                         withdrawal_destination=excluded.withdrawal_destination,
-                        performed_by=excluded.performed_by""",
+                        performed_by=excluded.performed_by,
+                        agreement_amount=excluded.agreement_amount""",
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
                 stage = "sale_items_refresh"
@@ -263,6 +269,7 @@ class SQLiteCashDayRepository:
             _iso(entry.updated_at), entry.status.value, _iso(entry.voided_at),
             entry.void_reason, entry.revision,
             entry.withdrawal, entry.withdrawal_destination, entry.performed_by,
+            entry.agreement_amount or 0,
         )
 
     @classmethod
@@ -271,6 +278,7 @@ class SQLiteCashDayRepository:
         connection: sqlite3.Connection,
         entries: Sequence[CashEntry],
         existing_entries: dict[str, sqlite3.Row],
+        *, audit_reason: str = "", edited_by: str = "",
     ) -> None:
         for entry in entries:
             existing = existing_entries.get(entry.id)
@@ -279,6 +287,21 @@ class SQLiteCashDayRepository:
             action = "CREATE" if existing is None else (
                 "VOID" if entry.status is CashEntryStatus.VOIDED else "UPDATE"
             )
+            snapshot = cls._entry_snapshot(entry)
+            snapshot["audit"] = {
+                "reason": str(audit_reason or "").strip(),
+                "user": str(edited_by or "").strip(),
+            }
+            previous = connection.execute(
+                """SELECT snapshot_json FROM cash_entry_revisions
+                   WHERE entry_id = ? ORDER BY revision DESC LIMIT 1""",
+                (entry.id,),
+            ).fetchone()
+            if previous is not None and action == "UPDATE":
+                before = json.loads(previous["snapshot_json"])
+                snapshot["item_changes"] = cls._item_changes(
+                    before.get("items", []), snapshot.get("items", [])
+                )
             connection.execute(
                 """INSERT INTO cash_entry_revisions(
                     entry_id,cash_day_id,revision,action,snapshot_json,recorded_at
@@ -288,11 +311,24 @@ class SQLiteCashDayRepository:
                     entry.cash_day_id,
                     entry.revision,
                     action,
-                    json.dumps(cls._entry_snapshot(entry), ensure_ascii=False, sort_keys=True),
+                    json.dumps(snapshot, ensure_ascii=False, sort_keys=True),
                     _iso(entry.updated_at),
                 ),
             )
 
+    @staticmethod
+    def _item_changes(before: Sequence[dict], after: Sequence[dict]) -> dict:
+        previous = {item["id"]: item for item in before}
+        current = {item["id"]: item for item in after}
+        return {
+            "added": [current[item_id] for item_id in current.keys() - previous.keys()],
+            "removed": [previous[item_id] for item_id in previous.keys() - current.keys()],
+            "modified": [
+                {"before": previous[item_id], "after": current[item_id]}
+                for item_id in previous.keys() & current.keys()
+                if previous[item_id] != current[item_id]
+            ],
+        }
     @staticmethod
     def _entry_snapshot(entry: CashEntry) -> dict:
         return {
@@ -310,6 +346,7 @@ class SQLiteCashDayRepository:
             "cash": entry.cash,
             "card_check": entry.card_check,
             "orders": entry.orders,
+            "agreement_amount": entry.agreement_amount,
             "installments": entry.installments,
             "balance": entry.balance,
             "expenses": entry.expenses,
@@ -393,7 +430,8 @@ class SQLiteCashDayRepository:
             frame=item["frame"], lens=item["lens"], laboratory=item["laboratory"],
             prescription_doctor=item["prescription_doctor"],
             total=item["total"], cash=item["cash"], card_check=item["card_check"],
-            orders=item["orders_text"], installments=item["installments_text"],
+            orders=item["orders_text"], agreement_amount=item["agreement_amount"],
+            installments=item["installments_text"],
             balance=item["balance_text"], expenses=item["expenses"], origin=item["origin"],
             withdrawal=item["withdrawal"], withdrawal_destination=item["withdrawal_destination"],
             performed_by=item["performed_by"],

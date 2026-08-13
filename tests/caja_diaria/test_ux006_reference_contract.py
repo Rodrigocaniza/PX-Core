@@ -18,18 +18,18 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             '"Caja inicial"',
             '"VENTA TOTAL DEL DÍA"',
             '"EFECTIVO"',
-            '"SALDO PENDIENTE"',
-            'cabecera.place(x=4, y=4)',
-            'formulario.configure(width=ancho_total, height=alto_form)',
-            'formulario.place(x=4, y=y_form)',
-            'toolbar_movimientos.place(x=4, y=y_toolbar)',
-            'pie_movimientos.place(x=4, y=y_grilla + alto_grilla + 3)',
+            '"SALDO CLIENTE"',
+            'cabecera.configure(width=ancho_actual, height=alto_cab)',
+            'formulario.configure(width=ancho_actual, height=alto_form_actual)',
+            'formulario.place(x=x_actual, y=y_form_actual)',
+            'toolbar_movimientos.place',
+            'pie_movimientos.place(x=x_actual, y=y_footer)',
             'acciones_primarias = ctk.CTkFrame(acciones',
             'iconos_kpi = {',
             'recalcular_total_visible',
             'formulario.grid_propagate(False)',
             'acciones.pack_propagate(False)',
-            'marco_grilla.configure(width=ancho_total, height=alto_grilla)',
+            'marco_grilla.configure(width=ancho_actual, height=alto_grid)',
             'marco_grilla.grid_propagate(False)',
             'grilla_caja.bind("<MouseWheel>"',
             '"Estado: ABIERTA"',
@@ -76,7 +76,7 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         self.assertIn('PRODUCTO_TRABAJO', source)
         self.assertIn('COBRO_PAGO', source)
-        self.assertEqual(len(CajaDiaria.COLUMNAS_OPERATIVAS), 9)
+        self.assertEqual(len(CajaDiaria.COLUMNAS_OPERATIVAS), 13)
 
 
 if __name__ == "__main__":

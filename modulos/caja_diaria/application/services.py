@@ -126,10 +126,12 @@ class CashDayService:
             raise ValueError("El monto del retiro debe ser mayor a cero.")
         return self.add_entry(cash_day_id, entry)
 
-    def update_entry(self, cash_day_id: str, entry: CashEntry) -> CashEntry:
+    def update_entry(
+        self, cash_day_id: str, entry: CashEntry, *, reason: str = "", user: str = ""
+    ) -> CashEntry:
         cash_day = self.get_day(cash_day_id)
         updated = cash_day.update_entry(entry)
-        self.repository.save(cash_day)
+        self.repository.save(cash_day, audit_reason=reason, edited_by=user)
         self._ensure_order(cash_day, updated)
         return updated
 

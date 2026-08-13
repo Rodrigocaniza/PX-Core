@@ -9,7 +9,7 @@ SOURCE = Path("CajaDiaria.py").read_text(encoding="utf-8")
 
 class OperatorUXContractTests(unittest.TestCase):
     def test_only_three_global_financial_kpis_are_primary(self):
-        for title in ("VENTA TOTAL DEL DÍA", "EFECTIVO", "SALDO PENDIENTE"):
+        for title in ("VENTA TOTAL DEL DÍA", "EFECTIVO", "SALDO CLIENTE", "A COBRAR CONVENIO"):
             self.assertEqual(SOURCE.count(f'"{title}"'), 1)
         for title in ("TARJ. / TRANSF.", "EFECTIVO FINAL"):
             self.assertNotIn(title, SOURCE)
@@ -21,7 +21,7 @@ class OperatorUXContractTests(unittest.TestCase):
 
     def test_draft_has_own_non_persistent_grid(self):
         self.assertIn('text="VENTA EN CURSO"', SOURCE)
-        self.assertIn('grilla_items.grid(in_=panel_items, row=0, column=0, sticky="nsew")', SOURCE)
+        self.assertIn('grilla_items.grid(row=0, column=0, sticky="nsew")', SOURCE)
         self.assertIn('panel_items.grid_rowconfigure(0, weight=1)', SOURCE)
         self.assertNotIn('iid="draft"', SOURCE)
 
@@ -42,7 +42,8 @@ class OperatorUXContractTests(unittest.TestCase):
         self.assertEqual(
             [key for key, _, _ in COLUMNAS_OPERATIVAS],
             ["hora", "descripcion", "cliente_telefono", "tipo_resumen", "sobre",
-             "total", "saldo", "vendedora", "estado"],
+             "total", "efectivo", "tarjeta_transferencia", "monto_convenio",
+             "cuotas", "saldo", "vendedora", "estado"],
         )
 
     def test_privacy_only_masks_global_kpi_refresh(self):

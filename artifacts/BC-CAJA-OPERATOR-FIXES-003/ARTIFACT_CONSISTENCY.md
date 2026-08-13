@@ -1,5 +1,3 @@
-# Artifact consistency
+# Artifact Consistency
 
-PASS. Código, migración, tests, smoke, documentos y capturas quedan enlazados por SHA-256 en `MANIFEST.sha256`.
-
-No se incluyen bases SQLite, credenciales, datos operativos reales ni rutas privadas dentro del ZIP.
+Generation 2 prepared after Librarian generation-1 FAIL. MANIFEST.sha256 and the evidence ZIP are regenerated from the final closure allowlist, then independently verified after Auditor PASS. The package excludes SQLite databases, operational data, credentials, caches, screenshots and private paths.

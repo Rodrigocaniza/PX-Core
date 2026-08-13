@@ -155,14 +155,28 @@ class CashDayUIController:
         return self.last_backup_path
 
     def update_manual_entry(
-        self, entry_id: str, values: Mapping[str, Any]
+        self, entry_id: str, values: Mapping[str, Any], *, reason: str = "", user: str = ""
     ) -> tuple[CashDay, CashEntry]:
         self._require_saleswoman(values)
+        if "items" in values and not values.get("items"):
+            raise InvalidCashDayError(
+                "La venta editada no puede quedar sin productos; cancelá o anulá la venta."
+            )
         cash_day = self.load_day(str(values.get("fecha", "")), str(values.get("unidad", "")))
         existing = next((entry for entry in cash_day.entries if entry.id == entry_id), None)
         if existing is None:
             raise InvalidCashDayError(f"movimiento inexistente: {entry_id}")
         candidate = self._entry_from_legacy(values, origin=existing.origin)
+        total_pagos = (
+            (candidate.cash or 0)
+            + (candidate.card_check or 0)
+            + (candidate.agreement_amount or 0)
+        )
+        if candidate.total is not None and total_pagos > candidate.total:
+            raise InvalidCashDayError(
+                "Los pagos cargados exceden el nuevo total de la venta. "
+                "Ajustá efectivo, tarjeta/transferencia o monto convenio."
+            )
         updated = existing.edited(
             description=candidate.description,
             envelope=candidate.envelope,
@@ -176,6 +190,7 @@ class CashDayUIController:
             cash=candidate.cash,
             card_check=candidate.card_check,
             orders=candidate.orders,
+            agreement_amount=candidate.agreement_amount,
             installments=candidate.installments,
             balance=candidate.balance,
             expenses=candidate.expenses,
@@ -187,7 +202,9 @@ class CashDayUIController:
             observations=candidate.observations,
             items=candidate.items,
         )
-        saved = self.service.update_entry(cash_day.id, updated)
+        saved = self.service.update_entry(
+            cash_day.id, updated, reason=str(reason).strip(), user=str(user).strip()
+        )
         return self.service.get_day(cash_day.id), saved
 
     def void_entry(self, date_text: str, unit: str, entry_id: str, reason: str) -> CashDay:
@@ -262,6 +279,7 @@ class CashDayUIController:
             cash=values.get("efectivo"),
             card_check=values.get("tarjeta_cheque"),
             orders=values.get("ordenes", ""),
+            agreement_amount=values.get("monto_convenio"),
             installments=values.get("cuotas", ""),
             balance=values.get("saldo", ""),
             expenses=values.get("gastos"),

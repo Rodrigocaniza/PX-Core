@@ -11,7 +11,7 @@ class OperatorFixes003ContractTests(unittest.TestCase):
     def test_draft_rows_render_real_item_values_in_expanding_grid(self):
         self.assertIn('columnas_items = ("producto", "codigo", "tipo", "armazon", "cristal", "subtotal")', SOURCE)
         self.assertIn('panel_items.grid_rowconfigure(0, weight=1)', SOURCE)
-        self.assertIn('grilla_items.grid(in_=panel_items, row=0, column=0, sticky="nsew")', SOURCE)
+        self.assertIn('grilla_items.grid(row=0, column=0, sticky="nsew")', SOURCE)
         for expression in (
             "item.description", "item.code", "item.item_type",
             "formatear_monto(item.frame_price or 0)", "formatear_monto(item.lens_price or 0)",
@@ -29,7 +29,8 @@ class OperatorFixes003ContractTests(unittest.TestCase):
     def test_payment_restores_order_and_installments(self):
         self.assertIn(("ordenes", "Orden / Convenio", 150), CajaDiaria.COBRO_PAGO)
         self.assertIn(("cuotas", "Cuotas", 75), CajaDiaria.COBRO_PAGO)
-        self.assertIn('"ordenes", "cuotas", "saldo", "notas"', SOURCE)
+        self.assertIn('"ordenes", "monto_convenio",', SOURCE)
+        self.assertIn('"cuotas", "saldo", "notas"', SOURCE)
 
     def test_orders_table_exposes_persisted_phone(self):
         self.assertIn('"telefono", "documento"', SOURCE)

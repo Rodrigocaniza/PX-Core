@@ -1,14 +1,57 @@
 {
   "schema_version": "1.0",
   "mission": "BC-CAJA-OPERATOR-FIXES-003",
-  "base": "d053e8e0b7de756a663d48e9e8c97ddb2d173b86",
+  "base": "2174ded9ae21bddf673ee2e99bbcbcd599c5b555",
   "branch": "feature/caja-operator-fixes-003",
-  "current_state": "SAFE_CLOSURE_LOCAL",
+  "current_state": "CLOSED",
   "history": [
-    {"event_index": 1, "event": "FOUR_PRODUCT_BUGS_VERIFIED"},
-    {"event_index": 2, "event": "IMPLEMENTATION_VERIFIED"},
-    {"event_index": 3, "event": "RESPONSIVE_GUI_PASSED", "profiles": ["1366x768", "1920x1080"]},
-    {"event_index": 4, "event": "VERIFICATION_PASSED", "full": "135 passed, 4 subtests passed"},
-    {"event_index": 5, "event": "LIBRARIAN_QA_AUDITOR_SAFE_CLOSURE_PASS"}
+    {
+      "event_index": 1,
+      "event": "USER_VISUAL_PASS_FINAL",
+      "date": "2026-08-13"
+    },
+    {
+      "event_index": 2,
+      "event": "VERIFICATION_PASS",
+      "result": "146 passed, 4 subtests passed"
+    },
+    {
+      "event_index": 3,
+      "event": "LIFECYCLE_SELF_CHECK_PASS"
+    },
+    {
+      "event_index": 4,
+      "event": "LIBRARIAN_FAIL",
+      "generation": 1,
+      "reason": "stale manifest, ZIP, workflow and incomplete recovery"
+    },
+    {
+      "event_index": 5,
+      "event": "EVIDENCE_REGENERATED",
+      "generation": 2
+    },
+    {
+      "event_index": 6,
+      "event": "LIBRARIAN_PASS",
+      "generation": 2
+    },
+    {
+      "event_index": 7,
+      "event": "QA_PASS",
+      "generation": 2,
+      "result": "60 focused; 146 passed, 4 subtests full"
+    },
+    {
+      "event_index": 8,
+      "event": "AUDITOR_PASS",
+      "generation": 2,
+      "result": "scope, migrations, privacy, lifecycle and diff checks passed"
+    },
+    {
+      "event_index": 9,
+      "event": "SAFE_CLOSURE_READY",
+      "generation": 2,
+      "result": "protected commit/push and remote verification authorized"
+    }
   ]
 }

@@ -231,6 +231,18 @@ def calculate_session_hours(
     return SessionHours(duration_seconds, triggered, overtime_minutes)
 
 
+def client_balance_from_classification(
+    total: int | None,
+    cash: int | None,
+    card_check: int | None,
+    agreement_amount: int | None,
+) -> int:
+    """Saldo cliente: convenio liquida la deuda sin ser ingreso de caja."""
+    return max(
+        0,
+        (total or 0) - (cash or 0) - (card_check or 0) - (agreement_amount or 0),
+    )
+
 @dataclass(frozen=True)
 class CashEntry:
     description: str
@@ -249,6 +261,7 @@ class CashEntry:
     laboratory: str = ""
     prescription_doctor: str = ""
     orders: str = ""
+    agreement_amount: int | str | None = None
     installments: str = ""
     balance: str = ""
     origin: str = "manual"
@@ -273,7 +286,7 @@ class CashEntry:
             raise InvalidCashDayError("la descripción de una entrada es obligatoria")
         object.__setattr__(self, "description", self.description.strip())
         object.__setattr__(self, "status", CashEntryStatus(self.status))
-        for name in ("total", "cash", "card_check", "expenses", "withdrawal"):
+        for name in ("total", "cash", "card_check", "agreement_amount", "expenses", "withdrawal"):
             object.__setattr__(self, name, money(getattr(self, name), field_name=name, optional=True))
         for name in (
             "envelope", "frame_origin", "code", "frame", "lens", "laboratory", "prescription_doctor",
@@ -293,6 +306,20 @@ class CashEntry:
         if self.items:
             object.__setattr__(self, "total", sum(item.subtotal for item in self.items))
 
+        pending_before_agreement = max(0, (self.total or 0) - (self.cash or 0) - (self.card_check or 0))
+        if (self.agreement_amount or 0) > pending_before_agreement:
+            raise InvalidCashDayError("el monto convenio excede el total pendiente")
+        if self.agreement_amount and not self.orders:
+            raise InvalidCashDayError("ingresÃ¡ el nombre o identificaciÃ³n del convenio")
+        if self.agreement_amount:
+            object.__setattr__(self, "balance", str(self.client_balance_amount))
+
+    @property
+    def client_balance_amount(self) -> int:
+        """Deuda del cliente; el convenio es financiación separada, no saldo."""
+        return client_balance_from_classification(
+            self.total, self.cash, self.card_check, self.agreement_amount
+        )
     @property
     def effective_items(self) -> tuple[SaleItem, ...]:
         if self.items:

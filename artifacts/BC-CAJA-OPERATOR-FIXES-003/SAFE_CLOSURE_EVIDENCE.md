@@ -1,7 +1,10 @@
-# Safe closure evidence
+# Safe Closure Evidence
 
-- Rama aislada: `feature/caja-operator-fixes-003`.
-- Base exacta: `d053e8e0b7de756a663d48e9e8c97ddb2d173b86`.
-- Chrome nativo preservado; lifecycle PASS.
-- Migración `009` aditiva e idempotente.
-- Scope, hashes y sensible-data check requeridos antes del commit/push.
+- Rama: feature/caja-operator-fixes-003.
+- PASS visual final: confirmado.
+- Regresión/full: 146 passed, 4 subtests passed.
+- Lifecycle y self-check: PASS.
+- Migraciones: 010 agreement_amount; 011 normalización auditable de saldo convenio.
+- Artifact Consistency: PASS.
+- Librarian -> QA -> Auditor: PASS.
+- Commit/push protegidos y verificacion remota: autorizados por el usuario; esta evidencia se sella en el commit de cierre.

@@ -1,6 +1,12 @@
-# Visual evidence
+# Visual Evidence
 
-- `screenshots/operator-fixes-003-1920.png`: entrypoint real, ventana maximizada nativa.
-- `screenshots/operator-fixes-003-1366.png`: perfil compacto forzado por contrato.
-- Datos exclusivamente sintéticos generados en directorio temporal.
-- Las capturas verifican controles sin superposición y scroll operativo.
+PASS visual final confirmado por el usuario:
+
+- edición y persistencia de artículos;
+- recálculo y guardado del total;
+- efectivo y tarjeta/transferencia;
+- convenio y cuotas;
+- convenio excluido de saldo, saldo cliente y arqueo;
+- datos históricos normalizados.
+
+No se generaron ni inspeccionaron imágenes nuevas en esta sesión.

@@ -9,7 +9,9 @@ from ..domain.models import CashCount, CashDay, Order
 
 
 class CashDayRepository(Protocol):
-    def save(self, cash_day: CashDay) -> None: ...
+    def save(
+        self, cash_day: CashDay, *, audit_reason: str = "", edited_by: str = ""
+    ) -> None: ...
 
     def get(self, cash_day_id: str) -> CashDay | None: ...
 
