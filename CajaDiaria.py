@@ -679,10 +679,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     ventana.transient(ventana_padre)
     ventana.grab_set()
 
-    color_fondo = "#F3F6FA"
-    color_panel = "#FBFCFE"
-    color_panel_alto = "#FFFFFF"
-    color_borde_suave = "#D8E0EB"
+    color_fondo = "#EAF2FB"
+    color_panel = "#F4F8FD"
+    color_panel_alto = "#F8FBFF"
+    color_borde_suave = "#B9CDE5"
     color_texto = "#162238"
     color_suave = "#607089"
     color_azul = "#1672E8"
@@ -706,7 +706,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     ).pack(side="left", padx=(0, 12))
     privacidad = FinancialPrivacy(timeout_seconds=300)
     navegacion = ctk.CTkFrame(
-        ventana, height=(64 if perfil["nombre"] == "full-hd" else 50), fg_color="#FFFFFF", corner_radius=0,
+        ventana, height=(64 if perfil["nombre"] == "full-hd" else 50), fg_color="#F5F9FE", corner_radius=0,
         border_width=1, border_color=color_borde_suave,
     )
     navegacion.pack(fill="x")
@@ -906,10 +906,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
 
     columnas_operativas = COLUMNAS_OPERATIVAS
 
-    formulario = ctk.CTkFrame(
-        tab_manual, fg_color="#FFFFFF", corner_radius=9,
-        border_width=1, border_color=color_borde_suave,
-    )
+    formulario = ctk.CTkFrame(tab_manual, fg_color="transparent", corner_radius=0)
     columnas_bloque = 3
     for columna in range(columnas_bloque):
         formulario.grid_columnconfigure(columna, weight=1, uniform="bloques_operador")
@@ -925,43 +922,45 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     )
     secciones_widgets = {}
     for indice_seccion, (numero, titulo, columnas) in enumerate(secciones_formulario):
-        seccion = ctk.CTkFrame(formulario, fg_color="transparent", corner_radius=0)
+        seccion = ctk.CTkFrame(
+            formulario, fg_color="#F7FAFF", corner_radius=10,
+            border_width=2, border_color="#8FB3D9",
+        )
         secciones_widgets[titulo] = seccion
         fila_bloque = 0
         columna_bloque = indice_seccion
-        seccion.grid(row=fila_bloque, column=columna_bloque, sticky="nsew", padx=8, pady=7)
+        seccion.grid(row=fila_bloque, column=columna_bloque, sticky="nsew", padx=6, pady=2)
         formulario.grid_rowconfigure(fila_bloque, weight=1)
-        for columna in range(2):
-            seccion.grid_columnconfigure(columna, weight=1, uniform=f"sec{indice_seccion}")
+        seccion.grid_columnconfigure(0, weight=0, minsize=(116 if perfil["nombre"] == "full-hd" else 90))
+        seccion.grid_columnconfigure(1, weight=1)
         ctk.CTkLabel(
             seccion, text=numero, width=18, height=18, corner_radius=9,
             fg_color=color_azul, text_color="#FFFFFF",
             font=ctk.CTkFont(size=10, weight="bold"),
-        ).grid(row=0, column=0, sticky="w", pady=0)
+        ).grid(row=0, column=0, sticky="w", padx=(10, 0), pady=(8, 4))
         ctk.CTkLabel(
             seccion, text=titulo, height=22, text_color=color_texto, anchor="w",
             font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold"),
-        ).grid(row=0, column=0, columnspan=2, sticky="w", padx=(26, 0), pady=(0, 4))
-        for columna, (clave, etiqueta, ancho) in enumerate(columnas):
-            fila_campo = 1 + (columna // 2) * 2
-            columna_campo = columna % 2
+        ).grid(row=0, column=0, columnspan=2, sticky="w", padx=(38, 10), pady=(8, 4))
+        for fila_campo, (clave, etiqueta, ancho) in enumerate(columnas, start=1):
             ctk.CTkLabel(
-                seccion, text=etiqueta, height=14, text_color=color_suave, anchor="w",
+                seccion, text=etiqueta, height=perfil["campo_alto"], text_color=color_suave, anchor="w",
                 font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
-            ).grid(row=fila_campo, column=columna_campo, sticky="ew", padx=(0 if columna_campo == 0 else 6, 0))
+            ).grid(row=fila_campo, column=0, sticky="ew", padx=(10, 5), pady=2)
             if clave == "vendedora":
                 campo = ctk.CTkComboBox(
                     seccion, values=["Seleccionar...", "Ana", "Belén", "Carla", "Diana"],
-                    width=ancho, height=perfil["campo_alto"],
+                    width=ancho, height=perfil["campo_alto"], fg_color="#FFFFFF",
+                    border_color=color_borde_suave,
                 )
                 campo.set("Seleccionar...")
             else:
                 campo = ctk.CTkEntry(
-                    seccion, width=ancho, height=perfil["campo_alto"], fg_color="#F8FAFD",
+                    seccion, width=ancho, height=perfil["campo_alto"], fg_color="#FFFFFF",
                     border_width=1, border_color=color_borde_suave, text_color=color_texto,
                     font=ctk.CTkFont(size=perfil["fuente"]),
                 )
-            campo.grid(row=fila_campo + 1, column=columna_campo, sticky="ew", padx=(0 if columna_campo == 0 else 6, 0), pady=(0, 5))
+            campo.grid(row=fila_campo, column=1, sticky="ew", padx=(0, 10), pady=2)
             campos_manual[clave] = campo
 
     campos_manual["notas"].configure(placeholder_text="Observaciones de la operación")
@@ -987,8 +986,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     campos_manual["accion_gasto"].pack(side="left", padx=4, pady=5)
 
     # El draft es una zona propia: nunca cuenta como movimiento persistido.
-    lista_productos = ctk.CTkFrame(tab_manual, fg_color="#FFFFFF", corner_radius=8,
-                                   border_width=1, border_color=color_borde_suave)
+    lista_productos = ctk.CTkFrame(tab_manual, fg_color="#F7FAFF", corner_radius=9,
+                                   border_width=2, border_color="#8FB3D9")
     columnas_items = ("producto", "cantidad", "precio", "subtotal", "acciones")
     grilla_items = ttk.Treeview(lista_productos, columns=columnas_items, show="headings", height=3)
     for clave, titulo, ancho in (
@@ -998,11 +997,36 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     ):
         grilla_items.heading(clave, text=titulo)
         grilla_items.column(clave, width=ancho, anchor="w", stretch=clave == "producto")
-    acciones_item = ctk.CTkFrame(lista_productos, fg_color="transparent")
     ctk.CTkLabel(lista_productos, text="VENTA EN CURSO", text_color=color_texto,
-                 font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold")).pack(side="top", anchor="w", padx=12, pady=(6, 2))
-    acciones_item.pack(side="right", padx=8, pady=4)
-    grilla_items.pack(fill="both", expand=True, padx=8, pady=(0, 5))
+                 font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold")).place(x=12, y=6)
+    cuerpo_draft = ctk.CTkFrame(lista_productos, fg_color="transparent")
+    cuerpo_draft.pack(fill="both", expand=True, padx=8, pady=(28, 6))
+    cuerpo_draft.grid_columnconfigure(0, weight=5)
+    cuerpo_draft.grid_columnconfigure(
+        1, weight=2, minsize=(230 if perfil["nombre"] == "full-hd" else 175)
+    )
+    cuerpo_draft.grid_rowconfigure(0, weight=1)
+    panel_items = ctk.CTkFrame(cuerpo_draft, fg_color="transparent")
+    panel_items.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+    grilla_items.pack(in_=panel_items, fill="both", expand=True)
+    acciones_item = ctk.CTkFrame(panel_items, fg_color="transparent")
+    acciones_item.pack(fill="x", pady=(3, 0))
+    panel_total_draft = ctk.CTkFrame(
+        cuerpo_draft, fg_color="#E7F1FC", corner_radius=8,
+        border_width=1, border_color="#7DA9D7",
+    )
+    panel_total_draft.grid(row=0, column=1, sticky="nsew")
+    ctk.CTkLabel(
+        panel_total_draft, text="TOTAL DE LA VENTA", text_color="#42627F",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+    ).pack(padx=8, pady=(10, 2))
+    total_draft_var = ctk.StringVar(value="0")
+    ctk.CTkLabel(
+        panel_total_draft, textvariable=total_draft_var, text_color="#0F5FB9",
+        font=ctk.CTkFont(
+            size=(22 if perfil["nombre"] == "full-hd" else 17), weight="bold"
+        ),
+    ).pack(padx=8, pady=(0, 8))
 
     bloque_producto = formulario
     columna_guardar = None
@@ -1065,6 +1089,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     def recalcular_total_visible(_event=None):
         if items_venta:
             total = sum(item.subtotal for item in items_venta)
+            total_draft_var.set(formatear_monto(total))
             campo_total = campos_manual["total"]
             campo_total.delete(0, "end")
             campo_total.insert(0, formatear_importe_ui(total))
@@ -1076,6 +1101,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             )
         except (TypeError, ValueError):
             return
+        total_draft_var.set(formatear_monto(total))
         campo_total = campos_manual["total"]
         campo_total.delete(0, "end")
         campo_total.insert(0, formatear_importe_ui(total))
@@ -1136,9 +1162,23 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         if selected:
             items_venta.pop(int(selected[0])); item_editando["index"] = None; refrescar_items()
 
-    ctk.CTkButton(acciones_item, text="+ Agregar artículo", width=135, height=24, command=agregar_producto).pack(pady=1)
-    ctk.CTkButton(acciones_item, text="Editar", width=60, height=22, command=editar_item).pack(side="left", padx=1)
-    ctk.CTkButton(acciones_item, text="Quitar", width=60, height=22, command=quitar_item, fg_color="#D9534F").pack(side="left", padx=1)
+    detalle_venta = secciones_widgets["DETALLE DE VENTA"]
+    boton_agregar_articulo = ctk.CTkButton(
+        detalle_venta, text="+ Agregar artículo", height=perfil["campo_alto"],
+        command=agregar_producto, fg_color="#1672E8", hover_color="#0F5FC7",
+        font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
+    )
+    boton_agregar_articulo.grid(
+        row=7, column=0, columnspan=2, sticky="ew", padx=10, pady=(5, 9)
+    )
+    ctk.CTkButton(
+        acciones_item, text="Editar artículo seleccionado", width=165, height=22,
+        command=editar_item,
+    ).pack(side="left", padx=(0, 3))
+    ctk.CTkButton(
+        acciones_item, text="Quitar", width=70, height=22,
+        command=quitar_item, fg_color="#D9534F",
+    ).pack(side="left", padx=1)
 
     def recalcular_saldo_visible(_event=None):
         try:
@@ -1189,18 +1229,6 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         )
         boton_filtro.pack(side="left", padx=1, pady=6)
         botones_filtro[nombre_filtro] = boton_filtro
-    ctk.CTkButton(
-        toolbar_movimientos, text="+ Agregar artículo", width=(155 if perfil["nombre"] == "full-hd" else 118), height=(38 if perfil["nombre"] == "full-hd" else 28),
-        command=agregar_producto,
-    ).pack(side="right", padx=2, pady=6)
-    ctk.CTkButton(
-        toolbar_movimientos, text="Editar", width=(74 if perfil["nombre"] == "full-hd" else 58), height=(38 if perfil["nombre"] == "full-hd" else 28),
-        command=editar_item,
-    ).pack(side="right", padx=2, pady=6)
-    ctk.CTkButton(
-        toolbar_movimientos, text="Quitar", width=(74 if perfil["nombre"] == "full-hd" else 58), height=(38 if perfil["nombre"] == "full-hd" else 28),
-        command=quitar_item, fg_color="#D9534F",
-    ).pack(side="right", padx=2, pady=6)
     marco_grilla = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=5)
     marco_grilla.pack(fill="both", expand=True, padx=6, pady=3)
     estilo = ttk.Style(ventana)
@@ -1626,12 +1654,15 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     for evento in ("<KeyPress>", "<Button>", "<Motion>"):
         ventana.bind_all(evento, registrar_actividad, add="+")
     ventana.after(1000, revisar_auto_privacidad)
+    pago = secciones_widgets["PAGO"]
     boton_guardar = ctk.CTkButton(
-        acciones_primarias, text="Guardar venta  —  F9", command=guardar_manual,
-        width=150, height=32, fg_color=color_azul, hover_color="#0F5FC7",
-        font=ctk.CTkFont(size=11, weight="bold"),
+        pago, text="Guardar venta  —  F9", command=guardar_manual,
+        height=perfil["campo_alto"], fg_color=color_azul, hover_color="#0F5FC7",
+        font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
     )
-    boton_guardar.pack(side="left", padx=(8, 4), pady=3)
+    boton_guardar.grid(
+        row=7, column=0, columnspan=2, sticky="ew", padx=10, pady=(5, 9)
+    )
     ctk.CTkButton(
         acciones_primarias, text="Limpiar", command=limpiar_operacion, width=100, height=32,
         fg_color="#FFFFFF", text_color=color_texto, border_width=1,
@@ -1754,10 +1785,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     y_cabecera = 4
     es_full_hd = perfil["nombre"] == "full-hd"
     alto_kpi = 74 if es_full_hd else 58
-    alto_form = 220
-    alto_draft = 108 if es_full_hd else 90
+    alto_form = 332 if es_full_hd else 230
+    alto_draft = 145 if es_full_hd else 100
     alto_secundario = 44 if es_full_hd else 42
-    alto_grilla = 260 if es_full_hd else 145
+    alto_grilla = 140 if es_full_hd else 85
     separacion_vertical = 7 if es_full_hd else 4
     y_kpi = y_cabecera + perfil["cabecera_alto"] + separacion_vertical
     y_form = y_kpi + alto_kpi + separacion_vertical

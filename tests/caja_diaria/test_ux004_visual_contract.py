@@ -14,7 +14,7 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
     def test_high_fidelity_elements_are_explicit(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         for text in (
-            '"#F3F6FA"',
+            '"#EAF2FB"',
             '"#FFFFFF"',
             '"Caja inicial"',
             '"VENTA TOTAL DEL DÍA"',

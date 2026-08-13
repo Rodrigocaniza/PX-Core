@@ -64,6 +64,7 @@ def main() -> int:
 
         def capture_mainloop(root):
             root.update_idletasks()
+            root.update()
             windows = [child for child in root.winfo_children() if isinstance(child, ctk.CTkToplevel)]
             if len(windows) != 1:
                 raise RuntimeError(f"entrypoint creó {len(windows)} ventanas de Caja")
@@ -84,8 +85,16 @@ def main() -> int:
                     return next(
                         w for w in label.master.winfo_children()
                         if isinstance(w, ctk.CTkEntry)
-                        and w.grid_info().get("row") == info["row"] + 1
-                        and w.grid_info().get("column") == info["column"]
+                        and (
+                            (
+                                w.grid_info().get("row") == info["row"]
+                                and w.grid_info().get("column") == 1
+                            )
+                            or (
+                                w.grid_info().get("row") == info["row"] + 1
+                                and w.grid_info().get("column") == info["column"]
+                            )
+                        )
                     )
                 frame_field = field_for("Precio armazón")
                 lens_field = field_for("Precio cristal")
@@ -113,6 +122,48 @@ def main() -> int:
                 if values != ("1.500.000", "250.000", "1.750.000", "250.000"):
                     raise RuntimeError(f"formato/total/saldo visible inválido: {values}")
                 print(f"BC_CAJA_MONEY_TOTAL_BALANCE_OK values={values}")
+                add_button = next(
+                    w for w in descendants(window) if isinstance(w, ctk.CTkButton)
+                    and w.cget("text") == "+ Agregar artículo"
+                )
+                add_button.invoke()
+                window.update()
+                item_tree = next(
+                    tree for tree in descendants(window) if isinstance(tree, ttk.Treeview)
+                    and "producto" in tree.cget("columns")
+                )
+                frame_field.insert(0, "300000")
+                add_button.invoke()
+                window.update()
+                if len(item_tree.get_children()) != 2 or total_field.get() != "2.050.000":
+                    raise RuntimeError("agregado multi-item no recalculó el draft")
+                second = item_tree.get_children()[1]
+                item_tree.selection_set(second)
+                edit_button = next(
+                    w for w in descendants(window) if isinstance(w, ctk.CTkButton)
+                    and w.cget("text") == "Editar artículo seleccionado"
+                )
+                edit_button.invoke()
+                frame_field.delete(0, "end")
+                frame_field.insert(0, "350000")
+                add_button.invoke()
+                window.update()
+                item_tree.selection_set(item_tree.get_children()[1])
+                remove_button = next(
+                    w for w in descendants(window) if isinstance(w, ctk.CTkButton)
+                    and w.cget("text") == "Quitar"
+                )
+                remove_button.invoke()
+                window.update()
+                if len(item_tree.get_children()) != 1 or total_field.get() != "1.750.000":
+                    raise RuntimeError("editar/quitar no mantuvo el total del draft")
+                total_labels = [
+                    w for w in descendants(window) if isinstance(w, ctk.CTkLabel)
+                    and w.cget("text") == "TOTAL DE LA VENTA"
+                ]
+                if len(total_labels) != 1 or not total_labels[0].winfo_ismapped():
+                    raise RuntimeError("total lateral de Venta en curso no visible")
+                print("BC_CAJA_MULTI_ITEM_DRAFT_OK add=2 edit=2.100.000 remove=1 total=1.750.000")
                 expense_description = next(
                     w for w in descendants(window) if isinstance(w, ctk.CTkEntry)
                     and w.cget("placeholder_text") == "Descripción del gasto"
@@ -146,10 +197,14 @@ def main() -> int:
                     raise RuntimeError(f"scroll no operativo rows={len(tree.get_children())} size={tree.winfo_width()}x{tree.winfo_height()} before={before} after={after}")
                 print(f"BC_CAJA_SCROLL_OK rows={args.rows} before={before} after={after}")
             visible = [w for w in descendants(window) if w.winfo_ismapped()]
-            action_buttons = [
+            save_button = next(
                 w for w in visible if isinstance(w, ctk.CTkButton)
-                and w.cget("text") in ("Guardar venta  —  F9", "Limpiar")
-            ]
+                and w.cget("text") == "Guardar venta  —  F9"
+            )
+            clear_button = next(
+                w for w in visible if isinstance(w, ctk.CTkButton)
+                and w.cget("text") == "Limpiar"
+            )
             client_heading = next(
                 w for w in visible if isinstance(w, ctk.CTkLabel)
                 and w.cget("text") == "CLIENTE Y COMPROBANTE"
@@ -171,18 +226,19 @@ def main() -> int:
                 w for w in visible if isinstance(w, ctk.CTkLabel)
                 and w.cget("text") == "OPERACIONES SECUNDARIAS"
             ]
-            if len(action_buttons) != 2 or len(notes_titles) != 1 or len(expense_buttons) != 1 or len(expense_titles) != 1:
+            if len(notes_titles) != 1 or len(expense_buttons) != 1 or len(expense_titles) != 1:
                 raise RuntimeError("estructura visible incompleta para validar geometría")
             entry_bottom = max(w.winfo_rooty() + w.winfo_height() for w in left_entries)
-            action_top = min(w.winfo_rooty() for w in action_buttons)
-            action_bottom = max(w.winfo_rooty() + w.winfo_height() for w in action_buttons)
-            if not entry_bottom < action_top:
+            save_top = save_button.winfo_rooty()
+            clear_top = clear_button.winfo_rooty()
+            if save_button.master is not notes_titles[0].master or clear_top <= entry_bottom:
                 raise RuntimeError(
-                    f"solapamiento entry_bottom={entry_bottom} action={action_top}..{action_bottom}"
+                    f"acciones fuera de contexto entry_bottom={entry_bottom} "
+                    f"save_top={save_top} clear_top={clear_top}"
                 )
             print(
-                f"BC_CAJA_LAYOUT_OK entry_bottom={entry_bottom} action_top={action_top} "
-                f"action_bottom={action_bottom}"
+                f"BC_CAJA_LAYOUT_OK entry_bottom={entry_bottom} save_top={save_top} "
+                f"clear_top={clear_top}"
             )
             window.lift()
             window.focus_force()

@@ -21,8 +21,20 @@ class OperatorUXContractTests(unittest.TestCase):
 
     def test_draft_has_own_non_persistent_grid(self):
         self.assertIn('text="VENTA EN CURSO"', SOURCE)
-        self.assertIn('grilla_items.pack(fill="both"', SOURCE)
+        self.assertIn('grilla_items.pack(in_=panel_items, fill="both"', SOURCE)
         self.assertNotIn('iid="draft"', SOURCE)
+
+    def test_primary_actions_belong_to_their_operator_panels(self):
+        self.assertEqual(SOURCE.count('text="+ Agregar artículo"'), 1)
+        self.assertIn('detalle_venta = secciones_widgets["DETALLE DE VENTA"]', SOURCE)
+        self.assertIn('pago = secciones_widgets["PAGO"]', SOURCE)
+        self.assertIn('text="TOTAL DE LA VENTA"', SOURCE)
+        self.assertIn('panel_total_draft.grid(row=0, column=1', SOURCE)
+
+    def test_operator_fields_are_vertical_rows_in_bordered_panels(self):
+        self.assertIn('border_width=2, border_color="#8FB3D9"', SOURCE)
+        self.assertIn('enumerate(columnas, start=1)', SOURCE)
+        self.assertIn('campo.grid(row=fila_campo, column=1', SOURCE)
 
     def test_movements_are_reduced_to_operational_columns(self):
         self.assertEqual(
