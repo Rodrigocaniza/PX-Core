@@ -21,7 +21,9 @@ class UXControlPrivacyTests(unittest.TestCase):
     def test_form_and_draft_amounts_are_not_sent_through_privacy_display(self):
         source = open("CajaDiaria.py", encoding="utf-8").read()
         self.assertIn('"total": formatear_monto(total)', source)
-        self.assertIn("detail[8] = formatear_monto(draft_item.subtotal)", source)
+        self.assertIn("formatear_monto(item.subtotal)", source)
+        refresh = source[source.index("def refrescar_items"):source.index("def agregar_producto")]
+        self.assertNotIn("privacidad.display", refresh)
         self.assertIn("👁 Mostrar totales", source)
         self.assertIn("👁 Ocultar totales", source)
 

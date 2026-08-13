@@ -39,10 +39,8 @@ class LegacyExcelContractTests(unittest.TestCase):
         self.assertEqual(
             [label for _, label, _ in CajaDiaria.COLUMNAS_OPERATIVAS],
             [
-                "Descripción / Cliente", "Sobre", "Producto / Tipo", "Código",
-                "P. Armazón", "P. Cristal", "Laboratorio", "Receta Dr.",
-                "Total", "Efectivo", "Tarj./Cheq./Transf.", "Órdenes", "Cuotas",
-                "Saldo", "Gastos",
+                "Hora", "Cliente", "Teléfono", "Tipo / resumen",
+                "Comprobante / Sobre", "Total", "Saldo", "Vendedora", "Estado",
             ],
         )
     def test_reported_column_order_matches_legacy_positions(self):

@@ -80,12 +80,16 @@ def main() -> int:
                 labels = [w for w in descendants(window) if isinstance(w, ctk.CTkLabel)]
                 def field_for(label_text):
                     label = next(w for w in labels if w.cget("text") == label_text)
-                    siblings_labels = [w for w in label.master.winfo_children() if isinstance(w, ctk.CTkLabel) and w.grid_info().get("row") == 1]
-                    siblings_entries = [w for w in label.master.winfo_children() if isinstance(w, ctk.CTkEntry)]
-                    return siblings_entries[siblings_labels.index(label)]
-                frame_field = field_for("P. Armazón")
-                lens_field = field_for("P. Cristal")
-                total_field = field_for("Total")
+                    info = label.grid_info()
+                    return next(
+                        w for w in label.master.winfo_children()
+                        if isinstance(w, ctk.CTkEntry)
+                        and w.grid_info().get("row") == info["row"] + 1
+                        and w.grid_info().get("column") == info["column"]
+                    )
+                frame_field = field_for("Precio armazón")
+                lens_field = field_for("Precio cristal")
+                total_field = field_for("Total de la venta")
                 frame_field.delete(0, "end")
                 frame_field.insert(0, "1500000")
                 lens_field.delete(0, "end")
@@ -98,7 +102,7 @@ def main() -> int:
                 cash_field = field_for("Efectivo")
                 card_field = field_for("Tarjeta / Cheque")
                 transfer_field = field_for("Transferencia")
-                balance_field = field_for("Saldo pendiente")
+                balance_field = field_for("Saldo")
                 for field, value in ((cash_field, "1000000"), (card_field, "500000"), (transfer_field, "0")):
                     field.delete(0, "end")
                     field.insert(0, value)
@@ -109,8 +113,14 @@ def main() -> int:
                 if values != ("1.500.000", "250.000", "1.750.000", "250.000"):
                     raise RuntimeError(f"formato/total/saldo visible inválido: {values}")
                 print(f"BC_CAJA_MONEY_TOTAL_BALANCE_OK values={values}")
-                expense_description = field_for("Descripción *")
-                expense_amount = field_for("Monto *")
+                expense_description = next(
+                    w for w in descendants(window) if isinstance(w, ctk.CTkEntry)
+                    and w.cget("placeholder_text") == "Descripción del gasto"
+                )
+                expense_amount = next(
+                    w for w in descendants(window) if isinstance(w, ctk.CTkEntry)
+                    and w.cget("placeholder_text") == "Monto"
+                )
                 expense_description.insert(0, "Ferretería")
                 expense_amount.insert(0, "200000")
                 expense_amount._entry.event_generate("<FocusOut>")
@@ -124,9 +134,10 @@ def main() -> int:
                 window.update()
                 print("BC_CAJA_INTEGRATED_EXPENSE_OK amount=200.000")
                 trees = [w for w in descendants(window) if isinstance(w, ttk.Treeview)]
-                if len(trees) != 1:
-                    raise RuntimeError(f"se esperó una tabla, encontradas={len(trees)}")
-                tree = trees[0]
+                candidates = [tree for tree in trees if "descripcion" in tree.cget("columns")]
+                if len(candidates) != 1:
+                    raise RuntimeError(f"se esperó una tabla operativa, encontradas={len(candidates)} de {len(trees)}")
+                tree = candidates[0]
                 before = tree.yview()
                 tree.yview_scroll(5, "units")
                 window.update_idletasks()
@@ -139,14 +150,18 @@ def main() -> int:
                 w for w in visible if isinstance(w, ctk.CTkButton)
                 and w.cget("text") in ("Guardar venta  —  F9", "Limpiar")
             ]
+            client_heading = next(
+                w for w in visible if isinstance(w, ctk.CTkLabel)
+                and w.cget("text") == "CLIENTE Y COMPROBANTE"
+            )
+            operator_form = client_heading.master.master
             left_entries = [
-                w for w in visible if isinstance(w, ctk.CTkEntry)
-                and w.winfo_rootx() - window.winfo_rootx() < 590
-                and w.winfo_rooty() - window.winfo_rooty() > 200
+                w for w in descendants(operator_form) if isinstance(w, ctk.CTkEntry)
+                and w.winfo_ismapped()
             ]
             notes_titles = [
                 w for w in visible if isinstance(w, ctk.CTkLabel)
-                and w.cget("text") == "Notas"
+                and w.cget("text") == "Observaciones"
             ]
             expense_buttons = [
                 w for w in visible if isinstance(w, ctk.CTkButton)
@@ -154,7 +169,7 @@ def main() -> int:
             ]
             expense_titles = [
                 w for w in visible if isinstance(w, ctk.CTkLabel)
-                and w.cget("text") == "Gastos"
+                and w.cget("text") == "OPERACIONES SECUNDARIAS"
             ]
             if len(action_buttons) != 2 or len(notes_titles) != 1 or len(expense_buttons) != 1 or len(expense_titles) != 1:
                 raise RuntimeError("estructura visible incompleta para validar geometría")
@@ -174,6 +189,7 @@ def main() -> int:
             window.update()
             x, y = window.winfo_rootx(), window.winfo_rooty()
             width, height = window.winfo_width(), window.winfo_height()
+            print(f"BC_CAJA_CAPTURE_BOUNDS x={x} y={y} width={width} height={height}")
             ImageGrab.grab((x, y, x + width, y + height)).save(args.output)
             if args.rows:
                 arqueo_buttons = [

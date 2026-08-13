@@ -9,6 +9,23 @@ import traceback
 from pathlib import Path
 
 
+def enable_windows_dpi_awareness() -> bool:
+    """Activa coordenadas físicas antes de crear Tk; no escala la UI dos veces."""
+    if sys.platform != "win32":
+        return False
+    try:
+        import ctypes
+
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        return True
+    except (AttributeError, OSError):
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+            return True
+        except (AttributeError, OSError):
+            return False
+
+
 def _arguments(argv=None):
     parser = argparse.ArgumentParser(description="BC Caja - piloto local")
     parser.add_argument(
@@ -94,6 +111,7 @@ def main(argv=None) -> int:
     if args.self_check:
         return self_check(args.data_dir)
 
+    enable_windows_dpi_awareness()
     import customtkinter as ctk
     from CajaDiaria import abrir_caja_diaria
     from modulos.caja_diaria.bootstrap import build_cash_day_controller

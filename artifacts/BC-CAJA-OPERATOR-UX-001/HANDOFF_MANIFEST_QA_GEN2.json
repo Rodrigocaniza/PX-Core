@@ -1,0 +1,39 @@
+﻿{
+    "files":  [
+                  {
+                      "path":  "HANDOFF_QA_GEN2.json",
+                      "sha256":  "556f5146920fe885adb489d5c8b3f9d0f21939b1329b804a665ae2c8a02bfe2e",
+                      "size":  589
+                  },
+                  {
+                      "path":  "GATE_CONTEXT_QA_GEN2.json",
+                      "sha256":  "30a2d56d2ff10d99df0b6f14c6f5bfe59c2625e8d711752efd6e2de63bc07fdd",
+                      "size":  289
+                  },
+                  {
+                      "path":  "WORKFLOW.json",
+                      "sha256":  "c5a140e913557330cbd5009f9a6f38a048984f80f8e6ca1b47372a2ab9609bc4",
+                      "size":  2451
+                  },
+                  {
+                      "path":  "PROMPT_QA_GEN2.txt",
+                      "sha256":  "c0449be7aefcee908f8c65a8801de82b69a6396ba4f07316a3956baf4e9f303e",
+                      "size":  268
+                  },
+                  {
+                      "path":  "MANIFEST.sha256",
+                      "sha256":  "8c7204da0cad563987110d2010981c6ef3f2e2a7a3e53958375f7ac9df81f2d7",
+                      "size":  1513
+                  },
+                  {
+                      "path":  "SUMMARY.md",
+                      "sha256":  "a3a38920eeec278cf6dd71ce92815d0edf97d7e5719d0caf1bd4fc92ea0a8945",
+                      "size":  881
+                  },
+                  {
+                      "path":  "EVIDENCE_BC-CAJA-OPERATOR-UX-001.zip",
+                      "sha256":  "4c063a6ee80ac3aa363866ba0166790bf2f316b4c66302dbe21be3b4f4ff1587",
+                      "size":  172479
+                  }
+              ]
+}

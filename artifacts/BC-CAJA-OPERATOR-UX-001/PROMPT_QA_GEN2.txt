@@ -1,0 +1,1 @@
+QA read-only BC-CAJA-OPERATOR-UX-001 qa:2 gen2 rev18 attempt f8ed013a-6638-4072-810c-c011dbb514f0 handoff 312af3c1-2825-4260-95fa-951b547905e6. Reejecutar tests y validar Full HD x0/y0/1920, cero black columns, 1366, UX/Privacy/draft/SQLite. FAIL previos preservados.

@@ -16,8 +16,8 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
         for text in (
             '"#F3F6FA"',
             '"#FFFFFF"',
-            '"CAJA INICIAL"',
-            '"VENTA TOTAL"',
+            '"Caja inicial"',
+            '"VENTA TOTAL DEL DÍA"',
             '"Estado: ABIERTA"',
             '"Estado: CERRADA"',
             'Guardar venta  —  F9',

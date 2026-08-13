@@ -8,20 +8,18 @@ import CajaDiaria
 
 class CashDayUX002ContractTests(unittest.TestCase):
     def test_capture_is_split_into_product_and_payment_rows(self):
-        self.assertEqual(CajaDiaria.PRODUCTO_TRABAJO, CajaDiaria.COLUMNAS_OPERATIVAS[:8])
-        self.assertEqual(CajaDiaria.COBRO_PAGO, CajaDiaria.COLUMNAS_OPERATIVAS[8:])
-        self.assertEqual(len(CajaDiaria.PRODUCTO_TRABAJO), 8)
-        self.assertEqual(len(CajaDiaria.COBRO_PAGO), 7)
+        self.assertEqual(len(CajaDiaria.PRODUCTO_TRABAJO), 6)
+        self.assertEqual(len(CajaDiaria.COBRO_PAGO), 5)
+        self.assertEqual(len(CajaDiaria.COLUMNAS_OPERATIVAS), 9)
 
     def test_window_shortcuts_actions_footer_and_target_are_explicit(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         for contract_text in (
-            'geometry(perfil["ventana"])',
-            '"Cliente y comprobante"',
-            '"Detalle de venta"',
-            '"Importes"',
-            '"Cobro"',
-            '"Notas"',
+            'ventana.geometry(f"{ancho_logico}x{alto_logico}{posicion}")',
+            '"CLIENTE Y COMPROBANTE"',
+            '"DETALLE DE VENTA"',
+            '"PAGO"',
+            '"VENTA EN CURSO"',
             '"acciones"',
             '"<F2>"',
             '"<F3>"',

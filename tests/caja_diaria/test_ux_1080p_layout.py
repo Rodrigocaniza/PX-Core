@@ -18,7 +18,7 @@ class FullHDLayoutContractTests(unittest.TestCase):
         for metric in ("fuente", "fuente_label", "fuente_seccion", "fuente_kpi",
                        "campo_alto", "fila", "izquierda", "grilla_alto"):
             self.assertGreater(full[metric], compact[metric], metric)
-        self.assertGreaterEqual(full["contenido_ancho"], 1880)
+        self.assertGreaterEqual(full["contenido_ancho"], 1700)
         self.assertGreaterEqual(full["grilla_alto"] // full["fila"], 15)
 
     def test_dpi_is_not_applied_twice(self):

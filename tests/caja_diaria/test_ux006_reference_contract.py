@@ -15,30 +15,27 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             '"Movimientos del día"',
             '"Buscar movimiento…"',
             '("Todos", "Ventas", "Gastos", "Pendientes")',
-            '"CAJA INICIAL"',
-            '"VENTA TOTAL"',
+            '"Caja inicial"',
+            '"VENTA TOTAL DEL DÍA"',
             '"EFECTIVO"',
-            '"TARJ. / TRANSF."',
-            '"GASTOS"',
-            '"SALDO PEND."',
-            '"EFECTIVO FINAL"',
+            '"SALDO PENDIENTE"',
             'cabecera.place(x=4, y=4)',
-            'formulario.configure(width=ancho_izquierdo, height=perfil["form_alto"])',
-            'formulario.place(x=4, y=y_contenido)',
-            'toolbar_movimientos.place(x=x_derecha, y=y_contenido)',
-            'pie_movimientos.place(x=x_derecha, y=y_grilla + perfil["grilla_alto"] + 8)',
+            'formulario.configure(width=ancho_total, height=alto_form)',
+            'formulario.place(x=4, y=y_form)',
+            'toolbar_movimientos.place(x=4, y=y_toolbar)',
+            'pie_movimientos.place(x=4, y=y_grilla + alto_grilla + 3)',
             'acciones_primarias = ctk.CTkFrame(acciones',
             'iconos_kpi = {',
             'recalcular_total_visible',
             'formulario.grid_propagate(False)',
             'acciones.pack_propagate(False)',
-            'marco_grilla.configure(width=ancho_derecho, height=perfil["grilla_alto"])',
+            'marco_grilla.configure(width=ancho_total, height=alto_grilla)',
             'marco_grilla.grid_propagate(False)',
             'grilla_caja.bind("<MouseWheel>"',
             '"Estado: ABIERTA"',
             '"Estado: CERRADA"',
             'controller.add_expense(',
-            '("6", "Gastos"',
+            'text="OPERACIONES SECUNDARIAS"',
             'text="Guardar gasto"',
             '"Efectivo esperado por sistema: —"',
             'describir_diferencia_arqueo',
@@ -79,7 +76,7 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         self.assertIn('PRODUCTO_TRABAJO', source)
         self.assertIn('COBRO_PAGO', source)
-        self.assertEqual(len(CajaDiaria.COLUMNAS_OPERATIVAS), 15)
+        self.assertEqual(len(CajaDiaria.COLUMNAS_OPERATIVAS), 9)
 
 
 if __name__ == "__main__":

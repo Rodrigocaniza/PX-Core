@@ -1,0 +1,10 @@
+﻿{
+    "handoff_id":  "5f811cd0-ae7d-44f9-9d7f-d50ea51a7f9b",
+    "state":  "AUDITOR",
+    "gate":  "auditor:1",
+    "generation":  1,
+    "workflow_revision":  19,
+    "role":  "auditor",
+    "attempt_id":  "f8ed013a-6638-4072-810c-c011dbb514f0",
+    "mission":  "BC-CAJA-OPERATOR-UX-001"
+}

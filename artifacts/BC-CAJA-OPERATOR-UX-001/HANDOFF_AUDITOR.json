@@ -1,0 +1,13 @@
+﻿{
+    "state":  "AUDITOR",
+    "gate_id":  "auditor:1",
+    "mission":  "BC-CAJA-OPERATOR-UX-001",
+    "evidence_manifest_sha256":  "8c7204da0cad563987110d2010981c6ef3f2e2a7a3e53958375f7ac9df81f2d7",
+    "evidence_zip_sha256":  "4c063a6ee80ac3aa363866ba0166790bf2f316b4c66302dbe21be3b4f4ff1587",
+    "role":  "auditor",
+    "attempt_id":  "f8ed013a-6638-4072-810c-c011dbb514f0",
+    "gate_generation":  1,
+    "workflow_revision":  19,
+    "handoff_id":  "5f811cd0-ae7d-44f9-9d7f-d50ea51a7f9b",
+    "workflow_sha256":  "f639c984165c2c2f6917127cd0f50cde915bb237b9d26bb64434790adab61f25"
+}
