@@ -16,7 +16,7 @@ class CashDayUX002ContractTests(unittest.TestCase):
     def test_window_shortcuts_actions_footer_and_target_are_explicit(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         for contract_text in (
-            'geometry("1366x768")',
+            'geometry(perfil["ventana"])',
             '"Cliente y comprobante"',
             '"Detalle de venta"',
             '"Importes"',
@@ -30,6 +30,7 @@ class CashDayUX002ContractTests(unittest.TestCase):
             'resolve_data_paths().root',
         ):
             self.assertIn(contract_text, source)
+        self.assertEqual(CajaDiaria.perfil_visual(1366, 768)["ventana"], "1366x768")
 
 
 if __name__ == "__main__":

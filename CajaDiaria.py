@@ -50,6 +50,30 @@ DENOMINACIONES = [
     100000, 50000, 20000, 10000, 5000, 2000, 1000, 500, 100, 50,
 ]
 
+
+def perfil_visual(ancho: int, alto: int, escala_dpi: float = 1.0) -> dict:
+    """Métricas deterministas; Full HD mejora legibilidad sin duplicar la UI."""
+    full_hd = ancho >= 1700 and alto >= 900
+    if not full_hd:
+        return {
+            "nombre": "compacto", "ventana": "1366x768", "fuente": 9,
+            "fuente_label": 8, "fuente_seccion": 11, "fuente_kpi": 14,
+            "campo_alto": 24, "fila": 27, "izquierda": 570, "separacion": 16,
+            "cabecera_alto": 50, "kpi_alto": 74, "form_alto": 400,
+            "toolbar_alto": 44, "grilla_alto": 354, "acciones_alto": 38,
+            "contenido_ancho": 1330,
+        }
+    # Tk/CustomTkinter ya aplican el escalado DPI del sistema. No multiplicamos
+    # nuevamente por 125%, evitando doble escala y solapamientos.
+    return {
+        "nombre": "full-hd", "ventana": "1920x1080", "fuente": 12,
+        "fuente_label": 10, "fuente_seccion": 14, "fuente_kpi": 20,
+        "campo_alto": 34, "fila": 38, "izquierda": 750, "separacion": 18,
+        "cabecera_alto": 66, "kpi_alto": 104, "form_alto": 550,
+        "toolbar_alto": 58, "grilla_alto": 590, "acciones_alto": 50,
+        "contenido_ancho": 1880,
+    }
+
 CAMPOS = [
     "fecha", "unidad", "descripcion", "sobre", "arm_org", "cod",
     "armazon", "cristal", "receta_dr", "total", "efectivo",
@@ -632,7 +656,13 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     ctk.set_appearance_mode("light")
     ventana = ctk.CTkToplevel(ventana_padre)
     ventana.title("Caja diaria - Óptica")
-    ventana.geometry("1366x768")
+    tamano_forzado = os.environ.get("BC_CAJA_WINDOW_SIZE", "").lower().split("x")
+    if len(tamano_forzado) == 2 and all(valor.isdigit() for valor in tamano_forzado):
+        ancho_disponible, alto_disponible = map(int, tamano_forzado)
+    else:
+        ancho_disponible, alto_disponible = ventana.winfo_screenwidth(), ventana.winfo_screenheight()
+    perfil = perfil_visual(ancho_disponible, alto_disponible)
+    ventana.geometry(perfil["ventana"])
     ventana.minsize(1100, 680)
     ventana.transient(ventana_padre)
     ventana.grab_set()
@@ -649,22 +679,22 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     ventana.configure(fg_color=color_fondo)
 
     barra_superior = ctk.CTkFrame(
-        ventana, height=40, fg_color="#FFFFFF", corner_radius=0
+        ventana, height=(52 if perfil["nombre"] == "full-hd" else 40), fg_color="#FFFFFF", corner_radius=0
     )
     barra_superior.pack(fill="x", padx=0, pady=0)
     barra_superior.pack_propagate(False)
     ctk.CTkLabel(
         barra_superior, text="BC", width=32, height=28, corner_radius=6,
         fg_color=color_azul, text_color="#FFFFFF",
-        font=ctk.CTkFont(size=14, weight="bold"), anchor="center",
+        font=ctk.CTkFont(size=(18 if perfil["nombre"] == "full-hd" else 14), weight="bold"), anchor="center",
     ).pack(side="left", padx=(16, 8))
     ctk.CTkLabel(
         barra_superior, text="BC Caja Diaria   │   Óptica Central",
-        text_color=color_texto, font=ctk.CTkFont(size=14, weight="bold"),
+        text_color=color_texto, font=ctk.CTkFont(size=(18 if perfil["nombre"] == "full-hd" else 14), weight="bold"),
     ).pack(side="left", padx=(0, 12))
     privacidad = FinancialPrivacy(timeout_seconds=300)
     navegacion = ctk.CTkFrame(
-        ventana, height=50, fg_color="#FFFFFF", corner_radius=0,
+        ventana, height=(64 if perfil["nombre"] == "full-hd" else 50), fg_color="#FFFFFF", corner_radius=0,
         border_width=1, border_color=color_borde_suave,
     )
     navegacion.pack(fill="x")
@@ -705,9 +735,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ("Historial", "Historial"),
     ):
         boton = ctk.CTkButton(
-            navegacion, text=etiqueta_nav, width=170, height=48, corner_radius=0,
+            navegacion, text=etiqueta_nav, width=(220 if perfil["nombre"] == "full-hd" else 170), height=(62 if perfil["nombre"] == "full-hd" else 48), corner_radius=0,
             fg_color="transparent", hover_color=color_panel_alto,
-            text_color=color_suave, font=ctk.CTkFont(size=11, weight="bold"),
+            text_color=color_suave, font=ctk.CTkFont(size=(14 if perfil["nombre"] == "full-hd" else 11), weight="bold"),
             command=lambda destino=nombre: seleccionar_pestaña(destino),
         )
         boton.pack(side="left", padx=(16 if nombre == "Cargar manual" else 0, 0), pady=0)
@@ -854,10 +884,10 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             row=1, column=indice * 2, sticky="w", padx=(10, 3), pady=(0, 5)
         )
         if clave == "unidad":
-            campo = ctk.CTkComboBox(cabecera, values=UNIDADES, width=ancho, height=27)
+            campo = ctk.CTkComboBox(cabecera, values=UNIDADES, width=ancho, height=max(27, perfil["campo_alto"]))
             campo.set(UNIDAD_POR_DEFECTO)
         else:
-            campo = ctk.CTkEntry(cabecera, width=ancho, height=27)
+            campo = ctk.CTkEntry(cabecera, width=ancho, height=max(27, perfil["campo_alto"]))
         campo.grid(row=1, column=indice * 2 + 1, padx=(0, 10), pady=(0, 5))
         campos_manual[clave] = campo
     campos_manual["fecha"].insert(0, date.today().strftime("%d-%m-%Y"))
@@ -883,6 +913,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         seccion = ctk.CTkFrame(formulario, fg_color="transparent", corner_radius=0)
         secciones_widgets[titulo] = seccion
         seccion.grid(row=indice_seccion, column=0, sticky="ew", padx=10, pady=0)
+        formulario.grid_rowconfigure(indice_seccion, weight=1, uniform="secciones")
         for columna in range(max(1, len(columnas))):
             seccion.grid_columnconfigure(columna, weight=1, uniform=f"sec{indice_seccion}")
         ctk.CTkLabel(
@@ -892,30 +923,30 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ).grid(row=0, column=0, sticky="w", pady=0)
         ctk.CTkLabel(
             seccion, text=titulo, height=18, text_color=color_texto, anchor="w",
-            font=ctk.CTkFont(size=11, weight="bold"),
+            font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold"),
         ).grid(row=0, column=0, columnspan=max(1, len(columnas)), sticky="w", padx=(26, 0), pady=0)
         for columna, (clave, etiqueta, ancho) in enumerate(columnas):
             ctk.CTkLabel(
                 seccion, text=etiqueta, height=14, text_color=color_suave, anchor="w",
-                font=ctk.CTkFont(size=8, weight="bold"),
+                font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
             ).grid(row=1, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0))
             if clave == "accion_gasto":
                 campo = ctk.CTkButton(
-                    seccion, text="Guardar gasto", height=24, fg_color="#FFF7ED",
+                    seccion, text="Guardar gasto", height=perfil["campo_alto"], fg_color="#FFF7ED",
                     text_color="#D96C2C", border_width=1, border_color="#F2C69F",
                     hover_color="#FFEBD7",
                 )
             elif clave == "vendedora":
                 campo = ctk.CTkComboBox(
                     seccion, values=["Seleccionar...", "Ana", "Belén", "Carla", "Diana"],
-                    width=ancho, height=24,
+                    width=ancho, height=perfil["campo_alto"],
                 )
                 campo.set("Seleccionar...")
             else:
                 campo = ctk.CTkEntry(
-                    seccion, width=ancho, height=24, fg_color="#F8FAFD",
+                    seccion, width=ancho, height=perfil["campo_alto"], fg_color="#F8FAFD",
                     border_width=1, border_color=color_borde_suave, text_color=color_texto,
-                    font=ctk.CTkFont(size=9),
+                    font=ctk.CTkFont(size=perfil["fuente"]),
                 )
             campo.grid(row=2, column=columna, sticky="ew", padx=(0 if columna == 0 else 5, 0), pady=0)
             campos_manual[clave] = campo
@@ -969,7 +1000,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         ("final", "EFECTIVO FINAL", color_azul),
     ):
         tarjeta = ctk.CTkFrame(
-            zona_estado, width=181, height=68, fg_color="#FFFFFF", corner_radius=7,
+            zona_estado, width=(250 if perfil["nombre"] == "full-hd" else 181), height=(94 if perfil["nombre"] == "full-hd" else 68), fg_color="#FFFFFF", corner_radius=7,
             border_width=1, border_color=color,
         )
         tarjeta.pack(side="left", padx=4, pady=2)
@@ -980,11 +1011,11 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         }
         ctk.CTkLabel(
             tarjeta, text=f"{iconos_kpi[clave]}   {titulo}", text_color=color_suave,
-            font=ctk.CTkFont(size=9, weight="bold"),
+            font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
         ).pack(padx=3, pady=(5, 0))
         valor = ctk.CTkLabel(
             tarjeta, text="—", text_color=color,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            font=ctk.CTkFont(size=perfil["fuente_kpi"], weight="bold"),
         )
         valor.pack(padx=3, pady=(0, 4))
         etiquetas_kpi[clave] = valor
@@ -1103,18 +1134,18 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     )
     ctk.CTkLabel(
         toolbar_movimientos, text="Movimientos del día", text_color=color_texto,
-        font=ctk.CTkFont(size=14, weight="bold"),
+        font=ctk.CTkFont(size=(18 if perfil["nombre"] == "full-hd" else 14), weight="bold"),
     ).pack(side="left", padx=12)
     entrada_busqueda = ctk.CTkEntry(
         toolbar_movimientos, textvariable=busqueda_movimientos,
-        placeholder_text="Buscar movimiento…", width=205, height=28,
+        placeholder_text="Buscar movimiento…", width=(290 if perfil["nombre"] == "full-hd" else 205), height=(38 if perfil["nombre"] == "full-hd" else 28),
         fg_color="#F7F9FC", border_color=color_borde_suave,
     )
     entrada_busqueda.pack(side="left", padx=(8, 6), pady=6)
     botones_filtro = {}
     for nombre_filtro in ("Todos", "Ventas", "Gastos", "Pendientes"):
         boton_filtro = ctk.CTkButton(
-            toolbar_movimientos, text=nombre_filtro, width=68, height=28,
+            toolbar_movimientos, text=nombre_filtro, width=(82 if perfil["nombre"] == "full-hd" else 68), height=(38 if perfil["nombre"] == "full-hd" else 28),
             corner_radius=4, fg_color="#EAF3FF" if nombre_filtro == "Todos" else "transparent",
             text_color=color_azul if nombre_filtro == "Todos" else color_suave,
             border_width=1, border_color=color_borde_suave,
@@ -1123,15 +1154,15 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         boton_filtro.pack(side="left", padx=1, pady=6)
         botones_filtro[nombre_filtro] = boton_filtro
     ctk.CTkButton(
-        toolbar_movimientos, text="+ Agregar artículo", width=118, height=28,
+        toolbar_movimientos, text="+ Agregar artículo", width=(155 if perfil["nombre"] == "full-hd" else 118), height=(38 if perfil["nombre"] == "full-hd" else 28),
         command=agregar_producto,
     ).pack(side="right", padx=2, pady=6)
     ctk.CTkButton(
-        toolbar_movimientos, text="Editar", width=58, height=28,
+        toolbar_movimientos, text="Editar", width=(74 if perfil["nombre"] == "full-hd" else 58), height=(38 if perfil["nombre"] == "full-hd" else 28),
         command=editar_item,
     ).pack(side="right", padx=2, pady=6)
     ctk.CTkButton(
-        toolbar_movimientos, text="Quitar", width=58, height=28,
+        toolbar_movimientos, text="Quitar", width=(74 if perfil["nombre"] == "full-hd" else 58), height=(38 if perfil["nombre"] == "full-hd" else 28),
         command=quitar_item, fg_color="#D9534F",
     ).pack(side="right", padx=2, pady=6)
     marco_grilla = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=5)
@@ -1139,7 +1170,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     estilo = ttk.Style(ventana)
     estilo.theme_use("clam")
     estilo.configure(
-        "Caja.Treeview", rowheight=27, font=("Segoe UI", 9),
+        "Caja.Treeview", rowheight=perfil["fila"], font=("Segoe UI", perfil["fuente"]),
         background="#FFFFFF", fieldbackground="#FFFFFF", foreground="#24324A",
         borderwidth=0, relief="flat",
     )
@@ -1149,7 +1180,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         foreground=[("selected", "#FFFFFF")],
     )
     estilo.configure(
-        "Caja.Treeview.Heading", font=("Segoe UI", 9, "bold"),
+        "Caja.Treeview.Heading", font=("Segoe UI", perfil["fuente"], "bold"),
         background="#EDF3FA", foreground="#33425B", relief="flat", padding=(4, 5),
     )
     estilo.map("Caja.Treeview.Heading", background=[("active", "#245DA8")])
@@ -1159,7 +1190,8 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     )
     for clave, etiqueta, ancho in columnas_operativas:
         grilla_caja.heading(clave, text=etiqueta)
-        grilla_caja.column(clave, width=ancho, minwidth=65, stretch=False, anchor="w")
+        ancho_perfil = int(ancho * (1.24 if perfil["nombre"] == "full-hd" else 1.0))
+        grilla_caja.column(clave, width=ancho_perfil, minwidth=65, stretch=False, anchor="w")
     grilla_caja.heading("acciones", text="Acciones")
     grilla_caja.column("acciones", width=105, minwidth=105, stretch=False, anchor="center")
     grilla_caja.tag_configure("voided", foreground="#E0717C", background="#241824")
@@ -1712,25 +1744,34 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         marco_grilla, pie_movimientos, acciones, pie,
     ):
         bloque.pack_forget()
-    cabecera.configure(width=1330, height=50)
+    ancho_total = perfil["contenido_ancho"]
+    ancho_izquierdo = perfil["izquierda"]
+    x_derecha = 4 + ancho_izquierdo + perfil["separacion"]
+    ancho_derecho = ancho_total - ancho_izquierdo - perfil["separacion"]
+    y_cabecera = 4
+    y_kpi = y_cabecera + perfil["cabecera_alto"] + (12 if perfil["nombre"] == "full-hd" else 8)
+    y_contenido = y_kpi + perfil["kpi_alto"] + (16 if perfil["nombre"] == "full-hd" else 10)
+    y_acciones = y_contenido + perfil["form_alto"] + 12
+    y_grilla = y_contenido + perfil["toolbar_alto"] + 10
+    cabecera.configure(width=ancho_total, height=perfil["cabecera_alto"])
     cabecera.place(x=4, y=4)
-    zona_estado.configure(width=1330, height=74)
-    zona_estado.place(x=4, y=62)
-    formulario.configure(width=570, height=400)
+    zona_estado.configure(width=ancho_total, height=perfil["kpi_alto"])
+    zona_estado.place(x=4, y=y_kpi)
+    formulario.configure(width=ancho_izquierdo, height=perfil["form_alto"])
     formulario.grid_propagate(False)
-    formulario.place(x=4, y=146)
-    acciones.configure(width=570, height=38)
+    formulario.place(x=4, y=y_contenido)
+    acciones.configure(width=ancho_izquierdo, height=perfil["acciones_alto"])
     acciones.pack_propagate(False)
-    acciones.place(x=4, y=552)
-    toolbar_movimientos.configure(width=744, height=44)
-    toolbar_movimientos.place(x=590, y=146)
-    marco_grilla.configure(width=744, height=354)
+    acciones.place(x=4, y=y_acciones)
+    toolbar_movimientos.configure(width=ancho_derecho, height=perfil["toolbar_alto"])
+    toolbar_movimientos.place(x=x_derecha, y=y_contenido)
+    marco_grilla.configure(width=ancho_derecho, height=perfil["grilla_alto"])
     marco_grilla.grid_propagate(False)
-    marco_grilla.place(x=590, y=196)
-    pie_movimientos.configure(width=744, height=38)
-    pie_movimientos.place(x=590, y=556)
-    pie.configure(width=1322, height=18)
-    pie.place(x=8, y=600)
+    marco_grilla.place(x=x_derecha, y=y_grilla)
+    pie_movimientos.configure(width=ancho_derecho, height=perfil["acciones_alto"])
+    pie_movimientos.place(x=x_derecha, y=y_grilla + perfil["grilla_alto"] + 8)
+    pie.configure(width=ancho_total - 8, height=24 if perfil["nombre"] == "full-hd" else 18)
+    pie.place(x=8, y=max(y_acciones + perfil["acciones_alto"] + 12, y_grilla + perfil["grilla_alto"] + perfil["acciones_alto"] + 18))
     def actualizar_reloj():
         if reloj.winfo_exists():
             reloj.configure(text=datetime.now().strftime("%H:%M:%S"))
