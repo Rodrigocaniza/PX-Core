@@ -93,6 +93,28 @@ class CashDayUIController:
         saved = self.service.add_entry(cash_day.id, entry)
         return self.service.get_day(cash_day.id), saved
 
+    def add_withdrawal(
+        self, date_text: str, unit: str, amount: Any,
+        destination: str = "Administración", observations: str = "",
+        performed_by: str = "",
+    ) -> tuple[CashDay, CashEntry]:
+        cash_day = self.load_day(date_text, unit)
+        saved = self.service.record_withdrawal(
+            cash_day.id, amount, destination, observations, performed_by
+        )
+        return self.service.get_day(cash_day.id), saved
+
+    @staticmethod
+    def opening_difference_message(cash_day: CashDay) -> str | None:
+        difference = cash_day.initial_cash_difference
+        if difference is None or difference == 0:
+            return None
+        amount = f"{abs(difference):,}".replace(",", ".")
+        return (
+            f"⚠ Caja inicial con diferencia — {'sobran' if difference > 0 else 'faltan'} "
+            f"{amount}"
+        )
+
     def import_legacy_analysis(self, result: Mapping[str, Any]) -> ImportSummary:
         imported_days = 0
         imported_entries = 0

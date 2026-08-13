@@ -1169,6 +1169,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             f"Efectivo actual  {formatear_monto(totales.expected_cash)}    "
             f"Total ventas  {formatear_monto(totales.total)}\n"
             f"Gastos  {formatear_monto(totales.expenses)}    "
+            f"Retiros  {formatear_monto(totales.withdrawals)}    "
             f"Efectivo final  {formatear_monto(totales.expected_cash)}"
         )
         if cash_day.closed_at is None or cash_day.session_duration_seconds is None:
@@ -1192,14 +1193,19 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         importe = lambda value: privacidad.display(formatear_monto(value or 0))
         item_count = len(entry.effective_items)
         description = f"{entry.description} · {item_count} producto{'s' if item_count != 1 else ''}"
+        label = (
+            f"RETIRO - {entry.withdrawal_destination or entry.description}"
+            if entry.withdrawal else f"GASTO - {entry.description}" if entry.expenses else description
+        )
         return (
-            (f"GASTO - {entry.description}" if entry.expenses else description),
+            label,
             entry.envelope, entry.frame_origin, entry.code,
             formatear_importe_ui(entry.frame), formatear_importe_ui(entry.lens),
             entry.laboratory, entry.prescription_doctor,
             importe(entry.total), importe(entry.cash),
             importe(entry.card_check), entry.orders, entry.installments,
-            privacidad.display(formatear_importe_ui(entry.balance)), importe(entry.expenses),
+            privacidad.display(formatear_importe_ui(entry.balance)),
+            importe(entry.withdrawal or entry.expenses),
             "Editar  ·  Anular",
         )
     def refrescar_grilla(cash_day):
@@ -1210,7 +1216,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
         for entry in cash_day.entries:
             if consulta and consulta not in " ".join(str(value) for value in valores_fila(entry)).casefold():
                 continue
-            if filtro == "Ventas" and (entry.expenses or 0) > 0:
+            if filtro == "Ventas" and ((entry.expenses or 0) > 0 or (entry.withdrawal or 0) > 0):
                 continue
             if filtro == "Gastos" and not (entry.expenses or 0):
                 continue
@@ -1218,7 +1224,7 @@ def abrir_caja_diaria(ventana_padre, controller=None):
                 continue
             if entry.status.value == "VOIDED":
                 tags = ("voided",)
-            elif entry.expenses:
+            elif entry.expenses or entry.withdrawal:
                 tags = ("expense",)
             elif entry.balance:
                 tags = ("pending",)
@@ -1300,6 +1306,9 @@ def abrir_caja_diaria(ventana_padre, controller=None):
             mostrar_error(exc)
             return
         actualizar_estado(cash_day)
+        diferencia = controller.opening_difference_message(cash_day)
+        if diferencia:
+            messagebox.showwarning("Diferencia de apertura", diferencia, parent=ventana)
         if aviso:
             messagebox.showinfo("Caja existente", aviso, parent=ventana)
         boton_abrir.pack_forget()
@@ -1561,6 +1570,33 @@ def abrir_caja_diaria(ventana_padre, controller=None):
     campos_manual["gasto_monto"].bind(
         "<Return>", lambda _event: guardar_gasto_integrado()
     )
+    def registrar_retiro():
+        monto = simpledialog.askstring("Entrega a Administración", "Monto *", parent=ventana)
+        if monto is None:
+            return
+        destino = simpledialog.askstring(
+            "Entrega a Administración", "Destino", initialvalue="Administración", parent=ventana
+        )
+        if destino is None:
+            return
+        observacion = simpledialog.askstring(
+            "Entrega a Administración", "Observación (opcional)", parent=ventana
+        ) or ""
+        try:
+            cash_day, _ = controller.add_withdrawal(
+                campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip(),
+                monto, destino, observacion,
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        actualizar_estado(cash_day)
+        messagebox.showinfo("Retiro guardado", "La entrega quedó registrada.", parent=ventana)
+
+    ctk.CTkButton(
+        acciones_primarias, text="Entrega a Administración", command=registrar_retiro,
+        width=170, height=32, fg_color="#6B5B95",
+    ).pack(side="left", padx=4, pady=3)
     boton_cancelar = ctk.CTkButton(
         acciones_primarias, text="Cancelar edición", command=cancelar_edicion,
         fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,

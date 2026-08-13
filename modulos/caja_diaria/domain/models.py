@@ -183,6 +183,7 @@ class CashTotals:
     expenses: int = 0
     expected_cash: int = 0
     entry_count: int = 0
+    withdrawals: int = 0
 
 
 @dataclass(frozen=True)
@@ -233,6 +234,9 @@ class CashEntry:
     cash: int | str | None = None
     card_check: int | str | None = None
     expenses: int | str | None = None
+    withdrawal: int | str | None = None
+    withdrawal_destination: str = ""
+    performed_by: str = ""
     envelope: str = ""
     frame_origin: str = ""
     code: str = ""
@@ -264,12 +268,13 @@ class CashEntry:
             raise InvalidCashDayError("la descripción de una entrada es obligatoria")
         object.__setattr__(self, "description", self.description.strip())
         object.__setattr__(self, "status", CashEntryStatus(self.status))
-        for name in ("total", "cash", "card_check", "expenses"):
+        for name in ("total", "cash", "card_check", "expenses", "withdrawal"):
             object.__setattr__(self, name, money(getattr(self, name), field_name=name, optional=True))
         for name in (
             "envelope", "frame_origin", "code", "frame", "lens", "laboratory", "prescription_doctor",
             "orders", "installments", "balance", "origin", "source_reference",
-            "customer_document", "saleswoman", "observations",
+            "customer_document", "saleswoman", "observations", "withdrawal_destination",
+            "performed_by",
         ):
             value = getattr(self, name)
             object.__setattr__(self, name, "" if value is None else str(value).strip())
@@ -287,7 +292,7 @@ class CashEntry:
     def effective_items(self) -> tuple[SaleItem, ...]:
         if self.items:
             return self.items
-        if self.expenses:
+        if self.expenses or self.withdrawal:
             return ()
         return (SaleItem(
             description=self.description, code=self.code, item_type=self.frame_origin,
@@ -363,6 +368,12 @@ class CashDay:
     business_date: date | str
     unit: str
     opening_cash: int | str
+    initial_cash_expected: int | str | None = None
+    initial_cash_difference: int | str | None = None
+    initial_cash_source_day_id: str | None = None
+    initial_cash_source_kind: str = ""
+    initial_cash_source_count_id: str | None = None
+    opened_by: str = ""
     id: str = field(default_factory=new_id)
     status: CashDayStatus = CashDayStatus.OPEN
     entries: list[CashEntry] = field(default_factory=list)
@@ -382,6 +393,21 @@ class CashDay:
         parsed_opening = money(self.opening_cash, field_name="opening_cash")
         assert parsed_opening is not None
         self.opening_cash = parsed_opening
+        self.initial_cash_expected = money(
+            self.initial_cash_expected, field_name="caja inicial esperada", optional=True
+        )
+        self.initial_cash_difference = (
+            None if self.initial_cash_expected is None
+            else self.opening_cash - self.initial_cash_expected
+        )
+        self.initial_cash_source_day_id = (
+            str(self.initial_cash_source_day_id).strip() if self.initial_cash_source_day_id else None
+        )
+        self.initial_cash_source_kind = str(self.initial_cash_source_kind or "").strip()
+        self.initial_cash_source_count_id = (
+            str(self.initial_cash_source_count_id).strip() if self.initial_cash_source_count_id else None
+        )
+        self.opened_by = str(self.opened_by or "").strip()
         self.status = CashDayStatus(self.status)
         self.entries = [entry if entry.cash_day_id == self.id else entry.assigned_to(self.id) for entry in self.entries]
         if self.status is CashDayStatus.CLOSED:
@@ -398,8 +424,19 @@ class CashDay:
                 self.overtime_minutes = session.overtime_minutes
 
     @classmethod
-    def open(cls, *, date: date | str, unit: str, opening_cash: int | str) -> "CashDay":
-        return cls(business_date=date, unit=unit, opening_cash=opening_cash)
+    def open(
+        cls, *, date: date | str, unit: str, opening_cash: int | str,
+        initial_cash_expected: int | str | None = None,
+        initial_cash_source_day_id: str | None = None, opened_by: str = "",
+        initial_cash_source_kind: str = "", initial_cash_source_count_id: str | None = None,
+    ) -> "CashDay":
+        return cls(
+            business_date=date, unit=unit, opening_cash=opening_cash,
+            initial_cash_expected=initial_cash_expected,
+            initial_cash_source_day_id=initial_cash_source_day_id, opened_by=opened_by,
+            initial_cash_source_kind=initial_cash_source_kind,
+            initial_cash_source_count_id=initial_cash_source_count_id,
+        )
 
     def _require_open(self) -> None:
         if self.status is CashDayStatus.CLOSED:
@@ -443,7 +480,11 @@ class CashDay:
         cash = sum(entry.cash or 0 for entry in active)
         card_check = sum(entry.card_check or 0 for entry in active)
         expenses = sum(entry.expenses or 0 for entry in active)
-        return CashTotals(total, cash, card_check, expenses, self.opening_cash + cash - expenses, len(active))
+        withdrawals = sum(entry.withdrawal or 0 for entry in active)
+        return CashTotals(
+            total, cash, card_check, expenses,
+            self.opening_cash + cash - expenses - withdrawals, len(active), withdrawals,
+        )
 
     def close(self, *, closed_at: datetime | None = None) -> "CashDay":
         self._require_open()

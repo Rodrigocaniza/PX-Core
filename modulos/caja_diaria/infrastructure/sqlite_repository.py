@@ -122,6 +122,10 @@ class SQLiteCashDayRepository:
             None if cash_day.overtime_triggered is None else int(cash_day.overtime_triggered),
             cash_day.overtime_minutes,
             cash_day.version,
+            cash_day.initial_cash_expected, cash_day.initial_cash_difference,
+            cash_day.initial_cash_source_day_id, cash_day.opened_by,
+            totals.withdrawals if totals else None,
+            cash_day.initial_cash_source_kind, cash_day.initial_cash_source_count_id,
         )
         with self._connection() as connection:
             try:
@@ -131,8 +135,11 @@ class SQLiteCashDayRepository:
                         id,business_date,unit,opening_cash,status,opened_at,closed_at,
                         closing_total,closing_cash,closing_card_check,closing_expenses,
                         closing_expected_cash,closing_entry_count,session_duration_seconds,
-                        overtime_triggered,overtime_minutes,version
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        overtime_triggered,overtime_minutes,version,
+                        initial_cash_expected,initial_cash_difference,
+                        initial_cash_source_day_id,opened_by,closing_withdrawals,
+                        initial_cash_source_kind,initial_cash_source_count_id
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         business_date=excluded.business_date, unit=excluded.unit,
                         opening_cash=excluded.opening_cash, status=excluded.status,
@@ -144,7 +151,14 @@ class SQLiteCashDayRepository:
                         closing_entry_count=excluded.closing_entry_count,
                         session_duration_seconds=excluded.session_duration_seconds,
                         overtime_triggered=excluded.overtime_triggered,
-                        overtime_minutes=excluded.overtime_minutes, version=excluded.version""",
+                        overtime_minutes=excluded.overtime_minutes, version=excluded.version,
+                        initial_cash_expected=excluded.initial_cash_expected,
+                        initial_cash_difference=excluded.initial_cash_difference,
+                        initial_cash_source_day_id=excluded.initial_cash_source_day_id,
+                        opened_by=excluded.opened_by,
+                        closing_withdrawals=excluded.closing_withdrawals,
+                        initial_cash_source_kind=excluded.initial_cash_source_kind,
+                        initial_cash_source_count_id=excluded.initial_cash_source_count_id""",
                     values,
                 )
                 existing_entries = {
@@ -161,8 +175,9 @@ class SQLiteCashDayRepository:
                         prescription_doctor,total,cash,card_check,orders_text,installments_text,
                         balance_text,expenses,origin,source_reference,customer_document,
                         saleswoman,delivery_date,observations,created_at,updated_at,
-                        status,voided_at,void_reason,revision
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        status,voided_at,void_reason,revision,withdrawal,
+                        withdrawal_destination,performed_by
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
                 connection.executemany(
@@ -195,6 +210,7 @@ class SQLiteCashDayRepository:
             entry.saleswoman, _iso(entry.delivery_date), entry.observations, _iso(entry.created_at),
             _iso(entry.updated_at), entry.status.value, _iso(entry.voided_at),
             entry.void_reason, entry.revision,
+            entry.withdrawal, entry.withdrawal_destination, entry.performed_by,
         )
 
     @classmethod
@@ -245,6 +261,9 @@ class SQLiteCashDayRepository:
             "installments": entry.installments,
             "balance": entry.balance,
             "expenses": entry.expenses,
+            "withdrawal": entry.withdrawal,
+            "withdrawal_destination": entry.withdrawal_destination,
+            "performed_by": entry.performed_by,
             "origin": entry.origin,
             "source_reference": entry.source_reference,
             "customer_document": entry.customer_document,
@@ -323,6 +342,8 @@ class SQLiteCashDayRepository:
             total=item["total"], cash=item["cash"], card_check=item["card_check"],
             orders=item["orders_text"], installments=item["installments_text"],
             balance=item["balance_text"], expenses=item["expenses"], origin=item["origin"],
+            withdrawal=item["withdrawal"], withdrawal_destination=item["withdrawal_destination"],
+            performed_by=item["performed_by"],
             source_reference=item["source_reference"], created_at=_datetime(item["created_at"]),
             customer_document=item["customer_document"], saleswoman=item["saleswoman"],
             delivery_date=item["delivery_date"], observations=item["observations"],
@@ -334,12 +355,20 @@ class SQLiteCashDayRepository:
         closing_totals = None
         if row["status"] == CashDayStatus.CLOSED.value:
             closing_totals = CashTotals(
-                row["closing_total"], row["closing_cash"], row["closing_card_check"],
-                row["closing_expenses"], row["closing_expected_cash"], row["closing_entry_count"],
+                total=row["closing_total"], cash=row["closing_cash"],
+                card_check=row["closing_card_check"], expenses=row["closing_expenses"],
+                expected_cash=row["closing_expected_cash"], entry_count=row["closing_entry_count"],
+                withdrawals=row["closing_withdrawals"] or 0,
             )
         return CashDay(
             id=row["id"], business_date=row["business_date"], unit=row["unit"],
             opening_cash=row["opening_cash"], status=row["status"], entries=entries,
+            initial_cash_expected=row["initial_cash_expected"],
+            initial_cash_difference=row["initial_cash_difference"],
+            initial_cash_source_day_id=row["initial_cash_source_day_id"],
+            opened_by=row["opened_by"],
+            initial_cash_source_kind=row["initial_cash_source_kind"],
+            initial_cash_source_count_id=row["initial_cash_source_count_id"],
             opened_at=_datetime(row["opened_at"]), closed_at=_datetime(row["closed_at"]),
             closing_totals=closing_totals,
             session_duration_seconds=row["session_duration_seconds"],

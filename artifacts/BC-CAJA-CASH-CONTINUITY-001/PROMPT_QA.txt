@@ -1,0 +1,26 @@
+Sos el QA de BC-Core.
+
+MISION: BC-CAJA-CASH-CONTINUITY-001
+
+Evidencia en artifacts/BC-CAJA-CASH-CONTINUITY-001/:
+- BC-Core-BC-CAJA-CASH-CONTINUITY-001.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- CajaDiaria.py (sha256: 5fe8213db79a1a3b5f73f47a7d7344c89255f1c1f7e4556c331e24e34f914bea)
+- modulos/caja_diaria/domain/models.py (sha256: 4ce686ae1f5d51c023acdb2b4065c2a0c38fc8336fc10e0592ad8834b2de1eac)
+- modulos/caja_diaria/application/services.py (sha256: 89227cfb4c8b6341390248be260fd2db74a8a2808eab77d29850548c889df8ce)
+- modulos/caja_diaria/ui/controller.py (sha256: 492385576adc2104831678cede050671870c7da1a280e758af5d735158111f9f)
+- modulos/caja_diaria/infrastructure/sqlite_repository.py (sha256: 90c20547d254d491c17dc91d6c328dc8b226aa30e648e9d6f4bbc2ce996ba100)
+- modulos/caja_diaria/infrastructure/migrations/007_cash_continuity.sql (sha256: 5446590520507627ed0586ab1b6914dce73e122dca9e97bffcfe845a09059017)
+
+Archivos de test:
+- tests/caja_diaria/test_cash_continuity.py (sha256: 92e59c37324d300bdd4025dc26bf377c179c112b574394bd1123877ca60a5a5c)
+- tests/caja_diaria/test_sqlite_repository.py (sha256: 932f5e4e1d99dee0431fa96619f794ef99027f8d406847e77f955f20bb3dee2b)
+
+Dependencias:
+- .bc-command-center/verification.json (sha256: dc9a4afcbd00767b35f92e3bcfe28d109c3f39dda45e1e4b630d5079c94c5216)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.
