@@ -1,0 +1,14 @@
+{
+  "mission": "BC-CAJA-UX-OPERATIVA-RC5-001",
+  "version": "BC Caja 1.0.0-rc.5",
+  "base_commit": "1c09b7d86c3ba3a30d277273f58e15f901138d60",
+  "branch": "feature/bc-caja-ux-operativa-rc5-001",
+  "release": "releases/BC-CAJA-1.0.0-rc.5-win64.zip",
+  "zip_sha256": "80fb5cbf6264dc6958364149a2f51e7409309e101d06e4ca71e7fbc738276889",
+  "exe_sha256": "e0839f481eec165e672c5cb0ea1723ee7f77e829b33b45e26bdad56d1ab02f15",
+  "visual_sha256": "4a30ad7ebc7b5151f6a760480e8b995bf77a815e9c3ae5d3fa642375b37baf97",
+  "tests": {"passed": 165, "subtests": 4},
+  "migrations": 12,
+  "database_integrity": "ok",
+  "embedded_operational_data": false
+}

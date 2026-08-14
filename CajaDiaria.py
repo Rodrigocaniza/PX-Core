@@ -937,7 +937,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     cabecera = ctk.CTkFrame(tab_manual, fg_color=color_panel, corner_radius=7)
     cabecera.pack(fill="x", padx=4, pady=(2, 2))
     cabecera.grid_propagate(False)
-    cabecera.grid_columnconfigure(7, weight=1)
+    cabecera.grid_columnconfigure(8, weight=1)
     ctk.CTkLabel(
         cabecera, text="RESUMEN DE CAJA", text_color=COLOR_TEXTO_SUAVE,
         font=ctk.CTkFont(size=10, weight="bold")
@@ -960,6 +960,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         campo.grid(row=0, column=indice * 2 + 2, padx=(0, 8), pady=4)
         campos_manual[clave] = campo
     campos_manual["fecha"].insert(0, date.today().strftime("%d-%m-%Y"))
+
+    aviso_entregas = ctk.CTkButton(
+        cabecera, text="Trabajos 0", width=132, height=max(27, perfil["campo_alto"]),
+        fg_color="#FFF3CD", text_color="#7A4B00", border_width=1,
+        border_color="#E6B85C", hover_color="#FFE5A3",
+        command=lambda: (seleccionar_pestaña("Pedidos"), refrescar_pedidos("Hoy")),
+    )
+    aviso_entregas.grid(row=0, column=7, sticky="w", padx=(2, 6), pady=4)
 
     columnas_operativas = COLUMNAS_OPERATIVAS
 
@@ -1117,7 +1125,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     campos_manual["salida_tipo"].pack(side="left", padx=2, pady=4)
     for clave, ancho, placeholder in (
         ("salida_concepto", 150, "Concepto"), ("salida_monto", 95, "Monto"),
-        ("salida_observacion", 125, "Observación"), ("salida_usuario", 95, "Usuario"),
+        ("salida_observacion", 125, "Observación"), ("salida_usuario", 105, "Responsable"),
     ):
         campos_manual[clave] = ctk.CTkEntry(
             zona_secundaria, width=ancho, height=perfil["campo_alto"],
@@ -1207,7 +1215,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         )
 
     estado_operativo = ctk.CTkFrame(cabecera, fg_color="transparent")
-    estado_operativo.grid(row=0, column=8, sticky="e", padx=4, pady=4)
+    estado_operativo.grid(row=0, column=9, sticky="e", padx=4, pady=4)
 
     estado_caja = ctk.CTkLabel(
         estado_operativo, text="SIN CONSULTAR", width=120, height=20, corner_radius=5,
@@ -1222,7 +1230,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     )
     boton_cerrar_caja.pack(side="left")
     resumen_compacto = ctk.CTkFrame(cabecera, fg_color="transparent")
-    resumen_compacto.grid(row=0, column=7, sticky="e", padx=2, pady=2)
+    resumen_compacto.grid(row=0, column=8, sticky="e", padx=2, pady=2)
     etiquetas_kpi = {}
     for clave, titulo, color in (
         ("ventas", "Venta", color_azul), ("efectivo", "Efectivo", color_verde),
@@ -1587,6 +1595,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                  f"Convenios {mostrar_importe(cobrar_convenio)}"
         )
         refrescar_grilla(cash_day)
+        try:
+            refrescar_avisos()
+        except NameError:
+            pass
         estado_control = "normal" if cash_day.status.value == "OPEN" else "disabled"
         estado_edicion["caja_abierta"] = cash_day.status.value == "OPEN"
         boton_cerrar_caja.configure(state="normal" if abierta else "disabled")
@@ -1659,7 +1671,28 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         if controller.last_warning:
             messagebox.showwarning("Backup pendiente", controller.last_warning, parent=ventana)
 
-    def limpiar_operacion():
+    def hay_cambios_sin_guardar():
+        if estado_edicion["entry_id"] or estado_salida["entry_id"] or items_venta:
+            return True
+        for clave in claves_operacion:
+            valor = (campos_manual[clave].get("1.0", "end-1c")
+                     if clave == "notas" else campos_manual[clave].get())
+            if str(valor).strip() and not (
+                clave == "vendedora" and valor == "Seleccionar..."
+            ):
+                return True
+        for clave in ("salida_concepto", "salida_monto", "salida_observacion"):
+            if campos_manual[clave].get().strip():
+                return True
+        return False
+
+    def limpiar_operacion(confirmar=True):
+        if confirmar and hay_cambios_sin_guardar() and not messagebox.askyesno(
+            "Descartar cambios",
+            "Hay cambios sin guardar. ¿Querés limpiar toda la carga?",
+            parent=ventana,
+        ):
+            return
         for clave in claves_operacion:
             if clave == "notas":
                 campos_manual[clave].delete("1.0", "end")
@@ -1736,7 +1769,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         estado_edicion["entry_id"] = None
         boton_guardar.configure(text="Guardar movimiento")
         boton_cancelar.pack_forget()
-        limpiar_operacion()
+        limpiar_operacion(confirmar=False)
 
     atributos_ui = {
         "descripcion": "description", "sobre": "envelope", "arm_org": "frame_origin",
@@ -1787,6 +1820,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 campo = campos_manual[clave]
                 campo.delete(0, "end")
                 campo.insert(0, formatear_importe_ui(valor) if clave == "salida_monto" else str(valor or ""))
+            campos_manual["salida_usuario"].configure(state="disabled")
             boton_salida.configure(text="Actualizar salida")
             campos_manual["salida_concepto"].focus_set()
             return
@@ -1813,7 +1847,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             return
         try:
             controller.void_entry(
-                cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit, entry.id, motivo
+                cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit, entry.id, motivo,
+                user=os.environ.get("USERNAME") or os.environ.get("USER") or "",
             )
             actualizar_estado(controller.load_day(
                 cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit
@@ -1889,20 +1924,19 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     boton_guardar.grid(
         row=6, column=0, columnspan=4, sticky="ew", padx=10, pady=(5, 9)
     )
-    ctk.CTkButton(
-        acciones_primarias, text="Limpiar", command=limpiar_operacion, width=100, height=32,
-        fg_color="#FFFFFF", text_color=color_texto, border_width=1,
-        border_color=color_borde_suave, hover_color="#F1F5FA",
-    ).pack(side="left", padx=4, pady=3)
     estado_salida = {"entry_id": None}
 
     def limpiar_salida():
         estado_salida["entry_id"] = None
+        campos_manual["salida_usuario"].configure(state="normal")
         campos_manual["salida_tipo"].set("Gasto")
         for clave in (
             "salida_concepto", "salida_monto", "salida_observacion", "salida_usuario",
         ):
             campos_manual[clave].delete(0, "end")
+        campos_manual["salida_usuario"].insert(
+            0, os.environ.get("USERNAME") or os.environ.get("USER") or ""
+        )
         boton_salida.configure(text="Guardar salida")
 
     def guardar_salida_integrada():
@@ -1923,7 +1957,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                     estado_salida["entry_id"], tipo,
                     campos_manual["salida_concepto"].get(), campos_manual["salida_monto"].get(),
                     observations=campos_manual["salida_observacion"].get(),
-                    performed_by=campos_manual["salida_usuario"].get(), reason=motivo,
+                    performed_by=(os.environ.get("USERNAME") or os.environ.get("USER")
+                                  or campos_manual["salida_usuario"].get()), reason=motivo,
                 )
             else:
                 cash_day, _ = controller.add_outflow(
@@ -1942,6 +1977,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     boton_salida = campos_manual["accion_salida"]
     boton_salida.configure(command=guardar_salida_integrada)
+    boton_limpiar = ctk.CTkButton(
+        zona_secundaria, text="Limpiar todo", command=limpiar_operacion,
+        width=105, height=perfil["campo_alto"], fg_color="#6D3AC1",
+        text_color="#FFFFFF", border_width=1, border_color="#53299B",
+        hover_color="#57309A",
+    )
+    boton_limpiar.pack(side="left", padx=(5, 2), pady=4)
     campos_manual["salida_monto"].bind(
         "<Return>", lambda _event: guardar_salida_integrada()
     )
@@ -1995,7 +2037,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.4   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.5   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -2088,12 +2130,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         else:
             alto_cab, alto_tot = 42, 0
             form_preferido, form_minimo = 212, 172
-            draft_preferido, draft_minimo = 150, 115
+            draft_preferido, draft_minimo = 182, 145
             alto_sec, sep = 32, 1
         margen_inferior = 4
         alto_pie_actual = max(18, pie.winfo_reqheight())
         fila_renderizada = int(estilo.lookup("Caja.Treeview", "rowheight"))
-        filas_minimas = 5 if full_hd_actual else 3
+        filas_minimas = 5
         alto_grilla_minimo = 46 + (filas_minimas * fila_renderizada) + scroll_horizontal.winfo_reqheight() + 4
         extra_toolbar = alto_sec + sep + perfil["toolbar_alto"]
         fijos_sin_form_draft = 4 + alto_cab + sep + alto_tot + sep + sep + extra_toolbar
@@ -2399,7 +2441,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             return
         try:
             controller.void_entry(
-                cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit, entry.id, motivo
+                cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit, entry.id, motivo,
+                user=os.environ.get("USERNAME") or os.environ.get("USER") or "",
             )
         except Exception as exc:
             mostrar_error(exc)
@@ -2560,31 +2603,21 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         try:
             controller.update_order_status(seleccion[0], estado)
             refrescar_pedidos()
+            refrescar_avisos()
         except Exception as exc:
             mostrar_error(exc)
 
     ctk.CTkButton(barra_pedidos, text="Marcar listo", command=lambda: cambiar_estado_pedido("LISTO"), fg_color=color_verde).pack(side="right", padx=3)
     ctk.CTkButton(barra_pedidos, text="Marcar entregado", command=lambda: cambiar_estado_pedido("ENTREGADO"), fg_color=color_azul).pack(side="right", padx=3)
 
-    aviso_entregas = ctk.CTkButton(
-        acciones_primarias, text="", width=210, height=32, fg_color="#FFF7ED",
-        text_color="#9A5B00", border_width=1, border_color="#F2C69F",
-        command=lambda: (seleccionar_pestaña("Pedidos"), refrescar_pedidos("Hoy")),
-    )
-
     def refrescar_avisos():
         hoy, atrasados = controller.order_counts()
-        partes = []
-        if hoy:
-            partes.append(f"📦 {hoy} pedidos para entregar hoy")
-        if atrasados:
-            partes.append(f"⚠ {atrasados} pedidos atrasados")
-        if partes:
-            aviso_entregas.configure(text="  ·  ".join(partes))
-            if not aviso_entregas.winfo_manager():
-                aviso_entregas.pack(side="left", padx=8)
-        else:
-            aviso_entregas.pack_forget()
+        pendientes = hoy + atrasados
+        aviso_entregas.configure(
+            text=f"⚠ Trabajos {pendientes}",
+            fg_color="#FFE5A3" if pendientes else "#F7FAFF",
+            text_color="#7A4B00" if pendientes else COLOR_TEXTO_SUAVE,
+        )
 
     refrescar_avisos()
 

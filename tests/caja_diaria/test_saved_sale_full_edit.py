@@ -67,6 +67,15 @@ class SavedSaleFullEditTests(unittest.TestCase):
         })
         self.assertEqual(len(audit["snapshot"]["item_changes"]["modified"]), 1)
 
+    def test_rc5_long_prescription_round_trip_without_truncation(self):
+        prescription = "\n".join(
+            f"Línea clínica {index}: OD +1.50 / OI +1.25 / observación completa"
+            for index in range(1, 31)
+        )
+        self.update((self.first, self.second), notas=prescription)
+        reopened = self.reload()
+        self.assertEqual(reopened.observations, prescription)
+        self.assertEqual(reopened.source_reference, prescription)
     def test_case_2_remove_product_recalculates_and_persists(self):
         reopened = self.update(
             (self.first,), total="500000", efectivo="200000", monto_convenio="300000"

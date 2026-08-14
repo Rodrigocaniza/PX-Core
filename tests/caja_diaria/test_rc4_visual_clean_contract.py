@@ -28,7 +28,7 @@ def test_rc4_exact_field_orders_and_read_only_totals():
 def test_rc4_observations_calendar_and_clear_contract():
     assert 'def abrir_selector_fecha_entrega()' in SOURCE
     assert 'campos_manual["notas"] = ctk.CTkTextbox' in SOURCE
-    clear = SOURCE[SOURCE.index("    def limpiar_operacion():"):SOURCE.index("    def guardar_manual():")]
+    clear = SOURCE[SOURCE.index("    def limpiar_operacion(confirmar=True):"):SOURCE.index("    def guardar_manual():")]
     for marker in ('estado_edicion["entry_id"] = None', 'items_venta.clear()',
                    'item_editando["index"] = None', 'grilla_caja.selection_remove',
                    'limpiar_salida()'):

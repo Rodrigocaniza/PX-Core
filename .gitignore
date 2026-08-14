@@ -7,3 +7,5 @@ BC-Core/
 build/
 dist/
 *.spec
+
+dist-*/

@@ -149,7 +149,9 @@ class CashDayUIController:
             expenses=parsed_amount if normalized_type == "GASTO" else 0,
             withdrawal=parsed_amount if normalized_type == "ENTREGA_ADMINISTRACION" else 0,
             withdrawal_destination="Administración" if normalized_type == "ENTREGA_ADMINISTRACION" else "",
-            performed_by=str(performed_by).strip(), outflow_type=normalized_type,
+            # La identidad original pertenece al registro; el usuario recibido
+            # identifica al editor únicamente en la auditoría.
+            performed_by=existing.performed_by, outflow_type=normalized_type,
             source_reference=str(observations or "").strip(),
             observations=str(observations or "").strip(),
         )
@@ -275,9 +277,11 @@ class CashDayUIController:
         )
         return self.service.get_day(cash_day.id), saved
 
-    def void_entry(self, date_text: str, unit: str, entry_id: str, reason: str) -> CashDay:
+    def void_entry(
+        self, date_text: str, unit: str, entry_id: str, reason: str, user: str = ""
+    ) -> CashDay:
         cash_day = self.load_day(date_text, unit)
-        self.service.void_entry(cash_day.id, entry_id, reason)
+        self.service.void_entry(cash_day.id, entry_id, reason, user=user)
         return self.service.get_day(cash_day.id)
 
     def list_history(self, date_text: str, unit: str) -> CashDay:

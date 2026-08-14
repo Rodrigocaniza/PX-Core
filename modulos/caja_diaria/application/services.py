@@ -169,10 +169,12 @@ class CashDayService:
     def remove_entry(self, cash_day_id: str, entry_id: str) -> None:
         raise NotImplementedError("el borrado físico fue reemplazado por void_entry")
 
-    def void_entry(self, cash_day_id: str, entry_id: str, reason: str) -> CashEntry:
+    def void_entry(
+        self, cash_day_id: str, entry_id: str, reason: str, user: str = ""
+    ) -> CashEntry:
         cash_day = self.get_day(cash_day_id)
         voided = cash_day.void_entry(entry_id, reason)
-        self.repository.save(cash_day)
+        self.repository.save(cash_day, audit_reason=reason, edited_by=user)
         return voided
 
     def import_entries(self, cash_day_id: str, entries: Iterable[CashEntry]) -> CashDay:
