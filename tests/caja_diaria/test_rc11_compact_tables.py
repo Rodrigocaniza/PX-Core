@@ -33,7 +33,7 @@ def test_rc11_draft_distribution_and_anchors_are_compact():
     assert 'filas_minimas = 5' in SOURCE
 
 
-def test_rc11_keeps_schema_at_014():
+def test_rc13_advances_schema_once_to_015():
     migrations = sorted(Path("modulos/caja_diaria/infrastructure/migrations").glob("*.sql"))
-    assert len(migrations) == 14
-    assert migrations[-1].name == "014_order_status_revisions.sql"
+    assert len(migrations) == 15
+    assert migrations[-1].name == "015_admin_counts_notifications.sql"

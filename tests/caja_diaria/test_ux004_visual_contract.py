@@ -32,11 +32,9 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
     def test_close_and_count_show_the_operational_breakdown(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         for text in (
-            '"Caja inicial: "',
-            '"Ventas en efectivo: "',
-            '"Tarjeta / transferencia: "',
-            '"Gastos: "',
-            '"Efectivo esperado: "',
+            'solicitar_conteo_obligatorio("Arqueo de apertura")',
+            '"Arqueo de cierre"',
+            'esperado=totales.expected_cash',
             'f"Efectivo contado:',
             'f"Diferencia:',
         ):

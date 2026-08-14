@@ -9,7 +9,7 @@ SOURCE = Path("CajaDiaria.py").read_text(encoding="utf-8")
 def test_arqueo_is_available_from_cash_day_and_not_operator_navigation():
     assert 'text="Arqueo"' in SOURCE
     assert "def abrir_modal_arqueo" in SOURCE
-    assert 'if nombre == "Arqueo":' in SOURCE
+    assert 'if nombre in ("Arqueo", "Importar Excel"):' in SOURCE
     assert 'modal.grab_set()' in SOURCE
     assert 'campos_manual["fecha"]' in SOURCE
     assert 'campos_manual["unidad"]' in SOURCE
