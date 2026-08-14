@@ -102,12 +102,12 @@ def test_persistence_reopen_edit_audit_and_reporting(tmp_path):
 
 def test_rc6_layout_and_clear_contract():
     source = Path("CajaDiaria.py").read_text(encoding="utf-8")
-    assert '"descuento_armazon", "Desc. armazón %", 58' in source
-    assert '"descuento_cristal", "Desc. cristal %", 58' in source
+    assert '("descuento_armazon", 2), ("descuento_cristal", 5)' in source
+    assert 'width=42' in source
     assert 'text="Artículo sin costo"' in source
     assert '"SIN COSTO" if item.no_cost' in source
     assert 'campos_manual["sin_costo"].deselect()' in source
-    assert 'lista_productos.configure(width=ancho_actual, height=draft_actual + alto_sec + sep)' in source
+    assert 'panel_total_draft.configure(width=ancho_derecho_actual, height=draft_actual + alto_sec + sep)' in source
     assert 'zona_secundaria.configure(width=ancho_izquierdo_actual' in source
     assert 'filas_minimas = 5' in source
     assert 'anchor = "w" if clave == "producto" else "center"' in source

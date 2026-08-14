@@ -1,0 +1,54 @@
+{
+    "mission":  "BC-CAJA-RC7-COMPACT-LAYOUT-CORRECTION-001",
+    "current_state":  "SAFE_CLOSURE",
+    "published":  false,
+    "synchronized":  false,
+    "mission_lease":  {
+                          "holder":  "Codex/BC-Caja",
+                          "branch":  "feature/bc-caja-rc7-compact-layout-correction-001",
+                          "exclusive":  true
+                      },
+    "role_state_binding":  {
+                               "VERIFICATION":  "Verification",
+                               "PACKAGING":  "Packaging",
+                               "ARTIFACT_AUDIT":  "Artifact Consistency",
+                               "LIBRARIAN":  "Independent Librarian",
+                               "QA":  "Independent QA",
+                               "AUDITOR":  "Independent Auditor",
+                               "SAFE_CLOSURE":  "Release Engineer"
+                           },
+    "history":  [
+                    {
+                        "event":  "MISSION_CREATED",
+                        "base":  "09811d261d3c92b66a37d8a04e5303b85698367f"
+                    },
+                    {
+                        "event":  "VERIFICATION_PASSED",
+                        "tests_passed":  174,
+                        "subtests_passed":  4
+                    },
+                    {
+                        "event":  "PACKAGING_PASSED",
+                        "zip_sha256":  "573c1f430fc82d232a8eb47751880eab875685f4ccf0cdfba48cdae97bbe0cd7"
+                    },
+                    {
+                        "event":  "ARTIFACT_CONSISTENCY_PASSED",
+                        "exe_sha256":  "c37c107ac2436dcab5774f9a365a4948d19bddd817d59e674bb9ea1a3bdb38ab",
+                        "migrations":  13
+                    },
+                    {
+                        "event":  "LIBRARIAN_PASS"
+                    },
+                    {
+                        "event":  "QA_PASS",
+                        "visual_smoke":  "1366x768"
+                    },
+                    {
+                        "event":  "AUDITOR_PASS"
+                    },
+                    {
+                        "event":  "DEPLOYMENT_VERIFIED",
+                        "integrity":  "ok"
+                    }
+                ]
+}

@@ -120,10 +120,9 @@ COLUMNAS_OPERATIVAS = [
 ]
 PRODUCTO_TRABAJO = (
     ("arm_org", "Tipo / Producto", 150), ("cod", "Código", 90),
-    ("laboratorio", "Laboratorio", 140), ("armazon", "Precio armazón", 125),
-    ("cristal", "Precio cristal", 125),
-    ("descuento_armazon", "Desc. armazón %", 58),
-    ("descuento_cristal", "Desc. cristal %", 58),
+    ("laboratorio", "Laboratorio", 140),
+    ("armazon", "P. Armazón / Desc. %", 125),
+    ("cristal", "P. Cristal / Desc. %", 125),
     ("receta_dr", "Receta / Doctor", 170),
 )
 COBRO_PAGO = (
@@ -1033,13 +1032,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             elif es_detalle:
                 posiciones = {
                     "arm_org": (1, 0), "cod": (2, 0), "laboratorio": (3, 0),
-                    "armazon": (4, 0), "cristal": (4, 2),
-                    "descuento_armazon": (5, 0), "descuento_cristal": (5, 2),
-                    "receta_dr": (6, 0),
+                    "armazon": (4, 0), "cristal": (4, 3), "receta_dr": (5, 0),
                 }
                 fila_campo, columna_etiqueta = posiciones[clave]
                 columna_campo = columna_etiqueta + 1
-                expansion = 3 if clave in ("arm_org", "cod", "laboratorio", "receta_dr") else 1
+                expansion = 5 if clave in ("arm_org", "cod", "laboratorio", "receta_dr") else 1
             else:
                 fila_campo = indice_campo + 1
                 columna_etiqueta = 0
@@ -1069,15 +1066,26 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             campos_manual[clave] = campo
 
     detalle_venta = secciones_widgets["DETALLE DE VENTA"]
+    detalle_venta.grid_columnconfigure(2, weight=0, minsize=44)
+    detalle_venta.grid_columnconfigure(3, weight=0, minsize=72)
+    detalle_venta.grid_columnconfigure(4, weight=1)
+    detalle_venta.grid_columnconfigure(5, weight=0, minsize=44)
+    for clave, columna in (("descuento_armazon", 2), ("descuento_cristal", 5)):
+        campos_manual[clave] = ctk.CTkEntry(
+            detalle_venta, width=42, height=perfil["campo_alto"],
+            placeholder_text="0", justify="center", fg_color="#FFF8E7",
+            border_width=1, border_color="#D6A84B", text_color=color_texto,
+            font=ctk.CTkFont(size=perfil["fuente"]),
+        )
+        campos_manual[clave].grid(row=4, column=columna, sticky="e", padx=(2, 8), pady=2)
     campos_manual["sin_costo"] = ctk.CTkCheckBox(
         detalle_venta, text="Artículo sin costo", onvalue="1", offvalue="0",
         height=perfil["campo_alto"], text_color=color_texto,
         font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
     )
     campos_manual["sin_costo"].grid(
-        row=7, column=0, columnspan=4, sticky="w", padx=10, pady=2
+        row=7, column=2, columnspan=4, sticky="e", padx=10, pady=(3, 7)
     )
-
     for clave in ("total", "saldo"):
         campos_manual[clave].configure(
             fg_color="#E7F1FC", border_color="#7DA9D7", text_color="#0F5FB9",
@@ -1167,13 +1175,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                  font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold")).place(x=12, y=6)
     cuerpo_draft = ctk.CTkFrame(lista_productos, fg_color="transparent")
     cuerpo_draft.pack(fill="both", expand=True, padx=8, pady=(28, 6))
-    cuerpo_draft.grid_columnconfigure(0, weight=5)
-    cuerpo_draft.grid_columnconfigure(
-        1, weight=2, minsize=(230 if perfil["nombre"] == "full-hd" else 175)
-    )
+    cuerpo_draft.grid_columnconfigure(0, weight=1)
     cuerpo_draft.grid_rowconfigure(0, weight=1)
     panel_items = ctk.CTkFrame(cuerpo_draft, fg_color="transparent")
-    panel_items.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+    panel_items.grid(row=0, column=0, sticky="nsew")
     panel_items.grid_rowconfigure(0, weight=1)
     panel_items.grid_columnconfigure(0, weight=1)
     columnas_items = ("producto", "codigo", "tipo", "armazon", "cristal", "subtotal")
@@ -1197,12 +1202,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     grilla_items.grid(row=0, column=0, sticky="nsew")
     scroll_items.grid(row=0, column=1, sticky="ns")
     acciones_item = ctk.CTkFrame(lista_productos, fg_color="transparent")
-    acciones_item.place(relx=0.52, y=3, anchor="ne")
+    acciones_item.place(relx=0.98, y=3, anchor="ne")
     panel_total_draft = ctk.CTkFrame(
-        cuerpo_draft, fg_color="#E7F1FC", corner_radius=8,
+        tab_manual, fg_color="#E7F1FC", corner_radius=8,
         border_width=1, border_color="#7DA9D7",
     )
-    panel_total_draft.grid(row=0, column=1, sticky="nsew")
+    panel_total_draft.place_forget()
     ctk.CTkLabel(
         panel_total_draft, text="OBSERVACIONES", text_color="#42627F",
         font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
@@ -1372,7 +1377,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
     )
     boton_agregar_articulo.grid(
-        row=8, column=0, columnspan=2, sticky="ew", padx=10, pady=(3, 7)
+        row=7, column=0, columnspan=2, sticky="ew", padx=10, pady=(3, 7)
     )
     ctk.CTkButton(
         acciones_item, text="Editar artículo seleccionado", width=165, height=22,
@@ -2074,7 +2079,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.6   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.7   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -2092,7 +2097,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     # Macro-layout UX-006: header context, KPI cards, five-section form,
     # movements table with native scrollbars and no visible pagination.
     for bloque in (
-        cabecera, formulario, lista_productos, zona_secundaria,
+        cabecera, formulario, lista_productos, panel_total_draft, zona_secundaria,
         toolbar_movimientos, marco_grilla, acciones, pie,
     ):
         bloque.pack_forget()
@@ -2124,9 +2129,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     zona_secundaria.configure(width=ancho_columna_izquierda, height=alto_secundario)
     zona_secundaria.pack_propagate(False)
     zona_secundaria.place(x=4, y=y_secundario)
-    acciones.configure(width=280, height=alto_secundario)
-    acciones.pack_propagate(False)
-    acciones.place(x=ancho_total - 276, y=y_secundario)
+    acciones.place_forget()
     toolbar_movimientos.configure(
         width=ancho_total, height=perfil["toolbar_alto"],
     )
@@ -2162,13 +2165,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         full_hd_actual = ancho_cliente >= 1700 and alto_cliente >= 850
         if full_hd_actual:
             alto_cab, alto_tot = 52, 0
-            form_preferido, form_minimo = 360, 330
-            draft_preferido, draft_minimo = 190, 130
+            form_preferido, form_minimo = 310, 280
+            draft_preferido, draft_minimo = 220, 110
             alto_sec, sep = 40, 5
         else:
             alto_cab, alto_tot = 42, 0
-            form_preferido, form_minimo = 245, 220
-            draft_preferido, draft_minimo = 150, 110
+            form_preferido, form_minimo = 212, 172
+            draft_preferido, draft_minimo = 182, 145
             alto_sec, sep = 32, 1
         margen_inferior = 4
         alto_pie_actual = max(18, pie.winfo_reqheight())
@@ -2202,7 +2205,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         cabecera.configure(width=ancho_actual, height=alto_cab); cabecera.place(x=x_actual, y=y_cab)
         formulario.configure(width=ancho_actual, height=alto_form_actual); formulario.place(x=x_actual, y=y_form_actual)
         ancho_izquierdo_actual = int(ancho_actual * 5 / 7)
-        lista_productos.configure(width=ancho_actual, height=draft_actual + alto_sec + sep); lista_productos.place(x=x_actual, y=y_draft_actual)
+        ancho_derecho_actual = ancho_actual - ancho_izquierdo_actual - 8
+        lista_productos.configure(width=ancho_izquierdo_actual, height=draft_actual); lista_productos.place(x=x_actual, y=y_draft_actual)
+        panel_total_draft.configure(width=ancho_derecho_actual, height=draft_actual + alto_sec + sep); panel_total_draft.place(x=x_actual + ancho_izquierdo_actual + 8, y=y_draft_actual)
         zona_secundaria.configure(width=ancho_izquierdo_actual, height=alto_sec); zona_secundaria.place(x=x_actual, y=y_sec)
         acciones.place_forget()
         toolbar_movimientos.configure(width=ancho_actual, height=perfil["toolbar_alto"]); toolbar_movimientos.place(x=x_actual, y=y_toolbar_actual)

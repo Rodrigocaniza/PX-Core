@@ -8,7 +8,7 @@ import CajaDiaria
 
 class CashDayUX002ContractTests(unittest.TestCase):
     def test_capture_is_split_into_product_and_payment_rows(self):
-        self.assertEqual(len(CajaDiaria.PRODUCTO_TRABAJO), 8)
+        self.assertEqual(len(CajaDiaria.PRODUCTO_TRABAJO), 6)
         self.assertEqual(len(CajaDiaria.COBRO_PAGO), 8)
         self.assertIn(("ordenes", "Orden / Convenio", 150), CajaDiaria.COBRO_PAGO)
         self.assertIn(("cuotas", "Cuotas", 75), CajaDiaria.COBRO_PAGO)

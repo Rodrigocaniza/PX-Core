@@ -31,7 +31,8 @@ class OperatorUXContractTests(unittest.TestCase):
         self.assertIn('pago = secciones_widgets["PAGO"]', SOURCE)
         self.assertIn('text="OBSERVACIONES"', SOURCE)
         self.assertIn('campos_manual["notas"] = ctk.CTkTextbox', SOURCE)
-        self.assertIn('panel_total_draft.grid(row=0, column=1', SOURCE)
+        self.assertIn('panel_total_draft = ctk.CTkFrame(\n        tab_manual', SOURCE)
+        self.assertIn('panel_total_draft.place(', SOURCE)
 
     def test_operator_fields_use_bordered_panels_and_compact_payment_grid(self):
         self.assertIn('border_width=2, border_color="#8FB3D9"', SOURCE)
