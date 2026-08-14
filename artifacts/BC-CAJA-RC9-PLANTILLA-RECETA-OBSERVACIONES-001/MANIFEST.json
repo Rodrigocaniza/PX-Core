@@ -1,0 +1,17 @@
+{
+    "mission":  "BC-CAJA-RC9-PLANTILLA-RECETA-OBSERVACIONES-001",
+    "version":  "BC Caja 1.0.0-rc.9",
+    "base_commit":  "9a191eb54f1356851443c48dac44de97b5fbe29e",
+    "branch":  "feature/bc-caja-rc9-plantilla-receta-observaciones-001",
+    "release":  "releases/BC-CAJA-1.0.0-rc.9-win64.zip",
+    "zip_sha256":  "afe42aa43c396e393273647310d443efcdb89dfeaa996ac0d91316d64d30a391",
+    "exe_sha256":  "32b148a856376008157f4505af28200a8c98d01addc809b775e67ef19b4c0a07",
+    "visual_sha256":  "146b31084d17b16f7f67aa51b29bfbe4b05a7d462aaf2ac4a4738ddf10f4400d",
+    "tests":  {
+                  "passed":  182,
+                  "subtests":  4
+              },
+    "migrations":  13,
+    "database_integrity":  "ok",
+    "embedded_operational_data":  false
+}

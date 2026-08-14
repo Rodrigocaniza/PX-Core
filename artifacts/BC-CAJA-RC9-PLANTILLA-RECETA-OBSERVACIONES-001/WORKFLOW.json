@@ -1,0 +1,55 @@
+{
+    "mission":  "BC-CAJA-RC9-PLANTILLA-RECETA-OBSERVACIONES-001",
+    "current_state":  "SAFE_CLOSURE",
+    "published":  false,
+    "synchronized":  false,
+    "mission_lease":  {
+                          "holder":  "Codex/BC-Caja",
+                          "branch":  "feature/bc-caja-rc9-plantilla-receta-observaciones-001",
+                          "exclusive":  true
+                      },
+    "role_state_binding":  {
+                               "VERIFICATION":  "Verification",
+                               "PACKAGING":  "Packaging",
+                               "ARTIFACT_AUDIT":  "Artifact Consistency",
+                               "LIBRARIAN":  "Independent Librarian",
+                               "QA":  "Independent QA",
+                               "AUDITOR":  "Independent Auditor",
+                               "SAFE_CLOSURE":  "Release Engineer"
+                           },
+    "history":  [
+                    {
+                        "event":  "MISSION_CREATED",
+                        "base":  "9a191eb54f1356851443c48dac44de97b5fbe29e"
+                    },
+                    {
+                        "event":  "VERIFICATION_PASSED",
+                        "tests_passed":  182,
+                        "subtests_passed":  4
+                    },
+                    {
+                        "event":  "PACKAGING_PASSED",
+                        "zip_sha256":  "afe42aa43c396e393273647310d443efcdb89dfeaa996ac0d91316d64d30a391"
+                    },
+                    {
+                        "event":  "ARTIFACT_CONSISTENCY_PASSED",
+                        "exe_sha256":  "32b148a856376008157f4505af28200a8c98d01addc809b775e67ef19b4c0a07",
+                        "migrations":  13
+                    },
+                    {
+                        "event":  "LIBRARIAN_PASS"
+                    },
+                    {
+                        "event":  "QA_PASS",
+                        "visual_smoke":  "1366x768",
+                        "template":  "exact"
+                    },
+                    {
+                        "event":  "AUDITOR_PASS"
+                    },
+                    {
+                        "event":  "DEPLOYMENT_VERIFIED",
+                        "integrity":  "ok"
+                    }
+                ]
+}

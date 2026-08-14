@@ -49,6 +49,24 @@ RUTA_CAJA_DIARIA = "Datos/caja_diaria.txt"
 RUTA_ARQUEO = "Datos/arqueo_caja.txt"
 UNIDAD_POR_DEFECTO = "PC"
 DESCRIPCION_CAJA_INICIAL = "CAJA INICIAL"
+PLANTILLA_RECETA_OBSERVACIONES = (
+    "Nombre:\n"
+    "Armazón:\n"
+    "Cristal:\n"
+    "OD:\n"
+    "OI:\n"
+    "ADD:\n"
+    "Altura:\n"
+    "DI:\n"
+    "N.º FACTURA:\n"
+    "RAZÓN SOCIAL:\n"
+    "RUC:"
+)
+
+
+def observaciones_son_plantilla_neutra(valor) -> bool:
+    """La plantilla inicial no representa trabajo manual pendiente."""
+    return str(valor or "") == PLANTILLA_RECETA_OBSERVACIONES
 
 # Billetes y monedas en guaraníes. Ajustar si cambia el circulante.
 DENOMINACIONES = [
@@ -1218,6 +1236,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         border_color="#8FB3D9", wrap="word", font=ctk.CTkFont(size=perfil["fuente"]),
     )
     campos_manual["notas"].pack(fill="both", expand=True, padx=8, pady=(0, 8))
+    campos_manual["notas"].insert("1.0", PLANTILLA_RECETA_OBSERVACIONES)
     total_draft_var = ctk.StringVar(value="0")
 
     bloque_producto = formulario
@@ -1719,7 +1738,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                      if clave == "notas" else campos_manual[clave].get())
             if str(valor).strip() and not (
                 (clave == "vendedora" and valor == "Seleccionar...")
+                or (clave == "fecha" and valor == date.today().strftime("%d-%m-%Y"))
+                or (clave == "unidad" and valor == UNIDAD_POR_DEFECTO)
                 or (clave == "sin_costo" and str(valor) == "0")
+                or (clave == "notas" and observaciones_son_plantilla_neutra(valor))
             ):
                 return True
         for clave in ("salida_concepto", "salida_monto", "salida_observacion"):
@@ -1739,6 +1761,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 campos_manual[clave].deselect()
             elif clave == "notas":
                 campos_manual[clave].delete("1.0", "end")
+                campos_manual[clave].insert("1.0", PLANTILLA_RECETA_OBSERVACIONES)
             elif clave != "vendedora":
                 campos_manual[clave].delete(0, "end")
         for clave in ("cliente_documento", "cliente_telefono", "fecha_entrega"):
@@ -2080,7 +2103,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.8   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.9   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -2455,7 +2478,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             "cuotas": entry.installments,
             "saldo": entry.balance,
             "gastos": entry.expenses,
-            "notas": entry.observations or entry.source_reference,
+            "notas": entry.observations,
             "cliente_documento": entry.customer_document,
             "cliente_telefono": entry.customer_phone,
             "vendedora": entry.saleswoman,
