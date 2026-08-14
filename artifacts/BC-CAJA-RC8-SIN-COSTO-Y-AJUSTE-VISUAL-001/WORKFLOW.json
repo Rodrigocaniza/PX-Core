@@ -1,8 +1,8 @@
 {
     "mission":  "BC-CAJA-RC8-SIN-COSTO-Y-AJUSTE-VISUAL-001",
-    "current_state":  "SAFE_CLOSURE",
-    "published":  false,
-    "synchronized":  false,
+    "current_state":  "CLOSED",
+    "published":  true,
+    "synchronized":  true,
     "mission_lease":  {
                           "holder":  "Codex/BC-Caja",
                           "branch":  "feature/bc-caja-rc8-sin-costo-y-ajuste-visual-001",
@@ -52,6 +52,11 @@
                     {
                         "event":  "DEPLOYMENT_VERIFIED",
                         "integrity":  "ok"
+                    },
+                    {
+                        "event":  "SAFE_CLOSURE_PASSED",
+                        "implementation_commit":  "57fa32ec91856ae8819a914ab04dbe74d44dff8a",
+                        "to_state":  "CLOSED"
                     }
                 ]
 }
