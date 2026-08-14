@@ -29,12 +29,14 @@ class OperatorUXContractTests(unittest.TestCase):
         self.assertEqual(SOURCE.count('text="+ Agregar artículo"'), 1)
         self.assertIn('detalle_venta = secciones_widgets["DETALLE DE VENTA"]', SOURCE)
         self.assertIn('pago = secciones_widgets["PAGO"]', SOURCE)
-        self.assertIn('text="TOTAL DE LA VENTA"', SOURCE)
+        self.assertIn('text="OBSERVACIONES"', SOURCE)
+        self.assertIn('campos_manual["notas"] = ctk.CTkTextbox', SOURCE)
         self.assertIn('panel_total_draft.grid(row=0, column=1', SOURCE)
 
     def test_operator_fields_use_bordered_panels_and_compact_payment_grid(self):
         self.assertIn('border_width=2, border_color="#8FB3D9"', SOURCE)
         self.assertIn('es_pago = titulo == "PAGO"', SOURCE)
+        self.assertIn('es_detalle = titulo == "DETALLE DE VENTA"', SOURCE)
         self.assertIn('columna_campo = columna_etiqueta + 1', SOURCE)
         self.assertIn('columnspan=expansion', SOURCE)
 

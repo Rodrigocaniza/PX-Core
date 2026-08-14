@@ -1,0 +1,24 @@
+{
+  "mission": "BC-CAJA-VISUAL-CLEAN-RC4-001",
+  "current_state": "REVIEW",
+  "published": false,
+  "synchronized": false,
+  "mission_lease": {"holder": "Codex/BC-Caja", "branch": "feature/caja-visual-clean-rc4", "exclusive": true},
+  "role_state_binding": {
+    "VERIFICATION": "Verification",
+    "PACKAGING": "Packaging",
+    "ARTIFACT_AUDIT": "Artifact Consistency",
+    "LIBRARIAN": "Independent Librarian",
+    "QA": "Independent QA",
+    "AUDITOR": "Independent Auditor",
+    "SAFE_CLOSURE": "Release Engineer"
+  },
+  "history": [
+    {"event": "MISSION_CREATED", "to_state": "VERIFICATION"},
+    {"event": "VERIFICATION_PASSED", "to_state": "PACKAGING", "tests_passed": 160},
+    {"event": "PACKAGING_PASSED", "to_state": "ARTIFACT_AUDIT", "zip_sha256": "e57bada3f7d4e28d355c07b05007ee559c347ad31ff7cced8594860edf82743c"},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED", "to_state": "LIBRARIAN", "migrations": 12, "embedded_operational_data": false},
+    {"event": "QA_FINDING_REMEDIATED", "finding": "Limpiar también vacía salida_usuario", "tests_passed": 160},
+    {"event": "DEPLOYMENT_VERIFIED", "installed_exe_sha256": "76997b2eb59db79795645bb8b44148c41235a3912b31e79192c72abd40629cfd", "integrity": "ok", "migrations": 12}
+  ]
+}

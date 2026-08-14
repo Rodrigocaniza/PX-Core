@@ -1,0 +1,18 @@
+{
+  "mission": "BC-CAJA-VISUAL-CLEAN-RC4-001",
+  "version": "1.0.0-rc.4",
+  "status": "CANDIDATE",
+  "installer": "releases/BC-CAJA-1.0.0-rc.4-win64.zip",
+  "zip_sha256": "e57bada3f7d4e28d355c07b05007ee559c347ad31ff7cced8594860edf82743c",
+  "zip_bytes": 31946680,
+  "exe_sha256": "76997b2eb59db79795645bb8b44148c41235a3912b31e79192c72abd40629cfd",
+  "visual_evidence": {
+    "path": "artifacts/BC-CAJA-VISUAL-CLEAN-RC4-001/final-1366x768.png",
+    "sha256": "01534ae9cfb6a708979cd39ec9231f9c0734dffb7f7b459f2b5af4731090a2ec",
+    "resolution": "1366x768"
+  },
+  "tests": {"regression": 160, "failures": 0},
+  "migrations": 12,
+  "data_location": "%LOCALAPPDATA%/BC/Caja",
+  "embedded_operational_data": false
+}

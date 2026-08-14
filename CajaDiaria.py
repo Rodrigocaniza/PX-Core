@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import sys
+import calendar
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -123,11 +124,11 @@ PRODUCTO_TRABAJO = (
     ("cristal", "Precio cristal", 125), ("receta_dr", "Receta / Doctor", 170),
 )
 COBRO_PAGO = (
-    ("total", "Total de la venta", 150), ("efectivo", "Efectivo", 125),
+    ("efectivo", "Efectivo", 125), ("transferencia", "Transferencia", 125),
     ("tarjeta_cheque", "Tarjeta / Cheque", 135),
-    ("transferencia", "Transferencia", 125),
     ("ordenes", "Orden / Convenio", 150), ("monto_convenio", "Monto convenio", 125),
-    ("cuotas", "Cuotas", 75), ("saldo", "Saldo cliente", 125),
+    ("cuotas", "Cuotas", 75), ("total", "Total de la venta", 150),
+    ("saldo", "Saldo cliente", 125),
 )
 CAMPOS_MONETARIOS_UI = (
     "caja_inicial", "armazon", "cristal", "total", "efectivo",
@@ -204,11 +205,16 @@ def escribir_importe_formateado(campo, valor):
 
 def leer_valores_formulario(campos):
     """Lee únicamente controles de entrada; los botones no forman parte del payload."""
-    return {
-        clave: getter().strip()
-        for clave, campo in campos.items()
-        if callable(getter := getattr(campo, "get", None))
-    }
+    valores = {}
+    for clave, campo in campos.items():
+        getter = getattr(campo, "get", None)
+        if not callable(getter):
+            continue
+        if isinstance(campo, ctk.CTkTextbox):
+            valores[clave] = getter("1.0", "end-1c").strip()
+        else:
+            valores[clave] = getter().strip()
+    return valores
 
 
 def resumen_venta_en_curso(cliente, items, privacidad):
@@ -964,12 +970,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     secciones_formulario = (
         ("1", "CLIENTE Y COMPROBANTE", (
-            ("descripcion", "Cliente", 185), ("cliente_telefono", "Teléfono", 140),
-            ("cliente_documento", "CI / RUC", 100), ("sobre", "Sobre / Trabajo", 100),
+            ("descripcion", "Cliente", 185), ("cliente_documento", "CI / RUC", 100),
+            ("cliente_telefono", "Teléfono", 140), ("sobre", "Sobre / Trabajo", 100),
             ("fecha_entrega", "Fecha de entrega", 150), ("vendedora", "Vendedora *", 140),
         )),
         ("2", "DETALLE DE VENTA", PRODUCTO_TRABAJO),
-        ("3", "PAGO", COBRO_PAGO + (("notas", "Observaciones", 220),)),
+        ("3", "PAGO", COBRO_PAGO),
     )
     secciones_widgets = {}
     for indice_seccion, (numero, titulo, columnas) in enumerate(secciones_formulario):
@@ -978,15 +984,17 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             border_width=2, border_color="#8FB3D9",
         )
         secciones_widgets[titulo] = seccion
+        seccion.grid_propagate(False)
         fila_bloque = 0
         columna_bloque = indice_seccion
         seccion.grid(row=fila_bloque, column=columna_bloque, sticky="nsew", padx=6, pady=2)
         formulario.grid_rowconfigure(fila_bloque, weight=1)
-        seccion.grid_columnconfigure(0, weight=0, minsize=(116 if perfil["nombre"] == "full-hd" else 90))
+        seccion.grid_columnconfigure(0, weight=0, minsize=(116 if perfil["nombre"] == "full-hd" else 72))
         seccion.grid_columnconfigure(1, weight=1)
         es_pago = titulo == "PAGO"
-        if es_pago:
-            seccion.grid_columnconfigure(2, weight=0, minsize=(116 if perfil["nombre"] == "full-hd" else 90))
+        es_detalle = titulo == "DETALLE DE VENTA"
+        if es_pago or es_detalle:
+            seccion.grid_columnconfigure(2, weight=0, minsize=(116 if perfil["nombre"] == "full-hd" else 72))
             seccion.grid_columnconfigure(3, weight=1)
         ctk.CTkLabel(
             seccion, text=numero, width=18, height=18, corner_radius=9,
@@ -998,16 +1006,24 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold"),
         ).grid(row=0, column=0, columnspan=2, sticky="w", padx=(38, 10), pady=(8, 4))
         for indice_campo, (clave, etiqueta, ancho) in enumerate(columnas):
-            if es_pago and clave not in ("saldo", "notas"):
-                fila_campo = 1 + (indice_campo // 2)
-                columna_etiqueta = (indice_campo % 2) * 2
+            if es_pago:
+                posiciones = {
+                    "efectivo": (1, 0), "transferencia": (1, 2),
+                    "tarjeta_cheque": (2, 0),
+                    "ordenes": (3, 0), "monto_convenio": (3, 2),
+                    "cuotas": (4, 0), "total": (5, 0), "saldo": (5, 2),
+                }
+                fila_campo, columna_etiqueta = posiciones[clave]
                 columna_campo = columna_etiqueta + 1
-                expansion = 1
-            elif es_pago:
-                fila_campo = 4 if clave == "saldo" else 5
-                columna_etiqueta = 2 if clave == "saldo" else 0
-                columna_campo = 3 if clave == "saldo" else 1
-                expansion = 1 if clave == "saldo" else 3
+                expansion = 3 if clave in ("tarjeta_cheque", "cuotas") else 1
+            elif es_detalle:
+                posiciones = {
+                    "arm_org": (1, 0), "cod": (2, 0), "laboratorio": (3, 0),
+                    "armazon": (4, 0), "cristal": (4, 2), "receta_dr": (5, 0),
+                }
+                fila_campo, columna_etiqueta = posiciones[clave]
+                columna_campo = columna_etiqueta + 1
+                expansion = 3 if clave in ("arm_org", "cod", "laboratorio", "receta_dr") else 1
             else:
                 fila_campo = indice_campo + 1
                 columna_etiqueta = 0
@@ -1020,13 +1036,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             if clave == "vendedora":
                 campo = ctk.CTkComboBox(
                     seccion, values=["Seleccionar...", "Ana", "Belén", "Carla", "Diana"],
-                    width=ancho, height=perfil["campo_alto"], fg_color="#FFFFFF",
+                    width=(ancho if perfil["nombre"] == "full-hd" else min(ancho, 88)), height=perfil["campo_alto"], fg_color="#FFFFFF",
                     border_color=color_borde_suave,
                 )
                 campo.set("Seleccionar...")
             else:
                 campo = ctk.CTkEntry(
-                    seccion, width=ancho, height=perfil["campo_alto"], fg_color="#FFFFFF",
+                    seccion, width=(ancho if perfil["nombre"] == "full-hd" else min(ancho, 88)), height=perfil["campo_alto"], fg_color="#FFFFFF",
                     border_width=1, border_color=color_borde_suave, text_color=color_texto,
                     font=ctk.CTkFont(size=perfil["fuente"]),
                 )
@@ -1036,8 +1052,58 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             )
             campos_manual[clave] = campo
 
-    campos_manual["notas"].configure(placeholder_text="Observaciones de la operación")
+    for clave in ("total", "saldo"):
+        campos_manual[clave].configure(
+            fg_color="#E7F1FC", border_color="#7DA9D7", text_color="#0F5FB9",
+            font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
+        )
+        campos_manual[clave].bind("<Key>", lambda _event: "break")
     campos_manual["fecha_entrega"].configure(placeholder_text="dd-mm-aaaa")
+
+    def abrir_selector_fecha_entrega():
+        selector = ctk.CTkToplevel(ventana)
+        selector.title("Seleccionar fecha de entrega")
+        selector.resizable(False, False)
+        hoy = date.today()
+        estado_mes = {"año": hoy.year, "mes": hoy.month}
+        cuerpo_calendario = ctk.CTkFrame(selector, fg_color="#FFFFFF")
+        cuerpo_calendario.pack(fill="both", expand=True, padx=10, pady=10)
+
+        def elegir(dia):
+            valor = date(estado_mes["año"], estado_mes["mes"], dia)
+            campos_manual["fecha_entrega"].delete(0, "end")
+            campos_manual["fecha_entrega"].insert(0, valor.strftime("%d-%m-%Y"))
+            selector.destroy()
+
+        def renderizar(delta=0):
+            mes = estado_mes["mes"] + delta
+            año = estado_mes["año"]
+            if mes < 1: año, mes = año - 1, 12
+            if mes > 12: año, mes = año + 1, 1
+            estado_mes.update(año=año, mes=mes)
+            for widget in cuerpo_calendario.winfo_children(): widget.destroy()
+            ctk.CTkButton(cuerpo_calendario, text="‹", width=32, command=lambda: renderizar(-1)).grid(row=0, column=0)
+            ctk.CTkLabel(cuerpo_calendario, text=f"{calendar.month_name[mes].capitalize()} {año}", width=190,
+                         font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, columnspan=5)
+            ctk.CTkButton(cuerpo_calendario, text="›", width=32, command=lambda: renderizar(1)).grid(row=0, column=6)
+            for columna, nombre in enumerate(("Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do")):
+                ctk.CTkLabel(cuerpo_calendario, text=nombre, width=34).grid(row=1, column=columna, pady=3)
+            for fila, semana in enumerate(calendar.monthcalendar(año, mes), start=2):
+                for columna, dia in enumerate(semana):
+                    if dia:
+                        ctk.CTkButton(cuerpo_calendario, text=str(dia), width=34, height=28,
+                                      command=lambda valor=dia: elegir(valor)).grid(row=fila, column=columna, padx=1, pady=1)
+        renderizar()
+        selector.transient(ventana)
+        selector.grab_set()
+
+    campo_fecha_entrega = campos_manual["fecha_entrega"]
+    info_fecha_entrega = campo_fecha_entrega.grid_info()
+    campo_fecha_entrega.grid_configure(padx=(0, 42))
+    ctk.CTkButton(
+        campo_fecha_entrega.master, text="📅", width=32, height=perfil["campo_alto"],
+        command=abrir_selector_fecha_entrega, fg_color="#E7F1FC", text_color="#0F5FB9",
+    ).grid(row=info_fecha_entrega["row"], column=info_fecha_entrega["column"], sticky="e", padx=(0, 10), pady=2)
 
     zona_secundaria = ctk.CTkFrame(tab_manual, fg_color="#F8FAFD", corner_radius=7,
                                    border_width=1, border_color=color_borde_suave)
@@ -1112,16 +1178,15 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     )
     panel_total_draft.grid(row=0, column=1, sticky="nsew")
     ctk.CTkLabel(
-        panel_total_draft, text="TOTAL DE LA VENTA", text_color="#42627F",
+        panel_total_draft, text="OBSERVACIONES", text_color="#42627F",
         font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
-    ).pack(padx=8, pady=(10, 2))
+    ).pack(anchor="w", padx=10, pady=(7, 2))
+    campos_manual["notas"] = ctk.CTkTextbox(
+        panel_total_draft, fg_color="#FFFFFF", border_width=1,
+        border_color="#8FB3D9", wrap="word", font=ctk.CTkFont(size=perfil["fuente"]),
+    )
+    campos_manual["notas"].pack(fill="both", expand=True, padx=8, pady=(0, 8))
     total_draft_var = ctk.StringVar(value="0")
-    ctk.CTkLabel(
-        panel_total_draft, textvariable=total_draft_var, text_color="#0F5FB9",
-        font=ctk.CTkFont(
-            size=(22 if perfil["nombre"] == "full-hd" else 17), weight="bold"
-        ),
-    ).pack(padx=8, pady=(0, 8))
 
     bloque_producto = formulario
     columna_guardar = None
@@ -1389,7 +1454,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     def texto_estado(cash_day):
         totales = cash_day.totals()
         texto = (
-            f"{cash_day.status.value}   ·   "
+            f"{'ABIERTO' if cash_day.status.value == 'OPEN' else 'CERRADO'}   ·   "
             f"Efectivo actual  {formatear_monto(totales.expected_cash)}    "
             f"Total ventas  {formatear_monto(totales.total)}\n"
             f"Gastos  {formatear_monto(totales.expenses)}    "
@@ -1495,7 +1560,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         totales = cash_day.totals()
         abierta = cash_day.status.value == "OPEN"
         estado_caja.configure(
-            text="Estado: ABIERTA" if abierta else "Estado: CERRADA",
+            text="Estado: ABIERTO" if abierta else "Estado: CERRADO",
             fg_color="#123B2C" if abierta else "#3A2630",
             text_color=color_verde if abierta else "#E0717C",
         )
@@ -1596,14 +1661,20 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     def limpiar_operacion():
         for clave in claves_operacion:
-            if clave != "vendedora":
+            if clave == "notas":
+                campos_manual[clave].delete("1.0", "end")
+            elif clave != "vendedora":
                 campos_manual[clave].delete(0, "end")
-        campos_manual["notas"].delete(0, "end")
         for clave in ("cliente_documento", "cliente_telefono", "fecha_entrega"):
             campos_manual[clave].delete(0, "end")
         campos_manual["vendedora"].set("Seleccionar...")
         items_venta.clear()
         item_editando["index"] = None
+        estado_edicion["entry_id"] = None
+        boton_guardar.configure(text="Guardar venta  —  F9")
+        boton_cancelar.pack_forget()
+        grilla_caja.selection_remove(grilla_caja.selection())
+        limpiar_salida()
         refrescar_items()
         campos_manual["descripcion"].focus_set()
 
@@ -1828,7 +1899,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     def limpiar_salida():
         estado_salida["entry_id"] = None
         campos_manual["salida_tipo"].set("Gasto")
-        for clave in ("salida_concepto", "salida_monto", "salida_observacion"):
+        for clave in (
+            "salida_concepto", "salida_monto", "salida_observacion", "salida_usuario",
+        ):
             campos_manual[clave].delete(0, "end")
         boton_salida.configure(text="Guardar salida")
 
@@ -1922,7 +1995,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.3   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.4   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -2014,13 +2087,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             alto_sec, sep = 40, 5
         else:
             alto_cab, alto_tot = 42, 0
-            form_preferido, form_minimo = 198, 158
-            draft_preferido, draft_minimo = 160, 80
+            form_preferido, form_minimo = 212, 172
+            draft_preferido, draft_minimo = 150, 115
             alto_sec, sep = 32, 1
         margen_inferior = 4
         alto_pie_actual = max(18, pie.winfo_reqheight())
         fila_renderizada = int(estilo.lookup("Caja.Treeview", "rowheight"))
-        alto_grilla_minimo = 46 + (5 * fila_renderizada) + scroll_horizontal.winfo_reqheight() + 4
+        filas_minimas = 5 if full_hd_actual else 3
+        alto_grilla_minimo = 46 + (filas_minimas * fila_renderizada) + scroll_horizontal.winfo_reqheight() + 4
         extra_toolbar = alto_sec + sep + perfil["toolbar_alto"]
         fijos_sin_form_draft = 4 + alto_cab + sep + alto_tot + sep + sep + extra_toolbar
         presupuesto_form_draft = max(
@@ -2294,13 +2368,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             campo = campos_manual[clave]
             if clave in ("unidad", "vendedora"):
                 campo.set("" if valor is None else str(valor))
+            elif clave == "notas":
+                campo.delete("1.0", "end")
+                campo.insert("1.0", "" if valor is None else str(valor))
             else:
                 campo.delete(0, "end")
-                campo.insert(
-                    0,
-                    formatear_importe_ui(valor)
-                    if clave in CAMPOS_MONETARIOS_UI else "" if valor is None else str(valor),
-                )
+                campo.insert(0, formatear_importe_ui(valor)
+                             if clave in CAMPOS_MONETARIOS_UI else "" if valor is None else str(valor))
         estado_edicion["entry_id"] = entry.id
         items_venta[:] = list(entry.effective_items)
         item_editando["index"] = None
