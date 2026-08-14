@@ -9,6 +9,47 @@ import traceback
 from pathlib import Path
 
 
+class ApplicationLifecycle:
+    """Owns DB and window shutdown; safe when Windows and finally both call it."""
+
+    def __init__(self, controller, window):
+        self.controller = controller
+        self.window = window
+        self.closed = False
+
+    def close(self):
+        if self.closed:
+            return
+        self.closed = True
+        try:
+            self.controller.service.repository.close()
+        finally:
+            try:
+                if self.window.winfo_exists():
+                    self.window.quit()
+                    self.window.destroy()
+            except Exception:
+                # Tk may already be torn down by the window manager.
+                pass
+
+
+def enable_windows_dpi_awareness() -> bool:
+    """Activa coordenadas físicas antes de crear Tk; no escala la UI dos veces."""
+    if sys.platform != "win32":
+        return False
+    try:
+        import ctypes
+
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        return True
+    except (AttributeError, OSError):
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+            return True
+        except (AttributeError, OSError):
+            return False
+
+
 def _arguments(argv=None):
     parser = argparse.ArgumentParser(description="BC Caja - piloto local")
     parser.add_argument(
@@ -58,6 +99,7 @@ def first_run_check(data_directory: Path) -> int:
         "receta_dr": "",
         "total": "300000", "efectivo": "300000", "tarjeta_cheque": "",
         "ordenes": "", "cuotas": "", "saldo": "", "gastos": "",
+        "vendedora": "PILOTO",
     }
     controller = build_cash_day_controller()
     try:
@@ -93,6 +135,7 @@ def main(argv=None) -> int:
     if args.self_check:
         return self_check(args.data_dir)
 
+    enable_windows_dpi_awareness()
     import customtkinter as ctk
     from CajaDiaria import abrir_caja_diaria
     from modulos.caja_diaria.bootstrap import build_cash_day_controller
@@ -100,16 +143,16 @@ def main(argv=None) -> int:
     ctk.set_appearance_mode("system")
     ctk.set_default_color_theme("blue")
     root = ctk.CTk()
-    root.withdraw()
     controller = build_cash_day_controller()
-    window = abrir_caja_diaria(root, controller=controller)
-
-    def close_application():
-        controller.service.repository.close()
-        root.destroy()
-
-    window.protocol("WM_DELETE_WINDOW", close_application)
-    root.mainloop()
+    window = abrir_caja_diaria(root, controller=controller, usar_ventana_raiz=True)
+    lifecycle = ApplicationLifecycle(controller, window)
+    window._bc_application_lifecycle = lifecycle
+    window.protocol("WM_DELETE_WINDOW", lifecycle.close)
+    window.bind("<Alt-F4>", lambda _event: (lifecycle.close(), "break")[1], add="+")
+    try:
+        root.mainloop()
+    finally:
+        lifecycle.close()
     return 0
 
 

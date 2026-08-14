@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Iterable, Mapping, Sequence
 
 from .ports import CashDayRepository, CarryForwardPolicy
 from ..domain.errors import CashDayAlreadyExistsError, CashDayNotFoundError
-from ..domain.models import CashCount, CashDay, CashEntry, CashTotals, parse_business_date
+from ..domain.models import (
+    CashCount, CashDay, CashEntry, CashTotals, Order, OrderStatus, parse_business_date
+)
 
 
 class CashDayService:
@@ -16,6 +19,12 @@ class CashDayService:
         self.carry_forward_policy = carry_forward_policy
 
     def suggested_opening_cash(self, *, business_date: date | str, unit: str) -> int | None:
+        suggestion = self.opening_cash_suggestion(business_date=business_date, unit=unit)
+        return suggestion.expected if suggestion else None
+
+    def opening_cash_suggestion(
+        self, *, business_date: date | str, unit: str
+    ) -> "OpeningCashSuggestion | None":
         if self.carry_forward_policy is None:
             return None
         parsed_date = parse_business_date(business_date)
@@ -23,16 +32,35 @@ class CashDayService:
         previous = self.repository.get_latest_closed_before(parsed_date, normalized_unit)
         if previous is None:
             return None
-        return self.carry_forward_policy.opening_cash_for(previous, parsed_date)
+        count = self.repository.get_latest_cash_count(previous.id)
+        if count is not None:
+            return OpeningCashSuggestion(count.counted_total, "ARQUEO_PREVIO", previous.id, count.id)
+        return OpeningCashSuggestion(
+            self.carry_forward_policy.opening_cash_for(previous, parsed_date),
+            "CIERRE_ESPERADO", previous.id, None,
+        )
 
-    def open_day(self, *, business_date: date | str, unit: str, opening_cash: int | str) -> CashDay:
+    def open_day(
+        self, *, business_date: date | str, unit: str, opening_cash: int | str,
+        opened_by: str = "",
+    ) -> CashDay:
         parsed_date = parse_business_date(business_date)
         normalized_unit = unit.strip().upper()
         if self.repository.get_by_date_and_unit(parsed_date, normalized_unit) is not None:
             raise CashDayAlreadyExistsError(
                 f"ya existe una Caja para {parsed_date.isoformat()} / {normalized_unit}"
             )
-        cash_day = CashDay.open(date=parsed_date, unit=normalized_unit, opening_cash=opening_cash)
+        suggestion = self.opening_cash_suggestion(
+            business_date=parsed_date, unit=normalized_unit
+        )
+        cash_day = CashDay.open(
+            date=parsed_date, unit=normalized_unit, opening_cash=opening_cash,
+            initial_cash_expected=suggestion.expected if suggestion else None,
+            initial_cash_source_day_id=suggestion.source_day_id if suggestion else None,
+            initial_cash_source_kind=suggestion.source_kind if suggestion else "NO_DISPONIBLE",
+            initial_cash_source_count_id=suggestion.source_count_id if suggestion else None,
+            opened_by=opened_by,
+        )
         self.repository.save(cash_day)
         return cash_day
 
@@ -81,13 +109,62 @@ class CashDayService:
         cash_day = self.get_day(cash_day_id)
         assigned = cash_day.add_entry(entry)
         self.repository.save(cash_day)
+        self._ensure_order(cash_day, assigned)
         return assigned
 
-    def update_entry(self, cash_day_id: str, entry: CashEntry) -> CashEntry:
+    def record_withdrawal(
+        self, cash_day_id: str, amount: int | str, destination: str = "Administración",
+        observations: str = "", performed_by: str = "",
+    ) -> CashEntry:
+        entry = CashEntry(
+            description=f"RETIRO — {destination.strip() or 'Administración'}",
+            withdrawal=amount, withdrawal_destination=destination,
+            observations=observations, source_reference=observations,
+            performed_by=performed_by, origin="cash-withdrawal",
+        )
+        if not entry.withdrawal:
+            raise ValueError("El monto del retiro debe ser mayor a cero.")
+        return self.add_entry(cash_day_id, entry)
+
+    def update_entry(
+        self, cash_day_id: str, entry: CashEntry, *, reason: str = "", user: str = ""
+    ) -> CashEntry:
         cash_day = self.get_day(cash_day_id)
         updated = cash_day.update_entry(entry)
-        self.repository.save(cash_day)
+        self.repository.save(cash_day, audit_reason=reason, edited_by=user)
+        self._ensure_order(cash_day, updated)
         return updated
+
+    def _ensure_order(self, cash_day: CashDay, entry: CashEntry) -> Order | None:
+        if entry.delivery_date is None or entry.status.value != "ACTIVE":
+            return None
+        order = Order(
+            delivery_date=entry.delivery_date, branch=cash_day.unit,
+            customer_name=entry.description, customer_document=entry.customer_document,
+            customer_phone=entry.customer_phone,
+            envelope=entry.envelope, saleswoman=entry.saleswoman,
+            observations=entry.observations, cash_entry_id=entry.id,
+            source_reference=entry.id,
+        )
+        return self.repository.save_order(order)
+
+    def list_orders(self, *, filter_name: str = "Todos", today: date | str | None = None):
+        reference = parse_business_date(today or date.today())
+        orders = list(self.repository.list_orders())
+        if filter_name == "Hoy":
+            orders = [item for item in orders if item.delivery_date == reference]
+        elif filter_name == "Atrasados":
+            orders = [item for item in orders if item.delivery_date < reference and item.status is not OrderStatus.DELIVERED]
+        elif filter_name == "Próximos":
+            orders = [item for item in orders if item.delivery_date > reference and item.status is not OrderStatus.DELIVERED]
+        return sorted(orders, key=lambda item: (
+            0 if item.delivery_date < reference and item.status is not OrderStatus.DELIVERED else
+            1 if item.delivery_date == reference else 2,
+            item.delivery_date, item.created_at,
+        ))
+
+    def update_order_status(self, order_id: str, status: OrderStatus | str) -> Order:
+        return self.repository.update_order_status(order_id, status)
 
     def remove_entry(self, cash_day_id: str, entry_id: str) -> None:
         raise NotImplementedError("el borrado físico fue reemplazado por void_entry")
@@ -118,3 +195,11 @@ class CashDayService:
         cash_count = self.get_day(cash_day_id).count_cash(quantities)
         self.repository.save_cash_count(cash_count)
         return cash_count
+
+
+@dataclass(frozen=True)
+class OpeningCashSuggestion:
+    expected: int
+    source_kind: str
+    source_day_id: str
+    source_count_id: str | None

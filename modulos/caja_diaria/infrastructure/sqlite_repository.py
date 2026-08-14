@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from contextlib import contextmanager
 from datetime import date, datetime
 from pathlib import Path
 from typing import Iterator, Sequence
+
+from ..domain.errors import InvalidCashDayError
 
 from ..domain.models import (
     CashCount,
@@ -17,6 +20,9 @@ from ..domain.models import (
     CashEntry,
     CashEntryStatus,
     CashTotals,
+    Order,
+    OrderStatus,
+    SaleItem,
 )
 
 
@@ -105,7 +111,10 @@ class SQLiteCashDayRepository:
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)
         ).fetchone() is not None
 
-    def save(self, cash_day: CashDay) -> None:
+    def save(
+        self, cash_day: CashDay, *, audit_reason: str = "", edited_by: str = ""
+    ) -> None:
+        stage = "cash_day_upsert"
         totals = cash_day.closing_totals
         values = (
             cash_day.id, cash_day.business_date.isoformat(), cash_day.unit, cash_day.opening_cash,
@@ -117,6 +126,10 @@ class SQLiteCashDayRepository:
             None if cash_day.overtime_triggered is None else int(cash_day.overtime_triggered),
             cash_day.overtime_minutes,
             cash_day.version,
+            cash_day.initial_cash_expected, cash_day.initial_cash_difference,
+            cash_day.initial_cash_source_day_id, cash_day.opened_by,
+            totals.withdrawals if totals else None,
+            cash_day.initial_cash_source_kind, cash_day.initial_cash_source_count_id,
         )
         with self._connection() as connection:
             try:
@@ -126,8 +139,11 @@ class SQLiteCashDayRepository:
                         id,business_date,unit,opening_cash,status,opened_at,closed_at,
                         closing_total,closing_cash,closing_card_check,closing_expenses,
                         closing_expected_cash,closing_entry_count,session_duration_seconds,
-                        overtime_triggered,overtime_minutes,version
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        overtime_triggered,overtime_minutes,version,
+                        initial_cash_expected,initial_cash_difference,
+                        initial_cash_source_day_id,opened_by,closing_withdrawals,
+                        initial_cash_source_kind,initial_cash_source_count_id
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         business_date=excluded.business_date, unit=excluded.unit,
                         opening_cash=excluded.opening_cash, status=excluded.status,
@@ -139,7 +155,14 @@ class SQLiteCashDayRepository:
                         closing_entry_count=excluded.closing_entry_count,
                         session_duration_seconds=excluded.session_duration_seconds,
                         overtime_triggered=excluded.overtime_triggered,
-                        overtime_minutes=excluded.overtime_minutes, version=excluded.version""",
+                        overtime_minutes=excluded.overtime_minutes, version=excluded.version,
+                        initial_cash_expected=excluded.initial_cash_expected,
+                        initial_cash_difference=excluded.initial_cash_difference,
+                        initial_cash_source_day_id=excluded.initial_cash_source_day_id,
+                        opened_by=excluded.opened_by,
+                        closing_withdrawals=excluded.closing_withdrawals,
+                        initial_cash_source_kind=excluded.initial_cash_source_kind,
+                        initial_cash_source_count_id=excluded.initial_cash_source_count_id""",
                     values,
                 )
                 existing_entries = {
@@ -148,21 +171,92 @@ class SQLiteCashDayRepository:
                         "SELECT * FROM cash_entries WHERE cash_day_id = ?", (cash_day.id,)
                     ).fetchall()
                 }
-                self._record_entry_revisions(connection, cash_day.entries, existing_entries)
-                connection.execute("DELETE FROM cash_entries WHERE cash_day_id = ?", (cash_day.id,))
+                stage = "entry_audit"
+                self._record_entry_revisions(
+                    connection, cash_day.entries, existing_entries,
+                    audit_reason=audit_reason, edited_by=edited_by,
+                )
+                stage = "cash_entry_upsert"
                 connection.executemany(
                     """INSERT INTO cash_entries(
                         id,cash_day_id,description,envelope,frame_origin,code,frame,lens,laboratory,
                         prescription_doctor,total,cash,card_check,orders_text,installments_text,
-                        balance_text,expenses,origin,source_reference,created_at,updated_at,
-                        status,voided_at,void_reason,revision
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        balance_text,expenses,origin,source_reference,customer_document,
+                        saleswoman,delivery_date,observations,customer_phone,created_at,updated_at,
+                        status,voided_at,void_reason,revision,withdrawal,
+                        withdrawal_destination,performed_by,agreement_amount
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        cash_day_id=excluded.cash_day_id, description=excluded.description,
+                        envelope=excluded.envelope, frame_origin=excluded.frame_origin,
+                        code=excluded.code, frame=excluded.frame, lens=excluded.lens,
+                        laboratory=excluded.laboratory,
+                        prescription_doctor=excluded.prescription_doctor,
+                        total=excluded.total, cash=excluded.cash,
+                        card_check=excluded.card_check, orders_text=excluded.orders_text,
+                        installments_text=excluded.installments_text,
+                        balance_text=excluded.balance_text, expenses=excluded.expenses,
+                        origin=excluded.origin, source_reference=excluded.source_reference,
+                        customer_document=excluded.customer_document,
+                        saleswoman=excluded.saleswoman, delivery_date=excluded.delivery_date,
+                        observations=excluded.observations,
+                        customer_phone=excluded.customer_phone,
+                        updated_at=excluded.updated_at, status=excluded.status,
+                        voided_at=excluded.voided_at, void_reason=excluded.void_reason,
+                        revision=excluded.revision, withdrawal=excluded.withdrawal,
+                        withdrawal_destination=excluded.withdrawal_destination,
+                        performed_by=excluded.performed_by,
+                        agreement_amount=excluded.agreement_amount""",
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
+                stage = "sale_items_refresh"
+                connection.executemany(
+                    "DELETE FROM sale_items WHERE cash_entry_id = ?",
+                    [(entry.id,) for entry in cash_day.entries],
+                )
+                connection.executemany(
+                    """INSERT INTO sale_items(
+                        id,cash_entry_id,position,description,code,item_type,frame_price,
+                        lens_price,laboratory,prescription_doctor
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                    [
+                        (
+                            item.id, entry.id, position, item.description, item.code,
+                            item.item_type, item.frame_price, item.lens_price,
+                            item.laboratory, item.prescription_doctor,
+                        )
+                        for entry in cash_day.entries
+                        for position, item in enumerate(entry.items)
+                    ],
+                )
                 connection.commit()
-            except Exception:
+            except Exception as error:
                 connection.rollback()
+                if isinstance(error, sqlite3.Error):
+                    self._log_sqlite_failure(error, stage=stage, cash_day_id=cash_day.id)
                 raise
+
+    def _log_sqlite_failure(self, error: sqlite3.Error, *, stage: str, cash_day_id: str) -> None:
+        """Registra diagnóstico técnico local sin exponer SQL a la operadora."""
+        try:
+            log_dir = self.database_path.parent / "Logs"
+            log_dir.mkdir(parents=True, exist_ok=True)
+            logger = logging.getLogger(f"bc-caja-sqlite-{self.database_path}")
+            logger.setLevel(logging.ERROR)
+            handler = logging.FileHandler(log_dir / "sqlite-errors.log", encoding="utf-8")
+            try:
+                logger.addHandler(handler)
+                logger.error(
+                    "sqlite save failed stage=%s cash_day_id=%s class=%s code=%s name=%s detail=%s",
+                    stage, cash_day_id, type(error).__name__,
+                    getattr(error, "sqlite_errorcode", None),
+                    getattr(error, "sqlite_errorname", None), str(error),
+                )
+            finally:
+                logger.removeHandler(handler)
+                handler.close()
+        except OSError:
+            pass
 
     @staticmethod
     def _entry_values(entry: CashEntry) -> tuple:
@@ -170,9 +264,12 @@ class SQLiteCashDayRepository:
             entry.id, entry.cash_day_id, entry.description, entry.envelope, entry.frame_origin,
             entry.code, entry.frame, entry.lens, entry.laboratory, entry.prescription_doctor, entry.total,
             entry.cash, entry.card_check, entry.orders, entry.installments, entry.balance,
-            entry.expenses, entry.origin, entry.source_reference, _iso(entry.created_at),
+            entry.expenses, entry.origin, entry.source_reference, entry.customer_document,
+            entry.saleswoman, _iso(entry.delivery_date), entry.observations, entry.customer_phone, _iso(entry.created_at),
             _iso(entry.updated_at), entry.status.value, _iso(entry.voided_at),
             entry.void_reason, entry.revision,
+            entry.withdrawal, entry.withdrawal_destination, entry.performed_by,
+            entry.agreement_amount or 0,
         )
 
     @classmethod
@@ -181,6 +278,7 @@ class SQLiteCashDayRepository:
         connection: sqlite3.Connection,
         entries: Sequence[CashEntry],
         existing_entries: dict[str, sqlite3.Row],
+        *, audit_reason: str = "", edited_by: str = "",
     ) -> None:
         for entry in entries:
             existing = existing_entries.get(entry.id)
@@ -189,6 +287,21 @@ class SQLiteCashDayRepository:
             action = "CREATE" if existing is None else (
                 "VOID" if entry.status is CashEntryStatus.VOIDED else "UPDATE"
             )
+            snapshot = cls._entry_snapshot(entry)
+            snapshot["audit"] = {
+                "reason": str(audit_reason or "").strip(),
+                "user": str(edited_by or "").strip(),
+            }
+            previous = connection.execute(
+                """SELECT snapshot_json FROM cash_entry_revisions
+                   WHERE entry_id = ? ORDER BY revision DESC LIMIT 1""",
+                (entry.id,),
+            ).fetchone()
+            if previous is not None and action == "UPDATE":
+                before = json.loads(previous["snapshot_json"])
+                snapshot["item_changes"] = cls._item_changes(
+                    before.get("items", []), snapshot.get("items", [])
+                )
             connection.execute(
                 """INSERT INTO cash_entry_revisions(
                     entry_id,cash_day_id,revision,action,snapshot_json,recorded_at
@@ -198,11 +311,24 @@ class SQLiteCashDayRepository:
                     entry.cash_day_id,
                     entry.revision,
                     action,
-                    json.dumps(cls._entry_snapshot(entry), ensure_ascii=False, sort_keys=True),
+                    json.dumps(snapshot, ensure_ascii=False, sort_keys=True),
                     _iso(entry.updated_at),
                 ),
             )
 
+    @staticmethod
+    def _item_changes(before: Sequence[dict], after: Sequence[dict]) -> dict:
+        previous = {item["id"]: item for item in before}
+        current = {item["id"]: item for item in after}
+        return {
+            "added": [current[item_id] for item_id in current.keys() - previous.keys()],
+            "removed": [previous[item_id] for item_id in previous.keys() - current.keys()],
+            "modified": [
+                {"before": previous[item_id], "after": current[item_id]}
+                for item_id in previous.keys() & current.keys()
+                if previous[item_id] != current[item_id]
+            ],
+        }
     @staticmethod
     def _entry_snapshot(entry: CashEntry) -> dict:
         return {
@@ -220,11 +346,29 @@ class SQLiteCashDayRepository:
             "cash": entry.cash,
             "card_check": entry.card_check,
             "orders": entry.orders,
+            "agreement_amount": entry.agreement_amount,
             "installments": entry.installments,
             "balance": entry.balance,
             "expenses": entry.expenses,
+            "withdrawal": entry.withdrawal,
+            "withdrawal_destination": entry.withdrawal_destination,
+            "performed_by": entry.performed_by,
             "origin": entry.origin,
             "source_reference": entry.source_reference,
+            "customer_document": entry.customer_document,
+            "customer_phone": entry.customer_phone,
+            "saleswoman": entry.saleswoman,
+            "delivery_date": _iso(entry.delivery_date),
+            "observations": entry.observations,
+            "items": [
+                {
+                    "id": item.id, "description": item.description, "code": item.code,
+                    "item_type": item.item_type, "frame_price": item.frame_price,
+                    "lens_price": item.lens_price, "laboratory": item.laboratory,
+                    "prescription_doctor": item.prescription_doctor,
+                }
+                for item in entry.items
+            ],
             "status": entry.status.value,
             "voided_at": _iso(entry.voided_at),
             "void_reason": entry.void_reason,
@@ -268,15 +412,34 @@ class SQLiteCashDayRepository:
         entry_rows = connection.execute(
             "SELECT * FROM cash_entries WHERE cash_day_id = ? ORDER BY rowid", (row["id"],)
         ).fetchall()
+        item_rows = connection.execute(
+            "SELECT * FROM sale_items WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id = ?) ORDER BY cash_entry_id, position",
+            (row["id"],),
+        ).fetchall()
+        items_by_entry: dict[str, list[SaleItem]] = {}
+        for item in item_rows:
+            items_by_entry.setdefault(item["cash_entry_id"], []).append(SaleItem(
+                id=item["id"], description=item["description"], code=item["code"],
+                item_type=item["item_type"], frame_price=item["frame_price"],
+                lens_price=item["lens_price"], laboratory=item["laboratory"],
+                prescription_doctor=item["prescription_doctor"],
+            ))
         entries = [CashEntry(
             id=item["id"], cash_day_id=item["cash_day_id"], description=item["description"],
             envelope=item["envelope"], frame_origin=item["frame_origin"], code=item["code"],
             frame=item["frame"], lens=item["lens"], laboratory=item["laboratory"],
             prescription_doctor=item["prescription_doctor"],
             total=item["total"], cash=item["cash"], card_check=item["card_check"],
-            orders=item["orders_text"], installments=item["installments_text"],
+            orders=item["orders_text"], agreement_amount=item["agreement_amount"],
+            installments=item["installments_text"],
             balance=item["balance_text"], expenses=item["expenses"], origin=item["origin"],
+            withdrawal=item["withdrawal"], withdrawal_destination=item["withdrawal_destination"],
+            performed_by=item["performed_by"],
             source_reference=item["source_reference"], created_at=_datetime(item["created_at"]),
+            customer_document=item["customer_document"], saleswoman=item["saleswoman"],
+            customer_phone=item["customer_phone"],
+            delivery_date=item["delivery_date"], observations=item["observations"],
+            items=tuple(items_by_entry.get(item["id"], ())),
             updated_at=_datetime(item["updated_at"]), status=item["status"],
             voided_at=_datetime(item["voided_at"]), void_reason=item["void_reason"],
             revision=item["revision"],
@@ -284,12 +447,20 @@ class SQLiteCashDayRepository:
         closing_totals = None
         if row["status"] == CashDayStatus.CLOSED.value:
             closing_totals = CashTotals(
-                row["closing_total"], row["closing_cash"], row["closing_card_check"],
-                row["closing_expenses"], row["closing_expected_cash"], row["closing_entry_count"],
+                total=row["closing_total"], cash=row["closing_cash"],
+                card_check=row["closing_card_check"], expenses=row["closing_expenses"],
+                expected_cash=row["closing_expected_cash"], entry_count=row["closing_entry_count"],
+                withdrawals=row["closing_withdrawals"] or 0,
             )
         return CashDay(
             id=row["id"], business_date=row["business_date"], unit=row["unit"],
             opening_cash=row["opening_cash"], status=row["status"], entries=entries,
+            initial_cash_expected=row["initial_cash_expected"],
+            initial_cash_difference=row["initial_cash_difference"],
+            initial_cash_source_day_id=row["initial_cash_source_day_id"],
+            opened_by=row["opened_by"],
+            initial_cash_source_kind=row["initial_cash_source_kind"],
+            initial_cash_source_count_id=row["initial_cash_source_count_id"],
             opened_at=_datetime(row["opened_at"]), closed_at=_datetime(row["closed_at"]),
             closing_totals=closing_totals,
             session_duration_seconds=row["session_duration_seconds"],
@@ -298,6 +469,56 @@ class SQLiteCashDayRepository:
             ),
             overtime_minutes=row["overtime_minutes"], version=row["version"],
         )
+
+    def correct_opening_cash(
+        self, cash_day_id: str, new_value: int, reason: str, user: str
+    ) -> CashDay:
+        normalized_reason = str(reason or "").strip()
+        normalized_user = str(user or "").strip()
+        if not normalized_reason or not normalized_user:
+            raise InvalidCashDayError("motivo y usuario son obligatorios para corregir la caja")
+        with self._connection() as connection:
+            try:
+                connection.execute("BEGIN IMMEDIATE")
+                row = connection.execute(
+                    "SELECT opening_cash, unit FROM cash_days WHERE id = ?", (cash_day_id,)
+                ).fetchone()
+                if row is None:
+                    raise InvalidCashDayError("caja inexistente")
+                old_value = int(row["opening_cash"])
+                if old_value == new_value:
+                    raise InvalidCashDayError("el nuevo valor debe ser diferente")
+                now = datetime.now().astimezone().isoformat()
+                connection.execute(
+                    """INSERT INTO cash_day_corrections(
+                        cash_day_id,unit,field_name,old_value,new_value,reason,corrected_by,corrected_at
+                    ) VALUES (?,?,?,?,?,?,?,?)""",
+                    (cash_day_id, row["unit"], "opening_cash", str(old_value), str(new_value),
+                     normalized_reason, normalized_user, now),
+                )
+                connection.execute(
+                    """UPDATE cash_days SET opening_cash = ?,
+                       initial_cash_difference = CASE WHEN initial_cash_expected IS NULL THEN NULL
+                           ELSE ? - initial_cash_expected END,
+                       closing_expected_cash = CASE WHEN closing_expected_cash IS NULL THEN NULL
+                           ELSE closing_expected_cash + (? - opening_cash) END,
+                       version = version + 1 WHERE id = ?""",
+                    (new_value, new_value, new_value, cash_day_id),
+                )
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        result = self.get(cash_day_id)
+        assert result is not None
+        return result
+
+    def list_day_corrections(self, cash_day_id: str):
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(
+                "SELECT * FROM cash_day_corrections WHERE cash_day_id = ? ORDER BY id",
+                (cash_day_id,),
+            ).fetchall()]
 
     def save_cash_count(self, cash_count: CashCount) -> None:
         with self._connection() as connection:
@@ -346,3 +567,75 @@ class SQLiteCashDayRepository:
             }
             for row in rows
         ]
+
+    @staticmethod
+    def _hydrate_order(row: sqlite3.Row) -> Order:
+        return Order(
+            id=row["id"], origin=row["origin"], source_reference=row["source_reference"],
+            delivery_date=row["delivery_date"], branch=row["branch"],
+            customer_name=row["customer_name"], customer_document=row["customer_document"],
+            customer_phone=row["customer_phone"],
+            envelope=row["envelope"], saleswoman=row["saleswoman"], status=row["status"],
+            observations=row["observations"], cash_entry_id=row["cash_entry_id"],
+            created_at=_datetime(row["created_at"]), updated_at=_datetime(row["updated_at"]),
+        )
+
+    def save_order(self, order: Order) -> Order:
+        """Persiste un pedido; cash_entry_id hace idempotente el origen CAJA."""
+        with self._connection() as connection:
+            connection.execute(
+                """INSERT INTO orders(
+                    id,origin,source_reference,delivery_date,branch,customer_name,
+                    customer_document,customer_phone,envelope,saleswoman,status,observations,
+                    cash_entry_id,created_at,updated_at
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ON CONFLICT(cash_entry_id) WHERE cash_entry_id IS NOT NULL DO UPDATE SET
+                    delivery_date=excluded.delivery_date, branch=excluded.branch,
+                    customer_name=excluded.customer_name,
+                    customer_document=excluded.customer_document,
+                    customer_phone=excluded.customer_phone, envelope=excluded.envelope,
+                    saleswoman=excluded.saleswoman, observations=excluded.observations,
+                    updated_at=excluded.updated_at""",
+                (
+                    order.id, order.origin.value, order.source_reference,
+                    _iso(order.delivery_date), order.branch, order.customer_name,
+                    order.customer_document, order.customer_phone,
+                    order.envelope, order.saleswoman,
+                    order.status.value, order.observations, order.cash_entry_id,
+                    _iso(order.created_at), _iso(order.updated_at),
+                ),
+            )
+            connection.commit()
+        return self.get_order_for_entry(order.cash_entry_id) if order.cash_entry_id else order
+
+    def get_order_for_entry(self, entry_id: str | None) -> Order | None:
+        if not entry_id:
+            return None
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM orders WHERE cash_entry_id = ?", (entry_id,)
+            ).fetchone()
+        return self._hydrate_order(row) if row else None
+
+    def list_orders(self) -> Sequence[Order]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                """SELECT * FROM orders
+                ORDER BY delivery_date,
+                CASE status WHEN 'PENDIENTE' THEN 0 WHEN 'LISTO' THEN 1 ELSE 2 END,
+                created_at"""
+            ).fetchall()
+        return [self._hydrate_order(row) for row in rows]
+
+    def update_order_status(self, order_id: str, status: OrderStatus | str) -> Order:
+        with self._connection() as connection:
+            row = connection.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
+            if row is None:
+                raise InvalidCashDayError(f"pedido inexistente: {order_id}")
+            updated = self._hydrate_order(row).transition_to(status)
+            connection.execute(
+                "UPDATE orders SET status = ?, updated_at = ? WHERE id = ?",
+                (updated.status.value, _iso(updated.updated_at), updated.id),
+            )
+            connection.commit()
+        return updated

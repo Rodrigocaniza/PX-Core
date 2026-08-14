@@ -1,0 +1,8 @@
+{"mission":"BC-CAJA-OPERATOR-UX-001","gate":"qa:1","generation":1,"attempt_id":"f8ed013a-6638-4072-810c-c011dbb514f0","handoff_id":"cb76e46d-5cd1-436f-806a-3a5a52c21fa9","files":[
+{"path":"HANDOFF_QA.json","sha256":"070558695db1d433974317f9f57bade87be7806124ec6beb59cddb249a1614a2","size":535},
+{"path":"GATE_CONTEXT_QA.json","sha256":"c31bd2519cd77f1c89e4a9d3f7b9a33eb4192729311aa66106c6a85bdb80767b","size":317},
+{"path":"WORKFLOW.json","sha256":"61d92f3bc96ae9d9d1888ee87ddc0be1ce18d82a305ab557fe1141e2084d45f1","size":848},
+{"path":"PROMPT_QA.txt","sha256":"22c29ede6e5dff82012a9f9f954c86e88bc6325171d406ff8d2e393bd1fe17f5","size":385},
+{"path":"MANIFEST.sha256","sha256":"19a06868ec7d082d1afbcd1b2192c5a567e7f11947a564cc972da9174c7bf617","size":1436},
+{"path":"SUMMARY.md","sha256":"e2be322164cf6227484c5c49a625afa545c987b31749856a1cc6b75c3f1c882c","size":881},
+{"path":"EVIDENCE_BC-CAJA-OPERATOR-UX-001.zip","sha256":"c3d82cd1e20c2eeb6c3fed28250e0c237e4d804710502eef890c9a7ebecec4c7","size":157135}]}

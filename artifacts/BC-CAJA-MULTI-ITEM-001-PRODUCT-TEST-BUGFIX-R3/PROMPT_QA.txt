@@ -1,0 +1,24 @@
+Sos el QA de BC-Core.
+
+MISION: BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3
+
+Evidencia en artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3/:
+- BC-Core-BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- CajaDiaria.py (sha256: f36d1abd85b85cd25654971cc8e8fa49715ab1995930dc52214def9f88f10f73)
+
+Archivos de test:
+- tests/caja_diaria/test_multi_item_sales.py (sha256: f9305e6e9f2ffe3790f29229b1f02cf67fd92123ba4ec19d0361c82b3d54496f)
+- tests/caja_diaria/test_orders_v1.py (sha256: c5000f1b9a6842b056a62247ec78076c1a88d8b71fdcd42c4e3bfedfe204ee52)
+- tests/caja_diaria/test_financial_privacy.py (sha256: 54729ee00952894cf05b54dca99f1ec1d707be2fc0ff9744a36b0369048fa86d)
+
+Dependencias:
+- .bc-command-center/verification.json (sha256: dd86e060ba94070f7838c5af0197e383a65161768eab9863ff5694c5d3d93355)
+- artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX/WORKFLOW.json (sha256: 4d4e0f40b22d12db76a70c142287a81388b76c87f5588fdf95b8898aa57a23d5)
+- artifacts/BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R2/WORKFLOW.json (sha256: dd51c66ee92dabc087e14ba057a3db3a4a331e1b3156f9afb136723aa36586fe)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.

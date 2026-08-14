@@ -1,0 +1,1 @@
+Validar read-only BC-CAJA-OPERATOR-UX-001 contra el entrypoint real, evidencia y worktree. Gate qa:1 gen1, attempt f8ed013a-6638-4072-810c-c011dbb514f0, handoff cb76e46d-5cd1-436f-806a-3a5a52c21fa9, workflow rev5. Reejecutar focales y full; validar 1920/1366, tres KPI/bloques, draft separado, venta simple/Multi-Item, Privacy y regresión SQLite. PASS/FAIL sólo para esta identidad.

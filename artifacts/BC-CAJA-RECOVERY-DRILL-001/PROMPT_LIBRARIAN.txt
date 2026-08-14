@@ -1,0 +1,25 @@
+Sos el Librarian de BC-Core.
+
+MISION: BC-CAJA-RECOVERY-DRILL-001
+
+Evidencia en artifacts/BC-CAJA-RECOVERY-DRILL-001/:
+- BC-Core-BC-CAJA-RECOVERY-DRILL-001.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- modulos/caja_diaria/infrastructure/backup.py (sha256: a66514a1711260e13e8ce39486b2aace8d13b1878bb973a4e241ac799fdd6661)
+- modulos/caja_diaria/infrastructure/sqlite_repository.py (sha256: ddc4cbc4f4bd10656081e1fc6028010bebe8f5cb7b706ac7d419b932a3991844)
+
+Archivos de test:
+- tests/caja_diaria/test_recovery_drill.py (sha256: 9fe0dba58968c9203f0cdaa3fe0dd0f35a279d542ceab7f2cb42d57c0bbabff5)
+- tests/caja_diaria/test_sqlite_repository.py (sha256: 48a95fd98c65fabbc57934a683a2b2e6c21034fba89c09f9664a5741d6512d62)
+- tests/caja_diaria/test_multi_item_sales.py (sha256: a96f16a782b6afaf2e2bc9b62e47aa6ad45eaa19a1b94b5957c9345f780eadd6)
+- tests/caja_diaria/test_movements_integration.py (sha256: 58e26d487c4c5665241ff55a0fd2e82f98379b60466de112cab7a7ba455296bb)
+
+Dependencias:
+- modulos/caja_diaria/infrastructure/migrations/010_agreement_amount.sql (sha256: a1f6624629f0cb98078142cf2fd0356edcea35e1b1c429f8b27d410cd92173f1)
+- modulos/caja_diaria/infrastructure/migrations/011_normalize_agreement_balance.sql (sha256: ea1b348ff5816b47b224778d2649a361dd8e618b3ea6aa83ecfbc0d592fa8877)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.

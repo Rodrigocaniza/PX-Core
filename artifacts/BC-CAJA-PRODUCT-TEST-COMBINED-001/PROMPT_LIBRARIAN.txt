@@ -1,0 +1,22 @@
+Sos el Librarian de BC-Core.
+
+MISION: BC-CAJA-PRODUCT-TEST-COMBINED-001
+
+Evidencia en artifacts/BC-CAJA-PRODUCT-TEST-COMBINED-001/:
+- BC-Core-BC-CAJA-PRODUCT-TEST-COMBINED-001.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- CajaDiaria.py (sha256: 95129c4a4b07d78439a41c0cfeaf0628b3bd3dfe40afda41436458f825972c68)
+- modulos/caja_diaria/ui/controller.py (sha256: 0cb1f29890a4b8fc22b92a11d94516daba1aac81c4d64b320fe7e40c4ec06ec3)
+
+Archivos de test:
+- tests/caja_diaria/test_multi_item_sales.py (sha256: a96f16a782b6afaf2e2bc9b62e47aa6ad45eaa19a1b94b5957c9345f780eadd6)
+- tests/caja_diaria/test_ui_controller.py (sha256: 379fca76a3934550bb9fb13cf070b199f6e6e9344da09d74a695185ce1e674dd)
+
+Dependencias:
+- .bc-command-center/verification.json (sha256: 4536ecd3fbe02ce7a169fdcb53103339eb9f7645a130bd968271193e3af329f7)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.

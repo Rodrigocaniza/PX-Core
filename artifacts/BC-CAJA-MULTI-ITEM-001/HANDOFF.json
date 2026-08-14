@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "handoff_id": "b9df74c8-9c18-541d-bf7f-53be87e6b6c5",
+  "mission_id": "BC-CAJA-MULTI-ITEM-001",
+  "gate_id": "auditor:1",
+  "gate_generation": 1,
+  "required_role": "auditor",
+  "workflow_reference": {
+    "path": "artifacts/BC-CAJA-MULTI-ITEM-001/WORKFLOW.json",
+    "event_index": 10
+  },
+  "workflow_state_at_build": "AUDITOR",
+  "workflow_digest_at_build": "672f0495222a23f35ae70419675e79cbd4438d59c73634878560391f1dd67555",
+  "artifact_manifest_digest": "6dfa35e937a1e0c5f4e17efb4b0cc87f09ee21c70a877774c2169e3d56ae02e8",
+  "canonical_zip_sha256": "c192fd4380e3098417ee260923a4908d78b32f77b73768334508dbc3887d1b1d",
+  "included_files": [
+    {
+      "path": "PROMPT_AUDITOR.txt",
+      "sha256": "e468a4364fbb10b9e1350f34cf40460c145abb002c9e05de10f9bc589ad0608e"
+    },
+    {
+      "path": "MANIFEST.json",
+      "sha256": "6dfa35e937a1e0c5f4e17efb4b0cc87f09ee21c70a877774c2169e3d56ae02e8"
+    },
+    {
+      "path": "SUMMARY.txt",
+      "sha256": "0501caba638ee7e9a8f24801e8f7cf696446b1966ab4e11f87a4b23c27a0e977"
+    },
+    {
+      "path": "EVIDENCE/BC-Core-BC-CAJA-MULTI-ITEM-001.zip",
+      "sha256": "c192fd4380e3098417ee260923a4908d78b32f77b73768334508dbc3887d1b1d"
+    }
+  ],
+  "evidence_bindings": [
+    {
+      "evidence": "canonical_prompt",
+      "included_file": "PROMPT_AUDITOR.txt",
+      "sha256": "e468a4364fbb10b9e1350f34cf40460c145abb002c9e05de10f9bc589ad0608e"
+    },
+    {
+      "evidence": "artifact_manifest",
+      "included_file": "MANIFEST.json",
+      "sha256": "6dfa35e937a1e0c5f4e17efb4b0cc87f09ee21c70a877774c2169e3d56ae02e8"
+    },
+    {
+      "evidence": "summary",
+      "included_file": "SUMMARY.txt",
+      "sha256": "0501caba638ee7e9a8f24801e8f7cf696446b1966ab4e11f87a4b23c27a0e977"
+    },
+    {
+      "evidence": "canonical_audit_zip",
+      "included_file": "EVIDENCE/BC-Core-BC-CAJA-MULTI-ITEM-001.zip",
+      "sha256": "c192fd4380e3098417ee260923a4908d78b32f77b73768334508dbc3887d1b1d"
+    }
+  ],
+  "session_id": "54919ff5-97d1-49ca-9862-0ab2f8524c86",
+  "mission_lease_reference": {
+    "lease_id": "54919ff5-97d1-49ca-9862-0ab2f8524c86",
+    "session_id": "54919ff5-97d1-49ca-9862-0ab2f8524c86",
+    "repository_identity": "6bf71e1fa4c625fd7c82e15d67cb6368c76094f946dbf02ec196cd1fa6e7c2ce"
+  },
+  "created_at": "2026-08-12T23:43:36Z",
+  "verdict_vocabulary": [
+    "PASS",
+    "FAIL"
+  ]
+}

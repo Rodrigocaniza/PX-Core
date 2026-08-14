@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from .application.services import CashDayService
 from .application.carry_forward import PreviousClosedDayCarryForwardPolicy
-from .config import CashDataPaths, resolve_data_paths
+from .config import DATA_DIR_ENV, CashDataPaths, resolve_data_paths
 from .infrastructure.backup import LocalBackupService
 from .infrastructure.sqlite_repository import SQLiteCashDayRepository
+from .infrastructure.movements_exporter import LegacyMovementsExporter
 from .ui.controller import CashDayUIController
 
 
@@ -24,6 +26,11 @@ def build_cash_day_controller(
     *,
     data_paths: CashDataPaths | None = None,
 ) -> CashDayUIController:
+    explicit_data_location = (
+        data_paths is not None
+        or database_path is not None
+        or bool(os.environ.get(DATA_DIR_ENV, "").strip())
+    )
     if data_paths is not None:
         paths = data_paths
     elif database_path is not None:
@@ -41,4 +48,12 @@ def build_cash_day_controller(
         database_path = paths.database
     service = build_cash_day_service(database_path)
     backup = LocalBackupService(service.repository, paths.backups)
-    return CashDayUIController(service, backup_service=backup)
+    movements_path = (
+        paths.root / "movimientos.txt"
+        if explicit_data_location
+        else Path(__file__).resolve().parents[2] / "Datos" / "movimientos.txt"
+    )
+    movements = LegacyMovementsExporter(movements_path)
+    return CashDayUIController(
+        service, backup_service=backup, movements_exporter=movements
+    )

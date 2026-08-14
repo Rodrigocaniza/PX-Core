@@ -1,0 +1,10 @@
+﻿{
+    "handoff_id":  "312af3c1-2825-4260-95fa-951b547905e6",
+    "state":  "QA",
+    "gate":  "qa:2",
+    "generation":  2,
+    "workflow_revision":  18,
+    "role":  "qa",
+    "attempt_id":  "f8ed013a-6638-4072-810c-c011dbb514f0",
+    "mission":  "BC-CAJA-OPERATOR-UX-001"
+}

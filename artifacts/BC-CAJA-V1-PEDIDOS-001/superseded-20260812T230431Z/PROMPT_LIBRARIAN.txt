@@ -1,0 +1,32 @@
+Sos el Librarian de BC-Core.
+
+MISION: BC-CAJA-V1-PEDIDOS-001
+
+Evidencia en artifacts/BC-CAJA-V1-PEDIDOS-001/:
+- BC-Core-BC-CAJA-V1-PEDIDOS-001.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- CajaDiaria.py (sha256: 74fe57f3091245713a6e44bb1ed9986cbca40cb8cb452912f90c300b561fbed0)
+- bc_caja.py (sha256: f1ce44a06c14978828829b7a227829e8cb301607883cf85cb0a59b5bf2e56396)
+- modulos/caja_diaria/application/ports.py (sha256: d1dcf357da4944a18055fde88e192544850a0eb3c2d0fedc395a745ade582c92)
+- modulos/caja_diaria/application/services.py (sha256: f27cea2b22805d964e269a36eaf8ad0e1dc68db2c66da5d33aa434c044910bfd)
+- modulos/caja_diaria/domain/models.py (sha256: 3cd5ee10e7ad8aa443b9b2fc94e3c98b7878765e664c6e6785dc7f0219763b6d)
+- modulos/caja_diaria/infrastructure/sqlite_repository.py (sha256: 12ff528eb4a336c3d4556c7b013f2db521df4ac5ee88c2f2d83d793f9a6b3b96)
+- modulos/caja_diaria/infrastructure/migrations/005_orders.sql (sha256: 8734d9d9f761a840cfc27271c75266daf9a28b53a3e5578b8f15318e6e7bbc6c)
+- modulos/caja_diaria/ui/controller.py (sha256: d8976a8ba071184cbbdc11a881ce54c1c57344b58a1d43fcc9823ee6e27fb2f6)
+- modulos/caja_diaria/ui/privacy.py (sha256: a0b376fd2db6b4744616acdd1cf3e9f50a0dec4e2f83236336e93d0b0ace6ece)
+
+Archivos de test:
+- tests/caja_diaria/test_orders_v1.py (sha256: c5000f1b9a6842b056a62247ec78076c1a88d8b71fdcd42c4e3bfedfe204ee52)
+- tests/caja_diaria/test_financial_privacy.py (sha256: 54729ee00952894cf05b54dca99f1ec1d707be2fc0ff9744a36b0369048fa86d)
+- tests/caja_diaria/test_operation_e2e.py (sha256: 76de42735e5c898039de266ad32d5159c46584751acca57903398c8216d05b47)
+- tests/caja_diaria/test_sqlite_repository.py (sha256: 845bd3892df700d5eb32c4aa3da0a6154c2a78d7e684a4633b204075bfb5524b)
+- tests/caja_diaria/test_ui_controller.py (sha256: 6cf24de419c6576424d23358d522ec0f23a519d23593ddd540c1d1fc88be0b1b)
+
+Dependencias:
+- .bc-command-center/verification.json (sha256: d0f47e1dd7b0f7057565401a6c9e47ae4ac6559bc640e1989145b65ce65fa789)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.

@@ -78,6 +78,107 @@ class CashCountStatus(str, Enum):
     SHORTAGE = "FALTA"
 
 
+class OrderOrigin(str, Enum):
+    CASH_REGISTER = "CAJA"
+    WHATSAPP = "WHATSAPP"
+    WEB = "WEB"
+    WORKSHOP = "TALLER"
+
+
+class OrderStatus(str, Enum):
+    PENDING = "PENDIENTE"
+    READY = "LISTO"
+    DELIVERED = "ENTREGADO"
+
+
+@dataclass(frozen=True)
+class SaleItem:
+    description: str = "Producto"
+    code: str = ""
+    item_type: str = ""
+    frame_price: int | str | None = None
+    lens_price: int | str | None = None
+    laboratory: str = ""
+    prescription_doctor: str = ""
+    id: str = field(default_factory=new_id)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "description", str(self.description or "Producto").strip())
+        for name in ("code", "item_type", "laboratory", "prescription_doctor"):
+            object.__setattr__(self, name, str(getattr(self, name) or "").strip())
+        for name in ("frame_price", "lens_price"):
+            object.__setattr__(self, name, money(getattr(self, name), field_name=name, optional=True))
+
+    @property
+    def subtotal(self) -> int:
+        return (self.frame_price or 0) + (self.lens_price or 0)
+
+
+@dataclass
+class SaleDraft:
+    items: list[SaleItem] = field(default_factory=list)
+
+    @property
+    def total(self) -> int:
+        return sum(item.subtotal for item in self.items)
+
+    def add(self, item: SaleItem) -> None:
+        self.items.append(item)
+
+    def edit(self, index: int, item: SaleItem) -> None:
+        self.items[index] = item
+
+    def remove(self, index: int) -> SaleItem:
+        return self.items.pop(index)
+
+
+@dataclass(frozen=True)
+class Order:
+    delivery_date: date | str
+    branch: str
+    customer_name: str
+    saleswoman: str
+    origin: OrderOrigin | str = OrderOrigin.CASH_REGISTER
+    source_reference: str = ""
+    customer_document: str = ""
+    customer_phone: str = ""
+    envelope: str = ""
+    status: OrderStatus | str = OrderStatus.PENDING
+    observations: str = ""
+    cash_entry_id: str | None = None
+    id: str = field(default_factory=new_id)
+    created_at: datetime = field(default_factory=utc_now)
+    updated_at: datetime = field(default_factory=utc_now)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "delivery_date", parse_business_date(self.delivery_date))
+        object.__setattr__(self, "origin", OrderOrigin(self.origin))
+        object.__setattr__(self, "status", OrderStatus(self.status))
+        for name in ("branch", "customer_name", "saleswoman"):
+            value = str(getattr(self, name) or "").strip()
+            if not value:
+                raise InvalidCashDayError(f"{name} es obligatorio")
+            object.__setattr__(self, name, value)
+        for name in (
+            "source_reference", "customer_document", "customer_phone",
+            "envelope", "observations",
+        ):
+            object.__setattr__(self, name, str(getattr(self, name) or "").strip())
+
+    def transition_to(self, status: OrderStatus | str) -> "Order":
+        target = OrderStatus(status)
+        allowed = {
+            OrderStatus.PENDING: {OrderStatus.READY},
+            OrderStatus.READY: {OrderStatus.DELIVERED},
+            OrderStatus.DELIVERED: set(),
+        }
+        if target not in allowed[self.status]:
+            raise InvalidCashDayError(
+                f"transición de pedido inválida: {self.status.value} → {target.value}"
+            )
+        return replace(self, status=target, updated_at=utc_now())
+
+
 @dataclass(frozen=True)
 class CashTotals:
     total: int = 0
@@ -86,15 +187,16 @@ class CashTotals:
     expenses: int = 0
     expected_cash: int = 0
     entry_count: int = 0
+    withdrawals: int = 0
 
 
 @dataclass(frozen=True)
 class SessionHours:
     """Resultado auditable del horario de una Caja cerrada.
 
-    ``overtime_minutes`` conserva únicamente el mínimo confirmado. La regla
-    para acumular o redondear después de esa primera hora sigue pendiente.
-    En domingos, donde todavía no existe política, ambos campos quedan NULL.
+    ``overtime_minutes`` conserva los minutos reales transcurridos desde el
+    final de la tolerancia. No aplica redondeo. En domingos, donde todavía no
+    existe política, ambos campos quedan NULL.
     """
 
     duration_seconds: int
@@ -119,10 +221,27 @@ def calculate_session_hours(
     else:
         return SessionHours(duration_seconds, None, None)
 
-    local_close = closed_at.astimezone(BUSINESS_TIMEZONE).time().replace(tzinfo=None)
-    triggered = local_close > tolerance_end
-    return SessionHours(duration_seconds, triggered, 60 if triggered else 0)
+    local_close_at = closed_at.astimezone(BUSINESS_TIMEZONE)
+    tolerance_end_at = datetime.combine(
+        local_close_at.date(), tolerance_end, tzinfo=BUSINESS_TIMEZONE
+    )
+    overtime_seconds = int((local_close_at - tolerance_end_at).total_seconds())
+    overtime_minutes = max(0, overtime_seconds // 60)
+    triggered = overtime_minutes > 0
+    return SessionHours(duration_seconds, triggered, overtime_minutes)
 
+
+def client_balance_from_classification(
+    total: int | None,
+    cash: int | None,
+    card_check: int | None,
+    agreement_amount: int | None,
+) -> int:
+    """Saldo cliente: convenio liquida la deuda sin ser ingreso de caja."""
+    return max(
+        0,
+        (total or 0) - (cash or 0) - (card_check or 0) - (agreement_amount or 0),
+    )
 
 @dataclass(frozen=True)
 class CashEntry:
@@ -131,6 +250,9 @@ class CashEntry:
     cash: int | str | None = None
     card_check: int | str | None = None
     expenses: int | str | None = None
+    withdrawal: int | str | None = None
+    withdrawal_destination: str = ""
+    performed_by: str = ""
     envelope: str = ""
     frame_origin: str = ""
     code: str = ""
@@ -139,10 +261,17 @@ class CashEntry:
     laboratory: str = ""
     prescription_doctor: str = ""
     orders: str = ""
+    agreement_amount: int | str | None = None
     installments: str = ""
     balance: str = ""
     origin: str = "manual"
     source_reference: str = ""
+    customer_document: str = ""
+    saleswoman: str = ""
+    customer_phone: str = ""
+    delivery_date: date | str | None = None
+    observations: str = ""
+    items: tuple[SaleItem, ...] = ()
     id: str = field(default_factory=new_id)
     cash_day_id: str | None = None
     created_at: datetime = field(default_factory=utc_now)
@@ -157,14 +286,51 @@ class CashEntry:
             raise InvalidCashDayError("la descripción de una entrada es obligatoria")
         object.__setattr__(self, "description", self.description.strip())
         object.__setattr__(self, "status", CashEntryStatus(self.status))
-        for name in ("total", "cash", "card_check", "expenses"):
+        for name in ("total", "cash", "card_check", "agreement_amount", "expenses", "withdrawal"):
             object.__setattr__(self, name, money(getattr(self, name), field_name=name, optional=True))
         for name in (
             "envelope", "frame_origin", "code", "frame", "lens", "laboratory", "prescription_doctor",
             "orders", "installments", "balance", "origin", "source_reference",
+            "customer_document", "customer_phone", "saleswoman", "observations", "withdrawal_destination",
+            "performed_by",
         ):
             value = getattr(self, name)
             object.__setattr__(self, name, "" if value is None else str(value).strip())
+        if self.delivery_date in (None, ""):
+            object.__setattr__(self, "delivery_date", None)
+        else:
+            object.__setattr__(self, "delivery_date", parse_business_date(self.delivery_date))
+        object.__setattr__(self, "items", tuple(
+            item if isinstance(item, SaleItem) else SaleItem(**item) for item in self.items
+        ))
+        if self.items:
+            object.__setattr__(self, "total", sum(item.subtotal for item in self.items))
+
+        pending_before_agreement = max(0, (self.total or 0) - (self.cash or 0) - (self.card_check or 0))
+        if (self.agreement_amount or 0) > pending_before_agreement:
+            raise InvalidCashDayError("el monto convenio excede el total pendiente")
+        if self.agreement_amount and not self.orders:
+            raise InvalidCashDayError("ingresÃ¡ el nombre o identificaciÃ³n del convenio")
+        if self.agreement_amount:
+            object.__setattr__(self, "balance", str(self.client_balance_amount))
+
+    @property
+    def client_balance_amount(self) -> int:
+        """Deuda del cliente; el convenio es financiación separada, no saldo."""
+        return client_balance_from_classification(
+            self.total, self.cash, self.card_check, self.agreement_amount
+        )
+    @property
+    def effective_items(self) -> tuple[SaleItem, ...]:
+        if self.items:
+            return self.items
+        if self.expenses or self.withdrawal:
+            return ()
+        return (SaleItem(
+            description=self.description, code=self.code, item_type=self.frame_origin,
+            frame_price=self.frame, lens_price=self.lens, laboratory=self.laboratory,
+            prescription_doctor=self.prescription_doctor,
+        ),)
         object.__setattr__(self, "void_reason", str(self.void_reason or "").strip())
         if self.status is CashEntryStatus.VOIDED:
             if self.voided_at is None or not self.void_reason:
@@ -234,6 +400,12 @@ class CashDay:
     business_date: date | str
     unit: str
     opening_cash: int | str
+    initial_cash_expected: int | str | None = None
+    initial_cash_difference: int | str | None = None
+    initial_cash_source_day_id: str | None = None
+    initial_cash_source_kind: str = ""
+    initial_cash_source_count_id: str | None = None
+    opened_by: str = ""
     id: str = field(default_factory=new_id)
     status: CashDayStatus = CashDayStatus.OPEN
     entries: list[CashEntry] = field(default_factory=list)
@@ -253,6 +425,21 @@ class CashDay:
         parsed_opening = money(self.opening_cash, field_name="opening_cash")
         assert parsed_opening is not None
         self.opening_cash = parsed_opening
+        self.initial_cash_expected = money(
+            self.initial_cash_expected, field_name="caja inicial esperada", optional=True
+        )
+        self.initial_cash_difference = (
+            None if self.initial_cash_expected is None
+            else self.opening_cash - self.initial_cash_expected
+        )
+        self.initial_cash_source_day_id = (
+            str(self.initial_cash_source_day_id).strip() if self.initial_cash_source_day_id else None
+        )
+        self.initial_cash_source_kind = str(self.initial_cash_source_kind or "").strip()
+        self.initial_cash_source_count_id = (
+            str(self.initial_cash_source_count_id).strip() if self.initial_cash_source_count_id else None
+        )
+        self.opened_by = str(self.opened_by or "").strip()
         self.status = CashDayStatus(self.status)
         self.entries = [entry if entry.cash_day_id == self.id else entry.assigned_to(self.id) for entry in self.entries]
         if self.status is CashDayStatus.CLOSED:
@@ -269,8 +456,19 @@ class CashDay:
                 self.overtime_minutes = session.overtime_minutes
 
     @classmethod
-    def open(cls, *, date: date | str, unit: str, opening_cash: int | str) -> "CashDay":
-        return cls(business_date=date, unit=unit, opening_cash=opening_cash)
+    def open(
+        cls, *, date: date | str, unit: str, opening_cash: int | str,
+        initial_cash_expected: int | str | None = None,
+        initial_cash_source_day_id: str | None = None, opened_by: str = "",
+        initial_cash_source_kind: str = "", initial_cash_source_count_id: str | None = None,
+    ) -> "CashDay":
+        return cls(
+            business_date=date, unit=unit, opening_cash=opening_cash,
+            initial_cash_expected=initial_cash_expected,
+            initial_cash_source_day_id=initial_cash_source_day_id, opened_by=opened_by,
+            initial_cash_source_kind=initial_cash_source_kind,
+            initial_cash_source_count_id=initial_cash_source_count_id,
+        )
 
     def _require_open(self) -> None:
         if self.status is CashDayStatus.CLOSED:
@@ -314,7 +512,11 @@ class CashDay:
         cash = sum(entry.cash or 0 for entry in active)
         card_check = sum(entry.card_check or 0 for entry in active)
         expenses = sum(entry.expenses or 0 for entry in active)
-        return CashTotals(total, cash, card_check, expenses, self.opening_cash + cash - expenses, len(active))
+        withdrawals = sum(entry.withdrawal or 0 for entry in active)
+        return CashTotals(
+            total, cash, card_check, expenses,
+            self.opening_cash + cash - expenses - withdrawals, len(active), withdrawals,
+        )
 
     def close(self, *, closed_at: datetime | None = None) -> "CashDay":
         self._require_open()

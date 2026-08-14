@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "mission": "BC-CAJA-OPERATOR-UX-002",
+  "base": "0f6195eada4319477961e45871e49954f43825a9",
+  "branch": "feature/caja-operator-ux-002",
+  "current_state": "AUDITED_LOCAL",
+  "command_center_external": "UNAVAILABLE_IN_WORKSPACE",
+  "history": [
+    {"event_index": 1, "event": "MISSION_STARTED", "state": "IMPLEMENTATION"},
+    {"event_index": 2, "event": "VISUAL_BASELINE_CAPTURED", "profiles": ["1920x1080", "1366x768"]},
+    {"event_index": 3, "event": "VERIFICATION_PASSED", "targeted": "35 passed", "full": "127 passed, 4 subtests passed"},
+    {"event_index": 4, "event": "LIBRARIAN_LOCAL_PASS"},
+    {"event_index": 5, "event": "QA_LOCAL_PASS"},
+    {"event_index": 6, "event": "AUDITOR_LOCAL_PASS"}
+  ]
+}

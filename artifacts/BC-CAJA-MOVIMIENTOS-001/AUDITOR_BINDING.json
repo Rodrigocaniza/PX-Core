@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "BC-CAJA-MOVIMIENTOS-001",
+  "attempt_id": "72a7bb80-8151-4b8e-b9c0-fc6189e05016",
+  "gate_id": "auditor:1",
+  "generation": 1,
+  "expected_role": "auditor",
+  "expected_state": "AUDITOR",
+  "workflow_revision": 6,
+  "handoff_id": "dc4c9413-e67a-578a-b876-69ad52806f0d",
+  "evidence_digest": "dbe0d68f3f16a678b9cc59916f0d55620960e492d01f96f92be1df1ea0d1369f",
+  "session_id": "97b83804-703e-4777-b981-4356671b6eea"
+}

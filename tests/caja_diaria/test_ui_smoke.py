@@ -14,7 +14,18 @@ class CashDayUISmokeTests(unittest.TestCase):
     def test_legacy_window_accepts_injected_controller(self):
         signature = inspect.signature(CajaDiaria.abrir_caja_diaria)
         self.assertIn("controller", signature.parameters)
+        self.assertIn("usar_ventana_raiz", signature.parameters)
         self.assertTrue(callable(interfaz.iniciar))
+
+    def test_window_is_resizable_and_not_forced_modal(self):
+        source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
+        self.assertIn("ventana.resizable(True, True)", source)
+        self.assertIn("ventana.overrideredirect(False)", source)
+        self.assertIn('ventana.attributes("-fullscreen", False)', source)
+        self.assertIn('ventana.state("zoomed")', source)
+        self.assertNotIn('posicion = "+-8+-31"', source)
+        self.assertNotIn("ventana.grab_set()", source)
+        self.assertNotIn("ventana.transient(ventana_padre)", source)
 
     def test_fresh_temporary_database_boots_without_development_data(self):
         with tempfile.TemporaryDirectory() as directory:

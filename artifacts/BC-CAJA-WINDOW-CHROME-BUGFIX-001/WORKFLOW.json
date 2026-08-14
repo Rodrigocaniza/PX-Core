@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "mission": "BC-CAJA-WINDOW-CHROME-BUGFIX-001",
+  "base": "2faa91c00528c2ecd979d8e61944448b77b60e73",
+  "branch": "feature/caja-window-chrome-bugfix-001",
+  "current_state": "AUDITED_LOCAL",
+  "history": [
+    {"event_index": 1, "event": "BUG_REPRODUCED"},
+    {"event_index": 2, "event": "NATIVE_CHROME_VERIFIED", "style": "0x16cf0008"},
+    {"event_index": 3, "event": "VERIFICATION_PASSED", "targeted": "24 passed", "full": "130 passed, 4 subtests passed"},
+    {"event_index": 4, "event": "LIBRARIAN_QA_AUDITOR_LOCAL_PASS"}
+  ]
+}

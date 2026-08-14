@@ -14,19 +14,34 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
     def test_high_fidelity_elements_are_explicit(self):
         source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
         for text in (
-            '"#0B1220"',
-            '"#17345D"',
-            '"EFECTIVO ACTUAL"',
-            '"TOTAL VENTAS"',
-            '"ABIERTA"',
-            '"CERRADA"',
-            '"ACCIONES DEL DÍA"',
-            'fg_color=color_verde',
+            '"#EAF2FB"',
+            '"#FFFFFF"',
+            '"Caja inicial"',
+            '"VENTA TOTAL DEL DÍA"',
+            '"Estado: ABIERTA"',
+            '"Estado: CERRADA"',
+            'Guardar venta  —  F9',
+            'iconos_kpi = {',
             'pestañas._segmented_button.grid_forget()',
             'boton_cancelar.pack_forget()',
         ):
             self.assertIn(text, source)
+        self.assertNotIn("Resumen para arqueo", source)
 
+
+    def test_close_and_count_show_the_operational_breakdown(self):
+        source = inspect.getsource(CajaDiaria.abrir_caja_diaria)
+        for text in (
+            '"Caja inicial: "',
+            '"Ventas en efectivo: "',
+            '"Tarjeta / transferencia: "',
+            '"Gastos: "',
+            '"Efectivo esperado: "',
+            'f"Efectivo contado:',
+            'f"Diferencia:',
+        ):
+            self.assertIn(text, source)
+        self.assertNotIn("Resumen para arqueo", source)
 
 if __name__ == "__main__":
     unittest.main()

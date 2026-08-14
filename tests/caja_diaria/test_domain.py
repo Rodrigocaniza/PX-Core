@@ -63,6 +63,30 @@ class CashDayDomainTests(unittest.TestCase):
         self.assertEqual(day.closing_totals, day.totals())
         self.assertEqual(day.closing_totals.expected_cash, 300000)
 
+    def test_expenses_reduce_only_expected_cash_and_survive_close(self):
+        day = CashDay.open(date="2026-08-03", unit="PC", opening_cash=500000)
+        day.add_entry(CashEntry(
+            description="VENTA MIXTA", total=700000, cash=300000, card_check=400000
+        ))
+        day.add_entry(CashEntry(description="GASTO", expenses=50000))
+
+        totals = day.totals()
+        self.assertEqual(totals.expected_cash, 500000 + 300000 - 50000)
+        self.assertEqual(totals.card_check, 400000)
+        day.close()
+        self.assertEqual(day.closing_totals.expected_cash, 750000)
+        self.assertEqual(day.closing_totals.card_check, 400000)
+
+    def test_cash_count_reports_shortage_and_surplus_without_rejecting_them(self):
+        day = CashDay.open(date="2026-08-02", unit="PC", opening_cash=1500000)
+        conforming = day.count_cash({100000: 15})
+        shortage = day.count_cash({100000: 14, 50000: 1})
+        surplus = day.count_cash({100000: 15, 50000: 1})
+        self.assertEqual((conforming.counted_total, conforming.difference), (1500000, 0))
+        self.assertEqual((shortage.counted_total, shortage.difference), (1450000, -50000))
+        self.assertEqual((surplus.counted_total, surplus.difference), (1550000, 50000))
+        self.assertEqual(shortage.status, CashCountStatus.SHORTAGE)
+        self.assertEqual(surplus.status, CashCountStatus.SURPLUS)
     def test_cash_count_rejects_negative_or_unknown_denominations(self):
         day = CashDay.open(date="2026-08-02", unit="PC", opening_cash=100000)
         with self.assertRaises(InvalidCashCountError):

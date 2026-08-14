@@ -1,0 +1,5 @@
+{
+  "mission":"BC-CAJA-OPERATOR-UX-001","role":"qa","state":"QA","gate":"qa:1","generation":1,"workflow_revision":5,
+  "attempt_id":"f8ed013a-6638-4072-810c-c011dbb514f0","handoff_id":"cb76e46d-5cd1-436f-806a-3a5a52c21fa9",
+  "evidence_zip_sha256":"c3d82cd1e20c2eeb6c3fed28250e0c237e4d804710502eef890c9a7ebecec4c7"
+}

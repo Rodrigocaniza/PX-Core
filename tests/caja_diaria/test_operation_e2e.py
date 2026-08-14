@@ -18,6 +18,7 @@ class CashOperationE2ETests(unittest.TestCase):
                     "sobre": "", "arm_org": "", "cod": "", "armazon": "",
                     "cristal": "", "receta_dr": "", "ordenes": "", "cuotas": "",
                     "saldo": "", "gastos": "", "tarjeta_cheque": "",
+                    "vendedora": "ANA",
                 }
                 day1, cash_sale = controller.add_manual_entry({
                     **base, "descripcion": "VENTA EFECTIVO", "total": "300000", "efectivo": "300000",

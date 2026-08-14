@@ -28,6 +28,7 @@ class CashDayUIControllerTests(unittest.TestCase):
             "unidad": "PC",
             "caja_inicial": "500.000",
             "descripcion": "CLIENTE",
+            "vendedora": "ANA",
             "sobre": "S-1",
             "arm_org": "ARM",
             "cod": "A1",
@@ -42,6 +43,7 @@ class CashDayUIControllerTests(unittest.TestCase):
             "cuotas": "",
             "saldo": "cancelado",
             "gastos": "",
+            "notas": "Entrega prioritaria",
         }
         values.update(overrides)
         return values
@@ -51,6 +53,7 @@ class CashDayUIControllerTests(unittest.TestCase):
         self.assertEqual(day.totals().expected_cash, 800000)
         self.assertEqual(entry.balance, "cancelado")
         self.assertEqual(entry.laboratory, "LAB CENTRAL")
+        self.assertEqual(entry.source_reference, "Entrega prioritaria")
 
         self.controller.service.repository.close()
         reloaded_controller = build_cash_day_controller(self.database)
@@ -69,6 +72,32 @@ class CashDayUIControllerTests(unittest.TestCase):
         self.controller.open_or_load_day("02-08-2026", "PC", "100000")
         loaded = self.controller.open_or_load_day("02-08-2026", "PC", "")
         self.assertEqual(loaded.opening_cash, 100000)
+
+    def test_new_cash_day_respects_entered_initial_cash(self):
+        day, notice = self.controller.open_or_load_day_with_notice(
+            "04-08-2026", "PC", "1.500.000"
+        )
+        self.assertEqual(day.opening_cash, 1_500_000)
+        self.assertIsNone(notice)
+
+    def test_existing_cash_day_preserves_original_initial_cash(self):
+        self.controller.open_or_load_day("04-08-2026", "PC", "1.500.000")
+        day, notice = self.controller.open_or_load_day_with_notice(
+            "04-08-2026", "PC", "1.900.000"
+        )
+        self.assertEqual(day.opening_cash, 1_500_000)
+        self.assertIn("1.500.000", notice)
+
+    def test_cash_days_do_not_leak_initial_cash_between_dates_or_branches(self):
+        first, _ = self.controller.open_or_load_day_with_notice(
+            "04-08-2026", "PC", "1.500.000"
+        )
+        second, _ = self.controller.open_or_load_day_with_notice(
+            "05-08-2026", "Sucursal 2", "2.300.000"
+        )
+        self.assertEqual(first.opening_cash, 1_500_000)
+        self.assertEqual(second.opening_cash, 2_300_000)
+        self.assertEqual(self.controller.load_day("04-08-2026", "PC").opening_cash, 1_500_000)
 
     def test_invalid_input_does_not_create_day(self):
         with self.assertRaises(InvalidMoneyError):
@@ -104,6 +133,30 @@ class CashDayUIControllerTests(unittest.TestCase):
         finally:
             reloaded_controller.service.repository.close()
 
+    def test_simple_expense_only_requires_concept_and_amount(self):
+        self.controller.open_or_load_day("02-08-2026", "PC", "1.500.000")
+        day, expense = self.controller.add_expense(
+            "02-08-2026", "PC", "Ferretería", "200.000"
+        )
+        self.assertEqual(expense.description, "Ferretería")
+        self.assertEqual(expense.expenses, 200000)
+        self.assertEqual(expense.source_reference, "")
+        self.assertEqual(day.totals().expenses, 200000)
+        self.assertEqual(day.totals().expected_cash, 1300000)
+        self.assertEqual(day.totals().card_check, 0)
+
+    def test_expense_observations_are_optional_audit_context(self):
+        self.controller.open_or_load_day("02-08-2026", "PC", "500000")
+        _, expense = self.controller.add_expense(
+            "02-08-2026", "PC", "Internet", "100000", "Factura demo"
+        )
+        self.assertEqual(expense.source_reference, "Factura demo")
+
+    def test_closed_day_blocks_simple_expense(self):
+        self.controller.open_or_load_day("02-08-2026", "PC", "500000")
+        self.controller.close_day("02-08-2026", "PC")
+        with self.assertRaises(CashDayClosedError):
+            self.controller.add_expense("02-08-2026", "PC", "Taxi", "50000")
     def test_legacy_analysis_imports_without_txt_dual_write(self):
         result = {"por_dia": {"03-08-2026": {
             "unidad": "PC",

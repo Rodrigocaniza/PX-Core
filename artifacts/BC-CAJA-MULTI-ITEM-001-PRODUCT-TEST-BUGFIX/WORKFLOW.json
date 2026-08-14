@@ -1,0 +1,40 @@
+{
+  "mission": "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX",
+  "current_state": "INVALIDATED",
+  "history": [
+    {
+      "event": "VERIFICATION_STARTED",
+      "from_state": "IMPLEMENTATION_COMPLETED",
+      "to_state": "VERIFICATION",
+      "timestamp": "2026-08-13T00:29:56Z",
+      "manifest_sha256": null,
+      "zip_sha256": null,
+      "reason": null,
+      "return_state": null,
+      "verdict_binding_digest": null,
+      "handoff_id": null,
+      "gate_id": null,
+      "gate_generation": null,
+      "workflow_revision_before": null,
+      "attempt_id": null,
+      "session_id": null
+    },
+    {
+      "event": "VERIFICATION_FAILED",
+      "from_state": "VERIFICATION",
+      "to_state": "INVALIDATED",
+      "timestamp": "2026-08-13T00:29:57Z",
+      "manifest_sha256": null,
+      "zip_sha256": null,
+      "reason": "Fix the failing Command Center tests before running the closure.",
+      "return_state": "VERIFICATION",
+      "verdict_binding_digest": null,
+      "handoff_id": null,
+      "gate_id": null,
+      "gate_generation": null,
+      "workflow_revision_before": null,
+      "attempt_id": null,
+      "session_id": null
+    }
+  ]
+}

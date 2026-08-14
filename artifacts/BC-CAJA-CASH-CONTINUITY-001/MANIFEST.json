@@ -1,0 +1,123 @@
+{
+  "manifest_version": "1.0",
+  "generator": "tools/package_mission_evidence.py",
+  "algorithm": "sha256",
+  "mission": "BC-CAJA-CASH-CONTINUITY-001",
+  "generated_at": "2026-08-13T01:15:16Z",
+  "status": "PASSED",
+  "repository": {
+    "root": "C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/caja-cash-continuity",
+    "branch": "feature/caja-cash-continuity",
+    "head_before": "d8fb8961367cc5909b12373137b57b03d1cfdff3",
+    "head_after": "d8fb8961367cc5909b12373137b57b03d1cfdff3",
+    "head_consistent": true,
+    "status_before": [
+      "M .bc-command-center/verification.json",
+      " M CajaDiaria.py",
+      " M modulos/caja_diaria/application/services.py",
+      " M modulos/caja_diaria/domain/models.py",
+      " M modulos/caja_diaria/infrastructure/sqlite_repository.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      " M tests/caja_diaria/test_sqlite_repository.py",
+      "?? .bind-lib.json",
+      "?? .bind-qa-fail.json",
+      "?? artifacts/BC-CAJA-CASH-CONTINUITY-001/",
+      "?? modulos/caja_diaria/infrastructure/migrations/007_cash_continuity.sql",
+      "?? tests/caja_diaria/test_cash_continuity.py"
+    ],
+    "status_after": [
+      "M .bc-command-center/verification.json",
+      " M CajaDiaria.py",
+      " M modulos/caja_diaria/application/services.py",
+      " M modulos/caja_diaria/domain/models.py",
+      " M modulos/caja_diaria/infrastructure/sqlite_repository.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      " M tests/caja_diaria/test_sqlite_repository.py",
+      "?? .bind-lib.json",
+      "?? .bind-qa-fail.json",
+      "?? artifacts/BC-CAJA-CASH-CONTINUITY-001/",
+      "?? modulos/caja_diaria/infrastructure/migrations/007_cash_continuity.sql",
+      "?? tests/caja_diaria/test_cash_continuity.py"
+    ]
+  },
+  "files": {
+    "implementation": [
+      {
+        "path": "CajaDiaria.py",
+        "sha256": "5fe8213db79a1a3b5f73f47a7d7344c89255f1c1f7e4556c331e24e34f914bea"
+      },
+      {
+        "path": "modulos/caja_diaria/domain/models.py",
+        "sha256": "4ce686ae1f5d51c023acdb2b4065c2a0c38fc8336fc10e0592ad8834b2de1eac"
+      },
+      {
+        "path": "modulos/caja_diaria/application/services.py",
+        "sha256": "89227cfb4c8b6341390248be260fd2db74a8a2808eab77d29850548c889df8ce"
+      },
+      {
+        "path": "modulos/caja_diaria/ui/controller.py",
+        "sha256": "492385576adc2104831678cede050671870c7da1a280e758af5d735158111f9f"
+      },
+      {
+        "path": "modulos/caja_diaria/infrastructure/sqlite_repository.py",
+        "sha256": "90c20547d254d491c17dc91d6c328dc8b226aa30e648e9d6f4bbc2ce996ba100"
+      },
+      {
+        "path": "modulos/caja_diaria/infrastructure/migrations/007_cash_continuity.sql",
+        "sha256": "5446590520507627ed0586ab1b6914dce73e122dca9e97bffcfe845a09059017"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/caja_diaria/test_cash_continuity.py",
+        "sha256": "92e59c37324d300bdd4025dc26bf377c179c112b574394bd1123877ca60a5a5c"
+      },
+      {
+        "path": "tests/caja_diaria/test_sqlite_repository.py",
+        "sha256": "932f5e4e1d99dee0431fa96619f794ef99027f8d406847e77f955f20bb3dee2b"
+      }
+    ],
+    "dependencies": [
+      {
+        "path": ".bc-command-center/verification.json",
+        "sha256": "dc9a4afcbd00767b35f92e3bcfe28d109c3f39dda45e1e4b630d5079c94c5216"
+      }
+    ]
+  },
+  "tests": {
+    "targeted": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "tests/caja_diaria/test_cash_continuity.py",
+        "tests/caja_diaria/test_sqlite_repository.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "17 passed, 1 warning in 0.71s"
+    },
+    "full_suite": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "102 passed, 1 warning in 2.88s"
+    }
+  },
+  "zip": {
+    "path": "BC-Core-BC-CAJA-CASH-CONTINUITY-001.zip",
+    "sha256": "9126f2be0ae64cada747aecdb262b431a1abbd24eae5ccfbd48ae027df151043",
+    "file_count": 9
+  },
+  "summary_file": "SUMMARY.txt",
+  "prompts": {
+    "librarian": "PROMPT_LIBRARIAN.txt",
+    "qa": "PROMPT_QA.txt",
+    "auditor": "PROMPT_AUDITOR.txt"
+  },
+  "warnings": []
+}
