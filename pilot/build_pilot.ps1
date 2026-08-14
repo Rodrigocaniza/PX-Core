@@ -12,6 +12,7 @@ try {
         --windowed `
         --name BC-Caja `
         --distpath $OutputDirectory `
+        --additional-hooks-dir "tools/pyinstaller_hooks" `
         --collect-all customtkinter `
         --add-data "modulos/caja_diaria/infrastructure/migrations;modulos/caja_diaria/infrastructure/migrations" `
         bc_caja.py

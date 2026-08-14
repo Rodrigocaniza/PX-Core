@@ -1,6 +1,6 @@
 PASS
 
 ZIP, EXE instalado y EXE temporal comparten SHA256 de ejecutable
-`404138ff9a60c7c1c541fdec0ad40670bde2f4eff3619afbcea61a50bf66ada8`.
+`ec16837631d26130579f17038f00c32a3cf52c10835cab6bad664421df805109`.
 
 Smokes: fuente GUI, EXE temporal, EXE externo e instalado.
