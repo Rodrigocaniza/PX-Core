@@ -1,4 +1,4 @@
-BC Caja 1.0.0-rc.10
+BC Caja 1.0.0-rc.11
 
 1. Descomprima el ZIP completo en una carpeta local.
 2. Ejecute BC-Caja.exe desde la carpeta BC-Caja.

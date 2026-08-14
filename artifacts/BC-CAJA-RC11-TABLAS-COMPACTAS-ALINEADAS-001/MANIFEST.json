@@ -1,0 +1,15 @@
+{
+    "mission":  "BC-CAJA-RC11-TABLAS-COMPACTAS-ALINEADAS-001",
+    "version":  "BC Caja 1.0.0-rc.11",
+    "base_commit":  "967a95965e1b4fb2086d5cf5f4b7ca1a227ad9dc",
+    "release":  "releases/BC-CAJA-1.0.0-rc.11-win64.zip",
+    "zip_sha256":  "dbbaa1886ccbdb1ce75e7693fb71ceb3a49e0d6af296103dcad41d723e0cee81",
+    "exe_sha256":  "9f96e6f900cbc511d04d86fe44eeca75e9dfc4efe9ebe9eda31109d4714fca8c",
+    "visual_sha256":  "6bfdc617c6deb4f84d3771b9ed4c5e47e9e10aa29a494ac5b83356be72771503",
+    "tests":  {
+                  "passed":  188,
+                  "subtests":  4
+              },
+    "migrations":  14,
+    "database_integrity":  "ok"
+}

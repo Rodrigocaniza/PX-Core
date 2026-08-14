@@ -23,6 +23,7 @@
                      ,"BC-CAJA-RC8-SIN-COSTO-Y-AJUSTE-VISUAL-001":  "bc-caja-operator-ux"
                      ,"BC-CAJA-RC9-PLANTILLA-RECETA-OBSERVACIONES-001":  "bc-caja-operator-ux"
                      ,"BC-CAJA-OPERATIVE-POLISH-BEFORE-ADMIN-001":  "bc-caja-operator-ux"
+                     ,"BC-CAJA-RC11-TABLAS-COMPACTAS-ALINEADAS-001":  "bc-caja-operator-ux"
                  },
     "runners":  {
                     "bc-caja-pedidos-v1":  {

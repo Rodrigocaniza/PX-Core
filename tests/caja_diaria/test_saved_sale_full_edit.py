@@ -137,7 +137,7 @@ class SavedSaleFullEditTests(unittest.TestCase):
         self.assertEqual(
             next(column[2] for column in CajaDiaria.MOVEMENT_COLUMN_SPECS
                  if column[0] == "descripcion"),
-            180,
+            150,
         )
         rendered_width = sum(
             max(width, 65) for _key, _title, width, _anchor

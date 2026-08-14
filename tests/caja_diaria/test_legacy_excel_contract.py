@@ -40,7 +40,7 @@ class LegacyExcelContractTests(unittest.TestCase):
             [label for _, label, _ in CajaDiaria.COLUMNAS_OPERATIVAS],
             [
                 "Hora", "Cliente", "Teléfono", "Tipo/Resumen", "Comprobante",
-                "Total", "Efectivo", "Tarjeta/Transferencia", "A cobrar convenio",
+                "Total", "Efectivo", "Tarj./Transf.", "A cobrar conv.",
                 "Cuotas", "Saldo", "Vendedora", "Estado",
             ],
         )

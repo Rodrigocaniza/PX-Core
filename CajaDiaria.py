@@ -119,19 +119,19 @@ CAMPOS = [
     "tarjeta_cheque", "ordenes", "cuotas", "saldo", "gastos", "origen",
 ]
 MOVEMENT_COLUMN_SPECS = (
-    ("hora", "Hora", 48, "center"),
-    ("descripcion", "Cliente", 180, "w"),
-    ("cliente_telefono", "Teléfono", 82, "w"),
-    ("tipo_resumen", "Tipo/Resumen", 105, "w"),
-    ("sobre", "Comprobante", 85, "w"),
-    ("total", "Total", 72, "e"),
-    ("efectivo", "Efectivo", 72, "e"),
-    ("tarjeta_transferencia", "Tarjeta/Transferencia", 120, "e"),
-    ("monto_convenio", "A cobrar convenio", 105, "e"),
+    ("hora", "Hora", 52, "center"),
+    ("descripcion", "Cliente", 150, "w"),
+    ("cliente_telefono", "Teléfono", 95, "center"),
+    ("tipo_resumen", "Tipo/Resumen", 115, "w"),
+    ("sobre", "Comprobante", 85, "center"),
+    ("total", "Total", 80, "center"),
+    ("efectivo", "Efectivo", 80, "center"),
+    ("tarjeta_transferencia", "Tarj./Transf.", 110, "center"),
+    ("monto_convenio", "A cobrar conv.", 105, "center"),
     ("cuotas", "Cuotas", 55, "center"),
-    ("saldo", "Saldo", 72, "e"),
-    ("vendedora", "Vendedora", 80, "w"),
-    ("estado", "Estado", 65, "center"),
+    ("saldo", "Saldo", 80, "center"),
+    ("vendedora", "Vendedora", 85, "center"),
+    ("estado", "Estado", 85, "center"),
 )
 COLUMNAS_OPERATIVAS = [
     (key, title, width) for key, title, width, _anchor in MOVEMENT_COLUMN_SPECS
@@ -1209,7 +1209,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("tipo", "Tipo", 82), ("armazon", "P. Armazón", 84),
         ("cristal", "P. Cristal", 84), ("subtotal", "Subtotal", 90),
     ):
-        anchor = "w" if clave == "producto" else "center"
+        anchor = "w" if clave in ("producto", "tipo") else "center"
         grilla_items.heading(clave, text=titulo, anchor=anchor)
         grilla_items.column(
             clave, width=ancho, minwidth=70, anchor=anchor,
@@ -1513,6 +1513,23 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     grilla_caja.configure(
         xscrollcommand=scroll_horizontal.set, yscrollcommand=scroll_vertical.set
     )
+
+    def ajustar_columnas_movimientos(ancho_disponible):
+        """Distribuye el excedente sin regalarlo a Cliente ni forzar scroll."""
+        bases = {clave: ancho for clave, _titulo, ancho, _anchor in MOVEMENT_COLUMN_SPECS}
+        bases["acciones"] = 105
+        maximos = {clave: int(ancho * 1.18) for clave, ancho in bases.items()}
+        disponible = max(sum(bases.values()), int(ancho_disponible) - 22)
+        extra = max(0, disponible - sum(bases.values()))
+        capacidad = sum(maximos[k] - bases[k] for k in bases)
+        for clave, base in bases.items():
+            adicional = min(maximos[clave] - base, round(extra * (maximos[clave] - base) / capacidad)) if capacidad else 0
+            grilla_caja.column(clave, width=base + adicional, minwidth=base, stretch=False)
+        total = sum(int(grilla_caja.column(clave, "width")) for clave in bases)
+        if total <= disponible:
+            scroll_horizontal.grid_remove()
+        else:
+            scroll_horizontal.grid()
     grilla_caja.grid(row=0, column=0, sticky="nsew")
     scroll_vertical.grid(row=0, column=1, sticky="ns")
     scroll_horizontal.grid(row=1, column=0, sticky="ew")
@@ -2103,7 +2120,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.10   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.11   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -2240,8 +2257,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         )
         ancho_tabla = max(1, ancho_izquierdo_actual - 34)
         for clave, proporcion in (
-            ("producto", 0.45), ("codigo", 0.11), ("tipo", 0.12),
-            ("armazon", 0.11), ("cristal", 0.11), ("subtotal", 0.10),
+            ("producto", 0.35), ("codigo", 0.12), ("tipo", 0.18),
+            ("armazon", 0.12), ("cristal", 0.12), ("subtotal", 0.11),
         ):
             grilla_items.column(
                 clave, width=max(72, int(ancho_tabla * proporcion)), stretch=False,
@@ -2249,6 +2266,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         zona_secundaria.configure(width=ancho_izquierdo_actual, height=alto_sec); zona_secundaria.place(x=x_actual, y=y_sec)
         acciones.place_forget()
         toolbar_movimientos.configure(width=ancho_actual, height=perfil["toolbar_alto"]); toolbar_movimientos.place(x=x_actual, y=y_toolbar_actual)
+        ajustar_columnas_movimientos(ancho_actual)
         marco_grilla.configure(width=ancho_actual, height=alto_grid); marco_grilla.place(x=x_actual, y=y_grid)
         pie.configure(width=ancho_actual, height=alto_pie_actual); pie.place(x=x_actual, y=y_footer)
         estado_layout["metricas"] = {"cliente": (ancho_cliente, alto_cliente), "grilla_y": y_grid, "grilla_alto": alto_grid, "pie_y": y_footer, "pie_alto": alto_pie_actual, "footer_bottom": y_footer + alto_pie_actual, "required": y_footer + alto_pie_actual + margen_inferior, "draft_alto": draft_actual, "overflow": max(0, y_footer + alto_pie_actual + margen_inferior - alto_cliente)}

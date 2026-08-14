@@ -70,8 +70,8 @@ def test_empty_no_cost_item_in_multiproduct_sale_persists_reopens_and_audits(tmp
 def test_rc8_draft_columns_and_observations_use_available_space():
     assert 'alto_observaciones = y_toolbar_actual - y_draft_actual - sep' in SOURCE
     assert 'width=ancho_derecho_actual, height=alto_observaciones' in SOURCE
-    for marker in ('("producto", 0.45)', '("codigo", 0.11)', '("tipo", 0.12)',
-                   '("armazon", 0.11)', '("cristal", 0.11)', '("subtotal", 0.10)'):
+    for marker in ('("producto", 0.35)', '("codigo", 0.12)', '("tipo", 0.18)',
+                   '("armazon", 0.12)', '("cristal", 0.12)', '("subtotal", 0.11)'):
         assert marker in SOURCE
     assert 'stretch=False' in SOURCE
     assert 'orient="vertical", command=grilla_items.yview' in SOURCE
