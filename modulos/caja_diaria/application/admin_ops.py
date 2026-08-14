@@ -222,7 +222,7 @@ class AdminOperations:
             raise InvalidCashDayError("Configuración no permitida.")
         safe = dict(value)
         for forbidden in ("password", "secret", "token", "pin"):
-            if any(forbidden in str(item).lower() for item in safe):
+            if any(forbidden in str(item).lower() for item in safe if item != "secret_ref"):
                 raise InvalidCashDayError("Los secretos deben guardarse en el almacén protegido.")
         now = _now().isoformat()
         with self.repository._connection() as connection:
@@ -427,12 +427,17 @@ class AdminOperations:
         pdf = canvas.Canvas(str(temp), pagesize=A4)
         y = 810
         totals = day.totals()
+        active = [entry for entry in day.entries if entry.status.value == "ACTIVE"]
+        agreement = sum(entry.agreement_amount or 0 for entry in active)
+        balances = sum(entry.client_balance_amount for entry in active)
+        installment_entries = sum(1 for entry in active if str(entry.installments or "").strip())
         lines = [
             ("BC Caja - Caja + Arqueo", closure_id), ("Sucursal / caja", day.unit),
             ("Fecha", day.business_date.strftime("%d-%m-%Y")), ("Responsable", count.responsible),
             ("Apertura", day.opened_at.isoformat()), ("Cierre", day.closed_at.isoformat()),
             ("Caja inicial", day.opening_cash), ("Total ventas", totals.total),
             ("Efectivo", totals.cash), ("Tarjeta / transferencia", totals.card_check),
+            ("Convenio", agreement), ("Ventas con cuotas", installment_entries), ("Saldos", balances),
             ("Gastos", totals.expenses), ("Entregas administración", totals.withdrawals),
             ("Efectivo esperado", count.expected_total), ("Efectivo contado", count.counted_total),
             ("Diferencia", count.difference), ("Motivo diferencia", count.reason or "Sin diferencia"),
@@ -496,8 +501,25 @@ class AdminOperations:
                 self._mail_result(row["id"], "SENT", "SENT")
                 sent += 1
             except Exception as error:
-                self._mail_result(row["id"], "ERROR", self._sanitize_error(error))
+                detail = self._sanitize_error(error)
+                self._mail_result(row["id"], "ERROR" if detail == "AUTHENTICATION_FAILED" else "PENDING", detail)
         return sent
+
+    def retry_outbox(self, outbox_id: str | None = None) -> int:
+        with self.repository._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            if outbox_id:
+                connection.execute(
+                    "UPDATE mail_outbox SET status='PENDING',next_attempt_at=NULL,last_error='',updated_at=? WHERE id=? AND status!='SENT'",
+                    (_now().isoformat(), outbox_id),
+                )
+            else:
+                connection.execute(
+                    "UPDATE mail_outbox SET status='PENDING',next_attempt_at=NULL,last_error='',updated_at=? WHERE status IN ('ERROR','PENDING')",
+                    (_now().isoformat(),),
+                )
+            connection.commit()
+        return self.process_outbox()
 
     def _mail_result(self, outbox_id: str, status: str, detail: str) -> None:
         now = _now()

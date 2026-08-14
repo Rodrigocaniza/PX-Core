@@ -3,6 +3,7 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
@@ -135,6 +136,68 @@ class RC13AdminCountsEmailTests(unittest.TestCase):
         )
         self.assertEqual(count.difference, -50_000)
         self.assertEqual(closed.status.value, "CLOSED")
+
+    def _configured_mail_day(self, date_text="16-08-2026"):
+        session = self.controller.admin.create_initial_admin("adminmail", "Clave-Mail-Segura")
+        self.controller.admin.update_setting(session.token, "mail", {
+            "enabled": True, "recipient": "cierre@example.com", "cc": [],
+            "subject": "Cierre {fecha} - {sucursal}", "host": "smtp.example.com",
+            "port": 587, "username": "sender@example.com", "secret_ref": "smtp",
+        })
+        self.controller.admin.secret_store = type("Secrets", (), {"get": lambda _self, _name: "app-secret"})()
+        day = self.controller.admin.open_from_count(
+            date_text, "PC", {100_000: 1}, "Operadora Central", f"open-{date_text}"
+        )
+        return day
+
+    def test_mail_success_is_sent_once_and_contains_no_secret(self):
+        day = self._configured_mail_day()
+        sent = []
+        class SMTP:
+            def __init__(self, *args, **kwargs): pass
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def starttls(self, context): pass
+            def login(self, username, password): self.password = password
+            def send_message(self, message): sent.append(message)
+        with patch("smtplib.SMTP", SMTP):
+            closed, _, status = self.controller.admin.close_with_count(
+                day.id, {100_000: 1}, "Operadora Central", "close-mail-ok"
+            )
+        self.assertEqual(closed.status.value, "CLOSED")
+        self.assertEqual(status, "SENT")
+        self.assertEqual(len(sent), 1)
+        self.controller.admin.retry_outbox()
+        self.assertEqual(len(sent), 1)
+        with self.controller.service.repository._connection() as connection:
+            row = connection.execute("SELECT status,attempts,last_error FROM mail_outbox").fetchone()
+        self.assertEqual(tuple(row), ("SENT", 1, ""))
+        self.assertNotIn(b"app-secret", (self.root / "bc_caja.sqlite3").read_bytes())
+
+    def test_network_failure_stays_pending_and_retry_succeeds(self):
+        day = self._configured_mail_day("17-08-2026")
+        class TimeoutSMTP:
+            def __init__(self, *args, **kwargs): raise TimeoutError("private host details")
+        with patch("smtplib.SMTP", TimeoutSMTP):
+            closed, _, status = self.controller.admin.close_with_count(
+                day.id, {100_000: 1}, "Operadora Central", "close-mail-timeout"
+            )
+        self.assertEqual(closed.status.value, "CLOSED")
+        self.assertEqual(status, "PENDING")
+        with self.controller.service.repository._connection() as connection:
+            row = connection.execute("SELECT id,status,last_error FROM mail_outbox").fetchone()
+        self.assertEqual(row["last_error"], "NETWORK_TIMEOUT")
+        self.assertNotIn("private", row["last_error"])
+        class SMTP:
+            def __init__(self, *args, **kwargs): pass
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def starttls(self, context): pass
+            def login(self, username, password): pass
+            def send_message(self, message): pass
+        with patch("smtplib.SMTP", SMTP):
+            self.assertEqual(self.controller.admin.retry_outbox(row["id"]), 1)
+        self.assertEqual(self.controller.admin.mail_status(day.id), "SENT")
 
 
 if __name__ == "__main__":

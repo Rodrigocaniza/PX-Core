@@ -6,6 +6,7 @@ import argparse
 import os
 import sys
 import traceback
+import threading
 from pathlib import Path
 
 
@@ -147,6 +148,19 @@ def main(argv=None) -> int:
     window = abrir_caja_diaria(root, controller=controller, usar_ventana_raiz=True)
     lifecycle = ApplicationLifecycle(controller, window)
     window._bc_application_lifecycle = lifecycle
+
+    def retry_pending_mail():
+        def worker():
+            try:
+                controller.admin.process_outbox()
+            except Exception:
+                # La cola durable conserva el trabajo; nunca exponemos secretos ni bloqueamos la UI.
+                pass
+        threading.Thread(target=worker, name="bc-caja-mail-outbox", daemon=True).start()
+        if window.winfo_exists():
+            window.after(60_000, retry_pending_mail)
+
+    window.after(2_000, retry_pending_mail)
     window.protocol("WM_DELETE_WINDOW", lifecycle.close)
     window.bind("<Alt-F4>", lambda _event: (lifecycle.close(), "break")[1], add="+")
     try:
