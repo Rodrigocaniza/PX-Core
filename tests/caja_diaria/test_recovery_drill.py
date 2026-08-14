@@ -106,7 +106,7 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert connection.execute(
             "SELECT version FROM schema_migrations ORDER BY version"
-        ).fetchall() == [(f"{version:03d}",) for version in range(1, 12)]
+        ).fetchall() == [(f"{version:03d}",) for version in range(1, 13)]
         assert connection.execute(
             "SELECT agreement_amount,balance_text FROM cash_entries WHERE id='sale-anon'"
         ).fetchone() == (0, "999999")
@@ -116,7 +116,7 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
 
     # 010 adds only a defaulted column and 011 only touches rows with agreements.
     assert _rows(restored, "cash_days") == before["cash_days"]
-    assert [row[:-1] for row in _rows(restored, "cash_entries")] == before["cash_entries"]
+    assert [row[:-2] for row in _rows(restored, "cash_entries")] == before["cash_entries"]
     for table in ("sale_items", "cash_counts", "cash_entry_revisions"):
         assert _rows(restored, table) == before[table]
 

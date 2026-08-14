@@ -131,7 +131,7 @@ COBRO_PAGO = (
 )
 CAMPOS_MONETARIOS_UI = (
     "caja_inicial", "armazon", "cristal", "total", "efectivo",
-    "tarjeta_cheque", "transferencia", "monto_convenio", "saldo", "gasto_monto",
+    "tarjeta_cheque", "transferencia", "monto_convenio", "saldo", "salida_monto",
 )
 
 
@@ -1041,22 +1041,32 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     zona_secundaria = ctk.CTkFrame(tab_manual, fg_color="#F8FAFD", corner_radius=7,
                                    border_width=1, border_color=color_borde_suave)
-    ctk.CTkLabel(zona_secundaria, text="OPERACIONES SECUNDARIAS", text_color=color_suave,
-                 font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold")).pack(side="left", padx=(10, 8))
-    campos_manual["gasto_descripcion"] = ctk.CTkEntry(
-        zona_secundaria, width=220, height=perfil["campo_alto"], placeholder_text="Descripción del gasto"
+    ctk.CTkLabel(zona_secundaria, text="SALIDA DE CAJA", text_color=color_suave,
+                 font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold")).pack(side="left", padx=(8, 5))
+    campos_manual["salida_tipo"] = ctk.CTkComboBox(
+        zona_secundaria, values=["Gasto", "Entrega administración"], width=145,
+        height=perfil["campo_alto"],
     )
-    campos_manual["gasto_descripcion"].pack(side="left", padx=4, pady=5)
-    campos_manual["gasto_monto"] = ctk.CTkEntry(
-        zona_secundaria, width=125, height=perfil["campo_alto"], placeholder_text="Monto"
+    campos_manual["salida_tipo"].set("Gasto")
+    campos_manual["salida_tipo"].pack(side="left", padx=2, pady=4)
+    for clave, ancho, placeholder in (
+        ("salida_concepto", 150, "Concepto"), ("salida_monto", 95, "Monto"),
+        ("salida_observacion", 125, "Observación"), ("salida_usuario", 95, "Usuario"),
+    ):
+        campos_manual[clave] = ctk.CTkEntry(
+            zona_secundaria, width=ancho, height=perfil["campo_alto"],
+            placeholder_text=placeholder,
+        )
+        campos_manual[clave].pack(side="left", padx=2, pady=4)
+    campos_manual["salida_usuario"].insert(
+        0, os.environ.get("USERNAME") or os.environ.get("USER") or ""
     )
-    campos_manual["gasto_monto"].pack(side="left", padx=4, pady=5)
-    campos_manual["accion_gasto"] = ctk.CTkButton(
-        zona_secundaria, text="Guardar gasto", width=120, height=perfil["campo_alto"],
+    campos_manual["accion_salida"] = ctk.CTkButton(
+        zona_secundaria, text="Guardar salida", width=105, height=perfil["campo_alto"],
         fg_color="#FFF7ED", text_color="#B45309", border_width=1,
         border_color="#F2C69F", hover_color="#FFEBD7",
     )
-    campos_manual["accion_gasto"].pack(side="left", padx=4, pady=5)
+    campos_manual["accion_salida"].pack(side="left", padx=2, pady=4)
 
     # El draft es una zona propia: nunca cuenta como movimiento persistido.
     lista_productos = ctk.CTkFrame(tab_manual, fg_color="#F7FAFF", corner_radius=9,
@@ -1132,8 +1142,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         )
 
     estado_operativo = ctk.CTkFrame(cabecera, fg_color="transparent")
-    estado_operativo.grid(row=0, column=7, sticky="e", padx=8, pady=4)
-    zona_estado = ctk.CTkFrame(tab_manual, fg_color="transparent")
+    estado_operativo.grid(row=0, column=8, sticky="e", padx=4, pady=4)
 
     estado_caja = ctk.CTkLabel(
         estado_operativo, text="SIN CONSULTAR", width=120, height=20, corner_radius=5,
@@ -1147,32 +1156,25 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         command=lambda: cerrar_caja(),
     )
     boton_cerrar_caja.pack(side="left")
+    resumen_compacto = ctk.CTkFrame(cabecera, fg_color="transparent")
+    resumen_compacto.grid(row=0, column=7, sticky="e", padx=2, pady=2)
     etiquetas_kpi = {}
     for clave, titulo, color in (
-        ("ventas", "VENTA TOTAL DEL DÍA", color_azul),
-        ("efectivo", "EFECTIVO", color_verde),
-        ("saldo", "SALDO CLIENTE", "#E5484D"),
-        ("convenio", "A COBRAR CONVENIO", "#7C3AED"),
+        ("ventas", "Venta", color_azul), ("efectivo", "Efectivo", color_verde),
+        ("tarjeta", "Tarj./Transf.", "#52657D"), ("gastos", "Gastos", "#B45309"),
+        ("entregado", "Entregado", "#6B5B95"), ("esperado", "Esperado", "#0F5FB9"),
     ):
-        tarjeta = ctk.CTkFrame(
-            zona_estado, width=(perfil["contenido_ancho"] - 40) // 4,
-            height=(48 if perfil["nombre"] == "full-hd" else 36), fg_color="#FFFFFF", corner_radius=7,
-            border_width=1, border_color=color,
-        )
-        tarjeta.pack(side="left", padx=4, pady=2)
-        tarjeta.pack_propagate(False)
-        iconos_kpi = {
-            "ventas": "▤", "efectivo": "▭", "saldo": "△",
-        }
+        indicador = ctk.CTkFrame(resumen_compacto, fg_color="#F7FAFF", corner_radius=4)
+        indicador.pack(side="left", padx=1)
         ctk.CTkLabel(
-            tarjeta, text=f"{iconos_kpi.get(clave, '◇')}   {titulo}", text_color=color_suave,
-            font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
-        ).pack(side="left", padx=(12, 6), pady=3)
+            indicador, text=titulo, text_color=color_suave,
+            font=ctk.CTkFont(size=8, weight="bold"),
+        ).pack(padx=4, pady=(1, 0))
         valor = ctk.CTkLabel(
-            tarjeta, text="—", text_color=color,
-            font=ctk.CTkFont(size=perfil["fuente_kpi"], weight="bold"),
+            indicador, text="—", text_color=color,
+            font=ctk.CTkFont(size=10, weight="bold"),
         )
-        valor.pack(side="right", padx=(6, 12), pady=3)
+        valor.pack(padx=4, pady=(0, 1))
         etiquetas_kpi[clave] = valor
     def formatear_campo_monetario(clave):
         campo = campos_manual[clave]
@@ -1315,7 +1317,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     )
     entrada_busqueda.pack(side="left", padx=(8, 6), pady=6)
     botones_filtro = {}
-    for nombre_filtro in ("Todos", "Ventas", "Gastos", "Pendientes"):
+    for nombre_filtro in ("Todos", "Ventas", "Salidas", "Pendientes"):
         boton_filtro = ctk.CTkButton(
             toolbar_movimientos, text=nombre_filtro, width=(82 if perfil["nombre"] == "full-hd" else 68), height=(38 if perfil["nombre"] == "full-hd" else 28),
             corner_radius=4, fg_color="#EAF3FF" if nombre_filtro == "Todos" else "transparent",
@@ -1391,7 +1393,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             f"Efectivo actual  {formatear_monto(totales.expected_cash)}    "
             f"Total ventas  {formatear_monto(totales.total)}\n"
             f"Gastos  {formatear_monto(totales.expenses)}    "
-            f"Retiros  {formatear_monto(totales.withdrawals)}    "
+            f"Entregado a administración  {formatear_monto(totales.withdrawals)}    "
             f"Efectivo final  {formatear_monto(totales.expected_cash)}"
         )
         if cash_day.closed_at is None or cash_day.session_duration_seconds is None:
@@ -1418,15 +1420,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         importe = lambda value: formatear_monto(value or 0)
         item_count = len(entry.effective_items)
         resumen = f"{item_count} producto{'s' if item_count != 1 else ''}"
-        if entry.withdrawal:
-            resumen = f"Retiro · {entry.withdrawal_destination or entry.description}"
-        elif entry.expenses:
+        if entry.outflow_type == "ENTREGA_ADMINISTRACION":
+            resumen = "Entrega administración"
+        elif entry.outflow_type == "GASTO" or entry.expenses:
             resumen = f"Gasto · {entry.description}"
-        estado_fila = "ANULADO" if entry.status.value == "VOIDED" else "PENDIENTE" if tiene_saldo_cliente(entry) else "COBRADO"
+        estado_fila = "ANULADO" if entry.status.value == "VOIDED" else "SALIDA" if entry.outflow_type else "PENDIENTE" if tiene_saldo_cliente(entry) else "COBRADO"
+        total_visible = (entry.expenses or entry.withdrawal or 0) if entry.outflow_type else (entry.total or 0)
         return (
             entry.created_at.astimezone(BUSINESS_TIMEZONE).strftime("%H:%M"),
             entry.description, entry.customer_phone, resumen, entry.envelope,
-            importe(entry.total), importe(entry.cash), importe(entry.card_check),
+            importe(total_visible), importe(entry.cash), importe(entry.card_check),
             importe(entry.agreement_amount), entry.installments,
             importe(entry.client_balance_amount), entry.saleswoman, estado_fila,
             "Editar · Anular",
@@ -1447,7 +1450,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 continue
             if filtro == "Ventas" and ((entry.expenses or 0) > 0 or (entry.withdrawal or 0) > 0):
                 continue
-            if filtro == "Gastos" and not (entry.expenses or 0):
+            if filtro == "Salidas" and not entry.outflow_type:
                 continue
             if filtro == "Pendientes" and not tiene_saldo_cliente(entry):
                 continue
@@ -1510,8 +1513,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         escribir_importe_formateado(campos_manual["caja_inicial"], cash_day.opening_cash)
         etiquetas_kpi["ventas"].configure(text=mostrar_importe(totales.total))
         etiquetas_kpi["efectivo"].configure(text=mostrar_importe(totales.cash))
-        etiquetas_kpi["saldo"].configure(text=mostrar_importe(saldo_pendiente))
-        etiquetas_kpi["convenio"].configure(text=mostrar_importe(cobrar_convenio))
+        etiquetas_kpi["tarjeta"].configure(text=mostrar_importe(totales.card_check))
+        etiquetas_kpi["gastos"].configure(text=mostrar_importe(totales.expenses))
+        etiquetas_kpi["entregado"].configure(text=mostrar_importe(totales.withdrawals))
+        etiquetas_kpi["esperado"].configure(text=mostrar_importe(totales.expected_cash))
+        etiqueta_resumen_secundario.configure(
+            text=f"Saldo cliente {mostrar_importe(saldo_pendiente)}  ·  "
+                 f"Convenios {mostrar_importe(cobrar_convenio)}"
+        )
         refrescar_grilla(cash_day)
         estado_control = "normal" if cash_day.status.value == "OPEN" else "disabled"
         estado_edicion["caja_abierta"] = cash_day.status.value == "OPEN"
@@ -1524,10 +1533,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         campos_manual["cliente_telefono"].configure(state=estado_control)
         campos_manual["fecha_entrega"].configure(state=estado_control)
         campos_manual["vendedora"].configure(state=estado_control)
-        campos_manual["gasto_descripcion"].configure(state=estado_control)
-        campos_manual["gasto_monto"].configure(state=estado_control)
+        for clave_salida in (
+            "salida_tipo", "salida_concepto", "salida_monto",
+            "salida_observacion", "salida_usuario",
+        ):
+            campos_manual[clave_salida].configure(state=estado_control)
         boton_guardar.configure(state=estado_control)
-        boton_gasto.configure(state=estado_control)
+        boton_salida.configure(state=estado_control)
 
     def abrir_o_consultar():
         try:
@@ -1563,6 +1575,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             "Ventas en efectivo: " + formatear_monto(totales.cash) + "\n"
             "Tarjeta / transferencia: " + formatear_monto(totales.card_check) + "\n"
             "Gastos: " + formatear_monto(totales.expenses) + "\n"
+            "Entregado a administración: " + formatear_monto(totales.withdrawals) + "\n"
             "Efectivo esperado: " + formatear_monto(totales.expected_cash) + "\n\n"
             "Después del cierre no se podrán modificar movimientos. ¿Cerrar caja?",
             parent=ventana,
@@ -1688,6 +1701,24 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         if cash_day.status.value != "OPEN" or entry.status.value != "ACTIVE":
             messagebox.showwarning("No editable", "La fila está cerrada o anulada.", parent=ventana)
             return
+        if entry.outflow_type:
+            estado_salida["entry_id"] = entry.id
+            campos_manual["salida_tipo"].set(
+                "Entrega administración"
+                if entry.outflow_type == "ENTREGA_ADMINISTRACION" else "Gasto"
+            )
+            for clave, valor in (
+                ("salida_concepto", entry.description),
+                ("salida_monto", entry.expenses or entry.withdrawal or 0),
+                ("salida_observacion", entry.observations or entry.source_reference),
+                ("salida_usuario", entry.performed_by),
+            ):
+                campo = campos_manual[clave]
+                campo.delete(0, "end")
+                campo.insert(0, formatear_importe_ui(valor) if clave == "salida_monto" else str(valor or ""))
+            boton_salida.configure(text="Actualizar salida")
+            campos_manual["salida_concepto"].focus_set()
+            return
         cargar_para_editar(cash_day, entry)
 
 
@@ -1792,55 +1823,55 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         fg_color="#FFFFFF", text_color=color_texto, border_width=1,
         border_color=color_borde_suave, hover_color="#F1F5FA",
     ).pack(side="left", padx=4, pady=3)
-    def guardar_gasto_integrado():
-        try:
-            cash_day, _ = controller.add_expense(
-                campos_manual["fecha"].get().strip(),
-                campos_manual["unidad"].get().strip(),
-                campos_manual["gasto_descripcion"].get(),
-                campos_manual["gasto_monto"].get(),
-                campos_manual["notas"].get(),
-            )
-        except Exception as exc:
-            mostrar_error(exc)
-            return
-        actualizar_estado(cash_day)
-        campos_manual["gasto_descripcion"].delete(0, "end")
-        campos_manual["gasto_monto"].delete(0, "end")
-        messagebox.showinfo("Gasto guardado", "El gasto se registró en la Caja.", parent=ventana)
+    estado_salida = {"entry_id": None}
 
-    boton_gasto = campos_manual["accion_gasto"]
-    boton_gasto.configure(command=guardar_gasto_integrado)
-    campos_manual["gasto_monto"].bind(
-        "<Return>", lambda _event: guardar_gasto_integrado()
-    )
-    def registrar_retiro():
-        monto = simpledialog.askstring("Entrega a Administración", "Monto *", parent=ventana)
-        if monto is None:
-            return
-        destino = simpledialog.askstring(
-            "Entrega a Administración", "Destino", initialvalue="Administración", parent=ventana
+    def limpiar_salida():
+        estado_salida["entry_id"] = None
+        campos_manual["salida_tipo"].set("Gasto")
+        for clave in ("salida_concepto", "salida_monto", "salida_observacion"):
+            campos_manual[clave].delete(0, "end")
+        boton_salida.configure(text="Guardar salida")
+
+    def guardar_salida_integrada():
+        tipo = (
+            "ENTREGA_ADMINISTRACION"
+            if campos_manual["salida_tipo"].get() == "Entrega administración"
+            else "GASTO"
         )
-        if destino is None:
-            return
-        observacion = simpledialog.askstring(
-            "Entrega a Administración", "Observación (opcional)", parent=ventana
-        ) or ""
         try:
-            cash_day, _ = controller.add_withdrawal(
-                campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip(),
-                monto, destino, observacion,
-            )
+            if estado_salida["entry_id"]:
+                motivo = simpledialog.askstring(
+                    "Edición auditada", "Motivo obligatorio:", parent=ventana
+                )
+                if not str(motivo or "").strip():
+                    return
+                cash_day, _ = controller.update_outflow(
+                    campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip(),
+                    estado_salida["entry_id"], tipo,
+                    campos_manual["salida_concepto"].get(), campos_manual["salida_monto"].get(),
+                    observations=campos_manual["salida_observacion"].get(),
+                    performed_by=campos_manual["salida_usuario"].get(), reason=motivo,
+                )
+            else:
+                cash_day, _ = controller.add_outflow(
+                    campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip(),
+                    tipo, campos_manual["salida_concepto"].get(),
+                    campos_manual["salida_monto"].get(),
+                    observations=campos_manual["salida_observacion"].get(),
+                    performed_by=campos_manual["salida_usuario"].get(),
+                )
         except Exception as exc:
             mostrar_error(exc)
             return
         actualizar_estado(cash_day)
-        messagebox.showinfo("Retiro guardado", "La entrega quedó registrada.", parent=ventana)
+        messagebox.showinfo("Salida guardada", "La salida se actualizó correctamente.", parent=ventana)
+        limpiar_salida()
 
-    ctk.CTkButton(
-        acciones_primarias, text="Entrega a Administración", command=registrar_retiro,
-        width=170, height=32, fg_color="#6B5B95",
-    ).pack(side="left", padx=4, pady=3)
+    boton_salida = campos_manual["accion_salida"]
+    boton_salida.configure(command=guardar_salida_integrada)
+    campos_manual["salida_monto"].bind(
+        "<Return>", lambda _event: guardar_salida_integrada()
+    )
     boton_cancelar = ctk.CTkButton(
         acciones_primarias, text="Cancelar edición", command=cancelar_edicion,
         fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
@@ -1891,11 +1922,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.2   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.3   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
     etiqueta_pie.pack(side="left", fill="x", expand=True)
+    etiqueta_resumen_secundario = ctk.CTkLabel(
+        pie, text="Saldo cliente —  ·  Convenios —", anchor="center",
+        text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9, weight="bold"),
+    )
+    etiqueta_resumen_secundario.pack(side="left", padx=12)
     reloj = ctk.CTkLabel(
         pie, text="", anchor="e", text_color=COLOR_TEXTO_SUAVE,
         font=ctk.CTkFont(size=9),
@@ -1904,7 +1940,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     # Macro-layout UX-006: header context, KPI cards, five-section form,
     # movements table with native scrollbars and no visible pagination.
     for bloque in (
-        cabecera, zona_estado, formulario, lista_productos, zona_secundaria,
+        cabecera, formulario, lista_productos, zona_secundaria,
         toolbar_movimientos, marco_grilla, acciones, pie,
     ):
         bloque.pack_forget()
@@ -1912,7 +1948,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     y_cabecera = 4
     es_full_hd = perfil["nombre"] == "full-hd"
     alto_cabecera = 52 if es_full_hd else 36
-    alto_kpi = 48 if es_full_hd else 36
     alto_form = 310 if es_full_hd else 210
     alto_draft = 220 if es_full_hd else 160
     alto_secundario = 40 if es_full_hd else 36
@@ -1920,42 +1955,35 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     separacion_vertical = 5 if es_full_hd else (0 if faltante_vertical else 3)
     reduccion_grilla = max(0, faltante_vertical - (15 if faltante_vertical else 0))
     alto_grilla = 220 if es_full_hd else max(140, 167 - reduccion_grilla)
-    y_kpi = y_cabecera + alto_cabecera + separacion_vertical
-    y_form = y_kpi + alto_kpi + separacion_vertical
+    y_form = y_cabecera + alto_cabecera + separacion_vertical
     y_draft = y_form + alto_form + separacion_vertical
     y_secundario = y_draft + alto_draft + separacion_vertical
-    y_toolbar = y_secundario if not es_full_hd else y_secundario + alto_secundario + separacion_vertical
-    y_grilla = (
-        y_secundario + alto_secundario + separacion_vertical
-        if not es_full_hd else y_toolbar + perfil["toolbar_alto"]
-    )
+    y_toolbar = y_secundario + alto_secundario + separacion_vertical
+    y_grilla = y_toolbar + perfil["toolbar_alto"]
     cabecera.configure(width=ancho_total, height=alto_cabecera)
     cabecera.place(x=4, y=4)
-    zona_estado.configure(width=ancho_total, height=alto_kpi)
-    zona_estado.place(x=4, y=y_kpi)
     formulario.configure(width=ancho_total, height=alto_form)
     formulario.grid_propagate(False)
     formulario.place(x=4, y=y_form)
     lista_productos.configure(width=ancho_total, height=alto_draft)
     lista_productos.pack_propagate(False)
     lista_productos.place(x=4, y=y_draft)
-    zona_secundaria.configure(
-        width=(500 if not es_full_hd else ancho_total), height=alto_secundario
-    )
+    zona_secundaria.configure(width=ancho_total - 280, height=alto_secundario)
     zona_secundaria.pack_propagate(False)
     zona_secundaria.place(x=4, y=y_secundario)
-    acciones.configure(width=(280 if not es_full_hd else 500), height=alto_secundario)
+    acciones.configure(width=280, height=alto_secundario)
     acciones.pack_propagate(False)
-    acciones.place(x=(504 if not es_full_hd else ancho_total - 496), y=y_secundario)
+    acciones.place(x=ancho_total - 276, y=y_secundario)
     toolbar_movimientos.configure(
-        width=(ancho_total - 774 if not es_full_hd else ancho_total),
-        height=(alto_secundario if not es_full_hd else perfil["toolbar_alto"]),
+        width=ancho_total, height=perfil["toolbar_alto"],
     )
-    toolbar_movimientos.place(x=(774 if not es_full_hd else 4), y=y_toolbar)
+    toolbar_movimientos.place(x=4, y=y_toolbar)
     if not es_full_hd:
-        campos_manual["gasto_descripcion"].configure(width=160)
-        campos_manual["gasto_monto"].configure(width=90)
-        boton_gasto.configure(width=100)
+        campos_manual["salida_concepto"].configure(width=140)
+        campos_manual["salida_monto"].configure(width=85)
+        campos_manual["salida_observacion"].configure(width=110)
+        campos_manual["salida_usuario"].configure(width=85)
+        boton_salida.configure(width=95)
         entrada_busqueda.configure(width=130)
         for boton in botones_filtro.values():
             boton.configure(width=55)
@@ -1980,12 +2008,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         x_actual = max(4, (ancho_cliente - ancho_actual) // 2)
         full_hd_actual = ancho_cliente >= 1700 and alto_cliente >= 850
         if full_hd_actual:
-            alto_cab, alto_tot = 52, 48
+            alto_cab, alto_tot = 52, 0
             form_preferido, form_minimo = 310, 280
             draft_preferido, draft_minimo = 220, 110
             alto_sec, sep = 40, 5
         else:
-            alto_cab, alto_tot = 34, 34
+            alto_cab, alto_tot = 42, 0
             form_preferido, form_minimo = 198, 158
             draft_preferido, draft_minimo = 160, 80
             alto_sec, sep = 32, 1
@@ -1993,7 +2021,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         alto_pie_actual = max(18, pie.winfo_reqheight())
         fila_renderizada = int(estilo.lookup("Caja.Treeview", "rowheight"))
         alto_grilla_minimo = 46 + (5 * fila_renderizada) + scroll_horizontal.winfo_reqheight() + 4
-        extra_toolbar = alto_sec + sep + perfil["toolbar_alto"] if full_hd_actual else alto_sec + sep
+        extra_toolbar = alto_sec + sep + perfil["toolbar_alto"]
         fijos_sin_form_draft = 4 + alto_cab + sep + alto_tot + sep + sep + extra_toolbar
         presupuesto_form_draft = max(
             form_minimo + draft_minimo,
@@ -2013,17 +2041,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         y_form_actual = y_tot + alto_tot + sep
         y_draft_actual = y_form_actual + alto_form_actual + sep
         y_sec = y_draft_actual + draft_actual + sep
-        y_toolbar_actual = y_sec if not full_hd_actual else y_sec + alto_sec + sep
-        y_grid = y_sec + alto_sec + sep if not full_hd_actual else y_toolbar_actual + perfil["toolbar_alto"]
+        y_toolbar_actual = y_sec + alto_sec + sep
+        y_grid = y_toolbar_actual + perfil["toolbar_alto"]
         y_footer = alto_cliente - alto_pie_actual - margen_inferior
         alto_grid = max(1, y_footer - 2 - y_grid)
         cabecera.configure(width=ancho_actual, height=alto_cab); cabecera.place(x=x_actual, y=y_cab)
-        zona_estado.configure(width=ancho_actual, height=alto_tot); zona_estado.place(x=x_actual, y=y_tot)
         formulario.configure(width=ancho_actual, height=alto_form_actual); formulario.place(x=x_actual, y=y_form_actual)
         lista_productos.configure(width=ancho_actual, height=draft_actual); lista_productos.place(x=x_actual, y=y_draft_actual)
-        zona_secundaria.configure(width=(500 if not full_hd_actual else ancho_actual), height=alto_sec); zona_secundaria.place(x=x_actual, y=y_sec)
-        acciones.configure(width=(280 if not full_hd_actual else 500), height=alto_sec); acciones.place(x=(x_actual + 500 if not full_hd_actual else x_actual + ancho_actual - 500), y=y_sec)
-        toolbar_movimientos.configure(width=(ancho_actual - 780 if not full_hd_actual else ancho_actual), height=(alto_sec if not full_hd_actual else perfil["toolbar_alto"])); toolbar_movimientos.place(x=(x_actual + 780 if not full_hd_actual else x_actual), y=y_toolbar_actual)
+        zona_secundaria.configure(width=ancho_actual - 280, height=alto_sec); zona_secundaria.place(x=x_actual, y=y_sec)
+        acciones.configure(width=280, height=alto_sec); acciones.place(x=x_actual + ancho_actual - 280, y=y_sec)
+        toolbar_movimientos.configure(width=ancho_actual, height=perfil["toolbar_alto"]); toolbar_movimientos.place(x=x_actual, y=y_toolbar_actual)
         marco_grilla.configure(width=ancho_actual, height=alto_grid); marco_grilla.place(x=x_actual, y=y_grid)
         pie.configure(width=ancho_actual, height=alto_pie_actual); pie.place(x=x_actual, y=y_footer)
         estado_layout["metricas"] = {"cliente": (ancho_cliente, alto_cliente), "grilla_y": y_grid, "grilla_alto": alto_grid, "pie_y": y_footer, "pie_alto": alto_pie_actual, "footer_bottom": y_footer + alto_pie_actual, "required": y_footer + alto_pie_actual + margen_inferior, "draft_alto": draft_actual, "overflow": max(0, y_footer + alto_pie_actual + margen_inferior - alto_cliente)}
@@ -2224,6 +2251,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     lista_historial.pack(fill="both", expand=True, padx=8, pady=8)
 
     def cargar_para_editar(cash_day, entry):
+        if entry.outflow_type:
+            grilla_caja.selection_set(entry.id)
+            editar_seleccionado()
+            return
         if cash_day.status.value != "OPEN" or entry.status.value != "ACTIVE":
             messagebox.showwarning(
                 "No editable", "La fila está cerrada o anulada.", parent=ventana

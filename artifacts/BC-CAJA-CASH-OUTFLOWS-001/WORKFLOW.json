@@ -1,0 +1,16 @@
+{
+  "mission": "BC-CAJA-CASH-OUTFLOWS-001",
+  "current_state": "CLOSED",
+  "published": true,
+  "synchronized": true,
+  "history": [
+    {"event": "MISSION_CREATED", "to_state": "VERIFICATION"},
+    {"event": "VERIFICATION_PASSED", "to_state": "PACKAGING", "tests_passed": 157},
+    {"event": "PACKAGING_PASSED", "to_state": "ARTIFACT_AUDIT", "zip_sha256": "e8bb1cd8be98cd66adb952102efad1257d99c1e919f79c09faa160a76491901a"},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED", "to_state": "LIBRARIAN"},
+    {"event": "LIBRARIAN_PASS", "to_state": "QA"},
+    {"event": "QA_PASS", "to_state": "AUDITOR"},
+    {"event": "AUDITOR_PASS", "to_state": "SAFE_CLOSURE"},
+    {"event": "SAFE_CLOSURE_PASSED", "to_state": "CLOSED"}
+  ]
+}

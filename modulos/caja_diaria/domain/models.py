@@ -253,6 +253,7 @@ class CashEntry:
     withdrawal: int | str | None = None
     withdrawal_destination: str = ""
     performed_by: str = ""
+    outflow_type: str = ""
     envelope: str = ""
     frame_origin: str = ""
     code: str = ""
@@ -293,9 +294,24 @@ class CashEntry:
             "orders", "installments", "balance", "origin", "source_reference",
             "customer_document", "customer_phone", "saleswoman", "observations", "withdrawal_destination",
             "performed_by",
+            "outflow_type",
         ):
             value = getattr(self, name)
             object.__setattr__(self, name, "" if value is None else str(value).strip())
+        inferred_outflow_type = self.outflow_type.upper()
+        if not inferred_outflow_type and self.expenses:
+            inferred_outflow_type = "GASTO"
+        if not inferred_outflow_type and self.withdrawal:
+            inferred_outflow_type = "ENTREGA_ADMINISTRACION"
+        if inferred_outflow_type not in {"", "GASTO", "ENTREGA_ADMINISTRACION"}:
+            raise InvalidCashDayError("el tipo de salida de caja no es válido")
+        if self.expenses and self.withdrawal:
+            raise InvalidCashDayError("una salida no puede ser gasto y entrega simultáneamente")
+        if inferred_outflow_type == "GASTO" and not self.expenses:
+            raise InvalidCashDayError("un gasto requiere monto")
+        if inferred_outflow_type == "ENTREGA_ADMINISTRACION" and not self.withdrawal:
+            raise InvalidCashDayError("una entrega a administración requiere monto")
+        object.__setattr__(self, "outflow_type", inferred_outflow_type)
         if self.delivery_date in (None, ""):
             object.__setattr__(self, "delivery_date", None)
         else:

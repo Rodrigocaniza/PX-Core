@@ -1,4 +1,4 @@
-BC Caja 1.0.0-rc.2
-Misión: BC-CAJA-MOVIMIENTOS-SCROLL-001
+BC Caja 1.0.0-rc.3
+Misión: BC-CAJA-CASH-OUTFLOWS-001
 Fecha: 2026-08-14
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)

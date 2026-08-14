@@ -8,11 +8,11 @@ SOURCE = Path("CajaDiaria.py").read_text(encoding="utf-8")
 
 
 class OperatorUXContractTests(unittest.TestCase):
-    def test_only_three_global_financial_kpis_are_primary(self):
-        for title in ("VENTA TOTAL DEL DÍA", "EFECTIVO", "SALDO CLIENTE", "A COBRAR CONVENIO"):
-            self.assertEqual(SOURCE.count(f'"{title}"'), 1)
-        for title in ("TARJ. / TRANSF.", "EFECTIVO FINAL"):
-            self.assertNotIn(title, SOURCE)
+    def test_compact_cash_summary_has_the_six_operational_indicators(self):
+        for title in ("Venta", "Efectivo", "Tarj./Transf.", "Gastos", "Entregado", "Esperado"):
+            self.assertIn(f'"{title}"', SOURCE)
+        self.assertIn("resumen_compacto", SOURCE)
+        self.assertNotIn("VENTA TOTAL DEL DÍA", SOURCE)
 
     def test_full_hd_uses_three_operator_blocks(self):
         for title in ("CLIENTE Y COMPROBANTE", "DETALLE DE VENTA", "PAGO"):

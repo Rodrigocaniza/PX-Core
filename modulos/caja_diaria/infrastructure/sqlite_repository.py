@@ -184,8 +184,8 @@ class SQLiteCashDayRepository:
                         balance_text,expenses,origin,source_reference,customer_document,
                         saleswoman,delivery_date,observations,customer_phone,created_at,updated_at,
                         status,voided_at,void_reason,revision,withdrawal,
-                        withdrawal_destination,performed_by,agreement_amount
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                        withdrawal_destination,performed_by,agreement_amount,outflow_type
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         cash_day_id=excluded.cash_day_id, description=excluded.description,
                         envelope=excluded.envelope, frame_origin=excluded.frame_origin,
@@ -206,7 +206,8 @@ class SQLiteCashDayRepository:
                         revision=excluded.revision, withdrawal=excluded.withdrawal,
                         withdrawal_destination=excluded.withdrawal_destination,
                         performed_by=excluded.performed_by,
-                        agreement_amount=excluded.agreement_amount""",
+                        agreement_amount=excluded.agreement_amount,
+                        outflow_type=excluded.outflow_type""",
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
                 stage = "sale_items_refresh"
@@ -269,7 +270,7 @@ class SQLiteCashDayRepository:
             _iso(entry.updated_at), entry.status.value, _iso(entry.voided_at),
             entry.void_reason, entry.revision,
             entry.withdrawal, entry.withdrawal_destination, entry.performed_by,
-            entry.agreement_amount or 0,
+            entry.agreement_amount or 0, entry.outflow_type,
         )
 
     @classmethod
@@ -353,6 +354,7 @@ class SQLiteCashDayRepository:
             "withdrawal": entry.withdrawal,
             "withdrawal_destination": entry.withdrawal_destination,
             "performed_by": entry.performed_by,
+            "outflow_type": entry.outflow_type,
             "origin": entry.origin,
             "source_reference": entry.source_reference,
             "customer_document": entry.customer_document,
@@ -435,6 +437,7 @@ class SQLiteCashDayRepository:
             balance=item["balance_text"], expenses=item["expenses"], origin=item["origin"],
             withdrawal=item["withdrawal"], withdrawal_destination=item["withdrawal_destination"],
             performed_by=item["performed_by"],
+            outflow_type=item["outflow_type"],
             source_reference=item["source_reference"], created_at=_datetime(item["created_at"]),
             customer_document=item["customer_document"], saleswoman=item["saleswoman"],
             customer_phone=item["customer_phone"],

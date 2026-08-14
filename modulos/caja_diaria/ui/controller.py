@@ -86,13 +86,10 @@ class CashDayUIController:
     ) -> tuple[CashDay, CashEntry]:
         if not str(concept).strip():
             raise InvalidCashDayError("Ingresá el concepto del gasto.")
-        cash_day = self.load_day(date_text, unit)
-        entry = CashEntry(
-            description=str(concept).strip(), expenses=amount,
-            origin="manual-expense", source_reference=str(observations).strip(),
+        return self.add_outflow(
+            date_text, unit, "GASTO", concept, amount,
+            observations=observations, performed_by="Sistema",
         )
-        saved = self.service.add_entry(cash_day.id, entry)
-        return self.service.get_day(cash_day.id), saved
 
     def add_withdrawal(
         self, date_text: str, unit: str, amount: Any,
@@ -102,6 +99,62 @@ class CashDayUIController:
         cash_day = self.load_day(date_text, unit)
         saved = self.service.record_withdrawal(
             cash_day.id, amount, destination, observations, performed_by
+        )
+        return self.service.get_day(cash_day.id), saved
+
+    def add_outflow(
+        self, date_text: str, unit: str, outflow_type: str, concept: str,
+        amount: Any, *, observations: str = "", performed_by: str = "",
+    ) -> tuple[CashDay, CashEntry]:
+        normalized_type = str(outflow_type or "").strip().upper()
+        if normalized_type not in {"GASTO", "ENTREGA_ADMINISTRACION"}:
+            raise InvalidCashDayError("Seleccioná un tipo de salida válido.")
+        if not str(concept or "").strip():
+            raise InvalidCashDayError("Ingresá el concepto de la salida.")
+        if not str(performed_by or "").strip():
+            raise InvalidCashDayError("Ingresá el usuario responsable.")
+        cash_day = self.load_day(date_text, unit)
+        parsed_amount = money(amount, field_name="monto de salida")
+        entry = CashEntry(
+            description=str(concept).strip(),
+            expenses=parsed_amount if normalized_type == "GASTO" else 0,
+            withdrawal=parsed_amount if normalized_type == "ENTREGA_ADMINISTRACION" else 0,
+            withdrawal_destination="Administración" if normalized_type == "ENTREGA_ADMINISTRACION" else "",
+            performed_by=str(performed_by).strip(), outflow_type=normalized_type,
+            origin="cash-outflow", source_reference=str(observations).strip(),
+            observations=str(observations).strip(),
+        )
+        saved = self.service.add_entry(cash_day.id, entry)
+        return self.service.get_day(cash_day.id), saved
+
+    def update_outflow(
+        self, date_text: str, unit: str, entry_id: str, outflow_type: str,
+        concept: str, amount: Any, *, observations: str, performed_by: str,
+        reason: str,
+    ) -> tuple[CashDay, CashEntry]:
+        cash_day = self.load_day(date_text, unit)
+        existing = next((entry for entry in cash_day.entries if entry.id == entry_id), None)
+        if existing is None or not existing.outflow_type:
+            raise InvalidCashDayError("salida de caja inexistente")
+        normalized_type = str(outflow_type or "").strip().upper()
+        if normalized_type not in {"GASTO", "ENTREGA_ADMINISTRACION"}:
+            raise InvalidCashDayError("Seleccioná un tipo de salida válido.")
+        if not str(concept or "").strip() or not str(performed_by or "").strip():
+            raise InvalidCashDayError("Concepto y usuario son obligatorios.")
+        if not str(reason or "").strip():
+            raise InvalidCashDayError("El motivo de edición es obligatorio.")
+        parsed_amount = money(amount, field_name="monto de salida")
+        updated = existing.edited(
+            description=str(concept).strip(),
+            expenses=parsed_amount if normalized_type == "GASTO" else 0,
+            withdrawal=parsed_amount if normalized_type == "ENTREGA_ADMINISTRACION" else 0,
+            withdrawal_destination="Administración" if normalized_type == "ENTREGA_ADMINISTRACION" else "",
+            performed_by=str(performed_by).strip(), outflow_type=normalized_type,
+            source_reference=str(observations or "").strip(),
+            observations=str(observations or "").strip(),
+        )
+        saved = self.service.update_entry(
+            cash_day.id, updated, reason=str(reason).strip(), user=str(performed_by).strip()
         )
         return self.service.get_day(cash_day.id), saved
 

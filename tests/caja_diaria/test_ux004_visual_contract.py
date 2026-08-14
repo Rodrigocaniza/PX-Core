@@ -17,11 +17,11 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
             '"#EAF2FB"',
             '"#FFFFFF"',
             '"Caja inicial"',
-            '"VENTA TOTAL DEL DÍA"',
+            'resumen_compacto',
             '"Estado: ABIERTA"',
             '"Estado: CERRADA"',
             'Guardar venta  —  F9',
-            'iconos_kpi = {',
+            '("esperado", "Esperado", "#0F5FB9")',
             'pestañas._segmented_button.grid_forget()',
             'boton_cancelar.pack_forget()',
         ):

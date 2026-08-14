@@ -1,0 +1,18 @@
+{
+  "mission": "BC-CAJA-CASH-OUTFLOWS-001",
+  "version": "1.0.0-rc.3",
+  "status": "PASSED",
+  "installer": "releases/BC-CAJA-1.0.0-rc.3-win64.zip",
+  "zip_sha256": "e8bb1cd8be98cd66adb952102efad1257d99c1e919f79c09faa160a76491901a",
+  "zip_bytes": 31944829,
+  "exe_sha256": "42fd9971cabce1b4f2e23da0ab69b17d0f38885b54752d855f967bb38b5f27a2",
+  "visual_evidence": {
+    "path": "artifacts/BC-CAJA-CASH-OUTFLOWS-001/final-1366x768.png",
+    "sha256": "12560eb949005652d212a8212b57be524fd1f6ab5fd793b58150f322b854cd28",
+    "resolution": "1366x768"
+  },
+  "tests": {"regression": 157, "targeted": 34, "failures": 0},
+  "migration": "012_cash_outflow_type.sql",
+  "data_location": "%LOCALAPPDATA%/BC/Caja or BC_CAJA_DATA_DIR",
+  "embedded_operational_data": false
+}
