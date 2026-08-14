@@ -643,15 +643,45 @@ class SQLiteCashDayRepository:
             ).fetchall()
         return [self._hydrate_order(row) for row in rows]
 
-    def update_order_status(self, order_id: str, status: OrderStatus | str) -> Order:
+    def update_order_status(
+        self, order_id: str, status: OrderStatus | str, *,
+        reason: str = "", responsible: str = "Sistema",
+    ) -> Order:
+        target = OrderStatus(status)
         with self._connection() as connection:
             row = connection.execute("SELECT * FROM orders WHERE id = ?", (order_id,)).fetchone()
             if row is None:
                 raise InvalidCashDayError(f"pedido inexistente: {order_id}")
-            updated = self._hydrate_order(row).transition_to(status)
+            current = self._hydrate_order(row)
+            if current.status is target:
+                return current
+            reason = str(reason or "").strip()
+            responsible = str(responsible or "").strip()
+            if current.status is OrderStatus.DELIVERED and target is OrderStatus.PENDING:
+                if not reason:
+                    raise InvalidCashDayError("el motivo de corrección es obligatorio")
+                if not responsible:
+                    raise InvalidCashDayError("el responsable de la corrección es obligatorio")
+            updated = current.transition_to(target)
             connection.execute(
                 "UPDATE orders SET status = ?, updated_at = ? WHERE id = ?",
                 (updated.status.value, _iso(updated.updated_at), updated.id),
             )
+            connection.execute(
+                """INSERT INTO order_status_revisions(
+                    order_id,previous_status,new_status,responsible,reason,recorded_at
+                ) VALUES (?,?,?,?,?,?)""",
+                (updated.id, current.status.value, updated.status.value,
+                 responsible or "Sistema", reason, _iso(updated.updated_at)),
+            )
             connection.commit()
         return updated
+
+    def list_order_status_revisions(self, order_id: str) -> Sequence[dict]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                """SELECT previous_status,new_status,responsible,reason,recorded_at
+                FROM order_status_revisions WHERE order_id = ? ORDER BY id""",
+                (order_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]

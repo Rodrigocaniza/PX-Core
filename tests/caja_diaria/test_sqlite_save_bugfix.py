@@ -54,7 +54,7 @@ class SQLiteSaveBugfixTests(unittest.TestCase):
                 self.assertEqual(
                     [row[0] for row in connection.execute(
                         "SELECT version FROM schema_migrations ORDER BY version"
-                )], ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013"]
+                )], ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013", "014"]
                 )
             finally:
                 connection.close()

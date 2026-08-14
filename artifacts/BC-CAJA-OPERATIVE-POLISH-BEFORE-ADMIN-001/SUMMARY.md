@@ -1,0 +1,1 @@
+RC.10 conserva plantilla RC.9, mejora contraste de Historial, alinea Pedidos, añade chips de estado y reversión auditada a PENDIENTE. 185 pruebas + 4 subpruebas; GUI 1366x768; EXE smokes; migración 014; integridad ok.

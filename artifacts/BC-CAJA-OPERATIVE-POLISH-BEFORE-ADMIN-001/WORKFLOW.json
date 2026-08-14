@@ -1,0 +1,53 @@
+{
+    "mission":  "BC-CAJA-OPERATIVE-POLISH-BEFORE-ADMIN-001",
+    "current_state":  "SAFE_CLOSURE",
+    "published":  false,
+    "synchronized":  false,
+    "mission_lease":  {
+                          "holder":  "Codex/BC-Caja",
+                          "branch":  "feature/bc-caja-operative-polish-before-admin-001",
+                          "exclusive":  true
+                      },
+    "role_state_binding":  {
+                               "VERIFICATION":  "Verification",
+                               "PACKAGING":  "Packaging",
+                               "ARTIFACT_AUDIT":  "Artifact Consistency",
+                               "LIBRARIAN":  "Independent Librarian",
+                               "QA":  "Independent QA",
+                               "AUDITOR":  "Independent Auditor",
+                               "SAFE_CLOSURE":  "Release Engineer"
+                           },
+    "history":  [
+                    {
+                        "event":  "MISSION_CREATED",
+                        "base":  "64ecf4fe61889648918cad43ca34558f2e643f27"
+                    },
+                    {
+                        "event":  "VERIFICATION_PASSED",
+                        "tests_passed":  185,
+                        "subtests_passed":  4
+                    },
+                    {
+                        "event":  "PACKAGING_PASSED",
+                        "zip_sha256":  "915a9ea35ffa39b509ae86c5e0fb75950609c2b94252fc7f3b1e9428f97e3ae3"
+                    },
+                    {
+                        "event":  "ARTIFACT_CONSISTENCY_PASSED",
+                        "migrations":  14
+                    },
+                    {
+                        "event":  "LIBRARIAN_PASS"
+                    },
+                    {
+                        "event":  "QA_PASS",
+                        "visual":  "1366x768"
+                    },
+                    {
+                        "event":  "AUDITOR_PASS"
+                    },
+                    {
+                        "event":  "DEPLOYMENT_VERIFIED",
+                        "integrity":  "ok"
+                    }
+                ]
+}

@@ -2103,7 +2103,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.9   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.10   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -2445,7 +2445,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         tab_historial, text="", justify="left", text_color=COLOR_TEXTO_SUAVE
     )
     resumen_historial.pack(fill="x", padx=8, pady=(0, 4), anchor="w")
-    lista_historial = ctk.CTkScrollableFrame(tab_historial, fg_color=COLOR_PANEL_SECUNDARIO[1])
+    lista_historial = ctk.CTkScrollableFrame(tab_historial, fg_color="#F3F6FA")
     lista_historial.pack(fill="both", expand=True, padx=8, pady=8)
 
     def cargar_para_editar(cash_day, entry):
@@ -2572,7 +2572,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             widget.destroy()
         resumen_historial.configure(text=f"{len(cash_days)} jornadas en el período")
         for cash_day in cash_days:
-            cabecera = ctk.CTkFrame(lista_historial, fg_color="#EAF3FF")
+            cabecera = ctk.CTkFrame(lista_historial, fg_color="#DCEBFA")
             cabecera.pack(fill="x", padx=4, pady=(7, 2))
             ctk.CTkLabel(
                 cabecera,
@@ -2583,8 +2583,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 cabecera, text="Editar caja", width=90,
                 command=lambda d=cash_day: editar_caja(d),
             ).pack(side="right", padx=4, pady=3)
-            for entry in cash_day.entries:
-                fila = ctk.CTkFrame(lista_historial, fg_color="transparent")
+            for indice_entry, entry in enumerate(cash_day.entries):
+                es_anulado = entry.status.value == "VOIDED"
+                color_fila = "#FDECEC" if es_anulado else ("#FFFFFF" if indice_entry % 2 == 0 else "#EEF4FB")
+                fila = ctk.CTkFrame(lista_historial, fg_color=color_fila)
                 fila.pack(fill="x", padx=12, pady=3)
                 estado_texto = "ANULADO" if entry.status.value == "VOIDED" else "ACTIVO"
                 detalle = (
@@ -2595,7 +2597,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 )
                 if entry.void_reason:
                     detalle += f" ({entry.void_reason})"
-                ctk.CTkLabel(fila, text=detalle, anchor="w").pack(
+                ctk.CTkLabel(
+                    fila, text=detalle, anchor="w",
+                    text_color="#A32626" if es_anulado else "#132238",
+                ).pack(
                 side="left", fill="x", expand=True
                 )
                 habilitado = (
@@ -2640,24 +2645,73 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         hover_color=COLOR_PRIMARIO_HOVER,
     ).pack(side="left", padx=8)
 
-    # ---- Pedidos V1 (estado central; Caja es solamente el primer origen) ----
+    # ---- Pedidos: alineación, chips accesibles y reversión auditada ----
     barra_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="transparent")
     barra_pedidos.pack(fill="x", padx=10, pady=10)
     filtro_pedidos = ctk.StringVar(value="Hoy")
     marco_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="#FFFFFF")
     marco_pedidos.pack(fill="both", expand=True, padx=10, pady=(0, 8))
+    marco_pedidos.grid_rowconfigure(0, weight=1)
+    marco_pedidos.grid_columnconfigure(0, weight=1)
     columnas_pedido = ("entrega", "cliente", "telefono", "documento", "sobre", "sucursal", "vendedora", "origen", "estado")
     grilla_pedidos = ttk.Treeview(marco_pedidos, columns=columnas_pedido, show="headings", style="Caja.Treeview")
+    alineacion_pedidos = {
+        "entrega": "center", "cliente": "w", "telefono": "center",
+        "documento": "center", "sobre": "center", "sucursal": "center",
+        "vendedora": "center", "origen": "center", "estado": "center",
+    }
     for clave, titulo, ancho in (
         ("entrega", "Entrega", 100), ("cliente", "Cliente", 220),
-        ("telefono", "Teléfono", 125),
-        ("documento", "CI/RUC", 120), ("sobre", "Sobre", 75),
-        ("sucursal", "Sucursal", 100), ("vendedora", "Vendedora", 120),
-        ("origen", "Origen", 90), ("estado", "Estado", 110),
+        ("telefono", "Teléfono", 125), ("documento", "CI/RUC", 120),
+        ("sobre", "Sobre", 75), ("sucursal", "Sucursal", 100),
+        ("vendedora", "Vendedora", 120), ("origen", "Origen", 90),
+        ("estado", "Estado", 110),
     ):
-        grilla_pedidos.heading(clave, text=titulo)
-        grilla_pedidos.column(clave, width=ancho, anchor="w")
-    grilla_pedidos.pack(fill="both", expand=True, padx=5, pady=5)
+        anchor = alineacion_pedidos[clave]
+        grilla_pedidos.heading(clave, text=titulo, anchor=anchor)
+        grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor, stretch=False)
+    scroll_pedidos = ttk.Scrollbar(marco_pedidos, orient="vertical")
+    grilla_pedidos.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
+    scroll_pedidos.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
+    chips_pedidos = []
+    colores_estado_pedido = {
+        "PENDIENTE": ("#FFF1CC", "#E6A23C", "#8A4B08"),
+        "LISTO": ("#DCEEFF", "#82B7E8", "#174A7E"),
+        "ENTREGADO": ("#DDF5E8", "#79C99E", "#17633A"),
+        "ANULADO": ("#FDECEC", "#E5A3A3", "#A32626"),
+    }
+
+    def posicionar_chips_pedidos():
+        for chip in chips_pedidos:
+            chip.destroy()
+        chips_pedidos.clear()
+        for iid in grilla_pedidos.get_children():
+            caja = grilla_pedidos.bbox(iid, "estado")
+            if not caja:
+                continue
+            x, y, ancho, alto = caja
+            estado = str(grilla_pedidos.set(iid, "estado"))
+            fondo, borde, texto = colores_estado_pedido.get(estado, ("#EEF4FB", "#B9CDE5", "#132238"))
+            chip = ctk.CTkLabel(
+                marco_pedidos, text=estado, width=max(72, ancho - 14), height=max(20, alto - 6),
+                corner_radius=8, fg_color=fondo, text_color=texto,
+                font=ctk.CTkFont(size=9, weight="bold"),
+            )
+            chip.configure(cursor="hand2")
+            chip.bind("<Button-1>", lambda _e, pedido=iid: (grilla_pedidos.selection_set(pedido), actualizar_botones_pedido()))
+            chip.place(x=grilla_pedidos.winfo_x() + x + 7, y=grilla_pedidos.winfo_y() + y + 3)
+            chips_pedidos.append(chip)
+
+    def actualizar_scroll_pedidos(inicio, fin):
+        scroll_pedidos.set(inicio, fin)
+        ventana.after_idle(posicionar_chips_pedidos)
+
+    def desplazar_pedidos(*args):
+        grilla_pedidos.yview(*args)
+        ventana.after_idle(posicionar_chips_pedidos)
+
+    scroll_pedidos.configure(command=desplazar_pedidos)
+    grilla_pedidos.configure(yscrollcommand=actualizar_scroll_pedidos)
 
     def refrescar_pedidos(nombre=None):
         if nombre:
@@ -2670,6 +2724,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 pedido.customer_phone, pedido.customer_document, pedido.envelope, pedido.branch,
                 pedido.saleswoman, pedido.origin.value, pedido.status.value,
             ))
+        actualizar_botones_pedido()
+        ventana.after_idle(posicionar_chips_pedidos)
 
     for nombre in ("Hoy", "Atrasados", "Próximos", "Todos"):
         ctk.CTkButton(
@@ -2677,21 +2733,68 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             command=lambda valor=nombre: refrescar_pedidos(valor),
         ).pack(side="left", padx=3)
 
+    botones_estado_pedido = {}
+
+    def estado_pedido_seleccionado():
+        seleccion = grilla_pedidos.selection()
+        return str(grilla_pedidos.set(seleccion[0], "estado")) if seleccion else ""
+
+    def actualizar_botones_pedido(_event=None):
+        estado = estado_pedido_seleccionado()
+        botones_estado_pedido["PENDIENTE"].configure(state="normal" if estado in {"LISTO", "ENTREGADO"} else "disabled")
+        botones_estado_pedido["LISTO"].configure(state="normal" if estado == "PENDIENTE" else "disabled")
+        botones_estado_pedido["ENTREGADO"].configure(state="normal" if estado == "LISTO" else "disabled")
+
     def cambiar_estado_pedido(estado):
         seleccion = grilla_pedidos.selection()
         if not seleccion:
             messagebox.showwarning("Seleccioná un pedido", "Elegí una fila.", parent=ventana)
             return
+        actual = estado_pedido_seleccionado()
+        if actual == estado:
+            return
+        motivo = "Cambio operativo"
+        responsable = os.environ.get("USERNAME") or os.environ.get("USER") or "Sistema"
+        if actual == "ENTREGADO" and estado == "PENDIENTE":
+            if not messagebox.askyesno(
+                "Revertir entrega", "¿Corregir este pedido entregado y devolverlo a PENDIENTE?",
+                parent=ventana,
+            ):
+                return
+            motivo = simpledialog.askstring(
+                "Corrección auditada", "Motivo obligatorio de la corrección:", parent=ventana,
+            )
+            if not str(motivo or "").strip():
+                return
+            if not responsable or responsable == "Sistema":
+                responsable = simpledialog.askstring(
+                    "Corrección auditada", "Usuario responsable:", parent=ventana,
+                )
+            if not str(responsable or "").strip():
+                return
         try:
-            controller.update_order_status(seleccion[0], estado)
+            controller.update_order_status(
+                seleccion[0], estado, reason=motivo, responsible=responsable,
+            )
             refrescar_pedidos()
             refrescar_avisos()
         except Exception as exc:
             mostrar_error(exc)
 
-    ctk.CTkButton(barra_pedidos, text="Marcar listo", command=lambda: cambiar_estado_pedido("LISTO"), fg_color=color_verde).pack(side="right", padx=3)
-    ctk.CTkButton(barra_pedidos, text="Marcar entregado", command=lambda: cambiar_estado_pedido("ENTREGADO"), fg_color=color_azul).pack(side="right", padx=3)
-
+    for estado, texto_boton, color in (
+        ("PENDIENTE", "Marcar pendiente", "#D97706"),
+        ("LISTO", "Marcar listo", color_verde),
+        ("ENTREGADO", "Marcar entregado", color_azul),
+    ):
+        boton = ctk.CTkButton(
+            barra_pedidos, text=texto_boton, width=118,
+            command=lambda destino=estado: cambiar_estado_pedido(destino), fg_color=color,
+        )
+        boton.pack(side="right", padx=3)
+        botones_estado_pedido[estado] = boton
+    grilla_pedidos.bind("<<TreeviewSelect>>", actualizar_botones_pedido, add="+")
+    grilla_pedidos.bind("<Configure>", lambda _e: ventana.after_idle(posicionar_chips_pedidos), add="+")
+    actualizar_botones_pedido()
     def refrescar_avisos():
         hoy, atrasados = controller.order_counts()
         pendientes = hoy + atrasados

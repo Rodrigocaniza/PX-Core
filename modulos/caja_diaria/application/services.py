@@ -163,8 +163,8 @@ class CashDayService:
             item.delivery_date, item.created_at,
         ))
 
-    def update_order_status(self, order_id: str, status: OrderStatus | str) -> Order:
-        return self.repository.update_order_status(order_id, status)
+    def update_order_status(self, order_id: str, status: OrderStatus | str, *, reason: str = "", responsible: str = "Sistema") -> Order:
+        return self.repository.update_order_status(order_id, status, reason=reason, responsible=responsible)
 
     def remove_entry(self, cash_day_id: str, entry_id: str) -> None:
         raise NotImplementedError("el borrado físico fue reemplazado por void_entry")

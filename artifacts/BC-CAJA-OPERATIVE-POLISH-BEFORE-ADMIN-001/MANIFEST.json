@@ -1,0 +1,17 @@
+{
+    "mission":  "BC-CAJA-OPERATIVE-POLISH-BEFORE-ADMIN-001",
+    "version":  "BC Caja 1.0.0-rc.10",
+    "base_commit":  "64ecf4fe61889648918cad43ca34558f2e643f27",
+    "branch":  "feature/bc-caja-operative-polish-before-admin-001",
+    "release":  "releases/BC-CAJA-1.0.0-rc.10-win64.zip",
+    "zip_sha256":  "915a9ea35ffa39b509ae86c5e0fb75950609c2b94252fc7f3b1e9428f97e3ae3",
+    "exe_sha256":  "82001c8fe16580507670d6df6dba6ff94f64e116ece58cb7fdf1fc58532def23",
+    "visual_sha256":  "7e4c2900d41ce076ddb3957ea4c671c7452feed36aa65d627826b4892b656faa",
+    "tests":  {
+                  "passed":  185,
+                  "subtests":  4
+              },
+    "migrations":  14,
+    "database_integrity":  "ok",
+    "embedded_operational_data":  false
+}

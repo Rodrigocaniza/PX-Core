@@ -214,8 +214,8 @@ class Order:
         target = OrderStatus(status)
         allowed = {
             OrderStatus.PENDING: {OrderStatus.READY},
-            OrderStatus.READY: {OrderStatus.DELIVERED},
-            OrderStatus.DELIVERED: set(),
+            OrderStatus.READY: {OrderStatus.PENDING, OrderStatus.DELIVERED},
+            OrderStatus.DELIVERED: {OrderStatus.PENDING},
         }
         if target not in allowed[self.status]:
             raise InvalidCashDayError(

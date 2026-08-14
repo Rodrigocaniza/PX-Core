@@ -319,8 +319,8 @@ class CashDayUIController:
     def list_orders(self, filter_name: str = "Todos", today=None):
         return self.service.list_orders(filter_name=filter_name, today=today)
 
-    def update_order_status(self, order_id: str, status: str):
-        return self.service.update_order_status(order_id, status)
+    def update_order_status(self, order_id: str, status: str, *, reason: str = "", responsible: str = "Sistema"):
+        return self.service.update_order_status(order_id, status, reason=reason, responsible=responsible)
 
     def order_counts(self, today=None) -> tuple[int, int]:
         return (
