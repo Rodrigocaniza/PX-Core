@@ -1,0 +1,105 @@
+{
+  "manifest_version": "1.0",
+  "generator": "tools/package_mission_evidence.py",
+  "algorithm": "sha256",
+  "mission": "BC-CAJA-RECOVERY-DRILL-001",
+  "generated_at": "2026-08-14T01:28:19Z",
+  "status": "PASSED",
+  "repository": {
+    "root": "C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/caja-recovery-drill-001",
+    "branch": "feature/caja-recovery-drill-001",
+    "head_before": "8f6aeded4ec1b417d097574fb8d778555fc3171f",
+    "head_after": "8f6aeded4ec1b417d097574fb8d778555fc3171f",
+    "head_consistent": true,
+    "status_before": [
+      "M .bc-command-center/verification.json",
+      "?? .test-tmp/",
+      "?? artifacts/BC-CAJA-RECOVERY-DRILL-001/",
+      "?? tests/caja_diaria/test_recovery_drill.py"
+    ],
+    "status_after": [
+      "M .bc-command-center/verification.json",
+      "?? .test-tmp/",
+      "?? artifacts/BC-CAJA-RECOVERY-DRILL-001/",
+      "?? tests/caja_diaria/test_recovery_drill.py"
+    ]
+  },
+  "files": {
+    "implementation": [
+      {
+        "path": "modulos/caja_diaria/infrastructure/backup.py",
+        "sha256": "a66514a1711260e13e8ce39486b2aace8d13b1878bb973a4e241ac799fdd6661"
+      },
+      {
+        "path": "modulos/caja_diaria/infrastructure/sqlite_repository.py",
+        "sha256": "ddc4cbc4f4bd10656081e1fc6028010bebe8f5cb7b706ac7d419b932a3991844"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/caja_diaria/test_recovery_drill.py",
+        "sha256": "9fe0dba58968c9203f0cdaa3fe0dd0f35a279d542ceab7f2cb42d57c0bbabff5"
+      },
+      {
+        "path": "tests/caja_diaria/test_sqlite_repository.py",
+        "sha256": "48a95fd98c65fabbc57934a683a2b2e6c21034fba89c09f9664a5741d6512d62"
+      },
+      {
+        "path": "tests/caja_diaria/test_multi_item_sales.py",
+        "sha256": "a96f16a782b6afaf2e2bc9b62e47aa6ad45eaa19a1b94b5957c9345f780eadd6"
+      },
+      {
+        "path": "tests/caja_diaria/test_movements_integration.py",
+        "sha256": "58e26d487c4c5665241ff55a0fd2e82f98379b60466de112cab7a7ba455296bb"
+      }
+    ],
+    "dependencies": [
+      {
+        "path": "modulos/caja_diaria/infrastructure/migrations/010_agreement_amount.sql",
+        "sha256": "a1f6624629f0cb98078142cf2fd0356edcea35e1b1c429f8b27d410cd92173f1"
+      },
+      {
+        "path": "modulos/caja_diaria/infrastructure/migrations/011_normalize_agreement_balance.sql",
+        "sha256": "ea1b348ff5816b47b224778d2649a361dd8e618b3ea6aa83ecfbc0d592fa8877"
+      }
+    ]
+  },
+  "tests": {
+    "targeted": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "tests/caja_diaria/test_recovery_drill.py",
+        "tests/caja_diaria/test_sqlite_repository.py",
+        "tests/caja_diaria/test_multi_item_sales.py",
+        "tests/caja_diaria/test_movements_integration.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "23 passed, 1 warning in 1.62s"
+    },
+    "full_suite": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "151 passed, 1 warning in 5.40s"
+    }
+  },
+  "zip": {
+    "path": "BC-Core-BC-CAJA-RECOVERY-DRILL-001.zip",
+    "sha256": "ab5bcd08a6b1e603f33566ee45c0bbe5cbd93d4218c7dee8371cfe535df8f03a",
+    "file_count": 8
+  },
+  "summary_file": "SUMMARY.txt",
+  "prompts": {
+    "librarian": "PROMPT_LIBRARIAN.txt",
+    "qa": "PROMPT_QA.txt",
+    "auditor": "PROMPT_AUDITOR.txt"
+  },
+  "warnings": []
+}

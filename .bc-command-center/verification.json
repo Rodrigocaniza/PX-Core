@@ -16,6 +16,7 @@
                      "BC-CAJA-SQLITE-SAVE-BUGFIX-001":  "bc-caja-sqlite-save-bugfix",
                      "BC-CAJA-OPERATOR-UX-001":  "bc-caja-operator-ux",
                      "BC-CAJA-OPERATOR-FIXES-003":  "bc-caja-operator-fixes"
+                     ,"BC-CAJA-RECOVERY-DRILL-001":  "bc-caja-recovery-drill"
                  },
     "runners":  {
                     "bc-caja-pedidos-v1":  {
@@ -229,5 +230,13 @@
                                                                              ]
                                                                 }
                                                }
+                    ,"bc-caja-recovery-drill":  {
+                        "working_directory": ".",
+                        "commands": {
+                            "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_recovery_drill.py", "tests/caja_diaria/test_sqlite_repository.py", "tests/caja_diaria/test_multi_item_sales.py", "tests/caja_diaria/test_movements_integration.py", "-q"],
+                            "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
+                            "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
+                        }
+                    }
                 }
 }
