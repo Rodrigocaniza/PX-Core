@@ -91,6 +91,24 @@ class OrderStatus(str, Enum):
     DELIVERED = "ENTREGADO"
 
 
+def discount_percent(value, *, field_name: str = "descuento") -> int:
+    """Porcentaje entero estable; evita cálculos monetarios con float."""
+    if value in (None, ""):
+        return 0
+    try:
+        parsed = int(str(value).strip())
+    except (TypeError, ValueError) as error:
+        raise InvalidCashDayError(f"{field_name} debe ser un porcentaje entre 0 y 100") from error
+    if parsed < 0 or parsed > 100:
+        raise InvalidCashDayError(f"{field_name} debe estar entre 0 y 100")
+    return parsed
+
+
+def discounted_price(original: int | None, percent: int) -> int:
+    """Aplica descuento en guaraníes con división entera determinista."""
+    return ((original or 0) * (100 - percent)) // 100
+
+
 @dataclass(frozen=True)
 class SaleItem:
     description: str = "Producto"
@@ -98,6 +116,9 @@ class SaleItem:
     item_type: str = ""
     frame_price: int | str | None = None
     lens_price: int | str | None = None
+    frame_discount_percent: int | str = 0
+    lens_discount_percent: int | str = 0
+    no_cost: bool = False
     laboratory: str = ""
     prescription_doctor: str = ""
     id: str = field(default_factory=new_id)
@@ -108,10 +129,34 @@ class SaleItem:
             object.__setattr__(self, name, str(getattr(self, name) or "").strip())
         for name in ("frame_price", "lens_price"):
             object.__setattr__(self, name, money(getattr(self, name), field_name=name, optional=True))
+        object.__setattr__(self, "frame_discount_percent", discount_percent(
+            self.frame_discount_percent, field_name="Desc. armazón %"
+        ))
+        object.__setattr__(self, "lens_discount_percent", discount_percent(
+            self.lens_discount_percent, field_name="Desc. cristal %"
+        ))
+        no_cost_value = self.no_cost
+        if isinstance(no_cost_value, str):
+            no_cost_value = no_cost_value.strip().lower() in {"1", "true", "sí", "si"}
+        object.__setattr__(self, "no_cost", bool(no_cost_value))
+
+    @property
+    def frame_final_price(self) -> int:
+        return discounted_price(self.frame_price, self.frame_discount_percent)
+
+    @property
+    def lens_final_price(self) -> int:
+        return discounted_price(self.lens_price, self.lens_discount_percent)
+
+    @property
+    def reference_subtotal(self) -> int:
+        return (self.frame_price or 0) + (self.lens_price or 0)
 
     @property
     def subtotal(self) -> int:
-        return (self.frame_price or 0) + (self.lens_price or 0)
+        if self.no_cost:
+            return 0
+        return self.frame_final_price + self.lens_final_price
 
 
 @dataclass

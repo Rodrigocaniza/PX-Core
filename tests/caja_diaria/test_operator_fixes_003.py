@@ -13,8 +13,8 @@ class OperatorFixes003ContractTests(unittest.TestCase):
         self.assertIn('panel_items.grid_rowconfigure(0, weight=1)', SOURCE)
         self.assertIn('grilla_items.grid(row=0, column=0, sticky="nsew")', SOURCE)
         for expression in (
-            "item.description", "item.code", "item.item_type",
-            "formatear_monto(item.frame_price or 0)", "formatear_monto(item.lens_price or 0)",
+            "item.description", "item.code", "item.no_cost",
+            "formatear_monto(item.frame_final_price)", "formatear_monto(item.lens_final_price)",
             "formatear_monto(item.subtotal)",
         ):
             self.assertIn(expression, SOURCE)

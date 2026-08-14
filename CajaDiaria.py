@@ -121,7 +121,10 @@ COLUMNAS_OPERATIVAS = [
 PRODUCTO_TRABAJO = (
     ("arm_org", "Tipo / Producto", 150), ("cod", "Código", 90),
     ("laboratorio", "Laboratorio", 140), ("armazon", "Precio armazón", 125),
-    ("cristal", "Precio cristal", 125), ("receta_dr", "Receta / Doctor", 170),
+    ("cristal", "Precio cristal", 125),
+    ("descuento_armazon", "Desc. armazón %", 58),
+    ("descuento_cristal", "Desc. cristal %", 58),
+    ("receta_dr", "Receta / Doctor", 170),
 )
 COBRO_PAGO = (
     ("efectivo", "Efectivo", 125), ("transferencia", "Transferencia", 125),
@@ -182,10 +185,13 @@ def construir_item_producto_visible(valores):
         description=valores.get("arm_org") or valores.get("cod") or "Producto",
         code=valores.get("cod", ""), item_type=valores.get("arm_org", ""),
         frame_price=valores.get("armazon", ""), lens_price=valores.get("cristal", ""),
+        frame_discount_percent=valores.get("descuento_armazon", ""),
+        lens_discount_percent=valores.get("descuento_cristal", ""),
+        no_cost=str(valores.get("sin_costo", "0")) in {"1", "true", "True"},
         laboratory=valores.get("laboratorio", ""),
         prescription_doctor=valores.get("receta_dr", ""),
     )
-    if item.subtotal <= 0:
+    if item.reference_subtotal <= 0:
         raise ValueError("El producto debe tener un precio de armazón o cristal.")
     return item
 
@@ -1027,7 +1033,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             elif es_detalle:
                 posiciones = {
                     "arm_org": (1, 0), "cod": (2, 0), "laboratorio": (3, 0),
-                    "armazon": (4, 0), "cristal": (4, 2), "receta_dr": (5, 0),
+                    "armazon": (4, 0), "cristal": (4, 2),
+                    "descuento_armazon": (5, 0), "descuento_cristal": (5, 2),
+                    "receta_dr": (6, 0),
                 }
                 fila_campo, columna_etiqueta = posiciones[clave]
                 columna_campo = columna_etiqueta + 1
@@ -1059,6 +1067,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 sticky="ew", padx=(0, 10), pady=2,
             )
             campos_manual[clave] = campo
+
+    detalle_venta = secciones_widgets["DETALLE DE VENTA"]
+    campos_manual["sin_costo"] = ctk.CTkCheckBox(
+        detalle_venta, text="Artículo sin costo", onvalue="1", offvalue="0",
+        height=perfil["campo_alto"], text_color=color_texto,
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+    )
+    campos_manual["sin_costo"].grid(
+        row=7, column=0, columnspan=4, sticky="w", padx=10, pady=2
+    )
 
     for clave in ("total", "saldo"):
         campos_manual[clave].configure(
@@ -1164,12 +1182,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         style="Draft.Treeview",
     )
     for clave, titulo, ancho in (
-        ("producto", "Artículo", 220), ("codigo", "Código", 90),
-        ("tipo", "Tipo", 115), ("armazon", "P. Armazón", 100),
-        ("cristal", "P. Cristal", 100), ("subtotal", "Subtotal", 110),
+        ("producto", "Artículo", 160), ("codigo", "Código", 72),
+        ("tipo", "Tipo", 82), ("armazon", "P. Armazón", 84),
+        ("cristal", "P. Cristal", 84), ("subtotal", "Subtotal", 90),
     ):
-        grilla_items.heading(clave, text=titulo)
-        anchor = "e" if clave in ("armazon", "cristal", "subtotal") else "w"
+        anchor = "w" if clave == "producto" else "center"
+        grilla_items.heading(clave, text=titulo, anchor=anchor)
         grilla_items.column(
             clave, width=ancho, minwidth=70, anchor=anchor,
             stretch=clave == "producto",
@@ -1202,7 +1220,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         clave for clave in (
             "descripcion", "cliente_telefono", "cliente_documento", "sobre",
             "fecha_entrega", "vendedora", "arm_org", "cod", "laboratorio",
-            "armazon", "cristal", "receta_dr", "total", "efectivo",
+            "armazon", "cristal", "descuento_armazon", "descuento_cristal",
+            "sin_costo", "receta_dr", "total", "efectivo",
             "tarjeta_cheque", "transferencia", "ordenes", "monto_convenio",
             "cuotas", "saldo", "notas",
         ) if clave in campos_manual
@@ -1265,9 +1284,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             recalcular_saldo_visible()
             return
         try:
-            total = sumar_importes_formulario(
-                campos_manual["armazon"].get(), campos_manual["cristal"].get()
+            visible = SaleItem(
+                frame_price=campos_manual["armazon"].get(),
+                lens_price=campos_manual["cristal"].get(),
+                frame_discount_percent=campos_manual["descuento_armazon"].get(),
+                lens_discount_percent=campos_manual["descuento_cristal"].get(),
+                no_cost=campos_manual["sin_costo"].get() == "1",
             )
+            total = visible.subtotal
         except (TypeError, ValueError):
             return
         total_draft_var.set(formatear_monto(total))
@@ -1281,9 +1305,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             grilla_items.delete(row)
         for index, item in enumerate(items_venta):
             grilla_items.insert("", "end", iid=str(index), values=(
-                item.description, item.code, item.item_type,
-                formatear_monto(item.frame_price or 0),
-                formatear_monto(item.lens_price or 0),
+                item.description, item.code,
+                ("SIN COSTO" if item.no_cost else item.item_type),
+                formatear_monto(item.frame_final_price),
+                formatear_monto(item.lens_final_price),
                 formatear_monto(item.subtotal),
             ))
         recalcular_total_visible()
@@ -1298,10 +1323,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         try:
             item = construir_item_producto_visible(
                 {clave: campos_manual[clave].get() for clave in (
-                    "arm_org", "cod", "armazon", "cristal", "laboratorio", "receta_dr"
+                    "arm_org", "cod", "armazon", "cristal", "descuento_armazon",
+                    "descuento_cristal", "sin_costo", "laboratorio", "receta_dr"
                 )}
             )
-            if item.subtotal <= 0:
+            if item.reference_subtotal <= 0:
                 raise ValueError("El producto debe tener un precio de armazón o cristal.")
         except Exception as exc:
             messagebox.showwarning("Producto inválido", str(exc), parent=ventana)
@@ -1312,8 +1338,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         else:
             items_venta[index] = replace(item, id=items_venta[index].id)
             item_editando["index"] = None
-        for clave in ("arm_org", "cod", "armazon", "cristal", "laboratorio", "receta_dr"):
+        for clave in ("arm_org", "cod", "armazon", "cristal",
+                      "descuento_armazon", "descuento_cristal",
+                      "laboratorio", "receta_dr"):
             campos_manual[clave].delete(0, "end")
+        campos_manual["sin_costo"].deselect()
         refrescar_items()
 
     def editar_item():
@@ -1322,10 +1351,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             return
         index = int(selected[0]); item = items_venta[index]; item_editando["index"] = index
         values = {"arm_org": item.item_type, "cod": item.code, "armazon": item.frame_price,
-                  "cristal": item.lens_price, "laboratorio": item.laboratory,
+                  "cristal": item.lens_price,
+                  "descuento_armazon": item.frame_discount_percent,
+                  "descuento_cristal": item.lens_discount_percent,
+                  "laboratorio": item.laboratory,
                   "receta_dr": item.prescription_doctor}
         for clave, value in values.items():
             campos_manual[clave].delete(0, "end"); campos_manual[clave].insert(0, "" if value is None else str(value))
+        campos_manual["sin_costo"].select() if item.no_cost else campos_manual["sin_costo"].deselect()
 
     def quitar_item():
         selected = grilla_items.selection()
@@ -1339,7 +1372,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
     )
     boton_agregar_articulo.grid(
-        row=7, column=0, columnspan=2, sticky="ew", padx=10, pady=(5, 9)
+        row=8, column=0, columnspan=2, sticky="ew", padx=10, pady=(3, 7)
     )
     ctk.CTkButton(
         acciones_item, text="Editar artículo seleccionado", width=165, height=22,
@@ -1367,9 +1400,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         campos_manual[clave].bind(
             "<FocusOut>", lambda _event, campo=clave: formatear_campo_monetario(campo), add="+"
         )
-    for clave in ("armazon", "cristal"):
+    for clave in ("armazon", "cristal", "descuento_armazon", "descuento_cristal"):
         campos_manual[clave].bind("<KeyRelease>", recalcular_total_visible, add="+")
         campos_manual[clave].bind("<FocusOut>", recalcular_total_visible, add="+")
+    campos_manual["sin_costo"].configure(command=recalcular_total_visible)
     for clave in ("total", "efectivo", "tarjeta_cheque", "transferencia", "monto_convenio"):
         campos_manual[clave].bind("<KeyRelease>", recalcular_saldo_visible, add="+")
         campos_manual[clave].bind("<FocusOut>", recalcular_saldo_visible, add="+")
@@ -1678,7 +1712,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             valor = (campos_manual[clave].get("1.0", "end-1c")
                      if clave == "notas" else campos_manual[clave].get())
             if str(valor).strip() and not (
-                clave == "vendedora" and valor == "Seleccionar..."
+                (clave == "vendedora" and valor == "Seleccionar...")
+                or (clave == "sin_costo" and str(valor) == "0")
             ):
                 return True
         for clave in ("salida_concepto", "salida_monto", "salida_observacion"):
@@ -1694,7 +1729,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ):
             return
         for clave in claves_operacion:
-            if clave == "notas":
+            if clave == "sin_costo":
+                campos_manual[clave].deselect()
+            elif clave == "notas":
                 campos_manual[clave].delete("1.0", "end")
             elif clave != "vendedora":
                 campos_manual[clave].delete(0, "end")
@@ -1988,7 +2025,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         "<Return>", lambda _event: guardar_salida_integrada()
     )
     boton_cancelar = ctk.CTkButton(
-        acciones_primarias, text="Cancelar edición", command=cancelar_edicion,
+        zona_secundaria, text="Cancelar edición", command=cancelar_edicion,
         fg_color=COLOR_PANEL_SECUNDARIO[1], hover_color=COLOR_PRIMARIO_HOVER,
     )
     def accion_en_fila(event):
@@ -2037,7 +2074,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.5   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.6   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -2080,10 +2117,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     formulario.configure(width=ancho_total, height=alto_form)
     formulario.grid_propagate(False)
     formulario.place(x=4, y=y_form)
-    lista_productos.configure(width=ancho_total, height=alto_draft)
+    ancho_columna_izquierda = int(ancho_total * 5 / 7)
+    lista_productos.configure(width=ancho_total, height=alto_draft + alto_secundario + separacion_vertical)
     lista_productos.pack_propagate(False)
     lista_productos.place(x=4, y=y_draft)
-    zona_secundaria.configure(width=ancho_total - 280, height=alto_secundario)
+    zona_secundaria.configure(width=ancho_columna_izquierda, height=alto_secundario)
     zona_secundaria.pack_propagate(False)
     zona_secundaria.place(x=4, y=y_secundario)
     acciones.configure(width=280, height=alto_secundario)
@@ -2124,13 +2162,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         full_hd_actual = ancho_cliente >= 1700 and alto_cliente >= 850
         if full_hd_actual:
             alto_cab, alto_tot = 52, 0
-            form_preferido, form_minimo = 310, 280
-            draft_preferido, draft_minimo = 220, 110
+            form_preferido, form_minimo = 360, 330
+            draft_preferido, draft_minimo = 190, 130
             alto_sec, sep = 40, 5
         else:
             alto_cab, alto_tot = 42, 0
-            form_preferido, form_minimo = 212, 172
-            draft_preferido, draft_minimo = 182, 145
+            form_preferido, form_minimo = 245, 220
+            draft_preferido, draft_minimo = 150, 110
             alto_sec, sep = 32, 1
         margen_inferior = 4
         alto_pie_actual = max(18, pie.winfo_reqheight())
@@ -2163,9 +2201,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         alto_grid = max(1, y_footer - 2 - y_grid)
         cabecera.configure(width=ancho_actual, height=alto_cab); cabecera.place(x=x_actual, y=y_cab)
         formulario.configure(width=ancho_actual, height=alto_form_actual); formulario.place(x=x_actual, y=y_form_actual)
-        lista_productos.configure(width=ancho_actual, height=draft_actual); lista_productos.place(x=x_actual, y=y_draft_actual)
-        zona_secundaria.configure(width=ancho_actual - 280, height=alto_sec); zona_secundaria.place(x=x_actual, y=y_sec)
-        acciones.configure(width=280, height=alto_sec); acciones.place(x=x_actual + ancho_actual - 280, y=y_sec)
+        ancho_izquierdo_actual = int(ancho_actual * 5 / 7)
+        lista_productos.configure(width=ancho_actual, height=draft_actual + alto_sec + sep); lista_productos.place(x=x_actual, y=y_draft_actual)
+        zona_secundaria.configure(width=ancho_izquierdo_actual, height=alto_sec); zona_secundaria.place(x=x_actual, y=y_sec)
+        acciones.place_forget()
         toolbar_movimientos.configure(width=ancho_actual, height=perfil["toolbar_alto"]); toolbar_movimientos.place(x=x_actual, y=y_toolbar_actual)
         marco_grilla.configure(width=ancho_actual, height=alto_grid); marco_grilla.place(x=x_actual, y=y_grid)
         pie.configure(width=ancho_actual, height=alto_pie_actual); pie.place(x=x_actual, y=y_footer)

@@ -14,7 +14,8 @@ def test_rc4_exact_field_orders_and_read_only_totals():
         assert following > client
         client = following
     assert [field[0] for field in CajaDiaria.PRODUCTO_TRABAJO] == [
-        "arm_org", "cod", "laboratorio", "armazon", "cristal", "receta_dr"
+        "arm_org", "cod", "laboratorio", "armazon", "cristal",
+        "descuento_armazon", "descuento_cristal", "receta_dr"
     ]
     assert [field[0] for field in CajaDiaria.COBRO_PAGO] == [
         "efectivo", "transferencia", "tarjeta_cheque", "ordenes",

@@ -106,7 +106,7 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert connection.execute(
             "SELECT version FROM schema_migrations ORDER BY version"
-        ).fetchall() == [(f"{version:03d}",) for version in range(1, 13)]
+        ).fetchall() == [(f"{version:03d}",) for version in range(1, 14)]
         assert connection.execute(
             "SELECT agreement_amount,balance_text FROM cash_entries WHERE id='sale-anon'"
         ).fetchone() == (0, "999999")
@@ -117,7 +117,10 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
     # 010 adds only a defaulted column and 011 only touches rows with agreements.
     assert _rows(restored, "cash_days") == before["cash_days"]
     assert [row[:-2] for row in _rows(restored, "cash_entries")] == before["cash_entries"]
-    for table in ("sale_items", "cash_counts", "cash_entry_revisions"):
+    restored_items = _rows(restored, "sale_items")
+    assert [row[:10] for row in restored_items] == before["sale_items"]
+    assert all(row[10:] == (0, 0, row[6] or 0, row[7] or 0, 0) for row in restored_items)
+    for table in ("cash_counts", "cash_entry_revisions"):
         assert _rows(restored, table) == before[table]
 
     # Simulated interrupted copy is rejected, then recovery uses the intact backup.
@@ -130,4 +133,6 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
     retry.integrity_check()
     retry.migrate()
     retry.close()
-    assert _rows(interrupted, "sale_items") == before["sale_items"]
+    interrupted_items = _rows(interrupted, "sale_items")
+    assert [row[:10] for row in interrupted_items] == before["sale_items"]
+    assert all(row[10:] == (0, 0, row[6] or 0, row[7] or 0, 0) for row in interrupted_items)

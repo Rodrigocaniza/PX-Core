@@ -1,0 +1,14 @@
+{
+  "mission": "BC-CAJA-DESCUENTOS-SIN-COSTO-LAYOUT-RC6-001",
+  "current_state": "SAFE_CLOSURE", "published": false, "synchronized": true,
+  "mission_lease": {"holder": "Codex/BC-Caja", "branch": "feature/bc-caja-descuentos-sin-costo-layout-rc6-001", "exclusive": true},
+  "role_state_binding": {"VERIFICATION":"Verification","PACKAGING":"Packaging","ARTIFACT_AUDIT":"Artifact Consistency","LIBRARIAN":"Independent Librarian","QA":"Independent QA","AUDITOR":"Independent Auditor","SAFE_CLOSURE":"Release Engineer"},
+  "history": [
+    {"event":"MISSION_CREATED","base":"0916ef1c6f0851910f24ca7fef8a899af2b264ce"},
+    {"event":"VERIFICATION_PASSED","tests_passed":170,"subtests_passed":4},
+    {"event":"PACKAGING_PASSED","zip_sha256":"ea71eaffb2901ee9a63747b324eaee835ff856c66bd332addad5e64d117db014"},
+    {"event":"ARTIFACT_CONSISTENCY_PASSED","exe_sha256":"c2b1602124be5cc4adcf38597d1dda46d2087d03433c56f1f91522d261ab3bb5","migrations":13},
+    {"event":"LIBRARIAN_PASS"},{"event":"QA_PASS","visual_smoke":"1366x768"},
+    {"event":"AUDITOR_PASS"},{"event":"DEPLOYMENT_VERIFIED","integrity":"ok"}
+  ]
+}

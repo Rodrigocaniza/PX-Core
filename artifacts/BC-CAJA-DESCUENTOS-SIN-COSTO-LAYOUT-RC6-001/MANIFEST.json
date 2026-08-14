@@ -1,0 +1,11 @@
+{
+  "mission": "BC-CAJA-DESCUENTOS-SIN-COSTO-LAYOUT-RC6-001",
+  "version": "BC Caja 1.0.0-rc.6",
+  "base_commit": "0916ef1c6f0851910f24ca7fef8a899af2b264ce",
+  "branch": "feature/bc-caja-descuentos-sin-costo-layout-rc6-001",
+  "release": "releases/BC-CAJA-1.0.0-rc.6-win64.zip",
+  "zip_sha256": "ea71eaffb2901ee9a63747b324eaee835ff856c66bd332addad5e64d117db014", "exe_sha256": "c2b1602124be5cc4adcf38597d1dda46d2087d03433c56f1f91522d261ab3bb5", "visual_sha256": "22f84328398cb0d70ce202a32b5d4ed6a71defc667360dec992301a1bd1a6698",
+  "tests": {"passed": 170, "subtests": 4},
+  "migrations": 13, "database_integrity": "ok",
+  "embedded_operational_data": false
+}

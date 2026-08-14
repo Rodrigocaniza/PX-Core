@@ -218,13 +218,16 @@ class SQLiteCashDayRepository:
                 connection.executemany(
                     """INSERT INTO sale_items(
                         id,cash_entry_id,position,description,code,item_type,frame_price,
-                        lens_price,laboratory,prescription_doctor
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                        lens_price,laboratory,prescription_doctor,frame_discount_percent,
+                        lens_discount_percent,frame_final_price,lens_final_price,no_cost
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     [
                         (
                             item.id, entry.id, position, item.description, item.code,
                             item.item_type, item.frame_price, item.lens_price,
                             item.laboratory, item.prescription_doctor,
+                            item.frame_discount_percent, item.lens_discount_percent,
+                            item.frame_final_price, item.lens_final_price, int(item.no_cost),
                         )
                         for entry in cash_day.entries
                         for position, item in enumerate(entry.items)
@@ -368,6 +371,13 @@ class SQLiteCashDayRepository:
                     "item_type": item.item_type, "frame_price": item.frame_price,
                     "lens_price": item.lens_price, "laboratory": item.laboratory,
                     "prescription_doctor": item.prescription_doctor,
+                    "frame_original_price": item.frame_price,
+                    "lens_original_price": item.lens_price,
+                    "frame_discount_percent": item.frame_discount_percent,
+                    "lens_discount_percent": item.lens_discount_percent,
+                    "frame_final_price": item.frame_final_price,
+                    "lens_final_price": item.lens_final_price,
+                    "no_cost": item.no_cost,
                 }
                 for item in entry.items
             ],
@@ -425,6 +435,9 @@ class SQLiteCashDayRepository:
                 item_type=item["item_type"], frame_price=item["frame_price"],
                 lens_price=item["lens_price"], laboratory=item["laboratory"],
                 prescription_doctor=item["prescription_doctor"],
+                frame_discount_percent=item["frame_discount_percent"],
+                lens_discount_percent=item["lens_discount_percent"],
+                no_cost=bool(item["no_cost"]),
             ))
         entries = [CashEntry(
             id=item["id"], cash_day_id=item["cash_day_id"], description=item["description"],

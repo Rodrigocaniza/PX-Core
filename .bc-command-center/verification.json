@@ -18,6 +18,7 @@
                      "BC-CAJA-OPERATOR-FIXES-003":  "bc-caja-operator-fixes"
                      ,"BC-CAJA-RECOVERY-DRILL-001":  "bc-caja-recovery-drill"
                      ,"BC-CAJA-UX-OPERATIVA-RC5-001":  "bc-caja-operator-ux"
+                     ,"BC-CAJA-DESCUENTOS-SIN-COSTO-LAYOUT-RC6-001":  "bc-caja-operator-ux"
                  },
     "runners":  {
                     "bc-caja-pedidos-v1":  {
