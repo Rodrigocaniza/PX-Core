@@ -33,7 +33,7 @@ class CashOutflowTests(unittest.TestCase):
             observations="Monto corregido", performed_by="supervisora", reason="Factura final",
         )
         self.assertEqual((edited.description, edited.expenses, edited.performed_by),
-                         ("Insumos", 150_000, "operadora"))
+                         ("Insumos", 150_000, "Caja PC"))
         self.assertEqual(day.totals().expected_cash, 1_350_000)
         self.controller.void_entry(
             "14-08-2026", "PC", expense.id, "Compra cancelada", user="auditora"
@@ -42,9 +42,9 @@ class CashOutflowTests(unittest.TestCase):
         self.assertEqual(day.totals().expenses, 0)
         audit = self.controller.service.repository.list_entry_revisions(expense.id)
         self.assertEqual([item["action"] for item in audit], ["CREATE", "UPDATE", "VOID"])
-        self.assertEqual(audit[0]["snapshot"]["performed_by"], "operadora")
-        self.assertEqual(audit[1]["snapshot"]["audit"]["user"], "supervisora")
-        self.assertEqual(audit[2]["snapshot"]["audit"]["user"], "auditora")
+        self.assertEqual(audit[0]["snapshot"]["performed_by"], "Caja PC")
+        self.assertEqual(audit[1]["snapshot"]["audit"]["user"], "Caja PC")
+        self.assertEqual(audit[2]["snapshot"]["audit"]["user"], "Caja PC")
 
     def test_delivery_reduces_cash_but_never_sales_or_economic_expenses(self):
         day, delivery = self.controller.add_outflow(

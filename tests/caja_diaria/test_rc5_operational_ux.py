@@ -33,8 +33,8 @@ def test_rc5_observations_and_compact_visibility_contract():
 
 
 def test_rc5_responsible_identity_is_protected_and_audited():
-    assert '("salida_usuario", 105, "Responsable")' in SOURCE
-    assert 'campos_manual["salida_usuario"].configure(state="disabled")' in SOURCE
+    assert 'salida_usuario' not in SOURCE
+    assert '"Responsable")' not in SOURCE
     assert 'user=os.environ.get("USERNAME") or os.environ.get("USER") or ""' in SOURCE
     controller = Path("modulos/caja_diaria/ui/controller.py").read_text(encoding="utf-8")
     service = Path("modulos/caja_diaria/application/services.py").read_text(encoding="utf-8")

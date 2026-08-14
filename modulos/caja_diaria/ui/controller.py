@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,6 +37,11 @@ class CashDayUIController:
     def load_day(self, date_text: str, unit: str) -> CashDay:
         return self.service.get_by_date_and_unit(date_text, unit)
 
+    @staticmethod
+    def canonical_responsible(cash_day: CashDay) -> str:
+        """Identidad operativa de la caja, independiente del perfil de Windows."""
+        return cash_day.opened_by or f"Caja {cash_day.unit}"
+
     def open_or_load_day(self, date_text: str, unit: str, opening_cash: Any = None) -> CashDay:
         try:
             return self.load_day(date_text, unit)
@@ -47,7 +53,9 @@ class CashDayUIController:
                 if opening_cash is None:
                     raise InvalidCashDayError("Ingresá la caja inicial para abrir este día.") from None
             return self.service.open_day(
-                business_date=date_text, unit=unit, opening_cash=opening_cash
+                business_date=date_text, unit=unit, opening_cash=opening_cash,
+                opened_by=os.environ.get("BC_CAJA_RESPONSABLE", "").strip()
+                or f"Caja {str(unit).strip().upper()}",
             )
 
     def open_or_load_day_with_notice(
@@ -111,16 +119,15 @@ class CashDayUIController:
             raise InvalidCashDayError("Seleccioná un tipo de salida válido.")
         if not str(concept or "").strip():
             raise InvalidCashDayError("Ingresá el concepto de la salida.")
-        if not str(performed_by or "").strip():
-            raise InvalidCashDayError("Ingresá el usuario responsable.")
         cash_day = self.load_day(date_text, unit)
+        responsible = self.canonical_responsible(cash_day)
         parsed_amount = money(amount, field_name="monto de salida")
         entry = CashEntry(
             description=str(concept).strip(),
             expenses=parsed_amount if normalized_type == "GASTO" else 0,
             withdrawal=parsed_amount if normalized_type == "ENTREGA_ADMINISTRACION" else 0,
             withdrawal_destination="Administración" if normalized_type == "ENTREGA_ADMINISTRACION" else "",
-            performed_by=str(performed_by).strip(), outflow_type=normalized_type,
+            performed_by=responsible, outflow_type=normalized_type,
             origin="cash-outflow", source_reference=str(observations).strip(),
             observations=str(observations).strip(),
         )
@@ -139,8 +146,8 @@ class CashDayUIController:
         normalized_type = str(outflow_type or "").strip().upper()
         if normalized_type not in {"GASTO", "ENTREGA_ADMINISTRACION"}:
             raise InvalidCashDayError("Seleccioná un tipo de salida válido.")
-        if not str(concept or "").strip() or not str(performed_by or "").strip():
-            raise InvalidCashDayError("Concepto y usuario son obligatorios.")
+        if not str(concept or "").strip():
+            raise InvalidCashDayError("El concepto es obligatorio.")
         if not str(reason or "").strip():
             raise InvalidCashDayError("El motivo de edición es obligatorio.")
         parsed_amount = money(amount, field_name="monto de salida")
@@ -156,7 +163,8 @@ class CashDayUIController:
             observations=str(observations or "").strip(),
         )
         saved = self.service.update_entry(
-            cash_day.id, updated, reason=str(reason).strip(), user=str(performed_by).strip()
+            cash_day.id, updated, reason=str(reason).strip(),
+            user=self.canonical_responsible(cash_day),
         )
         return self.service.get_day(cash_day.id), saved
 
@@ -281,6 +289,9 @@ class CashDayUIController:
         self, date_text: str, unit: str, entry_id: str, reason: str, user: str = ""
     ) -> CashDay:
         cash_day = self.load_day(date_text, unit)
+        entry = next((item for item in cash_day.entries if item.id == entry_id), None)
+        if entry is not None and entry.outflow_type:
+            user = self.canonical_responsible(cash_day)
         self.service.void_entry(cash_day.id, entry_id, reason, user=user)
         return self.service.get_day(cash_day.id)
 

@@ -194,6 +194,9 @@ class CashDayService:
         return cash_day
 
     def record_cash_count(self, cash_day_id: str, quantities: Mapping[int, int]) -> CashCount:
+        existing = self.repository.get_latest_cash_count(cash_day_id)
+        if existing is not None:
+            return existing
         cash_count = self.get_day(cash_day_id).count_cash(quantities)
         self.repository.save_cash_count(cash_count)
         return cash_count

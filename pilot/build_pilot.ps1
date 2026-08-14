@@ -30,7 +30,7 @@ try {
     New-Item -ItemType Directory -Force -Path $releaseDirectory | Out-Null
     Compress-Archive `
         -Path $package `
-        -DestinationPath (Join-Path $releaseDirectory "BC-CAJA-PILOT-001.zip") `
+        -DestinationPath (Join-Path $releaseDirectory "BC-CAJA-1.0.0-rc.12-win64.zip") `
         -CompressionLevel Optimal `
         -Force
 }

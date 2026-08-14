@@ -35,7 +35,8 @@ def test_rc4_observations_calendar_and_clear_contract():
         assert marker in clear
     outflow_clear = SOURCE[SOURCE.index("    def limpiar_salida():"):SOURCE.index("    def guardar_salida_integrada():")]
     assert 'estado_salida["entry_id"] = None' in outflow_clear
-    assert '"salida_observacion", "salida_usuario"' in outflow_clear
+    assert '"salida_observacion"' in outflow_clear
+    assert 'salida_usuario' not in outflow_clear
     assert 'boton_salida.configure(text="Guardar salida")' in outflow_clear
 
 

@@ -9,3 +9,7 @@ dist/
 *.spec
 
 dist-*/
+
+# Evidencia/binario RC.12 se conserva localmente; no se exporta al remoto.
+artifacts/BC-CAJA-RC12-ARQUEO-EN-CAJA-DIARIA-001/*.png
+releases/BC-CAJA-1.0.0-rc.12-win64.zip

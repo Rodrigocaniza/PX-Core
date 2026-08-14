@@ -825,6 +825,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("Importar Excel", "▣  Importar Excel"),
         ("Historial", "Historial"),
     ):
+        if nombre == "Arqueo":
+            continue
         boton = ctk.CTkButton(
             navegacion, text=etiqueta_nav, width=(190 if perfil["nombre"] == "full-hd" else 150), height=(42 if perfil["nombre"] == "full-hd" else 30), corner_radius=0,
             fg_color="transparent", hover_color=color_panel_alto,
@@ -1168,17 +1170,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     campos_manual["salida_tipo"].set("Gasto")
     campos_manual["salida_tipo"].pack(side="left", padx=2, pady=4)
     for clave, ancho, placeholder in (
-        ("salida_concepto", 150, "Concepto"), ("salida_monto", 95, "Monto"),
-        ("salida_observacion", 125, "Observación"), ("salida_usuario", 105, "Responsable"),
+        ("salida_concepto", 190, "Concepto"), ("salida_monto", 105, "Monto"),
+        ("salida_observacion", 190, "Observación"),
     ):
         campos_manual[clave] = ctk.CTkEntry(
             zona_secundaria, width=ancho, height=perfil["campo_alto"],
             placeholder_text=placeholder,
         )
         campos_manual[clave].pack(side="left", padx=2, pady=4)
-    campos_manual["salida_usuario"].insert(
-        0, os.environ.get("USERNAME") or os.environ.get("USER") or ""
-    )
     campos_manual["accion_salida"] = ctk.CTkButton(
         zona_secundaria, text="Guardar salida", width=105, height=perfil["campo_alto"],
         fg_color="#FFF7ED", text_color="#B45309", border_width=1,
@@ -1273,6 +1272,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         command=lambda: cerrar_caja(),
     )
     boton_cerrar_caja.pack(side="left")
+    boton_arqueo = ctk.CTkButton(
+        estado_operativo, text="Arqueo", width=78, height=24,
+        fg_color="#0F5FB9", hover_color="#0B4D98",
+        command=lambda: abrir_modal_arqueo(),
+    )
+    boton_arqueo.pack(side="left", padx=(5, 0))
     resumen_compacto = ctk.CTkFrame(cabecera, fg_color="transparent")
     resumen_compacto.grid(row=0, column=8, sticky="e", padx=2, pady=2)
     etiquetas_kpi = {}
@@ -1688,7 +1693,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         campos_manual["vendedora"].configure(state=estado_control)
         for clave_salida in (
             "salida_tipo", "salida_concepto", "salida_monto",
-            "salida_observacion", "salida_usuario",
+            "salida_observacion",
         ):
             campos_manual[clave_salida].configure(state=estado_control)
         boton_guardar.configure(state=estado_control)
@@ -1898,12 +1903,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 ("salida_concepto", entry.description),
                 ("salida_monto", entry.expenses or entry.withdrawal or 0),
                 ("salida_observacion", entry.observations or entry.source_reference),
-                ("salida_usuario", entry.performed_by),
             ):
                 campo = campos_manual[clave]
                 campo.delete(0, "end")
                 campo.insert(0, formatear_importe_ui(valor) if clave == "salida_monto" else str(valor or ""))
-            campos_manual["salida_usuario"].configure(state="disabled")
             boton_salida.configure(text="Actualizar salida")
             campos_manual["salida_concepto"].focus_set()
             return
@@ -1931,7 +1934,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         try:
             controller.void_entry(
                 cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit, entry.id, motivo,
-                user=os.environ.get("USERNAME") or os.environ.get("USER") or "",
+                user=controller.canonical_responsible(cash_day),
             )
             actualizar_estado(controller.load_day(
                 cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit
@@ -2011,15 +2014,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     def limpiar_salida():
         estado_salida["entry_id"] = None
-        campos_manual["salida_usuario"].configure(state="normal")
         campos_manual["salida_tipo"].set("Gasto")
         for clave in (
-            "salida_concepto", "salida_monto", "salida_observacion", "salida_usuario",
+            "salida_concepto", "salida_monto", "salida_observacion",
         ):
             campos_manual[clave].delete(0, "end")
-        campos_manual["salida_usuario"].insert(
-            0, os.environ.get("USERNAME") or os.environ.get("USER") or ""
-        )
         boton_salida.configure(text="Guardar salida")
 
     def guardar_salida_integrada():
@@ -2040,8 +2039,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                     estado_salida["entry_id"], tipo,
                     campos_manual["salida_concepto"].get(), campos_manual["salida_monto"].get(),
                     observations=campos_manual["salida_observacion"].get(),
-                    performed_by=(os.environ.get("USERNAME") or os.environ.get("USER")
-                                  or campos_manual["salida_usuario"].get()), reason=motivo,
+                    performed_by="", reason=motivo,
                 )
             else:
                 cash_day, _ = controller.add_outflow(
@@ -2049,7 +2047,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                     tipo, campos_manual["salida_concepto"].get(),
                     campos_manual["salida_monto"].get(),
                     observations=campos_manual["salida_observacion"].get(),
-                    performed_by=campos_manual["salida_usuario"].get(),
+                    performed_by="",
                 )
         except Exception as exc:
             mostrar_error(exc)
@@ -2117,11 +2115,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     pie = ctk.CTkFrame(tab_manual, fg_color="transparent", height=18)
     pie.pack(fill="x", padx=8, pady=(0, 1))
     ruta_datos = resolve_data_paths().root
-    usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.11   ·   Datos: {ruta_datos}"
-             + (f"   ·   Usuario: {usuario}" if usuario else ""),
+        text=f"BC Caja 1.0.0-rc.12   ·   Datos: {ruta_datos}",
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
     etiqueta_pie.pack(side="left", fill="x", expand=True)
@@ -2179,7 +2175,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         campos_manual["salida_concepto"].configure(width=140)
         campos_manual["salida_monto"].configure(width=85)
         campos_manual["salida_observacion"].configure(width=110)
-        campos_manual["salida_usuario"].configure(width=85)
+        campos_manual["salida_concepto"].configure(width=180)
+        campos_manual["salida_observacion"].configure(width=170)
         boton_salida.configure(width=95)
         entrada_busqueda.configure(width=130)
         for boton in botones_filtro.values():
@@ -2444,6 +2441,147 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         botones_arqueo, text="Guardar arqueo", command=guardar_arqueo,
         fg_color=COLOR_PRIMARIO, hover_color=COLOR_PRIMARIO_HOVER,
     ).pack(side="left", padx=4)
+
+    def abrir_modal_arqueo():
+        """Abre el mismo flujo de arqueo para la caja activa sin salir de Caja diaria."""
+        try:
+            cash_day = controller.load_day(
+                campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip()
+            )
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+
+        modal = ctk.CTkToplevel(ventana)
+        modal.title("Arqueo de caja")
+        modal.geometry("760x620")
+        modal.resizable(False, False)
+        modal.transient(ventana)
+        modal.grab_set()
+        modal.bind("<Escape>", lambda _event: modal.destroy())
+
+        totals = cash_day.totals()
+        latest = controller.latest_cash_count(cash_day.id)
+        quantities = dict(latest.quantities) if latest else {}
+        responsible = controller.canonical_responsible(cash_day)
+
+        header = ctk.CTkFrame(modal, fg_color="#0F5FB9", corner_radius=0)
+        header.pack(fill="x")
+        ctk.CTkLabel(
+            header, text="ARQUEO DE CAJA", text_color="#FFFFFF",
+            font=ctk.CTkFont(size=17, weight="bold"),
+        ).pack(side="left", padx=18, pady=12)
+        ctk.CTkLabel(
+            header,
+            text=f"{cash_day.business_date.strftime('%d-%m-%Y')}  ·  {cash_day.unit}",
+            text_color="#DCEBFF", font=ctk.CTkFont(size=12, weight="bold"),
+        ).pack(side="right", padx=18)
+
+        summary = ctk.CTkFrame(modal, fg_color="#F4F8FD", corner_radius=8)
+        summary.pack(fill="x", padx=12, pady=(10, 6))
+        summary.grid_columnconfigure((0, 1, 2), weight=1)
+        summary_values = (
+            ("Caja inicial", cash_day.opening_cash),
+            ("Cobros en efectivo", totals.cash),
+            ("Gastos", totals.expenses),
+            ("Entregas administración", totals.withdrawals),
+            ("Efectivo esperado", totals.expected_cash),
+        )
+        for index, (label, value) in enumerate(summary_values):
+            cell = ctk.CTkFrame(summary, fg_color="#FFFFFF", corner_radius=5)
+            cell.grid(row=index // 3, column=index % 3, sticky="ew", padx=4, pady=4)
+            ctk.CTkLabel(cell, text=label, text_color=color_suave, font=ctk.CTkFont(size=9)).pack(pady=(4, 0))
+            ctk.CTkLabel(cell, text=formatear_monto(value), text_color=color_azul,
+                         font=ctk.CTkFont(size=12, weight="bold")).pack(pady=(0, 4))
+        identity = ctk.CTkFrame(summary, fg_color="#FFFFFF", corner_radius=5)
+        identity.grid(row=1, column=2, sticky="ew", padx=4, pady=4)
+        ctk.CTkLabel(identity, text="Responsable canónico", text_color=color_suave,
+                     font=ctk.CTkFont(size=9)).pack(pady=(4, 0))
+        ctk.CTkLabel(identity, text=responsible, text_color=color_texto,
+                     font=ctk.CTkFont(size=11, weight="bold")).pack(pady=(0, 4))
+
+        body = ctk.CTkFrame(modal, fg_color="transparent")
+        body.pack(fill="both", expand=True, padx=12, pady=4)
+        count_panel = ctk.CTkFrame(body, fg_color="#FFFFFF", corner_radius=8)
+        count_panel.pack(side="left", fill="both", expand=True, padx=(0, 5))
+        result_panel = ctk.CTkFrame(body, fg_color="#FFFFFF", corner_radius=8, width=270)
+        result_panel.pack(side="right", fill="y", padx=(5, 0))
+        result_panel.pack_propagate(False)
+        ctk.CTkLabel(count_panel, text="Conteo físico", font=ctk.CTkFont(size=14, weight="bold")).grid(
+            row=0, column=0, columnspan=4, sticky="w", padx=12, pady=8
+        )
+        modal_fields = {}
+        for index, denomination in enumerate(DENOMINACIONES):
+            block = index // 5
+            row = index % 5 + 1
+            column = block * 2
+            ctk.CTkLabel(count_panel, text=formatear_monto(denomination), width=85, anchor="e").grid(
+                row=row, column=column, padx=(10, 4), pady=5
+            )
+            field = ctk.CTkEntry(count_panel, width=65, height=28, placeholder_text="0")
+            field.grid(row=row, column=column + 1, padx=(0, 10), pady=5)
+            if quantities.get(denomination):
+                field.insert(0, str(quantities[denomination]))
+            if latest:
+                field.configure(state="disabled")
+            modal_fields[denomination] = field
+
+        counted_label = ctk.CTkLabel(result_panel, text="Efectivo contado: 0", anchor="w")
+        counted_label.pack(fill="x", padx=14, pady=(18, 7))
+        difference_label = ctk.CTkLabel(result_panel, text="Diferencia: —", anchor="w")
+        difference_label.pack(fill="x", padx=14, pady=7)
+        status_label = ctk.CTkLabel(result_panel, text="", justify="left", wraplength=235,
+                                    corner_radius=6, fg_color="#EEF3F8")
+        status_label.pack(fill="x", padx=14, pady=10, ipady=10)
+
+        def modal_quantities():
+            if latest:
+                return dict(latest.quantities)
+            return {denomination: int(field.get().strip() or "0")
+                    for denomination, field in modal_fields.items()}
+
+        def preview(_event=None):
+            try:
+                values = modal_quantities()
+            except ValueError:
+                status_label.configure(text="Revisá las cantidades", fg_color="#FFF1F2")
+                return
+            counted = sum(denomination * quantity for denomination, quantity in values.items())
+            difference = counted - totals.expected_cash
+            state_text, detail = describir_diferencia_arqueo(difference)
+            counted_label.configure(text=f"Efectivo contado: {formatear_monto(counted)}")
+            difference_label.configure(text=f"Diferencia: {formatear_diferencia_ui(difference)}")
+            status_label.configure(
+                text=(f"{state_text}\n{detail}\nEstado: "
+                      f"{'GUARDADO' if latest else 'BORRADOR'}  ·  Caja {cash_day.status.value}"),
+                fg_color="#EAF8F1" if difference == 0 else "#FFF7E6",
+            )
+
+        def save():
+            try:
+                result = controller.record_cash_count(
+                    cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit,
+                    modal_quantities(),
+                )
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            messagebox.showinfo(
+                "Arqueo guardado", "El arqueo quedó guardado sin crear duplicados.", parent=modal
+            )
+            modal.destroy()
+
+        for field in modal_fields.values():
+            field.bind("<KeyRelease>", preview, add="+")
+        preview()
+        actions = ctk.CTkFrame(result_panel, fg_color="transparent")
+        actions.pack(side="bottom", fill="x", padx=10, pady=12)
+        ctk.CTkButton(actions, text="Cerrar", command=modal.destroy, fg_color="#6B7280").pack(
+            side="left", padx=4
+        )
+        ctk.CTkButton(actions, text="Guardar arqueo", command=save,
+                      state="disabled" if latest else "normal").pack(side="left", padx=4)
+        modal.after_idle(lambda: next(iter(modal_fields.values())).focus_set() if not latest else None)
     # ---- Historial / edición / anulación ----
     filtros_historial = ctk.CTkFrame(tab_historial, fg_color="transparent")
     filtros_historial.pack(fill="x", padx=8, pady=8)

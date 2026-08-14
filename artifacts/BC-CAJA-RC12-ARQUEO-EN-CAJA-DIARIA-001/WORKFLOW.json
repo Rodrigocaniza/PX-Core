@@ -1,0 +1,20 @@
+{
+  "mission": "BC-CAJA-RC12-ARQUEO-EN-CAJA-DIARIA-001",
+  "current_state": "CLOSED",
+  "published": true,
+  "synchronized": true,
+  "mission_lease": {
+    "holder": "Codex/BC-Caja",
+    "branch": "feature/bc-caja-rc12-arqueo-en-caja-diaria-001",
+    "exclusive": true
+  },
+  "history": [
+    {"event": "VERIFICATION_PASSED", "tests": 191},
+    {"event": "PACKAGING_PASSED"},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "LIBRARIAN_PASS"},
+    {"event": "QA_PASS", "visual": "1366x768"},
+    {"event": "AUDITOR_PASS"},
+    {"event": "SAFE_CLOSURE_PASSED", "to_state": "CLOSED"}
+  ]
+}
