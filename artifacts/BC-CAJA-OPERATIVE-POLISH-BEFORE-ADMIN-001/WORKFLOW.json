@@ -1,8 +1,8 @@
 {
     "mission":  "BC-CAJA-OPERATIVE-POLISH-BEFORE-ADMIN-001",
-    "current_state":  "SAFE_CLOSURE",
-    "published":  false,
-    "synchronized":  false,
+    "current_state":  "CLOSED",
+    "published":  true,
+    "synchronized":  true,
     "mission_lease":  {
                           "holder":  "Codex/BC-Caja",
                           "branch":  "feature/bc-caja-operative-polish-before-admin-001",
@@ -48,6 +48,11 @@
                     {
                         "event":  "DEPLOYMENT_VERIFIED",
                         "integrity":  "ok"
+                    },
+                    {
+                        "event":  "SAFE_CLOSURE_PASSED",
+                        "implementation_commit":  "7b6a665c5308c6fc682474eb5bf8746e23228348",
+                        "to_state":  "CLOSED"
                     }
                 ]
 }
