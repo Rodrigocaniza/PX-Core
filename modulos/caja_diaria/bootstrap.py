@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 from .application.services import CashDayService
+from .application.admin_ops import AdminOperations
 from .application.carry_forward import PreviousClosedDayCarryForwardPolicy
 from .config import DATA_DIR_ENV, CashDataPaths, resolve_data_paths
 from .infrastructure.backup import LocalBackupService
@@ -55,5 +56,6 @@ def build_cash_day_controller(
     )
     movements = LegacyMovementsExporter(movements_path)
     return CashDayUIController(
-        service, backup_service=backup, movements_exporter=movements
+        service, backup_service=backup, movements_exporter=movements,
+        admin_operations=AdminOperations(service.repository, paths.root),
     )

@@ -27,10 +27,12 @@ class ImportSummary:
 
 
 class CashDayUIController:
-    def __init__(self, service: CashDayService, backup_service=None, movements_exporter=None) -> None:
+    def __init__(self, service: CashDayService, backup_service=None, movements_exporter=None,
+                 admin_operations=None) -> None:
         self.service = service
         self.backup_service = backup_service
         self.movements_exporter = movements_exporter
+        self.admin = admin_operations
         self.last_backup_path: Path | None = None
         self.last_warning: str | None = None
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import sys
 import calendar
+import uuid
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -784,6 +785,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         text_color="#FFFFFF", font=ctk.CTkFont(size=(18 if perfil["nombre"] == "full-hd" else 14), weight="bold"),
     ).pack(side="left", padx=(0, 12))
     privacidad = FinancialPrivacy(timeout_seconds=300)
+    estado_admin = {"session": None, "window": None}
     navegacion = ctk.CTkFrame(
         ventana, height=(44 if perfil["nombre"] == "full-hd" else 32), fg_color="#F5F9FE", corner_radius=0,
         border_width=1, border_color=color_borde_suave,
@@ -825,7 +827,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("Importar Excel", "▣  Importar Excel"),
         ("Historial", "Historial"),
     ):
-        if nombre == "Arqueo":
+        if nombre in ("Arqueo", "Importar Excel"):
             continue
         boton = ctk.CTkButton(
             navegacion, text=etiqueta_nav, width=(190 if perfil["nombre"] == "full-hd" else 150), height=(42 if perfil["nombre"] == "full-hd" else 30), corner_radius=0,
@@ -836,6 +838,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         boton.pack(side="left", padx=(16 if nombre == "Cargar manual" else 0, 0), pady=0)
         botones_navegacion[nombre] = boton
     seleccionar_pestaña("Cargar manual")
+
+    boton_administrador = ctk.CTkButton(
+        barra_superior, text="Administrador", width=125, height=26,
+        fg_color="#FFFFFF", text_color="#0F5FB9", hover_color="#DCEBFF",
+        command=lambda: abrir_acceso_administrador(),
+    )
+    boton_administrador.pack(side="right", padx=(4, 8))
 
     def mostrar_error(error):
         titulo, detalle = friendly_error(error)
@@ -915,6 +924,18 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         )
 
     def importar():
+        session = estado_admin.get("session")
+        if session is None:
+            messagebox.showerror(
+                "Acceso restringido", "La importación requiere una sesión administrativa.", parent=ventana
+            )
+            return
+        try:
+            controller.admin.require(session.token)
+        except Exception as exc:
+            estado_admin["session"] = None
+            mostrar_error(exc)
+            return
         resultado = estado["resultado"]
         if not resultado or not resultado["por_dia"]:
             return
@@ -933,6 +954,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             return
         try:
             resumen = controller.import_legacy_analysis(resultado)
+            controller.admin.register_import(
+                session.token, Path(estado["ruta"].get()), resumen, combo_unidad.get()
+            )
         except Exception as exc:
             mostrar_error(exc)
             return
@@ -952,6 +976,90 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         fg_color=COLOR_VERDE, hover_color="#12835B",
     )
     boton_importar.pack(side="left")
+
+    def mostrar_panel_administrador(session):
+        panel = ctk.CTkToplevel(ventana)
+        estado_admin["window"] = panel
+        panel.title("Administrador V1")
+        panel.geometry("900x640")
+        panel.transient(ventana); panel.grab_set()
+        ctk.CTkLabel(panel, text=f"ADMINISTRADOR V1   ·   {session.username}",
+                     font=ctk.CTkFont(size=18, weight="bold"), text_color="#0F5FB9").pack(anchor="w", padx=18, pady=12)
+        tabs = ctk.CTkTabview(panel); tabs.pack(fill="both", expand=True, padx=14, pady=(0, 14))
+        sections = {name: tabs.add(name) for name in (
+            "Importación de datos", "Usuarios y permisos", "Sucursal y caja", "Responsables",
+            "Arqueos", "Notificaciones de cierre", "Auditoría", "Envíos pendientes",
+        )}
+        ctk.CTkLabel(sections["Importación de datos"], text="Importación protegida por sesión administrativa.",
+                     font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(36, 12))
+        ctk.CTkButton(sections["Importación de datos"], text="Abrir importación de datos",
+                      command=lambda: (panel.grab_release(), panel.withdraw(), seleccionar_pestaña("Importar Excel"))).pack()
+        ctk.CTkLabel(sections["Usuarios y permisos"], text="Rol ADMIN\nPermisos sensibles validados por el servicio.", justify="left").pack(anchor="w", padx=20, pady=20)
+        branch = controller.admin.setting("branch")
+        branch_name = ctk.CTkEntry(sections["Sucursal y caja"], placeholder_text="Sucursal", width=280)
+        branch_name.insert(0, branch.get("branch", "")); branch_name.pack(pady=(30, 8))
+        cashbox_name = ctk.CTkEntry(sections["Sucursal y caja"], placeholder_text="Caja", width=280)
+        cashbox_name.insert(0, branch.get("cashbox", "")); cashbox_name.pack(pady=8)
+        ctk.CTkButton(sections["Sucursal y caja"], text="Guardar configuración", command=lambda: (
+            controller.admin.update_setting(session.token, "branch", {"branch": branch_name.get(), "cashbox": cashbox_name.get()}),
+            messagebox.showinfo("Administrador", "Configuración guardada.", parent=panel))).pack(pady=10)
+        ctk.CTkLabel(sections["Responsables"], text="Responsables autorizados\nLa identidad canónica queda en la caja y cada arqueo.",
+                     justify="center").pack(pady=35)
+        counting = controller.admin.setting("counting")
+        tolerance_entry = ctk.CTkEntry(sections["Arqueos"], placeholder_text="Tolerancia", width=180)
+        tolerance_entry.insert(0, str(counting.get("tolerance", 0))); tolerance_entry.pack(pady=(30, 8))
+        limit_entry = ctk.CTkEntry(sections["Arqueos"], placeholder_text="Límite autorización", width=180)
+        limit_entry.insert(0, str(counting.get("admin_limit", 0))); limit_entry.pack(pady=8)
+        blind_var = ctk.BooleanVar(value=bool(counting.get("blind_close", True)))
+        ctk.CTkCheckBox(sections["Arqueos"], text="Conteo ciego de cierre", variable=blind_var).pack(pady=8)
+        ctk.CTkButton(sections["Arqueos"], text="Guardar política", command=lambda: (
+            controller.admin.update_setting(session.token, "counting", {"blind_close": bool(blind_var.get()),
+                "tolerance": int(tolerance_entry.get() or 0), "reason_mode": "ANY_DIFFERENCE",
+                "admin_limit": int(limit_entry.get() or 0)}),
+            messagebox.showinfo("Administrador", "Política guardada.", parent=panel))).pack(pady=10)
+        mail = controller.admin.setting("mail"); mail_section = sections["Notificaciones de cierre"]
+        mail_enabled = ctk.BooleanVar(value=bool(mail.get("enabled", False)))
+        ctk.CTkCheckBox(mail_section, text="Activar envío al cierre", variable=mail_enabled).pack(pady=(18, 5))
+        recipient = ctk.CTkEntry(mail_section, placeholder_text="Destinatario confirmado", width=330); recipient.insert(0, mail.get("recipient", "")); recipient.pack(pady=5)
+        host = ctk.CTkEntry(mail_section, placeholder_text="SMTP host", width=330); host.insert(0, mail.get("host", "")); host.pack(pady=5)
+        mail_user = ctk.CTkEntry(mail_section, placeholder_text="Usuario SMTP", width=330); mail_user.insert(0, mail.get("username", "")); mail_user.pack(pady=5)
+        mail_secret = ctk.CTkEntry(mail_section, placeholder_text="Contraseña de aplicación", show="•", width=330); mail_secret.pack(pady=5)
+        def guardar_mail():
+            controller.admin.update_setting(session.token, "mail", {"enabled": bool(mail_enabled.get()),
+                "recipient": recipient.get().strip(), "cc": [], "subject": "Cierre {fecha} - {sucursal}",
+                "host": host.get().strip(), "port": 587, "username": mail_user.get().strip(), "secret_ref": "smtp"})
+            if mail_secret.get(): controller.admin.set_mail_secret(session.token, mail_secret.get()); mail_secret.delete(0, "end")
+            messagebox.showinfo("Administrador", "Notificaciones guardadas.", parent=panel)
+        ctk.CTkButton(mail_section, text="Guardar notificación", command=guardar_mail).pack(pady=6)
+        ctk.CTkButton(mail_section, text="Probar envío", command=lambda: messagebox.showinfo(
+            "Prueba", f"Enviados: {controller.admin.process_outbox(limit=1)}", parent=panel)).pack(pady=3)
+        audit_box = ctk.CTkTextbox(sections["Auditoría"]); audit_box.pack(fill="both", expand=True, padx=10, pady=10)
+        for row in controller.admin.audit_rows(session.token): audit_box.insert("end", f"{row['recorded_at']}  {row['actor']}  {row['action']}  {row['result']}\n")
+        audit_box.configure(state="disabled")
+        ctk.CTkLabel(sections["Envíos pendientes"], text="Cola persistente: PENDIENTE / ENVIADO / ERROR / NO CONFIGURADO").pack(pady=(35, 12))
+        ctk.CTkButton(sections["Envíos pendientes"], text="Reintentar", command=lambda: controller.admin.process_outbox()).pack()
+
+    def abrir_acceso_administrador(configuracion_inicial=False):
+        dialog = ctk.CTkToplevel(ventana); first = configuracion_inicial or not controller.admin.has_admin()
+        dialog.title("Configuración inicial administrativa" if first else "Acceso Administrador")
+        dialog.geometry("430x340" if first else "430x270"); dialog.resizable(False, False); dialog.transient(ventana); dialog.grab_set()
+        ctk.CTkLabel(dialog, text="CONFIGURACIÓN INICIAL SEGURA" if first else "ACCESO ADMINISTRADOR",
+                     font=ctk.CTkFont(size=17, weight="bold"), text_color="#0F5FB9").pack(pady=(22, 10))
+        if first: ctk.CTkLabel(dialog, text="Credencial local con hash seguro. No compartir por chat.").pack(pady=4)
+        username_entry = ctk.CTkEntry(dialog, placeholder_text="Administrador", width=300); username_entry.pack(pady=7)
+        password_entry = ctk.CTkEntry(dialog, placeholder_text="Contraseña", show="•", width=300); password_entry.pack(pady=7)
+        confirm_entry = ctk.CTkEntry(dialog, placeholder_text="Confirmar contraseña", show="•", width=300) if first else None
+        if confirm_entry: confirm_entry.pack(pady=7)
+        def submit():
+            try:
+                if first and password_entry.get() != confirm_entry.get(): raise ValueError("Las contraseñas no coinciden.")
+                session = (controller.admin.create_initial_admin(username_entry.get(), password_entry.get()) if first
+                           else controller.admin.authenticate(username_entry.get(), password_entry.get()))
+            except Exception as exc:
+                password_entry.delete(0, "end"); messagebox.showerror("Acceso denegado", str(exc), parent=dialog); return
+            estado_admin["session"] = session; password_entry.delete(0, "end"); dialog.destroy(); mostrar_panel_administrador(session)
+        ctk.CTkButton(dialog, text="Configurar" if first else "Ingresar", command=submit).pack(pady=12)
+        password_entry.bind("<Return>", lambda _event: submit()); username_entry.focus_set()
 
     # ---- Caja operativa (disposición tipo planilla) ----
     campos_manual = {}
@@ -985,6 +1093,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         campo.grid(row=0, column=indice * 2 + 2, padx=(0, 8), pady=4)
         campos_manual[clave] = campo
     campos_manual["fecha"].insert(0, date.today().strftime("%d-%m-%Y"))
+    campos_manual["caja_inicial"].bind("<Key>", lambda _event: "break")
 
     aviso_entregas = ctk.CTkButton(
         cabecera, text="Trabajos 0", width=132, height=max(27, perfil["campo_alto"]),
@@ -1699,16 +1808,64 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         boton_guardar.configure(state=estado_control)
         boton_salida.configure(state=estado_control)
 
+    def solicitar_conteo_obligatorio(titulo, *, esperado=None, ciego=False):
+        result = {"quantities": None}
+        dialog = ctk.CTkToplevel(ventana); dialog.title(titulo); dialog.geometry("610x500")
+        dialog.resizable(False, False); dialog.transient(ventana); dialog.grab_set()
+        ctk.CTkLabel(dialog, text=titulo.upper(), font=ctk.CTkFont(size=17, weight="bold"),
+                     text_color="#0F5FB9").pack(pady=(15, 4))
+        subtitle = "Contá primero el efectivo real." if ciego else "Ingresá las cantidades por denominación."
+        ctk.CTkLabel(dialog, text=subtitle).pack(pady=(0, 8))
+        grid = ctk.CTkFrame(dialog, fg_color="#FFFFFF"); grid.pack(fill="x", padx=14, pady=4)
+        fields = {}
+        for index, denomination in enumerate(DENOMINACIONES):
+            column = (index // 5) * 2; row = index % 5
+            ctk.CTkLabel(grid, text=formatear_monto(denomination), width=100, anchor="e").grid(row=row, column=column, padx=8, pady=6)
+            entry = ctk.CTkEntry(grid, width=80, placeholder_text="0"); entry.grid(row=row, column=column + 1, padx=8, pady=6)
+            fields[denomination] = entry
+        total_label = ctk.CTkLabel(dialog, text="Efectivo contado: 0", font=ctk.CTkFont(size=14, weight="bold"))
+        total_label.pack(pady=8)
+        def values(): return {denomination: int(field.get().strip() or "0") for denomination, field in fields.items()}
+        def preview(_event=None):
+            try: total = sum(denomination * quantity for denomination, quantity in values().items())
+            except ValueError: total_label.configure(text="Revisá las cantidades"); return
+            total_label.configure(text=f"Efectivo contado: {formatear_monto(total)}")
+        for field in fields.values(): field.bind("<KeyRelease>", preview, add="+")
+        def accept():
+            try: quantities = values()
+            except ValueError: messagebox.showerror("Conteo inválido", "Use cantidades enteras.", parent=dialog); return
+            counted = sum(denomination * quantity for denomination, quantity in quantities.items())
+            if esperado is not None:
+                difference = counted - esperado
+                if not messagebox.askyesno(
+                    "Confirmar arqueo", f"Efectivo esperado: {formatear_monto(esperado)}\n"
+                    f"Efectivo contado: {formatear_monto(counted)}\n"
+                    f"Diferencia: {formatear_diferencia_ui(difference)}\n\n¿Confirmar este conteo?\nElegí No para contar nuevamente.", parent=dialog
+                ): return
+            result["quantities"] = quantities; dialog.destroy()
+        actions = ctk.CTkFrame(dialog, fg_color="transparent"); actions.pack(pady=10)
+        ctk.CTkButton(actions, text="Cancelar", fg_color="#6B7280", command=dialog.destroy).pack(side="left", padx=5)
+        ctk.CTkButton(actions, text="Confirmar conteo", command=accept).pack(side="left", padx=5)
+        dialog.protocol("WM_DELETE_WINDOW", dialog.destroy); ventana.wait_window(dialog)
+        return result["quantities"]
+
     def abrir_o_consultar():
         try:
-            cash_day, aviso = controller.open_or_load_day_with_notice(
-                campos_manual["fecha"].get().strip(),
-                campos_manual["unidad"].get().strip(),
-                campos_manual["caja_inicial"].get().strip(),
-            )
+            cash_day = controller.load_day(campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip())
+            aviso = None
         except Exception as exc:
-            mostrar_error(exc)
-            return
+            quantities = solicitar_conteo_obligatorio("Arqueo de apertura")
+            if quantities is None:
+                return
+            try:
+                unit = campos_manual["unidad"].get().strip()
+                responsible = os.environ.get("BC_CAJA_RESPONSABLE", "").strip() or f"Caja {unit.upper()}"
+                cash_day = controller.admin.open_from_count(
+                    campos_manual["fecha"].get().strip(), unit, quantities, responsible, str(uuid.uuid4())
+                )
+                aviso = None
+            except Exception as open_error:
+                mostrar_error(open_error); return
         actualizar_estado(cash_day)
         diferencia = controller.opening_difference_message(cash_day)
         if diferencia:
@@ -1727,28 +1884,28 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             mostrar_error(exc)
             return
         totales = cash_day_abierta.totals()
-        if not messagebox.askyesno(
-            "Cerrar Caja",
-            "Caja inicial: " + formatear_monto(cash_day_abierta.opening_cash) + "\n"
-            "Ventas en efectivo: " + formatear_monto(totales.cash) + "\n"
-            "Tarjeta / transferencia: " + formatear_monto(totales.card_check) + "\n"
-            "Gastos: " + formatear_monto(totales.expenses) + "\n"
-            "Entregado a administración: " + formatear_monto(totales.withdrawals) + "\n"
-            "Efectivo esperado: " + formatear_monto(totales.expected_cash) + "\n\n"
-            "Después del cierre no se podrán modificar movimientos. ¿Cerrar caja?",
-            parent=ventana,
-        ):
-            return
+        quantities = solicitar_conteo_obligatorio(
+            "Arqueo de cierre", esperado=totales.expected_cash,
+            ciego=bool(controller.admin.setting("counting").get("blind_close", True)),
+        )
+        if quantities is None: return
+        counted = sum(denomination * quantity for denomination, quantity in quantities.items())
+        difference = counted - totales.expected_cash
+        reason = ""
+        if difference:
+            reason = simpledialog.askstring("Diferencia de cierre", "Motivo obligatorio de la diferencia:", parent=ventana) or ""
+            if not reason.strip(): return
         try:
-            cash_day = controller.close_day(
-                campos_manual["fecha"].get().strip(),
-                campos_manual["unidad"].get().strip(),
+            responsible = controller.canonical_responsible(cash_day_abierta)
+            cash_day, closing_count, mail_status = controller.admin.close_with_count(
+                cash_day_abierta.id, quantities, responsible, str(uuid.uuid4()), reason=reason,
+                admin_token=(estado_admin["session"].token if estado_admin.get("session") else ""),
             )
         except Exception as exc:
             mostrar_error(exc)
             return
         actualizar_estado(cash_day)
-        messagebox.showinfo("Caja cerrada", texto_estado(cash_day), parent=ventana)
+        messagebox.showinfo("Caja cerrada", texto_estado(cash_day) + f"\n\nCorreo: {mail_status}", parent=ventana)
         if controller.last_warning:
             messagebox.showwarning("Backup pendiente", controller.last_warning, parent=ventana)
 
@@ -2461,8 +2618,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         modal.bind("<Escape>", lambda _event: modal.destroy())
 
         totals = cash_day.totals()
-        latest = controller.latest_cash_count(cash_day.id)
-        quantities = dict(latest.quantities) if latest else {}
+        latest = None
+        quantities = {}
         responsible = controller.canonical_responsible(cash_day)
 
         header = ctk.CTkFrame(modal, fg_color="#0F5FB9", corner_radius=0)
@@ -2559,9 +2716,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
         def save():
             try:
-                result = controller.record_cash_count(
-                    cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit,
-                    modal_quantities(),
+                result = controller.admin.record_count(
+                    cash_day.id, "INTERMEDIATE", modal_quantities(), responsible,
+                    str(uuid.uuid4()),
                 )
             except Exception as exc:
                 mostrar_error(exc)
@@ -2961,6 +3118,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         )
 
     refrescar_avisos()
+
+    if not controller.admin.has_admin() and not os.environ.get("BC_CAJA_AUTOMATED"):
+        ventana.after(450, lambda: abrir_acceso_administrador(configuracion_inicial=True))
 
     ventana.after(100, ventana.focus_set)
     return ventana
