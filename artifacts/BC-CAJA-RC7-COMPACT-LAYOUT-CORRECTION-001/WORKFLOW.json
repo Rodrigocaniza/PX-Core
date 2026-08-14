@@ -52,7 +52,7 @@
                     },
                     {
                         "event":  "SAFE_CLOSURE_PASSED",
-                        "implementation_commit":  "0faab2e5b8f4a4b3d5508c9c7c2ebd6696012fce",
+                        "implementation_commit":  "0faab2ec0eee363e76ffba0c741aee18a64a5bf0",
                         "to_state":  "CLOSED"
                     }
                 ]
