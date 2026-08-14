@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "mission_id": "BC-CAJA-MOVIMIENTOS-001",
+  "attempt_id": "72a7bb80-8151-4b8e-b9c0-fc6189e05016",
+  "gate_id": "librarian:1",
+  "generation": 1,
+  "expected_role": "librarian",
+  "expected_state": "LIBRARIAN",
+  "workflow_revision": 4,
+  "handoff_id": "9e1e3308-a7d2-5b3b-9dfd-1012d8c9bef8",
+  "evidence_digest": "dbe0d68f3f16a678b9cc59916f0d55620960e492d01f96f92be1df1ea0d1369f",
+  "session_id": "5aed742f-28b1-404f-8ef2-1dc2004a0987"
+}

@@ -26,9 +26,10 @@ class ImportSummary:
 
 
 class CashDayUIController:
-    def __init__(self, service: CashDayService, backup_service=None) -> None:
+    def __init__(self, service: CashDayService, backup_service=None, movements_exporter=None) -> None:
         self.service = service
         self.backup_service = backup_service
+        self.movements_exporter = movements_exporter
         self.last_backup_path: Path | None = None
         self.last_warning: str | None = None
 
@@ -138,15 +139,29 @@ class CashDayUIController:
 
     def close_day(self, date_text: str, unit: str) -> CashDay:
         cash_day = self.service.close_day(self.load_day(date_text, unit).id)
+        warnings = []
+        if self.movements_exporter is not None:
+            try:
+                self.movements_exporter.sync_closed_day(cash_day)
+            except OSError:
+                warnings.append(
+                    "La Caja quedó cerrada, pero no se pudo integrar el cierre con Movimientos."
+                )
         if self.backup_service is not None:
             try:
                 self.last_backup_path = self.backup_service.create_backup("cierre")
-                self.last_warning = None
             except (OSError, sqlite3.Error):
-                self.last_warning = (
+                warnings.append(
                     "La Caja quedó cerrada y guardada, pero no se pudo crear el backup local."
                 )
+        self.last_warning = " ".join(warnings) or None
         return cash_day
+
+    def sync_closed_day_with_movements(self, date_text: str, unit: str):
+        """Reintento seguro para una integración interrumpida o ya aplicada."""
+        if self.movements_exporter is None:
+            raise InvalidCashDayError("la integración con Movimientos no está configurada")
+        return self.movements_exporter.sync_closed_day(self.load_day(date_text, unit))
 
     def create_backup(self, label: str = "manual") -> Path:
         if self.backup_service is None:

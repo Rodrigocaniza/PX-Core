@@ -1,0 +1,19 @@
+Sos el QA de BC-Core.
+
+MISION: BC-CAJA-MOVIMIENTOS-001
+
+Evidencia en artifacts/BC-CAJA-MOVIMIENTOS-001/:
+- BC-Core-BC-CAJA-MOVIMIENTOS-001.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- modulos/caja_diaria/infrastructure/movements_exporter.py (sha256: 0b4fff28ed41d36ca183682b0c66cb0cfb13d8094de0fc8c153c4172584419e7)
+- modulos/caja_diaria/ui/controller.py (sha256: ddb2accc3a4375af6e4ebd67db9e4e749bfb53002a60cf8d9ecc90ec5d3dc903)
+- modulos/caja_diaria/bootstrap.py (sha256: 77e83b4efe90cbe4b2bc51926676b91b40c3a82180270bcc0c2e12219612512e)
+
+Archivos de test:
+- tests/caja_diaria/test_movements_integration.py (sha256: 58e26d487c4c5665241ff55a0fd2e82f98379b60466de112cab7a7ba455296bb)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.

@@ -1,0 +1,87 @@
+{
+  "manifest_version": "1.0",
+  "generator": "tools/package_mission_evidence.py",
+  "algorithm": "sha256",
+  "mission": "BC-CAJA-MOVIMIENTOS-001",
+  "generated_at": "2026-08-14T00:10:58Z",
+  "status": "PASSED",
+  "repository": {
+    "root": "C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/caja-movimientos-001",
+    "branch": "feature/caja-movimientos-001",
+    "head_before": "fe11049e176bee592bfb0a1153c377ed26650640",
+    "head_after": "fe11049e176bee592bfb0a1153c377ed26650640",
+    "head_consistent": true,
+    "status_before": [
+      "M modulos/caja_diaria/bootstrap.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      "?? artifacts/BC-CAJA-MOVIMIENTOS-001/",
+      "?? modulos/caja_diaria/infrastructure/movements_exporter.py",
+      "?? tests/caja_diaria/test_movements_integration.py"
+    ],
+    "status_after": [
+      "M modulos/caja_diaria/bootstrap.py",
+      " M modulos/caja_diaria/ui/controller.py",
+      "?? artifacts/BC-CAJA-MOVIMIENTOS-001/",
+      "?? modulos/caja_diaria/infrastructure/movements_exporter.py",
+      "?? tests/caja_diaria/test_movements_integration.py"
+    ]
+  },
+  "files": {
+    "implementation": [
+      {
+        "path": "modulos/caja_diaria/infrastructure/movements_exporter.py",
+        "sha256": "0b4fff28ed41d36ca183682b0c66cb0cfb13d8094de0fc8c153c4172584419e7"
+      },
+      {
+        "path": "modulos/caja_diaria/ui/controller.py",
+        "sha256": "ddb2accc3a4375af6e4ebd67db9e4e749bfb53002a60cf8d9ecc90ec5d3dc903"
+      },
+      {
+        "path": "modulos/caja_diaria/bootstrap.py",
+        "sha256": "77e83b4efe90cbe4b2bc51926676b91b40c3a82180270bcc0c2e12219612512e"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/caja_diaria/test_movements_integration.py",
+        "sha256": "58e26d487c4c5665241ff55a0fd2e82f98379b60466de112cab7a7ba455296bb"
+      }
+    ],
+    "dependencies": []
+  },
+  "tests": {
+    "targeted": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "tests/caja_diaria/test_movements_integration.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "4 passed in 0.10s"
+    },
+    "full_suite": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "150 passed in 4.77s"
+    }
+  },
+  "zip": {
+    "path": "BC-Core-BC-CAJA-MOVIMIENTOS-001.zip",
+    "sha256": "bc81951701d8f101a3cd15c417871e12b3c425f43e9631ac69ca82be44490c13",
+    "file_count": 4
+  },
+  "summary_file": "SUMMARY.txt",
+  "prompts": {
+    "librarian": "PROMPT_LIBRARIAN.txt",
+    "qa": "PROMPT_QA.txt",
+    "auditor": "PROMPT_AUDITOR.txt"
+  },
+  "warnings": []
+}
