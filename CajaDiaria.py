@@ -1384,23 +1384,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     scroll_horizontal.grid(row=1, column=0, sticky="ew")
     marco_grilla.grid_rowconfigure(0, weight=1)
     marco_grilla.grid_columnconfigure(0, weight=1)
-    pie_movimientos = ctk.CTkFrame(
-        tab_manual, fg_color="#FFFFFF", corner_radius=7,
-        border_width=1, border_color=color_borde_suave,
-    )
-    etiqueta_conteo_movimientos = ctk.CTkLabel(
-        pie_movimientos, text="Mostrando 0 de 0 movimientos", anchor="w",
-        text_color=color_suave, font=ctk.CTkFont(size=9),
-    )
-    etiqueta_conteo_movimientos.pack(side="left", padx=12)
-    for pagina in ("‹", "1", "2", "3", "›"):
-        ctk.CTkButton(
-            pie_movimientos, text=pagina, width=30, height=27, corner_radius=5,
-            fg_color=color_azul if pagina == "1" else "transparent",
-            text_color="#FFFFFF" if pagina == "1" else color_texto,
-            border_width=1, border_color=color_borde_suave,
-        ).pack(side="right", padx=2, pady=4)
-
     def texto_estado(cash_day):
         totales = cash_day.totals()
         texto = (
@@ -1448,12 +1431,18 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             importe(entry.client_balance_amount), entry.saleswoman, estado_fila,
             "Editar · Anular",
         )
+    estado_render_grilla = {"generacion": 0}
+    TAMANO_LOTE_GRILLA = 250
+
     def refrescar_grilla(cash_day):
+        estado_render_grilla["generacion"] += 1
+        generacion = estado_render_grilla["generacion"]
         for item in grilla_caja.get_children():
             grilla_caja.delete(item)
         consulta = busqueda_movimientos.get().strip().casefold()
         filtro = filtro_movimientos.get()
-        for entry in cash_day.entries:
+        movimientos = []
+        for entry in sorted(cash_day.entries, key=lambda item: (item.created_at, item.id)):
             if consulta and consulta not in " ".join(str(value) for value in valores_fila(entry)).casefold():
                 continue
             if filtro == "Ventas" and ((entry.expenses or 0) > 0 or (entry.withdrawal or 0) > 0):
@@ -1470,11 +1459,18 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 tags = ("pending",)
             else:
                 tags = ()
-            values = list(valores_fila(entry))
-            grilla_caja.insert("", "end", iid=entry.id, values=values, tags=tags)
-        etiqueta_conteo_movimientos.configure(
-            text=f"Mostrando {len(grilla_caja.get_children())} de {len(cash_day.entries)} movimientos"
-        )
+            movimientos.append((entry.id, list(valores_fila(entry)), tags))
+
+        def insertar_lote(inicio=0):
+            if generacion != estado_render_grilla["generacion"]:
+                return
+            fin = min(inicio + TAMANO_LOTE_GRILLA, len(movimientos))
+            for entry_id, values, tags in movimientos[inicio:fin]:
+                grilla_caja.insert("", "end", iid=entry_id, values=values, tags=tags)
+            if fin < len(movimientos):
+                ventana.after_idle(lambda: insertar_lote(fin))
+
+        insertar_lote()
 
     def aplicar_filtro_movimientos(nombre):
         filtro_movimientos.set(nombre)
@@ -1895,7 +1891,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 0.4.0   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.2   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -1906,10 +1902,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     )
     reloj.pack(side="right")
     # Macro-layout UX-006: header context, KPI cards, five-section form,
-    # movements table with footer, using the freed cash-count-summary space.
+    # movements table with native scrollbars and no visible pagination.
     for bloque in (
         cabecera, zona_estado, formulario, lista_productos, zona_secundaria,
-        toolbar_movimientos, marco_grilla, pie_movimientos, acciones, pie,
+        toolbar_movimientos, marco_grilla, acciones, pie,
     ):
         bloque.pack_forget()
     ancho_total = min(perfil["contenido_ancho"], ancho_logico - 22)
@@ -1963,16 +1959,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         entrada_busqueda.configure(width=130)
         for boton in botones_filtro.values():
             boton.configure(width=55)
+    alto_grilla += perfil["acciones_alto"] if es_full_hd else 31
     marco_grilla.configure(width=ancho_total, height=alto_grilla)
     marco_grilla.grid_propagate(False)
     marco_grilla.place(x=4, y=y_grilla)
-    alto_pie = perfil["acciones_alto"] if es_full_hd else 28
-    pie_movimientos.configure(width=ancho_total, height=alto_pie)
-    pie_movimientos.place(x=4, y=y_grilla + alto_grilla + 3)
     pie.configure(width=ancho_total - 8, height=24 if perfil["nombre"] == "full-hd" else 18)
     pie.place(
-        x=(8 if es_full_hd else ancho_total // 2),
-        y=(y_grilla + alto_grilla + alto_pie + 5 if es_full_hd else y_grilla + alto_grilla + 7),
+        x=8,
+        y=y_grilla + alto_grilla + 3,
     )
     estado_layout = {"after": None, "metricas": {}}
 
@@ -1996,7 +1990,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             draft_preferido, draft_minimo = 160, 80
             alto_sec, sep = 32, 1
         margen_inferior = 4
-        alto_pie_actual = max(26, pie_movimientos.winfo_reqheight())
+        alto_pie_actual = max(18, pie.winfo_reqheight())
         fila_renderizada = int(estilo.lookup("Caja.Treeview", "rowheight"))
         alto_grilla_minimo = 46 + (5 * fila_renderizada) + scroll_horizontal.winfo_reqheight() + 4
         extra_toolbar = alto_sec + sep + perfil["toolbar_alto"] if full_hd_actual else alto_sec + sep
@@ -2031,8 +2025,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         acciones.configure(width=(280 if not full_hd_actual else 500), height=alto_sec); acciones.place(x=(x_actual + 500 if not full_hd_actual else x_actual + ancho_actual - 500), y=y_sec)
         toolbar_movimientos.configure(width=(ancho_actual - 780 if not full_hd_actual else ancho_actual), height=(alto_sec if not full_hd_actual else perfil["toolbar_alto"])); toolbar_movimientos.place(x=(x_actual + 780 if not full_hd_actual else x_actual), y=y_toolbar_actual)
         marco_grilla.configure(width=ancho_actual, height=alto_grid); marco_grilla.place(x=x_actual, y=y_grid)
-        pie_movimientos.configure(width=ancho_actual, height=alto_pie_actual); pie_movimientos.place(x=x_actual, y=y_footer)
-        pie.configure(width=ancho_actual // 2 - 8, height=alto_pie_actual - 4); pie.place(x=x_actual + ancho_actual // 2, y=y_footer + 2)
+        pie.configure(width=ancho_actual, height=alto_pie_actual); pie.place(x=x_actual, y=y_footer)
         estado_layout["metricas"] = {"cliente": (ancho_cliente, alto_cliente), "grilla_y": y_grid, "grilla_alto": alto_grid, "pie_y": y_footer, "pie_alto": alto_pie_actual, "footer_bottom": y_footer + alto_pie_actual, "required": y_footer + alto_pie_actual + margen_inferior, "draft_alto": draft_actual, "overflow": max(0, y_footer + alto_pie_actual + margen_inferior - alto_cliente)}
 
     def programar_macro_layout(_event=None):

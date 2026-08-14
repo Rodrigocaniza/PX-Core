@@ -1,0 +1,19 @@
+{
+  "mission": "BC-CAJA-MOVIMIENTOS-SCROLL-001",
+  "version": "1.0.0-rc.2",
+  "status": "PASSED",
+  "installer": "releases/BC-CAJA-1.0.0-rc.2-win64.zip",
+  "zip_sha256": "0e26092a60a8d8ab0cc50bebace35fd414cfb8be67e9c3b48c2686353e0a075a",
+  "zip_bytes": 31941917,
+  "exe_sha256": "65979237a9c3728373a3ff7c60bf05603274183c2eed6dbd6f52208e5499f68c",
+  "visual_evidence": {
+    "path": "artifacts/BC-CAJA-MOVIMIENTOS-SCROLL-001/final-1366x768.png",
+    "sha256": "7321ca807b72454d2edebea4969a05b6ad3784e7c3043cfe72df702ad4c4b77a",
+    "resolution": "1366x768"
+  },
+  "tests": {"passed": 153, "failed": 0},
+  "visible_pagination": false,
+  "render_batch_size": 250,
+  "data_location": "%LOCALAPPDATA%/BC/Caja or BC_CAJA_DATA_DIR",
+  "embedded_operational_data": false
+}

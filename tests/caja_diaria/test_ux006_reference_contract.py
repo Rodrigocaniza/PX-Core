@@ -23,7 +23,7 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             'formulario.configure(width=ancho_actual, height=alto_form_actual)',
             'formulario.place(x=x_actual, y=y_form_actual)',
             'toolbar_movimientos.place',
-            'pie_movimientos.place(x=x_actual, y=y_footer)',
+            'pie.configure(width=ancho_actual, height=alto_pie_actual)',
             'acciones_primarias = ctk.CTkFrame(acciones',
             'iconos_kpi = {',
             'recalcular_total_visible',

@@ -1,0 +1,16 @@
+{
+  "mission": "BC-CAJA-MOVIMIENTOS-SCROLL-001",
+  "current_state": "CLOSED",
+  "published": true,
+  "synchronized": true,
+  "history": [
+    {"event": "MISSION_CREATED", "to_state": "VERIFICATION"},
+    {"event": "VERIFICATION_PASSED", "to_state": "PACKAGING", "tests_passed": 153},
+    {"event": "PACKAGING_PASSED", "to_state": "ARTIFACT_AUDIT", "zip_sha256": "0e26092a60a8d8ab0cc50bebace35fd414cfb8be67e9c3b48c2686353e0a075a"},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED", "to_state": "LIBRARIAN"},
+    {"event": "LIBRARIAN_PASS", "to_state": "QA"},
+    {"event": "QA_PASS", "to_state": "AUDITOR"},
+    {"event": "AUDITOR_PASS", "to_state": "SAFE_CLOSURE"},
+    {"event": "SAFE_CLOSURE_PASSED", "to_state": "CLOSED"}
+  ]
+}
