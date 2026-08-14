@@ -1,0 +1,16 @@
+{
+  "mission": "BC-CAJA-PILOT-RELEASE-001",
+  "current_state": "CLOSED",
+  "published": true,
+  "synchronized": true,
+  "history": [
+    {"event": "MISSION_CREATED", "to_state": "VERIFICATION"},
+    {"event": "VERIFICATION_PASSED", "to_state": "PACKAGING", "tests_passed": 151},
+    {"event": "PACKAGING_PASSED", "to_state": "ARTIFACT_AUDIT", "zip_sha256": "44dfb10d3de7105e12693617665e4e6f345614d92af708a6aa1c1d29e42b917f"},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED", "to_state": "LIBRARIAN"},
+    {"event": "LIBRARIAN_PASS", "to_state": "QA"},
+    {"event": "QA_PASS", "to_state": "AUDITOR"},
+    {"event": "AUDITOR_PASS", "to_state": "SAFE_CLOSURE"},
+    {"event": "SAFE_CLOSURE_PASSED", "to_state": "CLOSED"}
+  ]
+}

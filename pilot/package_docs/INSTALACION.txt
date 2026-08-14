@@ -1,15 +1,7 @@
-BC CAJA - INSTALACION PILOTO
+BC Caja 1.0.0-rc.1
 
-1. Copiar la carpeta completa "BC-Caja" a la PC de la optica.
-2. Abrir la carpeta y ejecutar "BC-Caja.exe".
-3. Windows puede pedir confirmar que desea ejecutar la aplicacion.
+1. Descomprima el ZIP completo en una carpeta local.
+2. Ejecute BC-Caja.exe desde la carpeta BC-Caja.
+3. Los datos operativos se guardan fuera del ejecutable, en %LOCALAPPDATA%\BC\Caja.
 
-No hace falta instalar Python ni tener Internet.
-
-Los datos quedan en:
-%LOCALAPPDATA%\BC\Caja
-
-IMPORTANTE PARA ACTUALIZAR:
-- Reemplazar solamente la carpeta de la aplicacion.
-- NUNCA borrar ni reemplazar %LOCALAPPDATA%\BC\Caja.
-- NUNCA guardar la base SQLite dentro de la carpeta de la aplicacion.
+No copie archivos de Datos ni Respaldos dentro de la carpeta del programa.

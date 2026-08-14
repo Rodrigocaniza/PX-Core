@@ -1,0 +1,20 @@
+{
+  "mission": "BC-CAJA-PILOT-RELEASE-001",
+  "version": "1.0.0-rc.1",
+  "status": "PASSED",
+  "installer": "releases/BC-CAJA-1.0.0-rc.1-win64.zip",
+  "zip_sha256": "44dfb10d3de7105e12693617665e4e6f345614d92af708a6aa1c1d29e42b917f",
+  "zip_bytes": 31942843,
+  "exe_sha256": "08501511074481c8ea334bdd86aceb0fb5b1fbe56db068aefb3e131ebe850467",
+  "exe_bytes": 6375397,
+  "visual_evidence": {
+    "path": "artifacts/BC-CAJA-PILOT-RELEASE-001/smoke-1366x768.png",
+    "sha256": "25b110e0fc63ae7cd04e168d4bd448f706799a1b5a9eb5fd222a17cae01b3ea8",
+    "resolution": "1366x768",
+    "reused_from": "artifacts/BC-CAJA-UX-006/final-1366x768.png"
+  },
+  "tests": {"regression": 151, "targeted": 34, "failures": 0},
+  "migrations": 11,
+  "data_location": "%LOCALAPPDATA%/BC/Caja or BC_CAJA_DATA_DIR",
+  "embedded_operational_data": false
+}
