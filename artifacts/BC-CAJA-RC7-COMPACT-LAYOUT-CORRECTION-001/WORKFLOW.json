@@ -1,8 +1,8 @@
 {
     "mission":  "BC-CAJA-RC7-COMPACT-LAYOUT-CORRECTION-001",
-    "current_state":  "SAFE_CLOSURE",
-    "published":  false,
-    "synchronized":  false,
+    "current_state":  "CLOSED",
+    "published":  true,
+    "synchronized":  true,
     "mission_lease":  {
                           "holder":  "Codex/BC-Caja",
                           "branch":  "feature/bc-caja-rc7-compact-layout-correction-001",
@@ -49,6 +49,11 @@
                     {
                         "event":  "DEPLOYMENT_VERIFIED",
                         "integrity":  "ok"
+                    },
+                    {
+                        "event":  "SAFE_CLOSURE_PASSED",
+                        "implementation_commit":  "0faab2e5b8f4a4b3d5508c9c7c2ebd6696012fce",
+                        "to_state":  "CLOSED"
                     }
                 ]
 }
