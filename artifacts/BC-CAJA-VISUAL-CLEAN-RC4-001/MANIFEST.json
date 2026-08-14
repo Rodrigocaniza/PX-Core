@@ -1,7 +1,7 @@
 {
   "mission": "BC-CAJA-VISUAL-CLEAN-RC4-001",
   "version": "1.0.0-rc.4",
-  "status": "CANDIDATE",
+  "status": "PASSED",
   "installer": "releases/BC-CAJA-1.0.0-rc.4-win64.zip",
   "zip_sha256": "e57bada3f7d4e28d355c07b05007ee559c347ad31ff7cced8594860edf82743c",
   "zip_bytes": 31946680,
