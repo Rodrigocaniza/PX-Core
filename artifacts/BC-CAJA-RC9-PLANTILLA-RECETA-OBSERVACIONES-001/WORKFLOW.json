@@ -1,8 +1,8 @@
 {
     "mission":  "BC-CAJA-RC9-PLANTILLA-RECETA-OBSERVACIONES-001",
-    "current_state":  "SAFE_CLOSURE",
-    "published":  false,
-    "synchronized":  false,
+    "current_state":  "CLOSED",
+    "published":  true,
+    "synchronized":  true,
     "mission_lease":  {
                           "holder":  "Codex/BC-Caja",
                           "branch":  "feature/bc-caja-rc9-plantilla-receta-observaciones-001",
@@ -50,6 +50,11 @@
                     {
                         "event":  "DEPLOYMENT_VERIFIED",
                         "integrity":  "ok"
+                    },
+                    {
+                        "event":  "SAFE_CLOSURE_PASSED",
+                        "implementation_commit":  "be1468a8fd5bb1cad1419dcd4627615c74414018",
+                        "to_state":  "CLOSED"
                     }
                 ]
 }
