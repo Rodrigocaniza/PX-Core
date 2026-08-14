@@ -1,0 +1,57 @@
+{
+    "mission":  "BC-CAJA-RC8-SIN-COSTO-Y-AJUSTE-VISUAL-001",
+    "current_state":  "SAFE_CLOSURE",
+    "published":  false,
+    "synchronized":  false,
+    "mission_lease":  {
+                          "holder":  "Codex/BC-Caja",
+                          "branch":  "feature/bc-caja-rc8-sin-costo-y-ajuste-visual-001",
+                          "exclusive":  true
+                      },
+    "role_state_binding":  {
+                               "VERIFICATION":  "Verification",
+                               "PACKAGING":  "Packaging",
+                               "ARTIFACT_AUDIT":  "Artifact Consistency",
+                               "LIBRARIAN":  "Independent Librarian",
+                               "QA":  "Independent QA",
+                               "AUDITOR":  "Independent Auditor",
+                               "SAFE_CLOSURE":  "Release Engineer"
+                           },
+    "history":  [
+                    {
+                        "event":  "MISSION_CREATED",
+                        "base":  "7b6122e10c5ed8a8e2b75cc9881949758e6feb96"
+                    },
+                    {
+                        "event":  "VERIFICATION_PASSED",
+                        "tests_passed":  178,
+                        "subtests_passed":  4
+                    },
+                    {
+                        "event":  "PACKAGING_PASSED",
+                        "zip_sha256":  "5a607a1ac95d9e71e666af89b8172fbf3c8c01d7e3f4a16e707ede49d007a47f"
+                    },
+                    {
+                        "event":  "ARTIFACT_CONSISTENCY_PASSED",
+                        "exe_sha256":  "03bc7b319a49d761751f4174ab224344631ee184009b1355b3b52d2fcb0f856d",
+                        "migrations":  13
+                    },
+                    {
+                        "event":  "LIBRARIAN_PASS"
+                    },
+                    {
+                        "event":  "QA_PASS",
+                        "visual_smoke":  "1366x768",
+                        "no_cost_empty_prices":  "pass",
+                        "columns":  "45/11/12/11/11/10",
+                        "observations":  "expanded"
+                    },
+                    {
+                        "event":  "AUDITOR_PASS"
+                    },
+                    {
+                        "event":  "DEPLOYMENT_VERIFIED",
+                        "integrity":  "ok"
+                    }
+                ]
+}

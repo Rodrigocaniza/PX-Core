@@ -190,7 +190,7 @@ def construir_item_producto_visible(valores):
         laboratory=valores.get("laboratorio", ""),
         prescription_doctor=valores.get("receta_dr", ""),
     )
-    if item.reference_subtotal <= 0:
+    if not item.no_cost and item.reference_subtotal <= 0:
         raise ValueError("El producto debe tener un precio de armazón o cristal.")
     return item
 
@@ -1207,6 +1207,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         tab_manual, fg_color="#E7F1FC", corner_radius=8,
         border_width=1, border_color="#7DA9D7",
     )
+    panel_total_draft.pack_propagate(False)
     panel_total_draft.place_forget()
     ctk.CTkLabel(
         panel_total_draft, text="OBSERVACIONES", text_color="#42627F",
@@ -1332,7 +1333,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                     "descuento_cristal", "sin_costo", "laboratorio", "receta_dr"
                 )}
             )
-            if item.reference_subtotal <= 0:
+            if not item.no_cost and item.reference_subtotal <= 0:
                 raise ValueError("El producto debe tener un precio de armazón o cristal.")
         except Exception as exc:
             messagebox.showwarning("Producto inválido", str(exc), parent=ventana)
@@ -2079,7 +2080,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     usuario = os.environ.get("USERNAME") or os.environ.get("USER") or ""
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.7   ·   Datos: {ruta_datos}"
+        text=f"BC Caja 1.0.0-rc.8   ·   Datos: {ruta_datos}"
              + (f"   ·   Usuario: {usuario}" if usuario else ""),
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
@@ -2207,7 +2208,21 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ancho_izquierdo_actual = int(ancho_actual * 5 / 7)
         ancho_derecho_actual = ancho_actual - ancho_izquierdo_actual - 8
         lista_productos.configure(width=ancho_izquierdo_actual, height=draft_actual); lista_productos.place(x=x_actual, y=y_draft_actual)
-        panel_total_draft.configure(width=ancho_derecho_actual, height=draft_actual + alto_sec + sep); panel_total_draft.place(x=x_actual + ancho_izquierdo_actual + 8, y=y_draft_actual)
+        alto_observaciones = y_toolbar_actual - y_draft_actual - sep
+        panel_total_draft.configure(
+            width=ancho_derecho_actual, height=alto_observaciones,
+        )
+        panel_total_draft.place(
+            x=x_actual + ancho_izquierdo_actual + 8, y=y_draft_actual,
+        )
+        ancho_tabla = max(1, ancho_izquierdo_actual - 34)
+        for clave, proporcion in (
+            ("producto", 0.45), ("codigo", 0.11), ("tipo", 0.12),
+            ("armazon", 0.11), ("cristal", 0.11), ("subtotal", 0.10),
+        ):
+            grilla_items.column(
+                clave, width=max(72, int(ancho_tabla * proporcion)), stretch=False,
+            )
         zona_secundaria.configure(width=ancho_izquierdo_actual, height=alto_sec); zona_secundaria.place(x=x_actual, y=y_sec)
         acciones.place_forget()
         toolbar_movimientos.configure(width=ancho_actual, height=perfil["toolbar_alto"]); toolbar_movimientos.place(x=x_actual, y=y_toolbar_actual)

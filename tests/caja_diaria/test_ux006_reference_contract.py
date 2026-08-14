@@ -28,7 +28,7 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             'etiquetas_kpi["esperado"]',
             'recalcular_total_visible',
             'formulario.grid_propagate(False)',
-            'panel_total_draft.configure(width=ancho_derecho_actual',
+            'width=ancho_derecho_actual, height=alto_observaciones',
             'zona_secundaria.configure(width=ancho_izquierdo_actual',
             'marco_grilla.configure(width=ancho_actual, height=alto_grid)',
             'marco_grilla.grid_propagate(False)',

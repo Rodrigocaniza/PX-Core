@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 import CajaDiaria
 
 SOURCE = Path("CajaDiaria.py").read_text(encoding="utf-8")
@@ -24,7 +24,7 @@ def test_rc7_uses_three_independent_containers():
     assert 'panel_total_draft = ctk.CTkFrame(\n        tab_manual' in SOURCE
     assert 'zona_secundaria = ctk.CTkFrame(tab_manual' in SOURCE
     assert 'lista_productos.configure(width=ancho_izquierdo_actual, height=draft_actual)' in SOURCE
-    assert 'panel_total_draft.configure(width=ancho_derecho_actual, height=draft_actual + alto_sec + sep)' in SOURCE
+    assert 'width=ancho_derecho_actual, height=alto_observaciones' in SOURCE
     assert 'zona_secundaria.configure(width=ancho_izquierdo_actual, height=alto_sec)' in SOURCE
 
 

@@ -26,7 +26,7 @@ def test_rc5_clear_confirmation_and_complete_reset_contract():
 
 def test_rc5_observations_and_compact_visibility_contract():
     assert 'draft_preferido, draft_minimo = 182, 145' in SOURCE
-    assert 'height=draft_actual + alto_sec + sep' in SOURCE
+    assert 'height=alto_observaciones' in SOURCE
     assert 'filas_minimas = 5' in SOURCE
     assert 'TAMANO_LOTE_GRILLA = 250' in SOURCE
     assert 'campos_manual["notas"] = ctk.CTkTextbox' in SOURCE

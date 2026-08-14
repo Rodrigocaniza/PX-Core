@@ -1,0 +1,17 @@
+{
+    "mission":  "BC-CAJA-RC8-SIN-COSTO-Y-AJUSTE-VISUAL-001",
+    "version":  "BC Caja 1.0.0-rc.8",
+    "base_commit":  "7b6122e10c5ed8a8e2b75cc9881949758e6feb96",
+    "branch":  "feature/bc-caja-rc8-sin-costo-y-ajuste-visual-001",
+    "release":  "releases/BC-CAJA-1.0.0-rc.8-win64.zip",
+    "zip_sha256":  "5a607a1ac95d9e71e666af89b8172fbf3c8c01d7e3f4a16e707ede49d007a47f",
+    "exe_sha256":  "03bc7b319a49d761751f4174ab224344631ee184009b1355b3b52d2fcb0f856d",
+    "visual_sha256":  "796a465f8bb30274e44024ade94e42812b0a3245522ddf5751ebba21b82428ea",
+    "tests":  {
+                  "passed":  178,
+                  "subtests":  4
+              },
+    "migrations":  13,
+    "database_integrity":  "ok",
+    "embedded_operational_data":  false
+}

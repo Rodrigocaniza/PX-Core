@@ -107,7 +107,7 @@ def test_rc6_layout_and_clear_contract():
     assert 'text="Artículo sin costo"' in source
     assert '"SIN COSTO" if item.no_cost' in source
     assert 'campos_manual["sin_costo"].deselect()' in source
-    assert 'panel_total_draft.configure(width=ancho_derecho_actual, height=draft_actual + alto_sec + sep)' in source
+    assert 'width=ancho_derecho_actual, height=alto_observaciones' in source
     assert 'zona_secundaria.configure(width=ancho_izquierdo_actual' in source
     assert 'filas_minimas = 5' in source
     assert 'anchor = "w" if clave == "producto" else "center"' in source
