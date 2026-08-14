@@ -2274,7 +2274,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     ruta_datos = resolve_data_paths().root
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.12   ·   Datos: {ruta_datos}",
+        text=f"BC Caja 1.0.0-rc.13   ·   Datos: {ruta_datos}",
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
     etiqueta_pie.pack(side="left", fill="x", expand=True)

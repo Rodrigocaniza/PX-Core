@@ -1,0 +1,13 @@
+{
+  "mission": "BC-CAJA-RC13-ADMIN-ARQUEO-EMAIL-001",
+  "version": "BC Caja 1.0.0-rc.13",
+  "base_commit": "ecd0006590bca050a1c0813b80f6b398f47f2cb4",
+  "release": "releases/BC-CAJA-1.0.0-rc.13-win64.zip",
+  "zip_sha256": "fdffc8e26815e3f9cf4565d3d3247e715261d65fe6889ef315b880a950605108",
+  "exe_sha256": "41894ef30be751d1a5a178f47aeb8c3a7f1e358acfbb2939b6cbfe8eaf3c6cec",
+  "visual_sha256": "7d639dbf65bf927db0e7eaf1b858e27120e9bf5ab9a2bb8d57aae7488c73f1a6",
+  "tests": {"passed": 198},
+  "migrations": 15,
+  "database_integrity": "ok",
+  "mail_state": "NO CONFIGURADO"
+}

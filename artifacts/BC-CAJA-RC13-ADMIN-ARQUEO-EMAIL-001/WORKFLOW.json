@@ -1,0 +1,20 @@
+{
+  "mission": "BC-CAJA-RC13-ADMIN-ARQUEO-EMAIL-001",
+  "current_state": "CLOSED",
+  "published": true,
+  "synchronized": true,
+  "continuous_session": "PASS",
+  "auto_resume": "PASS",
+  "workflow_engine": "PASS",
+  "role_state_binding": "PASS",
+  "mission_lease": {"holder": "Codex/BC-Caja", "branch": "feature/bc-caja-rc13-admin-arqueo-email-001", "exclusive": true},
+  "history": [
+    {"event": "VERIFICATION_PASSED", "tests": 198},
+    {"event": "PACKAGING_PASSED"},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "LIBRARIAN_PASS"},
+    {"event": "QA_PASS", "visual": "1366x768"},
+    {"event": "AUDITOR_PASS"},
+    {"event": "SAFE_CLOSURE_PASSED", "to_state": "CLOSED"}
+  ]
+}

@@ -1,4 +1,4 @@
-BC Caja 1.0.0-rc.12
-Misión: BC-CAJA-RC12-ARQUEO-EN-CAJA-DIARIA-001
+BC Caja 1.0.0-rc.13
+Misión: BC-CAJA-RC13-ADMIN-ARQUEO-EMAIL-001
 Fecha: 2026-08-14
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)
