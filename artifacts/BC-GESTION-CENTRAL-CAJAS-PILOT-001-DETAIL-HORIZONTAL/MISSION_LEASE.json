@@ -1,0 +1,12 @@
+{
+  "mission": "BC-GESTION-CENTRAL-CAJAS-PILOT-001-DETAIL-HORIZONTAL",
+  "repository": "PX-Core",
+  "branch": "feature/bc-gestion-central-detail-horizontal",
+  "worktree": "C:\\PX\\GC-H",
+  "base_commit": "c9dc9cf3b19f793a7d576802e84065e452dd60a5",
+  "status": "RELEASED",
+  "scope": "DETAIL_LAYOUT_ONLY",
+  "production_enabled": false,
+  "data_policy": "SYNTHETIC_ONLY",
+  "bc_core_touched": false
+}

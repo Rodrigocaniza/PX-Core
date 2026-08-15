@@ -51,6 +51,38 @@ def test_each_card_callback_opens_correct_detail_and_back(interactive_app):
         assert len(app.card_buttons) == 4
 
 
+def test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll(interactive_app):
+    app, _, _ = interactive_app
+    app.root.deiconify(); app.root.geometry("1920x1080+0+0"); app.root.update()
+    app.card_buttons[Unit.OPTICA_ASUNCION].invoke(); app.root.update()
+    assert len(app.detail_kpis) == 7
+    assert app.economics_tree["columns"] == ("concept", "amount", "reference", "status")
+    assert app.detail_alerts.winfo_ismapped()
+    assert app.economics_tree.winfo_ismapped()
+    assert app.back_button.winfo_ismapped()
+    assert app.detail_refresh_button.winfo_ismapped()
+    assert max(child.winfo_y() + child.winfo_height() for child in app.body.winfo_children()) <= app.body.winfo_height()
+    app.detail_refresh_button.invoke(); app.root.update()
+    assert app.status_var.get().startswith("Detalle actualizado ")
+    app.root.withdraw()
+
+
+def test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll(interactive_app):
+    app, _, _ = interactive_app
+    app.root.deiconify(); app.root.geometry("1920x1080+0+0"); app.root.update()
+    app.card_buttons[Unit.OPTICA_ASUNCION].invoke(); app.root.update()
+    assert len(app.detail_kpis) == 7
+    assert app.economics_tree["columns"] == ("concept", "amount", "reference", "status")
+    assert app.detail_alerts.winfo_ismapped()
+    assert app.economics_tree.winfo_ismapped()
+    assert app.back_button.winfo_ismapped()
+    assert app.detail_refresh_button.winfo_ismapped()
+    assert max(child.winfo_y() + child.winfo_height() for child in app.body.winfo_children()) <= app.body.winfo_height()
+    app.detail_refresh_button.invoke(); app.root.update()
+    assert app.status_var.get().startswith("Detalle actualizado ")
+    app.root.withdraw()
+
+
 def test_refresh_and_filters_have_visible_feedback(interactive_app):
     app, _, _ = interactive_app
     app.refresh_button.invoke(); app.root.update()

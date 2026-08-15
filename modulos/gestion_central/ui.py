@@ -127,17 +127,77 @@ class CentralPilotWindow:
     def show_detail(self, unit): return self._guard(lambda: self._show_detail(unit), f"abrir detalle de {unit.label}")
 
     def _show_detail(self, unit):
-        data = self.service.dashboard(self.principal); card = next(item for item in data["cards"] if item["unit"] == unit); snap = card["snapshot"] or {}
-        self.current_screen, self.selected_unit = "detail", unit; self._clear_body()
-        bar = tk.Frame(self.body, bg=COLORS["surface"]); bar.pack(fill="x", padx=24, pady=18)
-        self.back_button = tk.Button(bar, text="← Volver al panel", command=self.show_dashboard, bg=COLORS["navy"], fg="white", relief="flat", padx=16, pady=8); self.back_button.pack(side="left")
-        tk.Label(bar, text=unit.label, bg=COLORS["surface"], fg=COLORS["text"], font=("Segoe UI", 20, "bold")).pack(side="left", padx=20)
-        detail = tk.Frame(self.body, bg=COLORS["card"], padx=28, pady=24, highlightthickness=1, highlightbackground="#D7E0E8"); detail.pack(fill="both", expand=True, padx=24, pady=(0, 24))
-        rows = [("Estado de sincronización", card["sync"]), ("Estado de caja", snap.get("status", "SIN DATOS")), ("Fecha operativa", snap.get("business_date", "—")), ("Ingresos", pyg(snap.get("income"))), ("Efectivo", pyg(snap.get("cash"))), ("Tarjeta/Cheque", pyg(snap.get("card_check"))), ("Gastos", pyg(snap.get("expenses"))), ("Retiros", pyg(snap.get("withdrawals"))), ("Efectivo esperado", pyg(snap.get("expected_cash"))), ("Movimientos", str(snap.get("entry_count", 0))), ("Alertas activas", str(card["alerts"]))]
-        for row, (label, value) in enumerate(rows):
-            tk.Label(detail, text=label, bg=COLORS["card"], fg=COLORS["muted"], font=("Segoe UI", 11)).grid(row=row, column=0, sticky="w", padx=(0, 40), pady=7)
-            tk.Label(detail, text=value, bg=COLORS["card"], fg=COLORS["text"], font=("Segoe UI", 12, "bold")).grid(row=row, column=1, sticky="w", pady=7)
+        data = self.service.dashboard(self.principal)
+        card = next(item for item in data["cards"] if item["unit"] == unit)
+        snap = card["snapshot"] or {}
+        self.current_screen, self.selected_unit = "detail", unit
+        self._clear_body()
+
+        # Cabecera horizontal: todos los datos de orientación quedan siempre visibles.
+        business, _, branch = unit.label.partition(" ")
+        header = tk.Frame(self.body, bg=COLORS["card"], height=66, highlightthickness=1, highlightbackground="#D7E0E8")
+        header.pack(fill="x", padx=18, pady=(14, 8)); header.pack_propagate(False)
+        self.back_button = tk.Button(header, text="← Volver al panel", command=self.show_dashboard, bg=COLORS["navy"], fg="white", relief="flat", padx=14, pady=7)
+        self.back_button.pack(side="left", padx=(12, 14), pady=12)
+        tk.Label(header, text=business, bg=COLORS["card"], fg=COLORS["text"], font=("Segoe UI", 17, "bold")).pack(side="left")
+        tk.Label(header, text=f"Sucursal: {branch}", bg=COLORS["card"], fg=COLORS["muted"], font=("Segoe UI", 11)).pack(side="left", padx=12)
+        sync_at = snap.get("source_updated_at", "—")
+        if sync_at != "—": sync_at = sync_at.replace("T", " ")[:19]
+        for label, value in (("Caja", snap.get("status", "SIN DATOS")), ("Fecha", snap.get("business_date", "—")), ("Última sincronización", sync_at)):
+            block = tk.Frame(header, bg=COLORS["card"]); block.pack(side="left", padx=13)
+            tk.Label(block, text=label.upper(), bg=COLORS["card"], fg=COLORS["muted"], font=("Segoe UI", 8, "bold")).pack(anchor="w")
+            tk.Label(block, text=value, bg=COLORS["card"], fg=COLORS["text"], font=("Segoe UI", 10, "bold")).pack(anchor="w")
+        self.detail_refresh_button = tk.Button(header, text="Actualizar", command=lambda: self._refresh_detail(unit), bg=COLORS["blue"], fg="white", relief="flat", padx=16, pady=7)
+        self.detail_refresh_button.pack(side="right", padx=12, pady=12)
+
+        counted = snap.get("counted_cash")
+        difference = None if counted is None else counted - int(snap.get("expected_cash") or 0)
+        metrics = [("VENTAS", pyg(snap.get("income"))), ("EFECTIVO", pyg(snap.get("cash"))),
+                   ("TARJ./CHEQUE", pyg(snap.get("card_check"))), ("GASTOS", pyg(snap.get("expenses"))),
+                   ("RETIROS", pyg(snap.get("withdrawals"))), ("DIF. ARQUEO", "Pendiente" if difference is None else pyg(difference)),
+                   ("ALERTAS", str(card["alerts"]))]
+        kpis = tk.Frame(self.body, bg=COLORS["surface"]); kpis.pack(fill="x", padx=12, pady=(0, 8))
+        self.detail_kpis = {}
+        for column, (label, value) in enumerate(metrics):
+            kpis.grid_columnconfigure(column, weight=1, uniform="detail-kpi")
+            tile = tk.Frame(kpis, bg=COLORS["card"], height=104, highlightthickness=1, highlightbackground="#D7E0E8")
+            tile.grid(row=0, column=column, padx=4, sticky="nsew"); tile.grid_propagate(False)
+            tk.Label(tile, text=label, bg=COLORS["card"], fg=COLORS["muted"], font=("Segoe UI", 9, "bold")).pack(anchor="w", padx=12, pady=(14, 3))
+            value_label = tk.Label(tile, text=value, bg=COLORS["card"], fg=COLORS["navy"], font=("Segoe UI", 15, "bold"))
+            value_label.pack(anchor="w", padx=12); self.detail_kpis[label] = value_label
+
+        # Zona central en lectura izquierda→derecha: economía amplia + estado/alertas.
+        horizontal = max(self.root.winfo_width(), 1180) >= 1400
+        panes = tk.PanedWindow(self.body, orient=tk.HORIZONTAL if horizontal else tk.VERTICAL, bg=COLORS["surface"], sashwidth=7, relief="flat")
+        panes.pack(fill="both", expand=True, padx=18, pady=(0, 14))
+        economy = tk.LabelFrame(panes, text="  Movimientos / detalle económico  ", bg=COLORS["card"], fg=COLORS["text"], font=("Segoe UI", 11, "bold"), padx=10, pady=10)
+        side = tk.LabelFrame(panes, text="  Alertas y sincronización  ", bg=COLORS["card"], fg=COLORS["text"], font=("Segoe UI", 11, "bold"), padx=10, pady=10)
+        panes.add(economy, minsize=700, stretch="always"); panes.add(side, minsize=330, stretch="never")
+        self.economics_tree = ttk.Treeview(economy, columns=("concept", "amount", "reference", "status"), show="headings", height=9)
+        for key, label, width, anchor in (("concept", "Concepto", 220, "w"), ("amount", "Monto", 180, "e"), ("reference", "Referencia", 190, "w"), ("status", "Estado", 120, "center")):
+            self.economics_tree.heading(key, text=label); self.economics_tree.column(key, width=width, anchor=anchor)
+        economic_rows = [("Ventas", snap.get("income"), f"{snap.get('entry_count', 0)} movimientos", snap.get("status", "—")),
+                         ("Efectivo", snap.get("cash"), "Cobros", "Registrado"), ("Tarjeta/Cheque", snap.get("card_check"), "Cobros", "Registrado"),
+                         ("Gastos", snap.get("expenses"), "Egresos", "Registrado"), ("Retiros", snap.get("withdrawals"), "Egresos", "Registrado"),
+                         ("Efectivo esperado", snap.get("expected_cash"), "Arqueo", "Pendiente" if counted is None else "Contado")]
+        for row in economic_rows: self.economics_tree.insert("", "end", values=(row[0], pyg(row[1]), row[2], row[3]))
+        self.economics_tree.pack(fill="both", expand=True)
+        sync_color = COLORS["ok"] if card["sync"] == "AL DÍA" else COLORS["critical"]
+        tk.Label(side, text=card["sync"], bg=COLORS["card"], fg=sync_color, font=("Segoe UI", 17, "bold")).pack(anchor="w", padx=6, pady=(4, 2))
+        tk.Label(side, text=f"Último dato: {sync_at}", bg=COLORS["card"], fg=COLORS["muted"], font=("Segoe UI", 9)).pack(anchor="w", padx=6, pady=(0, 10))
+        self.detail_alerts = ttk.Treeview(side, columns=("level", "message"), show="headings", height=7)
+        self.detail_alerts.heading("level", text="Nivel"); self.detail_alerts.column("level", width=75, anchor="center")
+        self.detail_alerts.heading("message", text="Alerta"); self.detail_alerts.column("message", width=280, anchor="w")
+        unit_alerts = [alert for alert in data["alerts"] if alert.unit == unit]
+        for alert in unit_alerts: self.detail_alerts.insert("", "end", values=(alert.severity, alert.message))
+        self.detail_alerts.pack(fill="both", expand=True)
+        if not unit_alerts: tk.Label(side, text="Sin alertas activas", bg=COLORS["card"], fg=COLORS["ok"]).pack(anchor="w", padx=6, pady=6)
         self.status_var.set(f"Detalle abierto: {unit.label}")
+
+    def _refresh_detail(self, unit):
+        result = self.show_detail(unit)
+        self.status_var.set(f"Detalle actualizado {datetime.now().strftime('%H:%M:%S')} · {unit.label}")
+        return result
 
     def _alert_selected(self, _event=None):
         selected = self.alerts.selection()
