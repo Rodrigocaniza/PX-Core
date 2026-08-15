@@ -1,0 +1,1 @@
+Auditar alcance, permisos, local-first, outbox idempotente, estados, ausencia de producción/red, evidencias, verdicts previos y Artifact Consistency de BC-GESTION-CENTRAL-SUPERVISION-OPERATIVA-001. Emitir PASS/FAIL final.

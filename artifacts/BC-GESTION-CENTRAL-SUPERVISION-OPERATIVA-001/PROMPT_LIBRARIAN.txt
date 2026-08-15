@@ -1,0 +1,1 @@
+Validar trazabilidad, contratos heredados, límites, documentación, evidencia, manifest y consistencia de BC-GESTION-CENTRAL-SUPERVISION-OPERATIVA-001. No acceder a rutas prohibidas ni modificar código. Emitir PASS/FAIL verificable.

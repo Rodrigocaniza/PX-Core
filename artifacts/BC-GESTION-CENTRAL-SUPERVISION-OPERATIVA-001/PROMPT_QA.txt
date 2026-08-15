@@ -1,0 +1,1 @@
+Ejecutar pruebas dirigidas, regresión, interacción Tk y validar captura 1920x1080 de BC-GESTION-CENTRAL-SUPERVISION-OPERATIVA-001 con datos sintéticos. Emitir PASS/FAIL y hashes/conteos pertinentes.

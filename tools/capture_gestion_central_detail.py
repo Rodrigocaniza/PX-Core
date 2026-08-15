@@ -24,6 +24,7 @@ def main() -> int:
         service = build_service(Path(directory))
         service.bootstrap_synthetic_pilot()
         app = CentralPilotWindow(service, notifier=lambda *_: None)
+        app.root.overrideredirect(True)
         app.root.geometry("1920x1080+0+0")
         app.root.attributes("-topmost", True)
         app.root.update()

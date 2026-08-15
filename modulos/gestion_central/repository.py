@@ -55,6 +55,27 @@ class CentralRepository:
               target TEXT NOT NULL, result TEXT NOT NULL, details_json TEXT NOT NULL,
               recorded_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS operational_alert_state(
+              alert_id TEXT PRIMARY KEY, state TEXT NOT NULL, updated_by TEXT NOT NULL,
+              updated_at TEXT NOT NULL, note TEXT NOT NULL DEFAULT '',
+              FOREIGN KEY(alert_id) REFERENCES central_alerts(id)
+            );
+            CREATE TABLE IF NOT EXISTS central_messages(
+              id TEXT PRIMARY KEY, target_unit TEXT NOT NULL, target_pc TEXT,
+              body TEXT NOT NULL, status TEXT NOT NULL, idempotency_key TEXT NOT NULL UNIQUE,
+              created_by TEXT NOT NULL, created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS central_outbox(
+              id TEXT PRIMARY KEY, aggregate_type TEXT NOT NULL, aggregate_id TEXT NOT NULL,
+              event_type TEXT NOT NULL, payload_json TEXT NOT NULL,
+              idempotency_key TEXT NOT NULL UNIQUE, status TEXT NOT NULL,
+              attempts INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS daily_field_reviews(
+              unit TEXT NOT NULL, business_date TEXT NOT NULL, field_name TEXT NOT NULL,
+              reviewed_by TEXT NOT NULL, reviewed_at TEXT NOT NULL,
+              PRIMARY KEY(unit,business_date,field_name)
+            );
             """)
             con.commit()
 
