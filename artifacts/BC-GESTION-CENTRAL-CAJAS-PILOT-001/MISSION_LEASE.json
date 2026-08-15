@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0",
+  "mission": "BC-GESTION-CENTRAL-CAJAS-PILOT-001",
+  "repository": "PX-Core",
+  "branch": "feature/bc-gestion-central-cajas-pilot-001",
+  "worktree": "C:\\Users\\Usuario\\Desktop\\Proyecto X\\PX-Core\\.worktrees\\gestion-central-cajas-pilot-001",
+  "base_ref": "origin/main",
+  "base_commit": "42b8df26d5e055b16cc204902ec38de0d0de7355",
+  "holder": "Codex Implementation Engineer",
+  "mode": "exclusive-worktree",
+  "status": "RELEASED",
+  "production_enabled": false,
+  "data_policy": "SYNTHETIC_ONLY",
+  "bc_core_touched": false
+}

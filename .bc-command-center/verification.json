@@ -17,6 +17,7 @@
                      "BC-CAJA-OPERATOR-UX-001":  "bc-caja-operator-ux",
                      "BC-CAJA-OPERATOR-FIXES-003":  "bc-caja-operator-fixes"
                      ,"BC-CAJA-RECOVERY-DRILL-001":  "bc-caja-recovery-drill"
+                     ,"BC-GESTION-CENTRAL-CAJAS-PILOT-001": "bc-gestion-central-cajas-pilot"
                      ,"BC-CAJA-UX-OPERATIVA-RC5-001":  "bc-caja-operator-ux"
                      ,"BC-CAJA-DESCUENTOS-SIN-COSTO-LAYOUT-RC6-001":  "bc-caja-operator-ux"
                      ,"BC-CAJA-RC7-COMPACT-LAYOUT-CORRECTION-001":  "bc-caja-operator-ux"
@@ -237,6 +238,14 @@
                                                                              ]
                                                                 }
                                                }
+                    ,"bc-gestion-central-cajas-pilot": {
+                        "working_directory": ".",
+                        "commands": {
+                            "targeted": ["${PYTHON}", "-m", "pytest", "tests/gestion_central", "-q"],
+                            "regression": ["${PYTHON}", "-m", "pytest", "tests/gestion_central", "tests/caja_diaria", "-q"],
+                            "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
+                        }
+                    }
                     ,"bc-caja-recovery-drill":  {
                         "working_directory": ".",
                         "commands": {

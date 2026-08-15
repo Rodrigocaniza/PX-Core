@@ -1,0 +1,23 @@
+{
+  "mission": "BC-GESTION-CENTRAL-CAJAS-PILOT-001",
+  "current_state": "SAFE_CLOSED",
+  "production_enabled": false,
+  "history": [
+    {
+      "event": "MISSION_LEASE_ACQUIRED",
+      "from_state": "REQUESTED",
+      "to_state": "ISOLATION",
+      "base_commit": "42b8df26d5e055b16cc204902ec38de0d0de7355"
+    },
+    {
+      "event": "WORKTREE_VERIFIED",
+      "from_state": "ISOLATION",
+      "to_state": "CONTRACT_AND_DESIGN"
+    },
+    {"event": "IMPLEMENTATION_COMPLETED", "from_state": "CONTRACT_AND_DESIGN", "to_state": "LIBRARIAN"},
+    {"event": "LIBRARIAN_PASSED", "from_state": "LIBRARIAN", "to_state": "QA"},
+    {"event": "QA_PASSED", "from_state": "QA", "to_state": "AUDITOR", "targeted": "8 passed", "full": "207 passed"},
+    {"event": "AUDITOR_PASSED", "from_state": "AUDITOR", "to_state": "SAFE_CLOSURE"},
+    {"event": "MISSION_LEASE_RELEASED", "from_state": "SAFE_CLOSURE", "to_state": "SAFE_CLOSED"}
+  ]
+}
