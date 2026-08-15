@@ -5,8 +5,7 @@
   "worktree": ".worktrees/gc-sol-001",
   "branch": "mission/bc-gestion-central-supervision-operativa-001",
   "base": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
-  "state": "ACQUIRED",
+  "state": "RELEASED",
   "production_enabled": false,
   "role_state_binding": ["LIBRARIAN", "QA", "AUDITOR"]
 }
-

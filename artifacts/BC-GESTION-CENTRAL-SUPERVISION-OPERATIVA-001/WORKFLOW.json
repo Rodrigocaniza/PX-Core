@@ -1,7 +1,7 @@
 {
   "mission": "BC-GESTION-CENTRAL-SUPERVISION-OPERATIVA-001",
-  "current_state": "RELEASE_PENDING",
-  "mission_lease": "ACQUIRED",
+  "current_state": "SAFE_CLOSED",
+  "mission_lease": "RELEASED",
   "production_enabled": false,
   "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
   "history": [
@@ -13,6 +13,8 @@
     {"event": "VISUAL_EVIDENCE_REGENERATED_1920X1080", "to": "LIBRARIAN_FINAL"},
     {"event": "LIBRARIAN_PASSED", "to": "QA"},
     {"event": "QA_PASSED", "to": "AUDITOR"},
-    {"event": "AUDITOR_PASSED", "to": "RELEASE_PENDING", "regression": 230}
+    {"event": "AUDITOR_PASSED", "to": "RELEASE_PENDING", "regression": 230},
+    {"event": "PROTECTED_COMMIT_PUSHED", "commit": "b3b7bf54ce70f629ec1d5ddfad4fac2430c13b9e", "remote": "0 ahead / 0 behind", "to": "SAFE_CLOSURE"},
+    {"event": "MISSION_LEASE_RELEASED", "to": "SAFE_CLOSED"}
   ]
 }
