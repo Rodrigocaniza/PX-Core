@@ -1,7 +1,7 @@
 {
   "mission": "BC-GESTION-CENTRAL-FACTUFACIL-BANDEJA-001",
-  "current_state": "RELEASE_PENDING",
-  "mission_lease": "ACQUIRED",
+  "current_state": "SAFE_CLOSED",
+  "mission_lease": "RELEASED",
   "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
   "history": [
     {"event": "CANONICAL_BASE_VERIFIED", "base": "74470d75fa14cdd9c8cbb3de08fe45878727d84e", "remote": "0 ahead / 0 behind"},
@@ -13,6 +13,8 @@
     {"event": "IMPLEMENTATION_VALIDATED", "tests": 251, "to": "LIBRARIAN"},
     {"event": "LIBRARIAN_PASSED", "to": "QA"},
     {"event": "QA_PASSED", "to": "AUDITOR"},
-    {"event": "AUDITOR_PASSED", "to": "RELEASE_PENDING"}
+    {"event": "AUDITOR_PASSED", "to": "RELEASE_PENDING"},
+    {"event": "PROTECTED_COMMIT_PUSHED", "commit": "024bc4898a1e8536b2ce51ff7376f58fddc9be00", "remote": "0 ahead / 0 behind", "to": "SAFE_CLOSURE"},
+    {"event": "MISSION_LEASE_RELEASED", "to": "SAFE_CLOSED"}
   ]
 }

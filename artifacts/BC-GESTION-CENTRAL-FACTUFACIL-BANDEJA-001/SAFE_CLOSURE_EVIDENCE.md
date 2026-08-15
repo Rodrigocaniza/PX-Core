@@ -1,5 +1,5 @@
 # Safe Closure
 
-Estado: `READY_FOR_PROTECTED_COMMIT_AND_PUSH`.
+Estado: `SAFE_CLOSED`.
 
-Lease exclusivo adquirido. Librarian, QA y Auditor PASS; Artifact Consistency PASS. Sin merge a main ni despliegue. El lease será liberado tras publicación protegida y verificación remota 0/0.
+Lease exclusivo adquirido y liberado. Librarian, QA y Auditor PASS; Artifact Consistency PASS. Commit funcional `024bc4898a1e8536b2ce51ff7376f58fddc9be00` publicado y verificado `0 ahead / 0 behind`. Sin merge a main ni despliegue.
