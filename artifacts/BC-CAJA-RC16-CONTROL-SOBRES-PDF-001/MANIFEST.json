@@ -1,0 +1,15 @@
+{
+  "mission": "BC-CAJA-RC16-CONTROL-SOBRES-PDF-001",
+  "version": "BC Caja 1.0.0-rc.16",
+  "base_commit": "88e86cb7fbec301efa19bb340a217fc793155df4",
+  "release": "releases/BC-CAJA-1.0.0-rc.16-win64.zip",
+  "zip_sha256": "2a0f2135aa44611175d910faab12e89280ef26580ef38aa3e837ca55cdb17b1b",
+  "exe_sha256": "8a7602d9bd8d4399a24e7aabcc2090858ab6760d6461553207cd33bc6a5f43ea",
+  "representative_pdf_sha256": "ca0374dd14a554c6f714c9c0d8a9f12d2d6ec2083350e20937e937cdfd469fb7",
+  "tests": {"passed": 208, "specific": 3},
+  "visual_pages": 14,
+  "package_entries": 1149,
+  "package_root": "BC-Caja",
+  "forbidden_entries": 0,
+  "reviewers": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"}
+}

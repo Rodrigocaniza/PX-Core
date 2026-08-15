@@ -43,5 +43,5 @@ def test_outflow_does_not_duplicate_the_canonical_responsible():
     assert "servicio registra al responsable" in outflow_ui
 
 
-def test_rc15_is_visible_in_footer():
-    assert "BC Caja 1.0.0-rc.15" in SOURCE
+def test_release_version_is_visible_in_footer():
+    assert "BC Caja 1.0.0-rc.16" in SOURCE

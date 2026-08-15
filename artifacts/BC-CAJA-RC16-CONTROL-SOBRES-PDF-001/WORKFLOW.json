@@ -1,0 +1,43 @@
+{
+  "mission": "BC-CAJA-RC16-CONTROL-SOBRES-PDF-001",
+  "base_commit": "88e86cb7fbec301efa19bb340a217fc793155df4",
+  "branch": "feature/bc-caja-rc16-control-sobres-pdf-001",
+  "current_state": "SAFE_CLOSURE",
+  "continuous_session": "ACTIVE",
+  "auto_resume": "ACTIVE",
+  "workflow_engine": "ACTIVE",
+  "mission_lease": {"holder": "Codex/BC-Caja", "exclusive": true},
+  "role_state_binding": {
+    "LIBRARIAN": "Independent Librarian",
+    "QA": "Independent QA",
+    "AUDITOR": "Independent Auditor",
+    "SAFE_CLOSURE": "Release Engineer"
+  },
+  "history": [
+    {"event": "CANONICAL_BASE_VERIFIED", "commit": "88e86cb7fbec301efa19bb340a217fc793155df4"},
+    {"event": "MODEL_AND_LEGACY_PDF_AUDITED"},
+    {"event": "SPECIFIC_TESTS_PASSED", "tests": 3},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 1, "result": "FAIL", "reason": "split row overlapped header/footer"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 2, "result": "FAIL", "reason": "static chrome inconsistent"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 3, "result": "FAIL", "pages": 7, "reason": "independent QA found continuation chrome overlap"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 4, "result": "FAIL", "pages": 9, "reason": "deferred canvas still hid chrome on even pages"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 5, "result": "INCONCLUSIVE", "pages": 9, "reason": "reused PNG paths were cached by visual review tooling"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 6, "result": "FAIL", "pages": 9, "reason": "Platypus canvas state still affected even-page chrome"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 7, "result": "FAIL", "pages": 9, "reason": "original page clip leaked into merged overlay"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 8, "result": "FAIL", "pages": 9, "reason": "external overlay alone was viewer-dependent"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 9, "result": "FAIL", "pages": 9, "reason": "independent QA found page 2 without visible identity"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 10, "result": "FAIL", "pages": 10, "reason": "independent QA found alternating long-text pages without visible identity"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 11, "result": "FAIL", "pages": 14, "reason": "independent QA found KeepTogether clipping on alternating pages"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 12, "result": "INCONCLUSIVE", "pages": 14, "reason": "reviewers observed conflicting pixels under reused release-v3 paths"},
+    {"event": "VISUAL_REVIEW_ITERATION", "generation": 13, "result": "FAIL", "pages": 14, "reason": "QA found viewer-dependent chrome on pages 10 and 14"},
+    {"event": "VISUAL_REVIEW_FINAL", "generation": 14, "result": "PASS", "pages": 14, "control": "content merged before final chrome overlay; explicit in-flow control-final marker; immutable release-v6 paths"},
+    {"event": "VERIFICATION_PASSED", "tests": 208},
+    {"event": "ATTACHMENT_IDEMPOTENCY_PASSED"},
+    {"event": "PACKAGING_PASSED", "entries": 1149},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "LIBRARIAN_PASS", "generation": 14},
+    {"event": "QA_PASS", "generation": 14, "control": "byte-exact individual raster review resolved batch-viewer cache"},
+    {"event": "AUDITOR_PASS", "generation": 14},
+    {"event": "SAFE_CLOSURE_READY", "scope": "commit_push_then_transactional_install"}
+  ]
+}

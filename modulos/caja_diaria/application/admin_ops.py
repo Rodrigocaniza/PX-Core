@@ -419,43 +419,8 @@ class AdminOperations:
         return template.replace("{fecha}", day.business_date.strftime("%d-%m-%Y")).replace("{sucursal}", day.unit)
 
     def generate_close_pdf(self, day: CashDay, count: CountResult, closure_id: str, destination: Path) -> Path:
-        from reportlab.lib.pagesizes import A4
-        from reportlab.pdfgen import canvas
-
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        temp = destination.with_suffix(".tmp")
-        pdf = canvas.Canvas(str(temp), pagesize=A4)
-        y = 810
-        totals = day.totals()
-        active = [entry for entry in day.entries if entry.status.value == "ACTIVE"]
-        agreement = sum(entry.agreement_amount or 0 for entry in active)
-        balances = sum(entry.client_balance_amount for entry in active)
-        installment_entries = sum(1 for entry in active if str(entry.installments or "").strip())
-        lines = [
-            ("BC Caja - Caja + Arqueo", closure_id), ("Sucursal / caja", day.unit),
-            ("Fecha", day.business_date.strftime("%d-%m-%Y")), ("Responsable", count.responsible),
-            ("Apertura", day.opened_at.isoformat()), ("Cierre", day.closed_at.isoformat()),
-            ("Caja inicial", day.opening_cash), ("Total ventas", totals.total),
-            ("Efectivo", totals.cash), ("Tarjeta / transferencia", totals.card_check),
-            ("Convenio", agreement), ("Ventas con cuotas", installment_entries), ("Saldos", balances),
-            ("Gastos", totals.expenses), ("Entregas administración", totals.withdrawals),
-            ("Efectivo esperado", count.expected_total), ("Efectivo contado", count.counted_total),
-            ("Diferencia", count.difference), ("Motivo diferencia", count.reason or "Sin diferencia"),
-        ]
-        pdf.setFont("Helvetica-Bold", 14); pdf.drawString(42, y, lines[0][0]); y -= 24
-        pdf.setFont("Helvetica", 9)
-        for label, value in lines[1:]:
-            pdf.drawString(42, y, f"{label}: {value}"); y -= 15
-        y -= 8; pdf.setFont("Helvetica-Bold", 10); pdf.drawString(42, y, "Resumen de movimientos"); y -= 16
-        pdf.setFont("Helvetica", 8)
-        for entry in day.entries:
-            if entry.status.value != "ACTIVE":
-                continue
-            safe = f"{entry.created_at.strftime('%H:%M')} | {entry.description[:45]} | Total {entry.total or 0} | Efectivo {entry.cash or 0} | Gasto {entry.expenses or 0} | Entrega {entry.withdrawal or 0}"
-            pdf.drawString(42, y, safe); y -= 12
-            if y < 50: pdf.showPage(); y = 810; pdf.setFont("Helvetica", 8)
-        pdf.save(); temp.replace(destination)
-        return destination
+        from .close_report import generate_daily_envelope_control
+        return generate_daily_envelope_control(day, count, closure_id, destination)
 
     def mail_status(self, cash_day_id: str) -> str:
         with self.repository._connection() as connection:
