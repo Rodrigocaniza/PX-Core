@@ -1096,7 +1096,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     campos_manual["caja_inicial"].bind("<Key>", lambda _event: "break")
 
     aviso_entregas = ctk.CTkButton(
-        cabecera, text="Trabajos 0", width=132, height=max(27, perfil["campo_alto"]),
+        cabecera, text="Trabajos a entregar: 0", width=150, height=max(27, perfil["campo_alto"]),
         fg_color="#FFF3CD", text_color="#7A4B00", border_width=1,
         border_color="#E6B85C", hover_color="#FFE5A3",
         command=lambda: (seleccionar_pestaña("Pedidos"), refrescar_pedidos("Hoy")),
@@ -1272,6 +1272,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                                    border_width=1, border_color=color_borde_suave)
     ctk.CTkLabel(zona_secundaria, text="SALIDA DE CAJA", text_color=color_suave,
                  font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold")).pack(side="left", padx=(8, 5))
+    # La autoría no se solicita dos veces: el servicio registra al responsable
+    # canónico de la caja/sesión en la auditoría de la salida.
     campos_manual["salida_tipo"] = ctk.CTkComboBox(
         zona_secundaria, values=["Gasto", "Entrega administración"], width=145,
         height=perfil["campo_alto"],
@@ -2217,7 +2219,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     boton_salida.configure(command=guardar_salida_integrada)
     boton_limpiar = ctk.CTkButton(
         zona_secundaria, text="Limpiar todo", command=limpiar_operacion,
-        width=105, height=perfil["campo_alto"], fg_color="#6D3AC1",
+        width=95, height=perfil["campo_alto"], fg_color="#6D3AC1",
         text_color="#FFFFFF", border_width=1, border_color="#53299B",
         hover_color="#57309A",
     )
@@ -2274,7 +2276,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     ruta_datos = resolve_data_paths().root
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.14   ·   Datos: {ruta_datos}",
+        text=f"BC Caja 1.0.0-rc.15   ·   Datos: {ruta_datos}",
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
     etiqueta_pie.pack(side="left", fill="x", expand=True)
@@ -2316,7 +2318,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     formulario.configure(width=ancho_total, height=alto_form)
     formulario.grid_propagate(False)
     formulario.place(x=4, y=y_form)
-    ancho_columna_izquierda = int(ancho_total * 5 / 7)
+    ancho_columna_izquierda = int(ancho_total * 3 / 5)
     lista_productos.configure(width=ancho_total, height=alto_draft + alto_secundario + separacion_vertical)
     lista_productos.pack_propagate(False)
     lista_productos.place(x=4, y=y_draft)
@@ -2332,8 +2334,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         campos_manual["salida_concepto"].configure(width=140)
         campos_manual["salida_monto"].configure(width=85)
         campos_manual["salida_observacion"].configure(width=110)
-        campos_manual["salida_concepto"].configure(width=180)
-        campos_manual["salida_observacion"].configure(width=170)
         boton_salida.configure(width=95)
         entrada_busqueda.configure(width=130)
         for boton in botones_filtro.values():
@@ -2366,7 +2366,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         else:
             alto_cab, alto_tot = 42, 0
             form_preferido, form_minimo = 212, 172
-            draft_preferido, draft_minimo = 182, 145
+            # Baseline RC5 conservado para trazabilidad: draft_preferido, draft_minimo = 182, 145
+            draft_preferido, draft_minimo = 195, 175
             alto_sec, sep = 32, 1
         margen_inferior = 4
         alto_pie_actual = max(18, pie.winfo_reqheight())
@@ -2399,7 +2400,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         alto_grid = max(1, y_footer - 2 - y_grid)
         cabecera.configure(width=ancho_actual, height=alto_cab); cabecera.place(x=x_actual, y=y_cab)
         formulario.configure(width=ancho_actual, height=alto_form_actual); formulario.place(x=x_actual, y=y_form_actual)
-        ancho_izquierdo_actual = int(ancho_actual * 5 / 7)
+        ancho_izquierdo_actual = int(ancho_actual * 3 / 5)
         ancho_derecho_actual = ancho_actual - ancho_izquierdo_actual - 8
         lista_productos.configure(width=ancho_izquierdo_actual, height=draft_actual); lista_productos.place(x=x_actual, y=y_draft_actual)
         alto_observaciones = y_toolbar_actual - y_draft_actual - sep

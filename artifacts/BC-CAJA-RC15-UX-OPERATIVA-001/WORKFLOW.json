@@ -1,0 +1,27 @@
+{
+  "mission": "BC-CAJA-RC15-UX-OPERATIVA-001",
+  "base_commit": "42b8df26d5e055b16cc204902ec38de0d0de7355",
+  "branch": "feature/bc-caja-rc15-ux-operativa-001",
+  "current_state": "SAFE_CLOSURE",
+  "continuous_session": "ACTIVE",
+  "auto_resume": "ACTIVE",
+  "workflow_engine": "ACTIVE",
+  "mission_lease": {"holder": "Codex/BC-Caja", "exclusive": true},
+  "role_state_binding": {
+    "LIBRARIAN": "Independent Librarian",
+    "QA": "Independent QA",
+    "AUDITOR": "Independent Auditor",
+    "SAFE_CLOSURE": "Release Engineer"
+  },
+  "history": [
+    {"event": "CANONICAL_BASE_VERIFIED", "commit": "42b8df26d5e055b16cc204902ec38de0d0de7355"},
+    {"event": "VERIFICATION_PASSED", "tests": 205},
+    {"event": "VISUAL_SMOKE_PASSED", "resolution": "1366x768"},
+    {"event": "PACKAGING_PASSED"},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "LIBRARIAN_PASS", "role": "Independent Librarian"},
+    {"event": "QA_PASS", "role": "Independent QA", "tests": 205, "resolution": "1366x768"},
+    {"event": "AUDITOR_PASS", "role": "Independent Auditor"},
+    {"event": "SAFE_CLOSURE_READY"}
+  ]
+}

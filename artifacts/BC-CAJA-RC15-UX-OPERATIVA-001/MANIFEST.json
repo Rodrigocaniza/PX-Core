@@ -1,0 +1,14 @@
+{
+  "mission": "BC-CAJA-RC15-UX-OPERATIVA-001",
+  "version": "BC Caja 1.0.0-rc.15",
+  "base_commit": "42b8df26d5e055b16cc204902ec38de0d0de7355",
+  "release": "releases/BC-CAJA-1.0.0-rc.15-win64.zip",
+  "zip_sha256": "50ddf626819e7a7fe404eead06d92c91f4c00f3f1d009eed8c48395e38d86133",
+  "exe_sha256": "7fc2222266cd648b65e76d5b1f315d3c0f94ab4261bdff121748018bcd2f2e62",
+  "visual_sha256": "dac9979a46b1f6dbd5b1ec3894d9f14d35aa70148ae024cd81696a228d7449e9",
+  "tests": {"passed": 205},
+  "reviewers": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"},
+  "package_entries": 1149,
+  "package_root": "BC-Caja",
+  "forbidden_entries": 0
+}

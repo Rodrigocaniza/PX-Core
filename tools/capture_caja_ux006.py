@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
 import sys
 import tempfile
+import time
 from datetime import date
 from pathlib import Path
 
@@ -41,6 +43,8 @@ def main() -> int:
         root = ctk.CTk()
         root.withdraw()
         window = abrir_caja_diaria(root, controller=controller)
+        window.geometry("1366x768+0+0")
+        window.deiconify()
         window.attributes("-topmost", True)
         window.update_idletasks()
         for child in window.winfo_children():
@@ -60,6 +64,10 @@ def main() -> int:
         window.update_idletasks()
         window.lift()
         window.focus_force()
+        window.update()
+        ctypes.windll.user32.ShowWindow(window.winfo_id(), 5)
+        ctypes.windll.user32.SetForegroundWindow(window.winfo_id())
+        time.sleep(0.5)
         window.update()
         x, y = window.winfo_rootx(), window.winfo_rooty()
         width, height = window.winfo_width(), window.winfo_height()
