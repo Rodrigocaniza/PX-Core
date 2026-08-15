@@ -2,10 +2,11 @@
   "mission": "BC-CAJA-RC17-PLANILLA-CONTINUA-PDF-001",
   "base_commit": "138d4cb47932c126df1f2b7ee1cfabb8b47f8054",
   "branch": "feature/bc-caja-rc17-planilla-continua-pdf-001",
-  "current_state": "SAFE_CLOSURE",
+  "current_state": "CLOSED",
   "continuous_session": "ACTIVE",
   "auto_resume": "ACTIVE",
-  "safe_closure": "ACTIVE",
+  "safe_closure": "COMPLETE",
+  "mission_lease": {"state": "RELEASED", "holder": null},
   "history": [
     {"event": "CANONICAL_RC16_VERIFIED"},
     {"event": "MODEL_MAPPING_PASSED"},
@@ -20,6 +21,16 @@
     {"event": "LIBRARIAN_PASS"},
     {"event": "QA_PASS"},
     {"event": "AUDITOR_PASS"},
-    {"event": "SAFE_CLOSURE_READY", "publication": "HUMAN_GATE_REQUIRED", "commit": false, "push": false, "installation": false}
+    {"event": "SAFE_CLOSURE_READY", "publication": "HUMAN_GATE_REQUIRED", "commit": false, "push": false, "installation": false},
+    {"event": "HUMAN_VISUAL_VALIDATION_PASS"},
+    {"event": "PUBLICATION_AUTHORIZED"},
+    {"event": "FINAL_TESTS_PASSED", "targeted": 6, "full": 211},
+    {"event": "FUNCTIONAL_COMMIT_PUSH_PASSED", "commit": "dbd9799", "force": false, "remote_delta": "0/0"},
+    {"event": "TRANSACTIONAL_INSTALL_PASSED", "version": "BC Caja 1.0.0-rc.17", "rollback": "RC16_AVAILABLE"},
+    {"event": "INSTALLED_SMOKE_PASSED", "gui": true, "pdf": true, "emails": 0, "new_closures": 0},
+    {"event": "SQLITE_INTEGRITY_PASSED", "result": "ok"},
+    {"event": "DATA_PRESERVATION_PASSED", "substantive_files": 31},
+    {"event": "MISSION_LEASE_RELEASED"},
+    {"event": "CLOSED"}
   ]
 }
