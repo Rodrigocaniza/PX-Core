@@ -1,0 +1,11 @@
+{
+  "mission": "BC-GESTION-CENTRAL-FACTUFACIL-BANDEJA-001",
+  "authority": "PX-Core",
+  "worktree": ".worktrees/gc-factufacil-001",
+  "branch": "mission/bc-gestion-central-factufacil-bandeja-001",
+  "base": "74470d75fa14cdd9c8cbb3de08fe45878727d84e",
+  "state": "ACQUIRED",
+  "continuous_session": true,
+  "auto_resume": true,
+  "production_enabled": false
+}

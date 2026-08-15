@@ -101,6 +101,26 @@ class CentralRepository:
               envelope_json TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_delivery_state_next ON message_delivery(state,next_attempt_at);
+            CREATE TABLE IF NOT EXISTS factufacil_sales(
+              id TEXT PRIMARY KEY, identity_key TEXT NOT NULL UNIQUE, branch TEXT NOT NULL,
+              source_sale_id TEXT NOT NULL, envelope TEXT NOT NULL, status TEXT NOT NULL,
+              content_hash TEXT NOT NULL, payload_json TEXT NOT NULL, version INTEGER NOT NULL,
+              loaded_by TEXT, loaded_at TEXT, receipt_number TEXT,
+              created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+              UNIQUE(branch,envelope)
+            );
+            CREATE TABLE IF NOT EXISTS factufacil_versions(
+              sale_id TEXT NOT NULL, version INTEGER NOT NULL, content_hash TEXT NOT NULL,
+              payload_json TEXT NOT NULL, recorded_at TEXT NOT NULL,
+              PRIMARY KEY(sale_id,version), FOREIGN KEY(sale_id) REFERENCES factufacil_sales(id)
+            );
+            CREATE TABLE IF NOT EXISTS factufacil_history(
+              id INTEGER PRIMARY KEY AUTOINCREMENT, sale_id TEXT NOT NULL,
+              from_state TEXT, to_state TEXT NOT NULL, actor TEXT NOT NULL,
+              action TEXT NOT NULL, details_json TEXT NOT NULL, recorded_at TEXT NOT NULL,
+              FOREIGN KEY(sale_id) REFERENCES factufacil_sales(id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_factufacil_status_date ON factufacil_sales(status,updated_at);
             """)
             con.commit()
 

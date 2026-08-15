@@ -1,0 +1,1 @@
+Validar alta, filtros, copia ordenada, receta multilínea, estados, duplicados, idempotencia, reversión, observación, reapertura, historial, sucursales, integración, UI y regresión. Emitir PASS/FAIL.

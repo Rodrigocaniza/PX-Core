@@ -1,0 +1,18 @@
+{
+  "mission": "BC-GESTION-CENTRAL-FACTUFACIL-BANDEJA-001",
+  "current_state": "RELEASE_PENDING",
+  "mission_lease": "ACQUIRED",
+  "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
+  "history": [
+    {"event": "CANONICAL_BASE_VERIFIED", "base": "74470d75fa14cdd9c8cbb3de08fe45878727d84e", "remote": "0 ahead / 0 behind"},
+    {"event": "NEW_WORKTREE_CREATED", "to": "DOCUMENTATION"},
+    {"event": "FLOW_ARCHITECTURE_STATES_PERMISSIONS_ACCEPTANCE_DOCUMENTED", "to": "IMPLEMENTATION"},
+    {"event": "VISUAL_SMOKE_FAILED_OPEN_LOG", "to": "REMEDIATION"},
+    {"event": "VISUAL_REVIEW_FAILED_HIDDEN_COPY_ACTIONS", "to": "REMEDIATION"},
+    {"event": "VISUAL_AND_FUNCTIONAL_EVIDENCE_REGENERATED", "to": "VALIDATION"},
+    {"event": "IMPLEMENTATION_VALIDATED", "tests": 251, "to": "LIBRARIAN"},
+    {"event": "LIBRARIAN_PASSED", "to": "QA"},
+    {"event": "QA_PASSED", "to": "AUDITOR"},
+    {"event": "AUDITOR_PASSED", "to": "RELEASE_PENDING"}
+  ]
+}

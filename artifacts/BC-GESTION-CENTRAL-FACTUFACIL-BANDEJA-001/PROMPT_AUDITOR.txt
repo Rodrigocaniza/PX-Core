@@ -1,0 +1,1 @@
+Auditar arquitectura local-first, permisos, identidad/duplicados, historial, no proveedor externo/secretos, pruebas, visual y consistencia. Emitir PASS/FAIL final.

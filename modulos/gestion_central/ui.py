@@ -101,6 +101,8 @@ class CentralPilotWindow:
         self.review_button.pack(side="right", padx=8)
         self.messages_button = tk.Button(toolbar, text="Mensajes", command=self.show_messages, bg=COLORS["blue"], fg="white", relief="flat", padx=16, pady=7)
         self.messages_button.pack(side="right", padx=2)
+        self.factufacil_button = tk.Button(toolbar, text="FactuFácil", command=self.show_factufacil, bg="#2A86C7", fg="white", relief="flat", padx=16, pady=7)
+        self.factufacil_button.pack(side="right", padx=2)
         self.cards = tk.Frame(self.body, bg=COLORS["surface"]); self.cards.pack(fill="both", expand=True, padx=18)
         summaries = {item["unit"]: item for item in OperationsService(self.service).summary(self.principal, self.period)}
         for card in data["cards"]: card["period"] = summaries.get(card["unit"])
@@ -173,6 +175,12 @@ class CentralPilotWindow:
         self.delivery_panel = DeliveryPanel(self.body, self.service, self.principal, back=self.show_dashboard, notifier=self.notifier)
         self.delivery_panel.pack(fill="both", expand=True)
         self.status_var.set("Mensajes y confirmaciones · transporte local simulado")
+
+    def show_factufacil(self): return self._guard(self._show_factufacil, "abrir FactuFácil")
+
+    def _show_factufacil(self):
+        from .factufacil_ui import FactuFacilPanel
+        self.current_screen="factufacil";self._clear_body();self.factufacil_panel=FactuFacilPanel(self.body,self.service,self.principal,back=self.show_dashboard,notifier=self.notifier);self.factufacil_panel.pack(fill="both",expand=True);self.status_var.set("FactuFácil · carga manual asistida · sin conexión externa")
 
     def show_detail(self, unit): return self._guard(lambda: self._show_detail(unit), f"abrir detalle de {unit.label}")
 

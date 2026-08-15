@@ -1,0 +1,1 @@
+Validar contratos, trazabilidad, límites, artifacts, identidad, orden de datos y evidencia de BC-GESTION-CENTRAL-FACTUFACIL-BANDEJA-001. No modificar código. Emitir PASS/FAIL.
