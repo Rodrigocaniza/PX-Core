@@ -1,0 +1,10 @@
+{
+  "mission": "BC-GESTION-CENTRAL-CAJAS-PILOT-001-INTERACTION-FIX",
+  "repository": "PX-Core",
+  "branch": "feature/bc-gestion-central-cajas-pilot-001-interaction-fix",
+  "base_commit": "a8240ed6db9d6bd1f39e0010dafad1a8c0bf0434",
+  "status": "RELEASED",
+  "production_enabled": false,
+  "data_policy": "SYNTHETIC_ONLY",
+  "bc_core_touched": false
+}

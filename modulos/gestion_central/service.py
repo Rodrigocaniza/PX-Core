@@ -131,12 +131,15 @@ class CentralManagementService:
                 desired[(unit, "LATE_OPEN")] = ("WARNING", "Caja aún abierta fuera del horario del piloto.")
         with self.repository.connection() as con:
             con.execute("BEGIN IMMEDIATE")
-            active = {(Unit(r["unit"]), r["kind"]): r for r in con.execute("SELECT * FROM central_alerts WHERE status='ACTIVE'")}
+            open_alerts = {
+                (Unit(r["unit"]), r["kind"]): r
+                for r in con.execute("SELECT * FROM central_alerts WHERE status IN ('ACTIVE','ACKNOWLEDGED')")
+            }
             for key, (severity, message) in desired.items():
-                if key not in active:
+                if key not in open_alerts:
                     con.execute("INSERT INTO central_alerts(id,unit,kind,severity,message,status,created_at) VALUES(?,?,?,?,?,'ACTIVE',?)",
                                 (str(uuid.uuid4()), key[0].value, key[1], severity, message, now.isoformat()))
-            for key, row in active.items():
+            for key, row in open_alerts.items():
                 if key not in desired:
                     con.execute("UPDATE central_alerts SET status='RESOLVED' WHERE id=?", (row["id"],))
             self.repository.audit(con, actor.username, "ALERT_REFRESH", "all", details={"active": len(desired)})
