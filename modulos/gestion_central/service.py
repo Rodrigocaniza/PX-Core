@@ -70,10 +70,14 @@ class CentralManagementService:
         """Creates an explicitly synthetic admin and sample snapshots once."""
         with self.repository.connection() as con:
             exists = con.execute("SELECT 1 FROM central_users LIMIT 1").fetchone()
+            usernames = {row[0] for row in con.execute("SELECT username FROM central_users")}
+        system = Principal("SYSTEM", Role.ADMIN_CENTRAL)
+        if "admin.piloto" not in usernames:
+            self.create_user(system, "admin.piloto", "Piloto-Temporal-2026", Role.ADMIN_CENTRAL)
+        if "sol.piloto" not in usernames:
+            self.create_user(system, "sol.piloto", "Piloto-Temporal-2026", Role.ADMIN_CENTRAL)
         if exists:
             return
-        system = Principal("SYSTEM", Role.ADMIN_CENTRAL)
-        self.create_user(system, "admin.piloto", "Piloto-Temporal-2026", Role.ADMIN_CENTRAL)
         for index, unit in enumerate(Unit):
             principal = Principal(f"operador.{index + 1}", Role.OPERADOR_LOCAL, unit)
             self.ingest_snapshot(principal, CashSnapshot(

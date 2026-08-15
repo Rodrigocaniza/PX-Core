@@ -40,6 +40,11 @@ def main(argv=None) -> int:
     parser.add_argument("--data-dir", type=Path)
     parser.add_argument("--self-check", action="store_true")
     parser.add_argument("--interaction-smoke", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--review-interaction-smoke", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--import-readonly-snapshot", type=Path, help=argparse.SUPPRESS)
+    parser.add_argument("--organization", default="BC", help=argparse.SUPPRESS)
+    parser.add_argument("--branch", default="Pilar", help=argparse.SUPPRESS)
+    parser.add_argument("--period", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if args.self_check:
         if args.data_dir is None:
@@ -49,10 +54,54 @@ def main(argv=None) -> int:
         if args.data_dir is None:
             parser.error("--interaction-smoke requiere --data-dir")
         return interaction_smoke(args.data_dir)
+    if args.review_interaction_smoke:
+        if args.data_dir is None:
+            parser.error("--review-interaction-smoke requiere --data-dir")
+        return review_interaction_smoke(args.data_dir, args.review_interaction_smoke)
+    if args.import_readonly_snapshot:
+        if args.data_dir is None:
+            parser.error("--import-readonly-snapshot requiere --data-dir")
+        return import_readonly_snapshot(
+            args.data_dir, args.import_readonly_snapshot,
+            organization=args.organization, branch=args.branch, period=args.period,
+        )
     service = build_service(args.data_dir)
     service.bootstrap_synthetic_pilot()
     from modulos.gestion_central.ui import CentralPilotWindow
     CentralPilotWindow(service).run()
+    return 0
+
+
+def import_readonly_snapshot(
+    data_dir: Path, snapshot: Path, *, organization: str, branch: str, period: str | None,
+) -> int:
+    """Importa una copia local; jamás abre la base productiva en modo escritura."""
+    from modulos.gestion_central.real_sync import ReviewService
+
+    service = build_service(data_dir)
+    service.bootstrap_synthetic_pilot()
+    principal = service.authenticate("admin.piloto", "Piloto-Temporal-2026")
+    review_service = ReviewService(service.repository)
+    source_hash_before = review_service.snapshot_hash(snapshot)
+    result = review_service.import_snapshot(
+        principal, snapshot, organization=organization, branch=branch, period=period,
+    )
+    source_hash_after = review_service.snapshot_hash(snapshot)
+    if source_hash_before != source_hash_after:
+        raise RuntimeError("la copia fuente cambió durante la importación")
+    evidence_dir = data_dir / "RealSync"
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    safe_result = {
+        "status": "PASS", "source_mode": "SQLITE_SNAPSHOT_QUERY_ONLY",
+        "source_unchanged": True, "production_write": False,
+        "period": result.period, "rows": result.processed,
+        "inserted": result.inserted, "unchanged": result.unchanged,
+        "changed": result.changed, "snapshot_sha256": source_hash_after,
+    }
+    (evidence_dir / "last-import.local.json").write_text(
+        json.dumps(safe_result, ensure_ascii=False, indent=2), encoding="utf-8",
+    )
+    print(json.dumps(safe_result, ensure_ascii=False))
     return 0
 
 
@@ -123,6 +172,57 @@ def interaction_smoke(data_dir: Path) -> int:
     data_dir.mkdir(parents=True, exist_ok=True)
     (data_dir / "interaction-smoke.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
     checkpoint("PASS")
+    return 0
+
+
+def review_interaction_smoke(data_dir: Path, snapshot: Path) -> int:
+    """Ejercita widgets reales de revisión sobre datos sintéticos aislados."""
+    import tkinter as tk
+    from modulos.gestion_central.real_sync import REVIEW_FIELDS, ReviewService
+    from modulos.gestion_central.ui import CentralPilotWindow
+
+    import_readonly_snapshot(
+        data_dir, snapshot, organization="SYNTHETIC-SMOKE", branch="Pilar", period=None,
+    )
+    service = build_service(data_dir)
+    review = ReviewService(service.repository)
+    confirmations = []
+    root = tk.Tk(); root.withdraw()
+    app = CentralPilotWindow(
+        service, root=root, notifier=lambda *_: None,
+        confirmer=lambda *_: confirmations.append(True) or True,
+    )
+    root.update(); app.review_button.invoke(); root.update()
+    panel = app.review_panel
+    ids = panel.tree.get_children()
+    if not ids:
+        raise RuntimeError("el snapshot sintético no produjo filas")
+    first = ids[0]
+    panel.tree.selection_set(first); panel.tree.event_generate("<<TreeviewSelect>>"); root.update()
+    panel.field_vars[REVIEW_FIELDS[0]].set(True); panel.fields_button.invoke(); root.update()
+    if REVIEW_FIELDS[0] not in review.reviewed_fields(app.principal, first):
+        raise RuntimeError("callback de revisión por campo no persistió")
+    panel.complete_button.invoke(); root.update()
+    panel.tree.selection_set(ids); panel.bulk_button.invoke(); root.update()
+    if not confirmations or review.progress(app.principal)["reviewed"] != len(ids):
+        raise RuntimeError("callback de revisión masiva no persistió")
+    panel.status_var.set("REVIEWED"); panel.status_filter.event_generate("<<ComboboxSelected>>"); root.update()
+    if len(panel.tree.get_children()) != len(ids):
+        raise RuntimeError("filtro de revisadas incorrecto")
+    panel.back_button.invoke(); root.update()
+    if app.current_screen != "dashboard":
+        raise RuntimeError("callback volver no regresó al panel")
+    root.destroy()
+    reopened = ReviewService(CentralRepository(data_dir / "gestion-central-pilot.sqlite3"))
+    if reopened.progress(app.principal)["reviewed"] != len(ids):
+        raise RuntimeError("la revisión no persistió tras reapertura")
+    evidence = {
+        "status": "PASS", "callbacks": ["open", "select", "field", "complete", "bulk", "filter", "back"],
+        "rows": len(ids), "restart_persistence": "PASS", "synthetic": True, "production": False,
+    }
+    (data_dir / "review-interaction-smoke.json").write_text(
+        json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8",
+    )
     return 0
 
 

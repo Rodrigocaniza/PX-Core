@@ -29,11 +29,12 @@ def build_ui_logger(data_root: Path) -> logging.Logger:
 class CentralPilotWindow:
     """Consola interactiva adaptable, priorizada para 24 pulgadas Full HD."""
 
-    def __init__(self, service, *, root=None, notifier=None, logger=None):
+    def __init__(self, service, *, root=None, notifier=None, logger=None, confirmer=None):
         self.service = service
-        self.principal = service.authenticate("admin.piloto", "Piloto-Temporal-2026")
+        self.principal = service.authenticate("sol.piloto", "Piloto-Temporal-2026")
         self.root = root or tk.Tk()
         self.notifier = notifier or messagebox.showinfo
+        self.confirmer = confirmer or messagebox.askyesno
         self.logger = logger or build_ui_logger(service.repository.database_path.parent)
         self.current_screen, self.selected_unit = "dashboard", None
         self.card_buttons = {}
@@ -85,6 +86,8 @@ class CentralPilotWindow:
         self.filter_box.pack(side="right", padx=(8, 0)); self.filter_box.bind("<<ComboboxSelected>>", lambda _e: self.apply_filter())
         self.refresh_button = tk.Button(toolbar, text="Actualizar", command=self.refresh, bg=COLORS["blue"], fg="white", relief="flat", padx=18, pady=7)
         self.refresh_button.pack(side="right")
+        self.review_button = tk.Button(toolbar, text="Revisión de ventas", command=self.show_review, bg=COLORS["navy"], fg="white", relief="flat", padx=18, pady=7)
+        self.review_button.pack(side="right", padx=8)
         self.cards = tk.Frame(self.body, bg=COLORS["surface"]); self.cards.pack(fill="both", expand=True, padx=18)
         self._dashboard_data = data; self._render_cards(data["cards"])
         section = tk.Frame(self.body, bg=COLORS["surface"]); section.pack(fill="x", padx=24, pady=(8, 4))
@@ -123,6 +126,21 @@ class CentralPilotWindow:
         self._render_cards(cards); self.status_var.set(f"Filtro «{selection}»: {len(cards)} unidad(es)")
 
     def refresh(self): return self.show_dashboard(announce=True)
+
+    def show_review(self):
+        return self._guard(self._show_review, "abrir revisión de ventas")
+
+    def _show_review(self):
+        from .real_sync import ReviewService
+        from .review_ui import ReviewPanel
+        self.current_screen = "review"
+        self._clear_body()
+        self.review_panel = ReviewPanel(
+            self.body, ReviewService(self.service.repository), self.principal,
+            back=self.show_dashboard, notifier=self.notifier, confirmer=self.confirmer,
+        )
+        self.review_panel.pack(fill="both", expand=True)
+        self.status_var.set("Revisión fila por fila · datos de copia local")
 
     def show_detail(self, unit): return self._guard(lambda: self._show_detail(unit), f"abrir detalle de {unit.label}")
 

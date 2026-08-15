@@ -33,9 +33,9 @@ class Role(str, Enum):
 
 
 PERMISSIONS = {
-    Role.ADMIN_CENTRAL: frozenset({"dashboard.read", "users.manage", "alerts.manage", "audit.read", "sync.write"}),
-    Role.SUPERVISOR: frozenset({"dashboard.read", "alerts.manage", "audit.read"}),
-    Role.AUDITOR: frozenset({"dashboard.read", "audit.read"}),
+    Role.ADMIN_CENTRAL: frozenset({"dashboard.read", "users.manage", "alerts.manage", "audit.read", "sync.write", "reviews.read", "reviews.manage"}),
+    Role.SUPERVISOR: frozenset({"dashboard.read", "alerts.manage", "audit.read", "reviews.read", "reviews.manage"}),
+    Role.AUDITOR: frozenset({"dashboard.read", "audit.read", "reviews.read"}),
     Role.OPERADOR_LOCAL: frozenset({"dashboard.read", "sync.write"}),
 }
 
