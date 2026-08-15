@@ -2,7 +2,10 @@
   "mission": "BC-CAJA-RC15-UX-OPERATIVA-001",
   "base_commit": "42b8df26d5e055b16cc204902ec38de0d0de7355",
   "branch": "feature/bc-caja-rc15-ux-operativa-001",
-  "current_state": "SAFE_CLOSURE",
+  "current_state": "CLOSED",
+  "published": true,
+  "synchronized": true,
+  "installed": true,
   "continuous_session": "ACTIVE",
   "auto_resume": "ACTIVE",
   "workflow_engine": "ACTIVE",
@@ -22,6 +25,11 @@
     {"event": "LIBRARIAN_PASS", "role": "Independent Librarian"},
     {"event": "QA_PASS", "role": "Independent QA", "tests": 205, "resolution": "1366x768"},
     {"event": "AUDITOR_PASS", "role": "Independent Auditor"},
-    {"event": "SAFE_CLOSURE_READY"}
+    {"event": "SAFE_CLOSURE_READY"},
+    {"event": "COMMIT_CREATED", "commit": "c1e95d1ee0acab89dd19a2508c8d680dc0b53302"},
+    {"event": "PUSH_VERIFIED", "ahead": 0, "behind": 0},
+    {"event": "TRANSACTIONAL_INSTALL_PASSED", "version": "BC Caja 1.0.0-rc.15"},
+    {"event": "INSTALLED_SMOKE_PASSED", "graceful_close": true},
+    {"event": "SAFE_CLOSURE_PASSED", "to_state": "CLOSED"}
   ]
 }

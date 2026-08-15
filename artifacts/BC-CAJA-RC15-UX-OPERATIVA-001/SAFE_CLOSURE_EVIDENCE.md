@@ -16,3 +16,11 @@ La allowlist de commit se limita a:
 Exclusión obligatoria: `.test-tmp/**`. La instalación reemplaza únicamente la
 carpeta de programa y preserva `%LOCALAPPDATA%\BC\Caja`; requiere backup SQLite,
 hashes pre/post de SQLite y secretos SMTP, conteo de backups y rollback RC14.
+
+## Resultado
+
+- Commit publicado: `c1e95d1ee0acab89dd19a2508c8d680dc0b53302`.
+- Rama remota: `feature/bc-caja-rc15-ux-operativa-001`.
+- Sincronización después del fetch: ahead 0 / behind 0.
+- Instalación transaccional y smoke del ejecutable instalado: PASS.
+- Artifact Consistency posterior a instalación: PASS.
