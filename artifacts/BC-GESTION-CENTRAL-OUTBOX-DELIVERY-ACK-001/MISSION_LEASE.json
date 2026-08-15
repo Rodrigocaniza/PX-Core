@@ -1,0 +1,11 @@
+{
+  "mission": "BC-GESTION-CENTRAL-OUTBOX-DELIVERY-ACK-001",
+  "authority": "PX-Core",
+  "branch": "mission/bc-gestion-central-outbox-delivery-ack-001",
+  "worktree": ".worktrees/gc-outbox-ack-001",
+  "base": "c87d8571535c70b4177364146fb2795219e50edf",
+  "state": "ACQUIRED",
+  "continuous_session": true,
+  "auto_resume": true,
+  "production_enabled": false
+}

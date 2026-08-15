@@ -76,6 +76,31 @@ class CentralRepository:
               reviewed_by TEXT NOT NULL, reviewed_at TEXT NOT NULL,
               PRIMARY KEY(unit,business_date,field_name)
             );
+            CREATE TABLE IF NOT EXISTS message_delivery(
+              message_id TEXT PRIMARY KEY, state TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0,
+              last_attempt_at TEXT, next_attempt_at TEXT, delivered_at TEXT, confirmed_at TEXT,
+              cancelled_at TEXT, cancelled_by TEXT, cancel_reason TEXT,
+              error_code TEXT, error_message TEXT, updated_at TEXT NOT NULL,
+              FOREIGN KEY(message_id) REFERENCES central_messages(id)
+            );
+            CREATE TABLE IF NOT EXISTS message_delivery_history(
+              id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT NOT NULL,
+              from_state TEXT, to_state TEXT NOT NULL, actor TEXT NOT NULL,
+              details_json TEXT NOT NULL, recorded_at TEXT NOT NULL,
+              FOREIGN KEY(message_id) REFERENCES central_messages(id)
+            );
+            CREATE TABLE IF NOT EXISTS message_receipts(
+              receipt_id TEXT PRIMARY KEY, message_id TEXT NOT NULL,
+              idempotency_key TEXT NOT NULL UNIQUE, receiver TEXT NOT NULL,
+              received_at TEXT NOT NULL, payload_json TEXT NOT NULL,
+              FOREIGN KEY(message_id) REFERENCES central_messages(id)
+            );
+            CREATE TABLE IF NOT EXISTS simulated_receiver_inbox(
+              idempotency_key TEXT PRIMARY KEY, receipt_id TEXT NOT NULL UNIQUE,
+              message_id TEXT NOT NULL, receiver TEXT NOT NULL, received_at TEXT NOT NULL,
+              envelope_json TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_delivery_state_next ON message_delivery(state,next_attempt_at);
             """)
             con.commit()
 

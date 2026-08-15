@@ -99,6 +99,8 @@ class CentralPilotWindow:
         self.refresh_button.pack(side="right")
         self.review_button = tk.Button(toolbar, text="Revisión de ventas", command=self.show_review, bg=COLORS["navy"], fg="white", relief="flat", padx=18, pady=7)
         self.review_button.pack(side="right", padx=8)
+        self.messages_button = tk.Button(toolbar, text="Mensajes", command=self.show_messages, bg=COLORS["blue"], fg="white", relief="flat", padx=16, pady=7)
+        self.messages_button.pack(side="right", padx=2)
         self.cards = tk.Frame(self.body, bg=COLORS["surface"]); self.cards.pack(fill="both", expand=True, padx=18)
         summaries = {item["unit"]: item for item in OperationsService(self.service).summary(self.principal, self.period)}
         for card in data["cards"]: card["period"] = summaries.get(card["unit"])
@@ -162,6 +164,15 @@ class CentralPilotWindow:
         )
         self.review_panel.pack(fill="both", expand=True)
         self.status_var.set("Revisión fila por fila · datos de copia local")
+
+    def show_messages(self): return self._guard(self._show_messages, "abrir mensajes")
+
+    def _show_messages(self):
+        from .delivery_ui import DeliveryPanel
+        self.current_screen = "messages"; self._clear_body()
+        self.delivery_panel = DeliveryPanel(self.body, self.service, self.principal, back=self.show_dashboard, notifier=self.notifier)
+        self.delivery_panel.pack(fill="both", expand=True)
+        self.status_var.set("Mensajes y confirmaciones · transporte local simulado")
 
     def show_detail(self, unit): return self._guard(lambda: self._show_detail(unit), f"abrir detalle de {unit.label}")
 
@@ -289,11 +300,11 @@ class CentralPilotWindow:
         return True
 
     def queue_message(self, unit):
-        from .operations import OperationsService
+        from .delivery import DeliveryService
         body = self.message_body_var.get().strip()
         if not body:
             self.notifier("Mensajes", "Escriba una indicación para la unidad."); return False
-        OperationsService(self.service).queue_message(self.principal, unit, body, self.message_pc_var.get())
+        DeliveryService(self.service).queue(self.principal, unit, body, self.message_pc_var.get())
         self.message_body_var.set("")
         self.status_var.set("Mensaje guardado en outbox local · entrega PENDING")
         return True

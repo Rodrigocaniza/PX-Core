@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .test-tmp/
+.qa-tmp-*/
 Respaldos/
 Respaldos/
 

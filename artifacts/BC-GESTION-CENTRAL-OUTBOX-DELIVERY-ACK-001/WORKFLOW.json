@@ -1,0 +1,25 @@
+{
+  "mission": "BC-GESTION-CENTRAL-OUTBOX-DELIVERY-ACK-001",
+  "current_state": "RELEASE_PENDING",
+  "mission_lease": "ACQUIRED",
+  "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
+  "history": [
+    {"event": "CANONICAL_BASE_VERIFIED", "base": "c87d8571535c70b4177364146fb2795219e50edf", "remote": "0 ahead / 0 behind"},
+    {"event": "NEW_WORKTREE_CREATED", "to": "DOCUMENTATION"},
+    {"event": "ARCHITECTURE_CONTRACTS_PERMISSIONS_ACCEPTANCE_DOCUMENTED", "to": "IMPLEMENTATION"},
+    {"event": "UI_GATE_FAILED_HIDDEN_WINDOW_AND_TCL_FIXTURE", "to": "REMEDIATION"},
+    {"event": "UI_GATE_PASSED_AFTER_FIX", "to": "REGRESSION"},
+    {"event": "REGRESSION_FAILED_FALSE_LATE_OPEN", "to": "REMEDIATION"},
+    {"event": "FALSE_LATE_OPEN_FIXED_AND_EVIDENCE_REGENERATED", "to": "VALIDATION"},
+    {"event": "IMPLEMENTATION_VALIDATED", "tests": 239, "to": "LIBRARIAN"},
+    {"event": "LIBRARIAN_FAILED_ENVELOPE_AND_WORKFLOW", "to": "REMEDIATION"},
+    {"event": "ENVELOPE_AND_WORKFLOW_ALIGNED", "to": "LIBRARIAN"},
+    {"event": "LIBRARIAN_PASSED", "to": "QA"},
+    {"event": "QA_PASSED", "to": "AUDITOR"},
+    {"event": "AUDITOR_FAILED_NON_ATOMIC_QUEUE", "to": "REMEDIATION"},
+    {"event": "ATOMIC_QUEUE_AND_LEGACY_RECONCILIATION_VALIDATED", "tests": 241, "to": "LIBRARIAN"},
+    {"event": "LIBRARIAN_FINAL_PASSED", "to": "QA"},
+    {"event": "QA_FINAL_PASSED", "directed": 11, "regression": 241, "to": "AUDITOR"},
+    {"event": "AUDITOR_FINAL_PASSED", "to": "RELEASE_PENDING"}
+  ]
+}

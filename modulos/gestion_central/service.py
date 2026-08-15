@@ -131,7 +131,8 @@ class CentralManagementService:
             if row and row["counted_cash"] is not None and row["counted_cash"] != row["expected_cash"]:
                 difference = row["counted_cash"] - row["expected_cash"]
                 desired[(unit, "CASH_DIFFERENCE")] = ("CRITICAL", f"Diferencia de caja: {difference:+,} Gs.")
-            if row and row["status"] == "OPEN" and datetime.fromisoformat(row["source_updated_at"]).hour >= 22:
+            if (row and row["status"] == "OPEN" and row["business_date"] == now.date().isoformat()
+                    and datetime.fromisoformat(row["source_updated_at"]).hour >= 22):
                 desired[(unit, "LATE_OPEN")] = ("WARNING", "Caja aún abierta fuera del horario del piloto.")
         with self.repository.connection() as con:
             con.execute("BEGIN IMMEDIATE")

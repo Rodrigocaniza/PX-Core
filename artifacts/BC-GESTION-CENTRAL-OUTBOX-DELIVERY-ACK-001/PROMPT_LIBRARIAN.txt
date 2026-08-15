@@ -1,0 +1,1 @@
+Verificar documentación, contratos heredados, trazabilidad, límites, evidencias y consistencia de BC-GESTION-CENTRAL-OUTBOX-DELIVERY-ACK-001. No modificar código ni acceder a rutas excluidas. Emitir PASS/FAIL.

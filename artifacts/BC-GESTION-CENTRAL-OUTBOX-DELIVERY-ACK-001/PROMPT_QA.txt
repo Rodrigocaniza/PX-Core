@@ -1,0 +1,1 @@
+Ejecutar pruebas de estados, idempotencia, ACK, reintentos, recuperación, fallos, cancelación, persistencia, UI, regresión y captura 1920x1080. Emitir PASS/FAIL verificable.
