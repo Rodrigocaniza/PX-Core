@@ -1,7 +1,7 @@
 {
   "mission": "BC-GESTION-CENTRAL-OUTBOX-DELIVERY-ACK-001",
-  "current_state": "RELEASE_PENDING",
-  "mission_lease": "ACQUIRED",
+  "current_state": "SAFE_CLOSED",
+  "mission_lease": "RELEASED",
   "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
   "history": [
     {"event": "CANONICAL_BASE_VERIFIED", "base": "c87d8571535c70b4177364146fb2795219e50edf", "remote": "0 ahead / 0 behind"},
@@ -20,6 +20,8 @@
     {"event": "ATOMIC_QUEUE_AND_LEGACY_RECONCILIATION_VALIDATED", "tests": 241, "to": "LIBRARIAN"},
     {"event": "LIBRARIAN_FINAL_PASSED", "to": "QA"},
     {"event": "QA_FINAL_PASSED", "directed": 11, "regression": 241, "to": "AUDITOR"},
-    {"event": "AUDITOR_FINAL_PASSED", "to": "RELEASE_PENDING"}
+    {"event": "AUDITOR_FINAL_PASSED", "to": "RELEASE_PENDING"},
+    {"event": "PROTECTED_COMMIT_PUSHED", "commit": "8da9297934282f1909f5d439db17ab87bd71ff18", "remote": "0 ahead / 0 behind", "to": "SAFE_CLOSURE"},
+    {"event": "MISSION_LEASE_RELEASED", "to": "SAFE_CLOSED"}
   ]
 }
