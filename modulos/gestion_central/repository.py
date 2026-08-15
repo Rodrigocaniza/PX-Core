@@ -121,6 +121,52 @@ class CentralRepository:
               FOREIGN KEY(sale_id) REFERENCES factufacil_sales(id)
             );
             CREATE INDEX IF NOT EXISTS idx_factufacil_status_date ON factufacil_sales(status,updated_at);
+            CREATE TABLE IF NOT EXISTS commission_sales(
+              id TEXT PRIMARY KEY, identity_key TEXT NOT NULL UNIQUE, branch TEXT NOT NULL,
+              source_sale_id TEXT NOT NULL, saleswoman TEXT NOT NULL, sale_kind TEXT NOT NULL,
+              sale_date TEXT NOT NULL, total_amount INTEGER NOT NULL, paid_amount INTEGER NOT NULL,
+              balance_amount INTEGER NOT NULL, cancelled_date TEXT,
+              voided INTEGER NOT NULL DEFAULT 0, void_reason TEXT, envelope TEXT NOT NULL DEFAULT '',
+              content_hash TEXT NOT NULL, payload_json TEXT NOT NULL, version INTEGER NOT NULL,
+              created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+              UNIQUE(branch,source_sale_id)
+            );
+            CREATE TABLE IF NOT EXISTS commission_payments(
+              id TEXT PRIMARY KEY, sale_id TEXT NOT NULL REFERENCES commission_sales(id),
+              amount INTEGER NOT NULL, payment_date TEXT NOT NULL, kind TEXT NOT NULL,
+              reference TEXT NOT NULL DEFAULT '', reverses_id TEXT,
+              idempotency_key TEXT NOT NULL UNIQUE, actor TEXT NOT NULL, recorded_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS commission_entries(
+              id TEXT PRIMARY KEY, sale_id TEXT NOT NULL REFERENCES commission_sales(id),
+              sequence INTEGER NOT NULL, period TEXT, branch TEXT NOT NULL, saleswoman TEXT NOT NULL,
+              sale_kind TEXT NOT NULL, status TEXT NOT NULL,
+              gross_amount INTEGER NOT NULL, agreement_discount INTEGER NOT NULL DEFAULT 0,
+              commissionable_base INTEGER NOT NULL DEFAULT 0,
+              rate_bp INTEGER, commission_amount INTEGER, policy_status TEXT NOT NULL,
+              eligible_date TEXT, reviewed_by TEXT, reviewed_at TEXT, approved_by TEXT, approved_at TEXT,
+              paid_at TEXT, payment_reference TEXT, observation TEXT,
+              created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+              UNIQUE(sale_id,sequence)
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_commission_entry_active
+              ON commission_entries(sale_id) WHERE status<>'REVERTIDA';
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_commission_entry_period
+              ON commission_entries(sale_id,period) WHERE period IS NOT NULL AND status<>'REVERTIDA';
+            CREATE INDEX IF NOT EXISTS idx_commission_entries_period
+              ON commission_entries(period,branch,saleswoman);
+            CREATE TABLE IF NOT EXISTS commission_entry_history(
+              id INTEGER PRIMARY KEY AUTOINCREMENT, entry_id TEXT NOT NULL,
+              sale_id TEXT NOT NULL, from_state TEXT, to_state TEXT NOT NULL, actor TEXT NOT NULL,
+              action TEXT NOT NULL, details_json TEXT NOT NULL, recorded_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_commission_history_entry ON commission_entry_history(entry_id,id);
+            CREATE TABLE IF NOT EXISTS commission_policies(
+              id TEXT PRIMARY KEY, scope TEXT NOT NULL, scope_value TEXT NOT NULL DEFAULT '',
+              rate_bp INTEGER NOT NULL, approval_status TEXT NOT NULL,
+              created_by TEXT NOT NULL, created_at TEXT NOT NULL,
+              UNIQUE(scope,scope_value)
+            );
             """)
             con.commit()
 

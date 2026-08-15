@@ -1,0 +1,21 @@
+{
+  "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
+  "authority": "PX-Core",
+  "worktree": ".worktrees/gc-comisiones-001",
+  "branch": "mission/bc-gestion-central-comisiones-001",
+  "base": "eb6d082de4004d166379ffaae2b8f106fac10df1",
+  "state": "HELD",
+  "release_blocked_by": "INDEPENDENT_REVIEW_PENDING",
+  "continuous_session": true,
+  "auto_resume": true,
+  "production_enabled": false,
+  "untouched": [
+    "C:\\PX\\GDR-*",
+    ".worktrees/gc-sol-001",
+    ".worktrees/gc-outbox-ack-001",
+    ".worktrees/gc-factufacil-001",
+    "BC-Core",
+    "BC-Finanzas",
+    "main"
+  ]
+}

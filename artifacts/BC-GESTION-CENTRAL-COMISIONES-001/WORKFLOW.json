@@ -1,0 +1,35 @@
+{
+  "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
+  "current_state": "HUMAN_GATE_PENDING",
+  "mission_lease": "HELD",
+  "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
+  "independent_runners": "NOT_AVAILABLE",
+  "verdict_independence": "SELF_REVIEW_ONLY",
+  "safe_closure": "NOT_EXECUTED",
+  "history": [
+    {"event": "CANONICAL_BASE_VERIFIED", "base": "eb6d082de4004d166379ffaae2b8f106fac10df1", "remote": "0 ahead / 0 behind"},
+    {"event": "NEW_WORKTREE_CREATED", "worktree": ".worktrees/gc-comisiones-001", "to": "DOCUMENTATION"},
+    {"event": "APPROVED_ECONOMIC_RULES_MAPPED", "rules": 9, "to": "IMPLEMENTATION"},
+    {"event": "DOMAIN_IMPLEMENTED", "module": "modulos/gestion_central/comisiones.py"},
+    {"event": "DOMAIN_TEST_FAILED_AGREEMENT_REASON_LOST_AFTER_CALCULATION", "to": "REMEDIATION"},
+    {"event": "AGREEMENT_REASON_FIXED_AND_RETESTED", "to": "IMPLEMENTATION"},
+    {"event": "UI_IMPLEMENTED", "module": "modulos/gestion_central/comisiones_ui.py"},
+    {"event": "VISUAL_REVIEW_FAILED_UNFORMATTED_KPI_AND_TRUNCATED_MAIN_TABLE", "to": "REMEDIATION"},
+    {"event": "LAYOUT_RECALIBRATED_AND_REGRESSION_GUARD_ADDED", "to": "VALIDATION"},
+    {"event": "VISUAL_EVIDENCE_REGENERATED", "resolution": "1920x1080", "sha256": "dbf0462416eeb0184f3ca34438d5a9cfba0c1eae420cedebbb780f2733008467"},
+    {"event": "IMPLEMENTATION_VALIDATED", "tests": 280, "baseline": 251, "to": "REVIEW"},
+    {"event": "INDEPENDENT_RUNNERS_UNAVAILABLE", "action": "SELF_REVIEW_LABELLED_HONESTLY", "to": "HUMAN_GATE_PENDING"},
+    {"event": "ARTIFACT_CONSISTENCY_VERIFIED", "manifest": "MANIFEST.sha256"},
+    {"event": "PROTECTED_COMMIT_PUSHED", "branch": "mission/bc-gestion-central-comisiones-001", "note": "publicacion de evidencia; sin merge a main"}
+  ],
+  "human_gate": {
+    "count": 1,
+    "action": "Revisar SUMMARY.md, COMMISSION_RULES.md, la captura 1920x1080 y los tres reportes SELF_REVIEW; aprobar como independientes o re-ejecutar con runners externos usando los PROMPT_*.txt.",
+    "blocking_for": ["SAFE_CLOSURE", "MISSION_LEASE_RELEASE"]
+  },
+  "pending_configuration": {
+    "item": "porcentaje de comision",
+    "status": "SINTETICA_PENDIENTE_APROBACION",
+    "note": "La base comisionable se calcula y se muestra siempre; el porcentaje no se afirma como regla productiva."
+  }
+}
