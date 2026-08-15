@@ -1,15 +1,45 @@
 # Evidencia de pruebas
 
-- Dominio de comisiones: **25/25 PASS**.
+## Generación 2 (vigente)
+
+- Dominio de comisiones: **29/29 PASS**.
 - Interacción Tk y Full HD: **4/4 PASS**.
-- Regresión completa: **280/280 PASS** en 33.08 s.
-- Línea base heredada: 251 pruebas; esta misión suma 29 sin romper ninguna existente.
+- Regresión completa: **284/284 PASS** en 24.77 s.
+- Línea base heredada: 251 pruebas; esta misión suma 33 sin romper ninguna existente.
+
+## FAIL de revisores independientes (generación 1) y su corrección
+
+Los dos bloqueantes se reprodujeron con los escenarios exactos de cada revisor y se verificaron
+muertos tras la corrección.
+
+4. **`_month()` no validaba la fecha — bloqueante Q1 del QA independiente.**
+   `"2099-4-10"` producía el período `"2099-4-"`: la venta quedaba CALCULADA con base y comisión
+   correctas pero no aparecía en ningún reporte mensual, sin error ni marca de estado. Alcanzable
+   desde `sync_review_sales`, que pasaba sin validar la fecha del snapshot SQLite externo.
+   Corregido con `date.fromisoformat` y validación en la ingesta, que ahora devuelve
+   `invalid_date` en vez de perder la fila. Cubierto por
+   `test_invalid_dates_are_rejected_and_never_produce_a_period` y
+   `test_review_sync_reports_invalid_dates_instead_of_losing_them`.
+
+5. **`PAGADA → OBSERVADA → REVERTIDA` — bloqueantes A1, A2 y A3 del Auditor independiente.**
+   Una liquidación pagada alcanzaba `REVERTIDA` en dos llamadas autorizadas, liberando el índice
+   parcial de unicidad y habilitando un segundo pago de la misma venta mientras `report()` ocultaba
+   el primero por excluir las revertidas. Además, `ARCHITECTURE.md` afirmaba explícitamente que esa
+   ruta no existía. Corregido con el invariante `_was_paid`, aplicado en las tres rutas que pueden
+   producir `REVERTIDA` (`revert`, `_revert_commission_effect`, `void_sale`). Cubierto por
+   `test_paid_settlement_can_never_reach_reverted_even_through_observed` y
+   `test_voiding_a_paid_sale_observes_instead_of_reverting`.
+
+## Generación 1 (histórica, invalidada)
+
+- Regresión: 280/280 PASS. Cifra correcta, pero la suite no cubría ninguno de los dos bloqueantes.
+- Línea base heredada: 251; la misión sumaba 29.
 - `compileall`: PASS.
 - `git diff --check`: PASS.
 - Escaneo heurístico de secretos: PASS; las únicas coincidencias están dentro del propio test de prohibición.
 - Captura 1920×1080: PASS.
 
-## FAIL preservados y corregidos
+## FAIL preservados y corregidos durante la implementación
 
 1. **Explicación del convenio desaparecía tras el cálculo.**
    `test_agreement_deducts_exactly_five_percent_and_creates_no_client_balance` falló porque, al pasar

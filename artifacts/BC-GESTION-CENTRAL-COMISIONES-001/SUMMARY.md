@@ -10,7 +10,8 @@ correcciones y reversiones, total informativo vendido, base comisionable y comis
 - Los cobros parciales se muestran como información y nunca generan comisión pagable.
 - El convenio es venta finalizada para comisión, con base = total − 5% aplicada exactamente una vez, y sin crear saldo cliente.
 - Ocho estados con transiciones auditadas: `PENDIENTE_SALDO`, `ELEGIBLE`, `CALCULADA`, `REVISADA`, `APROBADA`, `PAGADA`, `OBSERVADA`, `REVERTIDA`. No se paga sin revisión y aprobación previas.
-- Una liquidación pagada nunca se modifica en silencio: toda corrección posterior produce `OBSERVADA`.
+- Una liquidación que alguna vez movió dinero nunca alcanza `REVERTIDA`, ni pasando por `OBSERVADA`: toda corrección posterior al pago produce `OBSERVADA`, y el índice de unicidad sigue impidiendo un segundo pago de la misma venta.
+- El período de liquidación sólo puede derivarse de una fecha ISO real: una fecha mal formada se rechaza en el borde en vez de generar un mes inexistente.
 - Importes enteros de guaraníes; porcentajes en puntos básicos; sin floats monetarios.
 
 El porcentaje de comisión **no** se inventó: la base comisionable siempre se calcula y se muestra,
@@ -21,4 +22,8 @@ No integra nómina, BC-Finanzas, bancos ni liquidaciones contables externas. No 
 reglas de BC Caja. No contiene credenciales nuevas ni datos de clientes.
 
 Base exacta: `eb6d082de4004d166379ffaae2b8f106fac10df1`.
-Estado del workflow: `HUMAN_GATE_PENDING` (revisores independientes no disponibles).
+
+Revisión independiente real ejecutada en dos generaciones. La generación 1 fue invalidada por dos
+FAIL de revisores independientes —pérdida silenciosa de comisión por período corrupto, y ruta a
+`REVERTIDA` desde una liquidación pagada que habilitaba doble pago—. Ambos bloqueantes fueron
+corregidos y cubiertos por pruebas. Detalle en `INDEPENDENCE.md`.

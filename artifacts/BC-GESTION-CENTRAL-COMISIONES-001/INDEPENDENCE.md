@@ -1,36 +1,41 @@
-# Independencia de revisores: NO DISPONIBLE
+# Independencia de revisores: CONSEGUIDA
 
-## Hecho
+Autorizada expresamente por el propietario del repositorio. Librarian, QA y Auditor se ejecutaron
+en tres subagentes separados, con identidad de rol exclusiva, contexto propio, prompt específico
+por rol, evaluación concurrente sobre el mismo snapshot inmutable y **sin compartir razonamiento
+ni conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el propio.
 
-Librarian, QA y Auditor fueron ejecutados por **la misma ejecución** que diseñó e implementó
-la misión. No hubo runners independientes.
+## Generación 1 — snapshot `c24b4f19c66dc685d1679ed266eb887f2dbfe773`
 
-Por eso **no** se registran tres PASS independientes y **no** se ejecuta Safe Closure.
-Los tres reportes están rotulados `SELF_REVIEW` en su primera línea.
-
-## Qué sí es verificable de forma objetiva
-
-Estos resultados no dependen de juicio y son reproducibles por cualquier revisor:
-
-| Comprobación | Comando | Resultado |
+| Runner | Rol | Verdict |
 |---|---|---|
-| Regresión completa | `python -m pytest -q` | 280/280 PASS |
-| Dominio de comisiones | `python -m pytest tests/gestion_central/test_comisiones.py -q` | 25/25 PASS |
-| Interacción y Full HD | `python -m pytest tests/gestion_central/test_comisiones_ui_interactions.py -q` | 4/4 PASS |
-| Compilación | `python -m compileall -q modulos tools tests bc_gestion_central.py` | PASS |
-| Higiene de diff | `git diff --check` | PASS |
-| Captura 1920×1080 | `python tools/capture_gestion_central_comisiones.py <salida>` | PASS |
-| Integridad de artifacts | `MANIFEST.sha256` | PASS |
+| `LIBRARIAN-IND-COMISIONES-001` | LIBRARIAN | PASS |
+| `QA-IND-COMISIONES-001` | QA | **FAIL** — bloqueante Q1 |
+| `AUDITOR-IND-COMISIONES-001` | AUDITOR | **FAIL** — bloqueantes A1, A2, A3 |
 
-## Estado entregado
+Generación **invalidada**. Evidencia íntegra en `generation-1/`.
 
-`HUMAN_GATE_PENDING`: implementación y pruebas completas, artifacts generados, rama de misión
-publicada para preservar evidencia. Falta únicamente la revisión externa real.
+La independencia se pagó sola: los dos FAIL son defectos financieros reales que la autorrevisión
+de la generación 1 había declarado correctos. El auditor independiente incluso refutó por
+ejecución una afirmación explícita del propio paquete.
 
-## Un solo gate humano
+### Bloqueantes y su corrección
 
-**Revisar `SUMMARY.md`, `COMMISSION_RULES.md`, la captura y los tres reportes; luego
-decidir si se aprueban como independientes o si se re-ejecutan con runners externos.**
+- **Q1** — `_month()` no validaba la fecha; `"2099-4-10"` producía el período `"2099-4-"` y la
+  comisión desaparecía de todos los reportes sin error. Corregido con `date.fromisoformat` y
+  validación en la ingesta. Cubierto por dos pruebas nuevas.
+- **A1/A2** — `observe()` + `revert()` llevaban una liquidación `PAGADA` a `REVERTIDA`, liberando
+  el índice de unicidad y habilitando un segundo pago mientras el reporte ocultaba el primero.
+  Corregido con el invariante `_was_paid` en las tres rutas que producen `REVERTIDA`. Cubierto por
+  dos pruebas nuevas.
+- **A3** — afirmaciones de artifacts no respaldadas por el código. Corregidas: el invariante ahora
+  es cierto y está documentado con sus guardas. La afirmación falsa se conserva sin retocar en
+  `generation-1/SELF_REVIEW_AUDITOR.md` con su errata.
 
-Los prompts para esa re-ejecución están en `PROMPT_LIBRARIAN.txt`, `PROMPT_QA.txt` y
-`PROMPT_AUDITOR.txt`.
+Las observaciones no bloqueantes de ambos revisores quedaron registradas sin corregir, según el
+protocolo de corregir únicamente bloqueantes. Ver `HANDOFF.md`.
+
+## Generación 2 — snapshot registrado en `WORKFLOW.json`
+
+Los tres revisores se re-ejecutaron desde cero, con runners nuevos, sobre el snapshot corregido.
+Verdicts en `generation-2/`.

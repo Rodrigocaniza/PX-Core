@@ -9,6 +9,7 @@ import hashlib
 import json
 import uuid
 from dataclasses import asdict, dataclass
+from datetime import date
 from typing import Protocol
 
 from .models import Principal, Role, utc_now
@@ -55,11 +56,31 @@ def _now() -> str:
 
 
 def _month(value: str) -> str:
-    """Devuelve el período AAAA-MM de una fecha ISO validada."""
+    """Devuelve el período AAAA-MM de una fecha ISO realmente válida.
+
+    El período de liquidación se deriva de esta función, así que una fecha mal formada
+    jamás debe producir un período: se rechaza en el borde en lugar de generar un mes
+    inexistente que haría desaparecer la comisión de todos los reportes.
+    """
     text = str(value).strip()
-    if len(text) < 7 or text[4] != "-":
-        raise ValueError("fecha inválida: se espera AAAA-MM-DD")
-    return text[:7]
+    try:
+        parsed = date.fromisoformat(text)
+    except ValueError as error:
+        raise ValueError(f"fecha inválida: se espera AAAA-MM-DD, se recibió {text!r}") from error
+    return f"{parsed.year:04d}-{parsed.month:02d}"
+
+
+def _was_paid(entry) -> bool:
+    """Una liquidación que ya movió dinero, esté como esté hoy, no puede revertirse."""
+    return entry["status"] == "PAGADA" or bool(entry["paid_at"])
+
+
+def _reject_paid(entry) -> None:
+    if _was_paid(entry):
+        raise ValueError(
+            f"liquidación ya pagada el {entry['paid_at']} con referencia {entry['payment_reference']}: "
+            "no admite reversión; corríjala como OBSERVADA"
+        )
 
 
 def apply_basis_points(amount: int, points: int) -> int:
@@ -398,8 +419,8 @@ class CommissionService:
         entry = self._active_entry(con, sale["id"])
         if entry is None:
             return
-        if entry["status"] in FROZEN_STATES:
-            # Una liquidación pagada nunca se modifica en silencio: queda OBSERVADA.
+        if _was_paid(entry):
+            # Una liquidación con dinero ya pagado nunca se revierte: queda OBSERVADA.
             self._set_status(con, entry, "OBSERVADA", actor, action, details,
                              observation=f"Reversión posterior al pago ({details.get('reason', '')}). Requiere corrección manual.")
             return
@@ -429,7 +450,7 @@ class CommissionService:
                         (reason, _now(), sale_id))
             entry = self._active_entry(con, sale_id)
             if entry is not None:
-                if entry["status"] in FROZEN_STATES:
+                if _was_paid(entry):
                     self._set_status(con, entry, "OBSERVADA", actor.username, "SALE_VOIDED", {"reason": reason},
                                      observation=f"Venta anulada tras el pago de la comisión: {reason}")
                 else:
@@ -448,7 +469,7 @@ class CommissionService:
         con.execute(f"UPDATE commission_entries SET {','.join(assignments)} WHERE id=?", values)
         self._history(con, entry["id"], entry["sale_id"], entry["status"], target, actor, action, details)
 
-    def _transition(self, actor, entry_id, allowed, target, action, details=None, **columns):
+    def _transition(self, actor, entry_id, allowed, target, action, details=None, guard=None, **columns):
         self._write(actor)
         with self.repository.connection() as con:
             con.execute("BEGIN IMMEDIATE")
@@ -459,6 +480,8 @@ class CommissionService:
                 raise ValueError(
                     f"transición inválida: {entry['status']} → {target}; requiere {'/'.join(sorted(allowed))}"
                 )
+            if guard is not None:
+                guard(entry)
             self._set_status(con, entry, target, actor.username, action, details, **columns)
             con.commit()
         return True
@@ -493,11 +516,13 @@ class CommissionService:
                                 "COMMISSION_OBSERVED", {"reason": reason}, observation=reason)
 
     def revert(self, actor: Principal, entry_id: str, reason: str):
+        """Una liquidación con dinero ya pagado nunca se revierte, ni pasando por OBSERVADA."""
         reason = reason.strip()
         if not reason:
             raise ValueError("motivo obligatorio")
         return self._transition(actor, entry_id, OPEN_STATES | {"OBSERVADA"}, "REVERTIDA",
-                                "COMMISSION_REVERTED", {"reason": reason}, observation=reason)
+                                "COMMISSION_REVERTED", {"reason": reason},
+                                guard=_reject_paid, observation=reason)
 
     # ------------------------------------------------------------- política
     def set_policy(self, actor: Principal, scope: str, rate_bp: int, scope_value: str = ""):
@@ -740,13 +765,19 @@ class CommissionService:
     # ------------------------------------------------------------ integración
     def sync_review_sales(self, actor: Principal, review_service):
         """Ingesta desde la revisión de ventas. Gastos y entregas nunca ingresan."""
-        registered = skipped = 0
+        registered = skipped = invalid_date = 0
         for row in review_service.list_sales(actor):
             payload = row["payload"]
             total = int(payload.get("total") or 0)
             saleswoman = str(payload.get("saleswoman") or "").strip()
             if total <= 0 or not saleswoman:
                 skipped += 1
+                continue
+            try:
+                # El período de liquidación depende de esta fecha: no se ingiere si es inválida.
+                _month(payload.get("date", ""))
+            except ValueError:
+                invalid_date += 1
                 continue
             agreement = int(payload.get("agreement") or 0)
             settled = int(payload.get("cash") or 0) + int(payload.get("card_transfer") or 0)
@@ -758,4 +789,4 @@ class CommissionService:
                 envelope=payload.get("envelope", ""),
             )
             registered += int(self.register_sale(actor, sale)[1])
-        return {"registered": registered, "skipped": skipped}
+        return {"registered": registered, "skipped": skipped, "invalid_date": invalid_date}

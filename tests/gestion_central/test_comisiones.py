@@ -233,6 +233,79 @@ def test_paid_settlement_is_never_modified_silently(service):
     assert [row["status"] for row in service.list_entries(SOL)] == ["OBSERVADA"]
 
 
+def test_paid_settlement_can_never_reach_reverted_even_through_observed(service):
+    """Bloqueante A1/A2 (Auditor independiente, generación 1)."""
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    service.review(SOL, entry_id)
+    service.approve(SOL, entry_id, "Sol")
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-1")
+    service.observe(SOL, entry_id, "diferencia detectada tras el pago")
+    with pytest.raises(ValueError, match="ya pagada.*no admite reversión"):
+        service.revert(SOL, entry_id, "intento de revertir una liquidación pagada")
+    entry = active(service, sale_id)
+    assert entry["status"] == "OBSERVADA" and entry["paid_at"] == "2099-05-05"
+    # El índice de unicidad sigue bloqueando: no puede nacer una segunda liquidación pagable.
+    service.register_sale(SOL, agreement(total_amount=600_000))
+    assert [row["status"] for row in service.list_entries(SOL)] == ["OBSERVADA"]
+
+
+def test_voiding_a_paid_sale_observes_instead_of_reverting(service):
+    """Bloqueante A1: la anulación posterior al pago tampoco puede revertir."""
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    service.review(SOL, entry_id)
+    service.approve(SOL, entry_id, "Sol")
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-2")
+    service.observe(SOL, entry_id, "planilla en revisión")
+    service.void_sale(SOL, sale_id, "venta anulada por el local")
+    assert [row["status"] for row in service.list_entries(SOL)] == ["OBSERVADA"]
+
+
+def test_invalid_dates_are_rejected_and_never_produce_a_period(service):
+    """Bloqueante Q1 (QA independiente, generación 1)."""
+    for bad in ("2099-4-10", "2099-13-45", "9999-99-99", "abcd-ef-gh", "2099-04"):
+        with pytest.raises(ValueError, match="fecha inválida"):
+            common(sale_date=bad)
+    with pytest.raises(ValueError, match="sale_date obligatorio"):
+        common(sale_date="")
+    sale_id, _ = service.register_sale(SOL, common())
+    for bad in ("2099-5-03", "2099-99-99", "no-es-fecha"):
+        with pytest.raises(ValueError, match="fecha inválida"):
+            service.register_payment(SOL, sale_id, 200_000, bad, "recibo")
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    assert active(service, sale_id)["status"] == "PENDIENTE_SALDO"
+    # Ningún período con formato inválido pudo persistirse.
+    periods = {row["period"] for row in service.list_entries(SOL)} - {None}
+    assert all(len(period) == 7 and period[4] == "-" for period in periods)
+    service.register_payment(SOL, sale_id, 200_000, "2099-05-03", "recibo-final")
+    assert active(service, sale_id)["period"] == "2099-05"
+    assert service.report(SOL, "2099-05")["kpi"]["commissionable_base"] == 400_000
+
+
+def test_review_sync_reports_invalid_dates_instead_of_losing_them(service):
+    """Bloqueante Q1: una fecha corrupta del snapshot externo no se ingiere en silencio."""
+    class FakeReview:
+        @staticmethod
+        def list_sales(_actor):
+            return [
+                {"branch": "Óptica Asunción", "identity": "ok",
+                 "payload": {"date": "2099-04-08", "saleswoman": "Vendedora Uno", "total": 400_000,
+                             "cash": 400_000, "card_transfer": 0, "agreement": 0, "envelope": "S-11"}},
+                {"branch": "Óptica Pilar", "identity": "fecha-rota",
+                 "payload": {"date": "2099-4-9", "saleswoman": "Vendedora Dos", "total": 900_000,
+                             "cash": 900_000, "card_transfer": 0, "agreement": 0, "envelope": "S-12"}},
+            ]
+
+    result = service.sync_review_sales(SOL, FakeReview())
+    assert result == {"registered": 1, "skipped": 0, "invalid_date": 1}
+    assert result["invalid_date"] == 1, "la fila con fecha corrupta debe contarse, no perderse"
+    assert len(service.list_entries(SOL)) == 1
+
+
 def test_state_contract_and_append_only_history(service):
     assert COMMISSION_STATES == ("PENDIENTE_SALDO", "ELEGIBLE", "CALCULADA", "REVISADA",
                                  "APROBADA", "PAGADA", "OBSERVADA", "REVERTIDA")
@@ -359,8 +432,8 @@ def test_review_sales_integration_skips_non_sale_rows(service, tmp_path):
                              "cash": 0, "card_transfer": 0, "agreement": 0, "envelope": ""}},
             ]
 
-    assert service.sync_review_sales(SOL, FakeReview()) == {"registered": 2, "skipped": 1}
-    assert service.sync_review_sales(SOL, FakeReview()) == {"registered": 0, "skipped": 1}
+    assert service.sync_review_sales(SOL, FakeReview()) == {"registered": 2, "skipped": 1, "invalid_date": 0}
+    assert service.sync_review_sales(SOL, FakeReview()) == {"registered": 0, "skipped": 1, "invalid_date": 0}
     service.recalculate(SOL)
     report = service.report(SOL, "2099-04")
     assert report["kpi"]["agreements"] == 1 and report["kpi"]["pending_balance_sales"] == 1

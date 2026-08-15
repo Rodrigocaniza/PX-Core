@@ -1,32 +1,54 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "HUMAN_GATE_PENDING",
+  "current_state": "REVIEW_PENDING_G2",
   "mission_lease": "HELD",
+  "generation": 2,
   "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
-  "independent_runners": "NOT_AVAILABLE",
-  "verdict_independence": "SELF_REVIEW_ONLY",
+  "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "NOT_EXECUTED",
+  "generations": [
+    {
+      "generation": 1,
+      "snapshot_commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773",
+      "snapshot_tree": "d296c6384885176399dceeeda103a4acb397e43d",
+      "status": "INVALIDATED",
+      "tests": 280,
+      "verdicts": [
+        {"runner": "LIBRARIAN-IND-COMISIONES-001", "role": "LIBRARIAN", "verdict": "PASS", "timestamp_utc": "2026-08-15T23:33:25Z"},
+        {"runner": "QA-IND-COMISIONES-001", "role": "QA", "verdict": "FAIL", "timestamp_utc": "2026-08-15T23:41:08Z", "blockers": ["Q1"]},
+        {"runner": "AUDITOR-IND-COMISIONES-001", "role": "AUDITOR", "verdict": "FAIL", "timestamp_utc": "2026-08-15T23:34:18Z", "blockers": ["A1", "A2", "A3"]}
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-1/"
+    }
+  ],
   "history": [
     {"event": "CANONICAL_BASE_VERIFIED", "base": "eb6d082de4004d166379ffaae2b8f106fac10df1", "remote": "0 ahead / 0 behind"},
     {"event": "NEW_WORKTREE_CREATED", "worktree": ".worktrees/gc-comisiones-001", "to": "DOCUMENTATION"},
     {"event": "APPROVED_ECONOMIC_RULES_MAPPED", "rules": 9, "to": "IMPLEMENTATION"},
-    {"event": "DOMAIN_IMPLEMENTED", "module": "modulos/gestion_central/comisiones.py"},
     {"event": "DOMAIN_TEST_FAILED_AGREEMENT_REASON_LOST_AFTER_CALCULATION", "to": "REMEDIATION"},
-    {"event": "AGREEMENT_REASON_FIXED_AND_RETESTED", "to": "IMPLEMENTATION"},
-    {"event": "UI_IMPLEMENTED", "module": "modulos/gestion_central/comisiones_ui.py"},
     {"event": "VISUAL_REVIEW_FAILED_UNFORMATTED_KPI_AND_TRUNCATED_MAIN_TABLE", "to": "REMEDIATION"},
     {"event": "LAYOUT_RECALIBRATED_AND_REGRESSION_GUARD_ADDED", "to": "VALIDATION"},
-    {"event": "VISUAL_EVIDENCE_REGENERATED", "resolution": "1920x1080", "sha256": "dbf0462416eeb0184f3ca34438d5a9cfba0c1eae420cedebbb780f2733008467"},
-    {"event": "IMPLEMENTATION_VALIDATED", "tests": 280, "baseline": 251, "to": "REVIEW"},
-    {"event": "INDEPENDENT_RUNNERS_UNAVAILABLE", "action": "SELF_REVIEW_LABELLED_HONESTLY", "to": "HUMAN_GATE_PENDING"},
-    {"event": "ARTIFACT_CONSISTENCY_VERIFIED", "manifest": "MANIFEST.sha256"},
-    {"event": "PROTECTED_COMMIT_PUSHED", "branch": "mission/bc-gestion-central-comisiones-001", "note": "publicacion de evidencia; sin merge a main"}
+    {"event": "GENERATION_1_PUBLISHED", "commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773", "tests": 280, "to": "HUMAN_GATE_PENDING"},
+    {"event": "INDEPENDENT_REVIEW_AUTHORIZED_BY_OWNER", "runners": 3, "to": "REVIEW_G1"},
+    {"event": "SNAPSHOT_FROZEN_G1", "commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773", "tree": "d296c6384885176399dceeeda103a4acb397e43d"},
+    {"event": "LIBRARIAN_INDEPENDENT_PASS", "runner": "LIBRARIAN-IND-COMISIONES-001"},
+    {"event": "QA_INDEPENDENT_FAIL", "runner": "QA-IND-COMISIONES-001", "blocker": "Q1_MONTH_DOES_NOT_VALIDATE_DATE_SILENT_COMMISSION_LOSS"},
+    {"event": "AUDITOR_INDEPENDENT_FAIL", "runner": "AUDITOR-IND-COMISIONES-001", "blocker": "A1_PAID_SETTLEMENT_REACHES_REVERTED_ENABLING_DOUBLE_PAYMENT"},
+    {"event": "GENERATION_1_INVALIDATED", "evidence_preserved": "generation-1/", "to": "REMEDIATION"},
+    {"event": "MISSION_LEASE_KEPT_HELD", "reason": "correccion acotada a dos bloqueantes dentro de la misma sesion continua; liberar y readquirir habria abierto ventana de concurrencia sin beneficio"},
+    {"event": "BLOCKER_Q1_FIXED", "fix": "date.fromisoformat en _month y validacion en sync_review_sales con contador invalid_date", "tests_added": 2},
+    {"event": "BLOCKER_A1_A2_FIXED", "fix": "invariante _was_paid aplicado en revert, _revert_commission_effect y void_sale", "tests_added": 2},
+    {"event": "BLOCKER_A3_FIXED", "fix": "ARCHITECTURE.md documenta el invariante real y sus guardas; afirmacion falsa preservada con errata en generation-1/"},
+    {"event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD", "method": "escenarios exactos de cada revisor re-ejecutados contra el codigo corregido"},
+    {"event": "GENERATION_2_VALIDATED", "tests": 284, "baseline": 251, "to": "REVIEW_G2"}
   ],
-  "human_gate": {
-    "count": 1,
-    "action": "Revisar SUMMARY.md, COMMISSION_RULES.md, la captura 1920x1080 y los tres reportes SELF_REVIEW; aprobar como independientes o re-ejecutar con runners externos usando los PROMPT_*.txt.",
-    "blocking_for": ["SAFE_CLOSURE", "MISSION_LEASE_RELEASE"]
-  },
+  "non_blocking_findings_recorded": [
+    "QA-obs1: cobros genuinos identicos deduplicados por clave de idempotencia con referencia opcional",
+    "QA-obs2: liquidaciones OBSERVADA suman a los KPIs monetarios",
+    "QA-obs3: ventas mixtas (convenio parcial) mal clasificadas en sync_review_sales",
+    "AUD-obs: assert float( es mas debil que la propiedad declarada",
+    "LIB-obs4: defecto preexistente ajeno a la mision, test duplicado en test_ui_interactions.py"
+  ],
   "pending_configuration": {
     "item": "porcentaje de comision",
     "status": "SINTETICA_PENDIENTE_APROBACION",

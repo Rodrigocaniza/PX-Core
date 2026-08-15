@@ -40,8 +40,41 @@ PENDIENTE_SALDO ──cancelación total──▶ ELEGIBLE ──recálculo─�
 ```
 
 - `OBSERVADA` se alcanza desde `ELEGIBLE`, `CALCULADA`, `REVISADA`, `APROBADA` y `PAGADA`, siempre con motivo.
-- `REVERTIDA` se alcanza desde los estados abiertos y desde `OBSERVADA`, siempre con motivo. **`PAGADA` nunca pasa a `REVERTIDA`**: una corrección posterior al pago produce `OBSERVADA`.
+- `REVERTIDA` se alcanza desde los estados abiertos y desde `OBSERVADA`, siempre con motivo.
 - `mark_paid` sólo acepta origen `APROBADA`: no se paga sin revisión ni aprobación previas.
+
+### Invariante del dinero ya pagado
+
+**Una liquidación que alguna vez movió dinero nunca alcanza `REVERTIDA`**, ni siquiera pasando
+por `OBSERVADA`. El invariante no depende del estado actual sino de `paid_at`, mediante
+`_was_paid(entry)`, y se aplica en las tres únicas rutas que pueden producir `REVERTIDA`:
+
+| Ruta | Guarda |
+|---|---|
+| `revert()` | `guard=_reject_paid` en `_transition` |
+| `_revert_commission_effect()` (reversión de cobro, corrección de origen) | `if _was_paid(entry): → OBSERVADA` |
+| `void_sale()` (anulación de venta) | `if _was_paid(entry): → OBSERVADA` |
+
+Esto cierra además la consecuencia financiera: mientras la liquidación pagada no pueda pasar a
+`REVERTIDA`, el índice parcial `idx_commission_entry_active` sigue bloqueando el nacimiento de una
+segunda liquidación sobre la misma venta, de modo que **no puede pagarse dos veces**.
+
+El invariante fue añadido en la generación 2 tras el FAIL del auditor independiente (bloqueantes
+A1, A2 y A3 en `generation-1/VERDICT_AUDITOR.md`) y está cubierto por
+`test_paid_settlement_can_never_reach_reverted_even_through_observed` y
+`test_voiding_a_paid_sale_observes_instead_of_reverting`.
+
+### Validación del período
+
+`_month()` deriva el período de liquidación de la fecha, así que valida con `date.fromisoformat`
+y rechaza en el borde cualquier cadena que no sea una fecha real. Una fecha mal formada jamás
+produce un período: antes, `"2099-4-10"` generaba el mes inexistente `"2099-4-"` y la comisión
+desaparecía de todos los reportes sin error alguno. `sync_review_sales` valida la fecha del
+snapshot externo antes de ingerir y devuelve `invalid_date` para que la fila descartada sea
+visible en vez de perderse. Añadido en la generación 2 tras el FAIL de QA independiente
+(bloqueante Q1 en `generation-1/VERDICT_QA.md`); cubierto por
+`test_invalid_dates_are_rejected_and_never_produce_a_period` y
+`test_review_sync_reports_invalid_dates_instead_of_losing_them`.
 
 ## Puertos
 
