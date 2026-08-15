@@ -419,8 +419,8 @@ class AdminOperations:
         return template.replace("{fecha}", day.business_date.strftime("%d-%m-%Y")).replace("{sucursal}", day.unit)
 
     def generate_close_pdf(self, day: CashDay, count: CountResult, closure_id: str, destination: Path) -> Path:
-        from .close_report import generate_daily_envelope_control
-        return generate_daily_envelope_control(day, count, closure_id, destination)
+        from .continuous_report import generate_continuous_daily_control
+        return generate_continuous_daily_control(day, count, closure_id, destination)
 
     def mail_status(self, cash_day_id: str) -> str:
         with self.repository._connection() as connection:

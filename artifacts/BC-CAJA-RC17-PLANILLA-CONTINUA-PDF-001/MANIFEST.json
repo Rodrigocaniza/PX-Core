@@ -1,0 +1,15 @@
+{
+  "mission": "BC-CAJA-RC17-PLANILLA-CONTINUA-PDF-001",
+  "version": "BC Caja 1.0.0-rc.17",
+  "base_commit": "138d4cb47932c126df1f2b7ee1cfabb8b47f8054",
+  "branch": "feature/bc-caja-rc17-planilla-continua-pdf-001",
+  "release": "releases/BC-CAJA-1.0.0-rc.17-win64.zip",
+  "zip_sha256": "7d9e906e1f65a6dce48a70c96d2de680129f387a09b050e7e0c138a0837d039b",
+  "exe_sha256": "25293dc98c3780f035e7ea06d7e710af96058431e893f60749f85b314af7cc50",
+  "representative_pdf_sha256": "45d2b3080974ee5c0472e8ce26c8120c61fd4dac016d47d4f1155960051dbcc6",
+  "tests": {"targeted": 6, "full": 211},
+  "visual_pages": 2,
+  "package_entries": 1149,
+  "forbidden_entries": 0,
+  "reviewers": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"}
+}

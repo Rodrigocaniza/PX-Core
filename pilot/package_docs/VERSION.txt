@@ -1,4 +1,4 @@
-BC Caja 1.0.0-rc.16
-Misión: BC-CAJA-RC16-CONTROL-SOBRES-PDF-001
+BC Caja 1.0.0-rc.17
+Misión: BC-CAJA-RC17-PLANILLA-CONTINUA-PDF-001
 Fecha: 2026-08-15
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)

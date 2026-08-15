@@ -1,0 +1,25 @@
+{
+  "mission": "BC-CAJA-RC17-PLANILLA-CONTINUA-PDF-001",
+  "base_commit": "138d4cb47932c126df1f2b7ee1cfabb8b47f8054",
+  "branch": "feature/bc-caja-rc17-planilla-continua-pdf-001",
+  "current_state": "SAFE_CLOSURE",
+  "continuous_session": "ACTIVE",
+  "auto_resume": "ACTIVE",
+  "safe_closure": "ACTIVE",
+  "history": [
+    {"event": "CANONICAL_RC16_VERIFIED"},
+    {"event": "MODEL_MAPPING_PASSED"},
+    {"event": "CONTINUOUS_TABLE_IMPLEMENTED"},
+    {"event": "FINAL_VISUAL_ADJUSTMENT_APPLIED", "doctor_only": true, "clinical_and_signature_content": "EXCLUDED_FROM_PDF"},
+    {"event": "REAL_CLOSE_PREVIEW_PASSED", "pages": 1, "mutations": 0, "emails": 0},
+    {"event": "REPRESENTATIVE_VISUAL_REVIEW_PASSED", "pages": 2, "sales": 30},
+    {"event": "TESTS_PASSED", "targeted": 6, "full": 211},
+    {"event": "PACKAGE_PASSED", "entries": 1149},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "FINAL_REVIEW_CHAIN_RESTARTED", "reason": "POST_ADJUSTMENT"},
+    {"event": "LIBRARIAN_PASS"},
+    {"event": "QA_PASS"},
+    {"event": "AUDITOR_PASS"},
+    {"event": "SAFE_CLOSURE_READY", "publication": "HUMAN_GATE_REQUIRED", "commit": false, "push": false, "installation": false}
+  ]
+}

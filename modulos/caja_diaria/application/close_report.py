@@ -112,7 +112,7 @@ def stamp_page_chrome(source, destination, context):
         overlay.setStrokeColor(LINE); overlay.setLineWidth(.5)
         overlay.line(14 * mm, page_height - 13 * mm, page_width - 14 * mm, page_height - 13 * mm)
         overlay.setFillColor(BLUE); overlay.setFont("Helvetica-Bold", 8.5)
-        overlay.drawString(14 * mm, page_height - 10 * mm, "BC Caja — Control diario de sobres")
+        overlay.drawString(14 * mm, page_height - 10 * mm, context.get("title", "BC Caja — Control diario de sobres"))
         overlay.setFillColor(GRAY); overlay.setFont("Helvetica", 7.5)
         overlay.drawRightString(page_width - 14 * mm, page_height - 10 * mm,
                                 f"{context['date']} · {context['unit']} · Cierre {context['closure']}")
