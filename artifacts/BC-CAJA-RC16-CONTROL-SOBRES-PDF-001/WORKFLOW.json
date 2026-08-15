@@ -2,7 +2,7 @@
   "mission": "BC-CAJA-RC16-CONTROL-SOBRES-PDF-001",
   "base_commit": "88e86cb7fbec301efa19bb340a217fc793155df4",
   "branch": "feature/bc-caja-rc16-control-sobres-pdf-001",
-  "current_state": "SAFE_CLOSURE",
+  "current_state": "CLOSED",
   "continuous_session": "ACTIVE",
   "auto_resume": "ACTIVE",
   "workflow_engine": "ACTIVE",
@@ -38,6 +38,12 @@
     {"event": "LIBRARIAN_PASS", "generation": 14},
     {"event": "QA_PASS", "generation": 14, "control": "byte-exact individual raster review resolved batch-viewer cache"},
     {"event": "AUDITOR_PASS", "generation": 14},
-    {"event": "SAFE_CLOSURE_READY", "scope": "commit_push_then_transactional_install"}
+    {"event": "SAFE_CLOSURE_READY", "scope": "commit_push_then_transactional_install"},
+    {"event": "COMMIT_PUSH_PASSED", "commit": "1f30b9b19134bff27ab56bf640d4457ed68d2fc7", "remote_delta": "0/0"},
+    {"event": "TRANSACTIONAL_INSTALL_PASSED", "version": "BC Caja 1.0.0-rc.16", "rollback": "RC15_AVAILABLE"},
+    {"event": "INSTALLED_SMOKE_PASSED", "gui": true, "pdf": true, "mail_route": "SENT_PRESERVED"},
+    {"event": "SQLITE_INTEGRITY_PASSED", "databases": 10},
+    {"event": "DATA_PRESERVATION_PASSED", "files": 33},
+    {"event": "CLOSED"}
   ]
 }
