@@ -1,10 +1,10 @@
 {
   "mission": "BC-CAJA-GESTION-REAL-SYNC-PILOT-001",
   "authority": "PX-Core",
-  "current_state": "RELEASE_PENDING",
+  "current_state": "SAFE_CLOSED",
   "continuous_session": true,
   "auto_resume": true,
-  "mission_lease": "ACTIVE",
+  "mission_lease": "RELEASED",
   "production_enabled": false,
   "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
   "base_commit": "bb270343bf90e4f7b4cc3dede903b600ab66765f",
@@ -16,6 +16,8 @@
     {"event": "TESTS_PASSED", "from": "QA", "to": "AUDITOR_REVIEW", "focused": 13, "regression": 225},
     {"event": "LIBRARIAN_PASSED", "from": "AUDITOR_REVIEW", "to": "QA_FINAL"},
     {"event": "QA_PASSED", "from": "QA_FINAL", "to": "AUDITOR_FINAL"},
-    {"event": "AUDITOR_PASSED", "from": "AUDITOR_FINAL", "to": "RELEASE_PENDING"}
+    {"event": "AUDITOR_PASSED", "from": "AUDITOR_FINAL", "to": "RELEASE_PENDING"},
+    {"event": "PACKAGE_AND_INSTALLED_SMOKE_PASSED", "from": "RELEASE_PENDING", "to": "SAFE_CLOSURE"},
+    {"event": "MISSION_LEASE_RELEASED", "from": "SAFE_CLOSURE", "to": "SAFE_CLOSED"}
   ]
 }
