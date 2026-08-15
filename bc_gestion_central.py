@@ -75,7 +75,8 @@ def interaction_smoke(data_dir: Path) -> int:
             expected_cash=925_000, counted_cash=900_000, entry_count=5,
             source_updated_at=utc_now() + timedelta(seconds=2),
         ))
-    root = tk.Tk(); root.withdraw()
+    session_root = tk.Tk(); session_root.withdraw()
+    root = tk.Toplevel(session_root); root.withdraw()
     app = CentralPilotWindow(service, root=root, notifier=lambda *_: None)
     root.update()
     visited = []
@@ -98,12 +99,13 @@ def interaction_smoke(data_dir: Path) -> int:
     else:
         alert_id = None
     root.destroy()
-    reopened_root = tk.Tk(); reopened_root.withdraw()
+    reopened_root = tk.Toplevel(session_root); reopened_root.withdraw()
     reopened = CentralPilotWindow(service, root=reopened_root, notifier=lambda *_: None)
     reopened_root.update()
     if alert_id and alert_id in reopened.alerts.get_children():
         raise RuntimeError("el reconocimiento no persistió")
     reopened_root.destroy()
+    session_root.destroy()
     evidence = {"status": "PASS", "units_visited": visited, "refresh": "PASS", "alert_ack": "PASS", "restart_persistence": "PASS", "synthetic": True, "production": False}
     data_dir.mkdir(parents=True, exist_ok=True)
     (data_dir / "interaction-smoke.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
