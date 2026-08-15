@@ -1031,8 +1031,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             if mail_secret.get(): controller.admin.set_mail_secret(session.token, mail_secret.get()); mail_secret.delete(0, "end")
             messagebox.showinfo("Administrador", "Notificaciones guardadas.", parent=panel)
         ctk.CTkButton(mail_section, text="Guardar notificación", command=guardar_mail).pack(pady=6)
-        ctk.CTkButton(mail_section, text="Probar envío", command=lambda: messagebox.showinfo(
-            "Prueba", f"Enviados: {controller.admin.process_outbox(limit=1)}", parent=panel)).pack(pady=3)
+        ctk.CTkButton(mail_section, text="Probar envío / reintentar", command=lambda: messagebox.showinfo(
+            "Prueba", f"Enviados: {controller.admin.retry_outbox()}", parent=panel)).pack(pady=3)
         audit_box = ctk.CTkTextbox(sections["Auditoría"]); audit_box.pack(fill="both", expand=True, padx=10, pady=10)
         for row in controller.admin.audit_rows(session.token): audit_box.insert("end", f"{row['recorded_at']}  {row['actor']}  {row['action']}  {row['result']}\n")
         audit_box.configure(state="disabled")
@@ -2274,7 +2274,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     ruta_datos = resolve_data_paths().root
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.13   ·   Datos: {ruta_datos}",
+        text=f"BC Caja 1.0.0-rc.14   ·   Datos: {ruta_datos}",
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
     etiqueta_pie.pack(side="left", fill="x", expand=True)

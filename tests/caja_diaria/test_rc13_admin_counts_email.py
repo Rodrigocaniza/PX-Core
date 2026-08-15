@@ -199,6 +199,38 @@ class RC13AdminCountsEmailTests(unittest.TestCase):
             self.assertEqual(self.controller.admin.retry_outbox(row["id"]), 1)
         self.assertEqual(self.controller.admin.mail_status(day.id), "SENT")
 
+    def test_not_configured_close_is_delivered_after_configuration(self):
+        session = self.controller.admin.create_initial_admin("adminlate", "Clave-Mail-Segura")
+        day = self.controller.admin.open_from_count(
+            "18-08-2026", "PC", {100_000: 1}, "Operadora Central", "open-mail-late"
+        )
+        _, _, status = self.controller.admin.close_with_count(
+            day.id, {100_000: 1}, "Operadora Central", "close-mail-late"
+        )
+        self.assertEqual(status, "NOT_CONFIGURED")
+        self.controller.admin.update_setting(session.token, "mail", {
+            "enabled": True, "recipient": "cierre@example.com", "cc": [],
+            "subject": "Cierre {fecha} - {sucursal}", "host": "smtp.example.com",
+            "port": 587, "username": "sender@example.com", "secret_ref": "smtp",
+        })
+        self.controller.admin.secret_store = type("Secrets", (), {"get": lambda _self, _name: "app-secret"})()
+        sent = []
+        class SMTP:
+            def __init__(self, *args, **kwargs): pass
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def starttls(self, context): pass
+            def login(self, username, password): pass
+            def send_message(self, message): sent.append(message)
+        with patch("smtplib.SMTP", SMTP):
+            self.assertEqual(self.controller.admin.process_outbox(), 1)
+        self.assertEqual(self.controller.admin.mail_status(day.id), "SENT")
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(sent[0]["To"], "cierre@example.com")
+        with patch("smtplib.SMTP", SMTP):
+            self.assertEqual(self.controller.admin.process_outbox(), 0)
+        self.assertEqual(len(sent), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

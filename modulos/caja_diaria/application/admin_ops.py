@@ -479,15 +479,22 @@ class AdminOperations:
             return 0
         with self.repository._connection() as connection:
             rows = connection.execute(
-                "SELECT * FROM mail_outbox WHERE status IN ('PENDING','ERROR') AND (next_attempt_at IS NULL OR next_attempt_at<=?) ORDER BY created_at LIMIT ?",
+                "SELECT * FROM mail_outbox WHERE status IN ('NOT_CONFIGURED','PENDING','ERROR') AND (next_attempt_at IS NULL OR next_attempt_at<=?) ORDER BY created_at LIMIT ?",
                 (_now().isoformat(), int(limit)),
             ).fetchall()
         sent = 0
         for row in rows:
             try:
                 from email.message import EmailMessage
+                recipient = str(mail.get("recipient", "")).strip()
+                with self.repository._connection() as connection:
+                    connection.execute(
+                        "UPDATE mail_outbox SET recipient=?,updated_at=? WHERE id=? AND status!='SENT'",
+                        (recipient, _now().isoformat(), row["id"]),
+                    )
+                    connection.commit()
                 message = EmailMessage()
-                message["To"] = row["recipient"]
+                message["To"] = recipient
                 message["From"] = str(mail.get("username", ""))
                 message["Subject"] = row["subject"]
                 message.set_content("Se adjunta el cierre de Caja y Arqueo.")
@@ -515,7 +522,7 @@ class AdminOperations:
                 )
             else:
                 connection.execute(
-                    "UPDATE mail_outbox SET status='PENDING',next_attempt_at=NULL,last_error='',updated_at=? WHERE status IN ('ERROR','PENDING')",
+                    "UPDATE mail_outbox SET status='PENDING',next_attempt_at=NULL,last_error='',updated_at=? WHERE status IN ('NOT_CONFIGURED','ERROR','PENDING')",
                     (_now().isoformat(),),
                 )
             connection.commit()

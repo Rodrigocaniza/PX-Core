@@ -1,0 +1,12 @@
+{
+  "mission": "BC-CAJA-RC14-MAIL-OPS-FIX-001",
+  "version": "BC Caja 1.0.0-rc.14",
+  "base_commit": "5cf6e8eff3308ced7e1d4494c83d6b57455b59ff",
+  "release": "releases/BC-CAJA-1.0.0-rc.14-win64.zip",
+  "zip_sha256": "d83b59bfe1632d834f4527bfda1819f0600d3232d7bc03ab20809db3c0329fa3",
+  "exe_sha256": "6ee491aad4f8132fdf11f08da14d412dc81daced437e2b3b2ff7bfd836551d8d",
+  "visual_sha256": "8d5b7ee52b262224058daf2ca8a58509573d008976d007bbd1d7046ae29e52fd",
+  "tests": {"passed": 199},
+  "migrations": 15,
+  "database_integrity": "ok"
+}
