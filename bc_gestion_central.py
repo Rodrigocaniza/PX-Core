@@ -62,6 +62,12 @@ def interaction_smoke(data_dir: Path) -> int:
     from modulos.gestion_central.models import CashSnapshot, Principal, Role, Unit, utc_now
     from modulos.gestion_central.ui import CentralPilotWindow
 
+    data_dir.mkdir(parents=True, exist_ok=True)
+    progress = data_dir / "interaction-progress.txt"
+    def checkpoint(value: str):
+        progress.write_text(value, encoding="utf-8")
+
+    checkpoint("START")
     service = build_service(data_dir)
     service.bootstrap_synthetic_pilot()
     event_id = "exe-interaction-smoke"
@@ -75,10 +81,13 @@ def interaction_smoke(data_dir: Path) -> int:
             expected_cash=925_000, counted_cash=900_000, entry_count=5,
             source_updated_at=utc_now() + timedelta(seconds=2),
         ))
-    session_root = tk.Tk(); session_root.withdraw()
-    root = tk.Toplevel(session_root); root.withdraw()
+    checkpoint("DATA_READY")
+    root = tk.Tk(); root.withdraw()
+    checkpoint("TK_READY")
     app = CentralPilotWindow(service, root=root, notifier=lambda *_: None)
+    checkpoint("APP_READY")
     root.update()
+    checkpoint("DASHBOARD_READY")
     visited = []
     for unit in Unit:
         app.card_buttons[unit].invoke(); root.update()
@@ -86,9 +95,11 @@ def interaction_smoke(data_dir: Path) -> int:
             raise RuntimeError(f"detalle incorrecto: {unit.value}")
         visited.append(unit.value)
         app.back_button.invoke(); root.update()
+        checkpoint(f"VISITED_{unit.value}")
     app.refresh_button.invoke(); root.update()
     if not app.status_var.get().startswith("Actualizado "):
         raise RuntimeError("Actualizar no confirmó visualmente")
+    checkpoint("REFRESHED")
     alert_ids = app.alerts.get_children()
     if alert_ids:
         alert_id = alert_ids[0]
@@ -96,19 +107,22 @@ def interaction_smoke(data_dir: Path) -> int:
         app.ack_button.invoke(); root.update()
         if alert_id in app.alerts.get_children():
             raise RuntimeError("la alerta reconocida continúa activa")
+        checkpoint("ALERT_ACKNOWLEDGED")
     else:
         alert_id = None
-    root.destroy()
-    reopened_root = tk.Toplevel(session_root); reopened_root.withdraw()
-    reopened = CentralPilotWindow(service, root=reopened_root, notifier=lambda *_: None)
-    reopened_root.update()
+    app.content.destroy()
+    checkpoint("FIRST_WINDOW_CLOSED")
+    reopened = CentralPilotWindow(service, root=root, notifier=lambda *_: None)
+    root.update()
+    checkpoint("REOPENED")
     if alert_id and alert_id in reopened.alerts.get_children():
         raise RuntimeError("el reconocimiento no persistió")
-    reopened_root.destroy()
-    session_root.destroy()
+    root.destroy()
+    checkpoint("WINDOWS_CLOSED")
     evidence = {"status": "PASS", "units_visited": visited, "refresh": "PASS", "alert_ack": "PASS", "restart_persistence": "PASS", "synthetic": True, "production": False}
     data_dir.mkdir(parents=True, exist_ok=True)
     (data_dir / "interaction-smoke.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
+    checkpoint("PASS")
     return 0
 
 

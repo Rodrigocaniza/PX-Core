@@ -7,6 +7,8 @@
 - Actualizar: PASS.
 - Selección y reconocimiento: PASS.
 - Cierre/reapertura y persistencia: PASS.
+- Smoke interactivo del EXE empaquetado: PASS; requiere escritorio interactivo
+  normal (Tk no inicializa si el proceso se fuerza a `WindowStyle Hidden`).
 
 Las pruebas usan `Button.invoke`, eventos reales de `Combobox`/`Treeview` y
 recreación real de ventanas Tk. Tcl/Tk requiere ejecución fuera del sandbox de
