@@ -1,0 +1,31 @@
+{
+  "mission": "BC-CAJA-RC18-UX-VIEWSONIC-24-001",
+  "base_commit": "09344715fc54fc714b106fb4379a7721086fd7a6",
+  "branch": "feature/bc-caja-rc18-ux-viewsonic-24-001",
+  "current_state": "CLOSED",
+  "continuous_session": "ACTIVE",
+  "auto_resume": "ACTIVE",
+  "safe_closure": "COMPLETE",
+  "mission_lease": {"state": "RELEASED", "holder": null},
+  "history": [
+    {"event": "CANONICAL_STATE_VERIFIED", "rc17": "CLOSED", "worktree": "caja-rc13-mail-ops-fix", "head": "0934471"},
+    {"event": "NEXT_BLOCK_SELECTED", "reason": "UX_PENDIENTE_VIEWSONIC_24", "duplicate_work": false},
+    {"event": "SLICE_S18_1_PASS", "scope": "jerarquia y agrupacion de KPI", "targeted": 12},
+    {"event": "SLICE_S18_2_PASS", "scope": "chrome de cabecera escalado", "targeted": 14},
+    {"event": "GUI_DEFECT_FOUND", "widget": "CTkFrame separador", "detail": "alto por defecto 200 px estiraba la cabecera a 206"},
+    {"event": "GUI_DEFECT_FOUND", "widget": "CTkLabel KPI", "detail": "alto por defecto 28 px fijaba la tarjeta en 59 px en todo perfil"},
+    {"event": "SLICE_S18_3_PASS", "scope": "smoke GUI real", "resolutions": ["1920x1080", "1366x768"], "emails": 0, "new_closures": 0},
+    {"event": "PREEXISTING_FAILURES_IDENTIFIED", "count": 5, "origin": "0934471", "cause": "fixture representative_close dependiente de la fecha"},
+    {"event": "SLICE_S18_4_PASS", "scope": "regresion canonica", "full": 222, "failed": 0},
+    {"event": "SLICE_S18_5_PASS", "scope": "evidencia y consistencia de artifacts"},
+    {"event": "SAFE_CLOSURE_READY", "publication": "HUMAN_GATE_REQUIRED", "commit": false, "push": false, "installation": false},
+    {"event": "HUMAN_VISUAL_VALIDATION_PASS", "hardware": "ViewSonic 24\"", "accepted": ["jerarquia", "legibilidad", "distribucion", "altura_cabecera"]},
+    {"event": "PUBLICATION_AUTHORIZED", "scope": "commit + push", "installation": false},
+    {"event": "FINAL_TESTS_PASSED", "full": 222, "failed": 0},
+    {"event": "FINAL_VISUAL_SMOKE_PASSED", "resolutions": ["1920x1080", "1366x768"], "emails": 0, "new_closures": 0},
+    {"event": "FUNCTIONAL_COMMIT_PASSED", "commit": "3cda622", "staging": "rutas explicitas", "comunicaciones_excluido": true},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "MISSION_LEASE_RELEASED"},
+    {"event": "CLOSED"}
+  ]
+}
