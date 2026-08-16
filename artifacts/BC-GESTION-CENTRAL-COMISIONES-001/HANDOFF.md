@@ -2,7 +2,7 @@
 
 Cadena: Librarian → QA → Auditor, con independencia real en tres subagentes separados por
 generación. Estado de revisión de este snapshot: ver `INDEPENDENCE.md`. Evidencia de las
-generaciones ya revisadas en `generation-1/` a `generation-7/`.
+generaciones ya revisadas en `generation-1/` a `generation-9/`.
 
 ## Matriz de revisión
 

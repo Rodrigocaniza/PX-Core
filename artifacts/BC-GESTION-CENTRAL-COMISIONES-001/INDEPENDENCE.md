@@ -7,7 +7,7 @@ conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el prop
 
 ## Estado de este snapshot
 
-**Generación 9. Pendiente de revisión independiente.** Los verdicts de generación 9 no existen
+**Generación 10. Pendiente de revisión independiente.** Los verdicts de generación 10 no existen
 todavía; cuando se emitan quedarán en un directorio propio. Ningún documento de este paquete debe
 leerse como si esa revisión ya hubiera ocurrido.
 
@@ -202,9 +202,34 @@ añadido esa documentación. El Auditor lo señaló de forma independiente como 
 en la generación 9, junto con la incorporación al backlog de todas las observaciones de ambos
 revisores.
 
+## Generación 9 — snapshot `114aee84745aa82293509f4d76be3c0bac381827`
+
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-009` | LIBRARIAN | **FAIL** — dos inconsistencias documentales |
+| `QA-IND-COMISIONES-009` | QA | **PASS** |
+| `AUDITOR-IND-COMISIONES-009` | AUDITOR | **PASS** |
+
+Invalidada. Evidencia íntegra en `generation-9/`.
+
+**Segunda generación consecutiva con QA y Auditor en PASS.** QA demostró que el cambio era inerte
+comparando los AST de `comisiones.py` antes y después —idénticos— y acumuló unas 132.000 aserciones
+propias con 8.800 pasos de fuzz en cinco semillas, sin una sola falla. El Auditor atacó seis rutas a
+`REVERTIDA` y corrió 600 pasos de fuzz con siete invariantes duros, sin violaciones, y declaró: «no
+encontré una sola afirmación falsa contra el código». El Librarian confirmó además, por primera vez,
+que **el backlog es veraz: los treinta ítems contrastados uno por uno contra el código, con cita de
+línea, y los treinta abiertos**.
+
+Sus dos bloqueantes fueron de bookkeeping documental y ambos reincidencias: `HANDOFF.md` seguía
+citando el rango de generaciones hasta la 7 cuando la 8 ya estaba revisada, e `INDEPENDENCE.md` se
+contradecía a sí mismo en el conteo de bloqueantes financieros. Corregidos en la generación 10, y
+—para cortar la reincidencia de raíz— se añadió `tools/check_mission_package_consistency.py`, que
+verifica rangos, conteos únicos, backlogs idénticos, ausencia de anticipación de la revisión en
+curso y code spans balanceados, y que se ejecuta antes de publicar cada snapshot.
+
 ## Valor demostrado de la independencia
 
-Catorce defectos financieros reales y ocho de veracidad documental fueron detectados por revisores
+Quince defectos financieros reales y diez de veracidad documental fueron detectados por revisores
 independientes después de que la autorrevisión los declarara correctos, y con la regresión completa
 en verde en todas las generaciones. Tres de ellos fueron **introducidos por una corrección
 anterior**, lo que es en sí mismo un argumento a favor de revisar cada generación desde cero. Habrían movido dinero mal: comisión perdida por período

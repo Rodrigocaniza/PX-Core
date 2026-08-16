@@ -1,11 +1,24 @@
 # Evidencia de pruebas
 
-## Generación 9 (vigente)
+## Generación 10 (vigente)
 
 - Dominio de comisiones: **47/47 PASS**.
 - Interacción Tk y Full HD: **4/4 PASS**.
-- Regresión completa: **302/302 PASS** en 24.88 s.
+- Regresión completa: **302/302 PASS**.
 - Línea base heredada: 251 pruebas; esta misión suma 51 sin romper ninguna existente.
+- Chequeo de consistencia del paquete: `python tools/check_mission_package_consistency.py` → PASS.
+
+## Revisión independiente de la generación 9
+
+**QA y Auditor emitieron PASS por segunda generación consecutiva.** QA demostró la inercia del
+cambio comparando los AST de `comisiones.py` y acumuló unas 132.000 aserciones propias con 8.800
+pasos de fuzz en cinco semillas, sin una falla. El Auditor atacó seis rutas a `REVERTIDA` y corrió
+600 pasos de fuzz con siete invariantes duros, sin violaciones. El Librarian confirmó por primera
+vez que el backlog es veraz: los treinta ítems contrastados uno por uno contra el código.
+
+Sus dos bloqueantes fueron de bookkeeping documental —rango de generaciones desactualizado y
+contradicción en el conteo de bloqueantes—, ambos reincidencias. Corregidos, y cortados de raíz con
+un chequeo automático de consistencia del paquete que se ejecuta antes de publicar.
 
 ## Revisión independiente de la generación 8
 

@@ -2,9 +2,9 @@
 
 **Estado: `NOT_EXECUTED` en este snapshot.**
 
-Este snapshot es la generación 9 y **todavía no fue revisado**. Las generaciones 1 a 8 fueron
-invalidadas por FAIL de revisores independientes, aunque en la generación 8 QA y Auditor ya
-emitieron PASS y el único bloqueante fue documental.
+Este snapshot es la generación 10 y **todavía no fue revisado**. Las generaciones 1 a 9 fueron
+invalidadas por FAIL de revisores independientes, aunque en las generaciones 8 y 9 QA y Auditor ya
+emitieron PASS y los bloqueantes restantes fueron de consistencia documental.
 
 ## Trazabilidad
 
@@ -18,9 +18,10 @@ emitieron PASS y el único bloqueante fue documental.
 | 6 | `aed7bb2` | PASS | **FAIL** | PASS | INVALIDADA |
 | 7 | `cfc4371` | **FAIL** | **FAIL** | PASS | INVALIDADA |
 | 8 | `c4f6ee6` | **FAIL** | PASS | PASS | INVALIDADA |
-| 9 | este snapshot | no ejecutado | no ejecutado | no ejecutado | pendiente |
+| 9 | `114aee8` | **FAIL** | PASS | PASS | INVALIDADA |
+| 10 | este snapshot | no ejecutado | no ejecutado | no ejecutado | pendiente |
 
-## Lo verificado en la generación 9
+## Lo verificado en la generación 10
 
 - Regresión completa: 302/302 PASS (línea base 251 + 51 de la misión: 47 de dominio + 4 de interfaz).
 - Los quince bloqueantes financieros acumulados, reproducidos con los escenarios exactos de cada
@@ -28,20 +29,20 @@ emitieron PASS y el único bloqueante fue documental.
 - `compileall`, `git diff --check` y escaneo heurístico de secretos: PASS.
 - `MANIFEST.sha256` verificado, cubriendo también `ARTIFACT_CONSISTENCY.md`.
 - ZIP construido **después** de escribir todos los documentos y verificado miembro a miembro.
-- Evidencia de las generaciones 1 a 8 preservada íntegra: veinticuatro verdicts independientes y las tres
+- Evidencia de las generaciones 1 a 9 preservada íntegra: veintisiete verdicts independientes y las tres
   autorrevisiones originales.
 - Sin merge a `main`, sin force-push, sin despliegue, sin tocar instalaciones productivas.
 
 ## Corrección de esta generación
 
-QA y Auditor dieron PASS sobre la generación 8: el núcleo económico está cerrado y verificado por
-ejecución independiente de ambos. Lo corregido aquí es exclusivamente documental: se retiró el ítem
-de backlog que declaraba sin documentar algo que ya estaba documentado, se incorporaron al backlog
-todas las observaciones de ambos revisores, y se acotó el comentario del código que afirmaba un
-absoluto con contraejemplo conocido. Ningún cambio de comportamiento.
+QA y Auditor dieron PASS sobre las generaciones 8 y 9, y el Librarian confirmó que el backlog es
+veraz. Lo corregido aquí es exclusivamente documental: el rango de generaciones citado y el conteo
+de bloqueantes. Para cortar la reincidencia de esa clase de defecto se añadió
+`tools/check_mission_package_consistency.py`, que se ejecuta antes de publicar. Ningún cambio de
+comportamiento.
 
 ## Condición de cierre
 
 Safe Closure se ejecutará y el Mission Lease se liberará **sólo si los tres revisores
-independientes de la generación 9 emiten PASS** sobre este snapshot. Ningún documento de este
+independientes de la generación 10 emiten PASS** sobre este snapshot. Ningún documento de este
 paquete afirma que eso haya ocurrido.

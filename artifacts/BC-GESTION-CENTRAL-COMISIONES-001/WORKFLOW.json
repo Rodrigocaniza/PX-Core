@@ -1,8 +1,8 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G9",
+  "current_state": "REVIEW_PENDING_G10",
   "mission_lease": "HELD",
-  "generation": 9,
+  "generation": 10,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -331,6 +331,42 @@
         "los quince bloqueantes financieros historicos"
       ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-8/"
+    },
+    {
+      "generation": 9,
+      "snapshot_commit": "114aee84745aa82293509f4d76be3c0bac381827",
+      "snapshot_tree": "cdf46c8bac5c877aa1d7d8ba2a2c561581a213d6",
+      "status": "INVALIDATED",
+      "tests": 302,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-009",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T02:19:44Z",
+          "blockers": [
+            "HANDOFF_OMITS_GENERATION_8",
+            "BLOCKER_COUNT_CONTRADICTION_IN_INDEPENDENCE"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISIONES-009",
+          "role": "QA",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T02:26:26Z"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-009",
+          "role": "AUDITOR",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T02:22:08Z"
+        }
+      ],
+      "confirmed_closed_from_previous": [
+        "los quince bloqueantes financieros historicos",
+        "backlog veraz 30/30"
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-9/"
     }
   ],
   "history": [
@@ -543,6 +579,38 @@
       "tests": 302,
       "baseline": 251,
       "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
+    },
+    {
+      "event": "GENERATION_9_PUBLISHED_AND_REVIEWED",
+      "verdicts": "FAIL/PASS/PASS",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "BACKLOG_CONFIRMED_TRUTHFUL",
+      "note": "el Librarian contrasto los treinta items uno por uno contra el codigo con cita de linea: los treinta abiertos"
+    },
+    {
+      "event": "FINANCIAL_CORE_CONFIRMED_TWICE",
+      "note": "QA acumulo ~132.000 aserciones propias y 8.800 pasos de fuzz en cinco semillas; el Auditor ataco seis rutas a REVERTIDA y corrio 600 pasos de fuzz. Cero defectos de dinero en ambas generaciones 8 y 9"
+    },
+    {
+      "event": "STALE_GENERATION_RANGE_FIXED",
+      "fix": "HANDOFF.md y SUMMARY.md citan el rango hasta la ultima generacion realmente revisada"
+    },
+    {
+      "event": "BLOCKER_COUNT_UNIFIED_AT_FIFTEEN",
+      "fix": "INDEPENDENCE.md pasa a quince financieros y diez documentales, coherente con el resto del paquete",
+      "convention": "cada bloqueante distinto reportado por un revisor cuenta una vez, aunque dos revisores lo encuentren de forma independiente"
+    },
+    {
+      "event": "CONSISTENCY_CHECKER_ADDED",
+      "fix": "tools/check_mission_package_consistency.py verifica rangos, conteos, backlogs identicos, no anticipacion de la revision y code spans; se ejecuta antes de publicar"
+    },
+    {
+      "event": "GENERATION_10_PUBLISHED",
+      "tests": 302,
+      "baseline": 251,
+      "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -582,5 +650,5 @@
     "status": "SINTETICA_PENDIENTE_APROBACION",
     "note": "La base comisionable se calcula y se muestra siempre; el porcentaje no se afirma como regla productiva."
   },
-  "generation_9_review": "NOT_YET_EXECUTED"
+  "generation_10_review": "NOT_YET_EXECUTED"
 }
