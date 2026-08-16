@@ -971,27 +971,42 @@ def test_a_paid_legacy_settlement_keeps_its_amount_and_is_never_repaired(tmp_pat
     assert "Ya fue pagado" in service.breakdown(SOL, entry_id)["policy_note"]
 
 
-def test_the_trace_is_complete_exactly_when_the_policy_is_the_canonical_one(tmp_path):
-    """Invariante B, en su forma verificable: la traza acompaña a la política aprobada."""
-    service, entry_id = legacy_database(tmp_path, "APROBADA")
+def test_a_complete_trace_means_a_policy_evaluated_it_and_an_empty_one_means_none_did(tmp_path):
+    """Invariante de traza en su forma verificable, con los cuatro estados en una misma base."""
+    import sqlite3
+
+    service, legacy_id = legacy_database(tmp_path, "APROBADA")
+    with sqlite3.connect(service.repository.database_path) as con:
+        # Pagada: es el único caso que conserva POLITICA_HISTORICA_PREVIA tras recalcular.
+        con.execute("UPDATE commission_entries SET status='PAGADA',paid_at='2099-05-01',"
+                    "payment_reference='TRANSF-LEGADA' WHERE id=?", (legacy_id,))
+        con.commit()
     service.register_sale(SOL, common(source_sale_id="nueva", initial_paid=400_000))
     service.register_sale(SOL, common(source_sale_id="vieja", sale_date="2026-07-10",
                                       initial_paid=400_000))
+    pending, _ = service.register_sale(SOL, common(source_sale_id="con-saldo", initial_paid=100_000))
     service.recalculate(SOL)
+
     trace = ("policy_code", "policy_version", "policy_effective_from", "policy_scope")
     seen = set()
     for entry in service.list_entries(SOL):
         seen.add(entry["policy_status"])
         complete = all(entry[name] is not None for name in trace)
+        empty = not any(entry[name] is not None for name in trace)
+        assert complete or empty, "la traza nunca queda a medias"
         if entry["policy_status"] == POLICY_CANONICAL:
             assert complete and entry["rate_bp"] == 100 and entry["commission_amount"] is not None
         elif entry["policy_status"] == POLICY_OUT_OF_EFFECT:
-            # Hay traza de qué política se evaluó, pero ningún importe que respaldar.
+            # Se evaluó una política y no rige: hay traza, pero ningún importe que respaldar.
             assert complete and entry["rate_bp"] is None and entry["commission_amount"] is None
         else:
             # Ninguna política aprobada produjo este importe, y la traza vacía lo dice.
-            assert not any(entry[name] is not None for name in trace)
-    assert {POLICY_CANONICAL, POLICY_OUT_OF_EFFECT} <= seen
+            assert empty
+    assert seen == {POLICY_CANONICAL, POLICY_OUT_OF_EFFECT, POLICY_LEGACY, POLICY_ABSENT}
+    # El caso que da sentido al invariante: importe presente y traza vacía, ya pagado.
+    paid = service.get_entry(SOL, legacy_id)
+    assert paid["commission_amount"] == 33_250 and paid["policy_code"] is None
+    assert active(service, pending)["policy_status"] == POLICY_ABSENT
 
 
 def test_the_retired_label_survives_only_as_the_thing_the_migration_removes():
@@ -1069,3 +1084,133 @@ def test_no_external_provider_or_secrets_in_module():
     for forbidden in ("requests", "selenium", "playwright", "http://", "https://", "password", "token"):
         assert forbidden not in source
     assert "float(" not in source and AGREEMENT_DISCOUNT_BP == 500
+
+
+# ------------------------------------- bloqueantes de la generación 2 (deriva y varados)
+def test_scheduling_the_next_rate_never_touches_the_current_period(service):
+    """Bloqueante QA generación 2: publicar la vigencia siguiente borraba el mes en curso."""
+    for index in range(3):
+        service.register_sale(SOL, common(source_sale_id=f"v{index}", initial_paid=400_000))
+    service.recalculate(SOL)
+    assert service.report(SOL, "2099-04")["kpi"]["commission_amount"] == 12_000
+    # La política del año que viene se publica hoy y no puede tocar lo de este período.
+    assert service.set_general_rate(SOL, 150, "2100-01-01", "suba pactada") == (2, True)
+    assert service.recalculate(SOL) == {"evaluated": 3, "changed": 0}
+    assert service.report(SOL, "2099-04")["kpi"]["commission_amount"] == 12_000
+    for entry in service.list_entries(SOL):
+        assert entry["rate_bp"] == 100 and entry["policy_version"] == 1
+    # Y una venta del período ya cubierto por la versión nueva sí toma el 1,5%.
+    later, _ = service.register_sale(SOL, common(source_sale_id="futura", sale_date="2100-02-10",
+                                                 initial_paid=400_000))
+    service.recalculate(SOL)
+    entry = active(service, later)
+    assert entry["rate_bp"] == 150 and entry["commission_amount"] == 6_000
+    assert entry["policy_version"] == 2
+
+
+def test_a_policy_version_can_never_re_rate_a_closed_period(service):
+    """La vigencia no retrocede: se programa el futuro, no se reescribe el pasado."""
+    service.set_general_rate(SOL, 150, "2100-01-01")
+    with pytest.raises(ValueError, match="la vigencia no puede retroceder"):
+        service.set_general_rate(SOL, 400, CANONICAL_EFFECTIVE_FROM)
+    assert [row["version"] for row in service.policy_versions(SOL)] == [1, 2]
+    assert service.current_policy(SOL)["rate_bp"] == 150
+
+
+def test_a_settlement_calculated_under_an_older_version_is_never_paid(service):
+    """Bloqueante Auditor generación 2: el sello CANONICA_APROBADA quedaba desactualizado."""
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    service.review(SOL, entry_id)
+    # La política del propio período de la liquidación cambia: su importe deja de ser oficial.
+    service.set_general_rate(SOL, 50, "2099-01-01", "baja pactada")
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_750
+    with pytest.raises(ValueError, match="la política del período cambió"):
+        service.approve(SOL, entry_id, "Sol")
+    # El recálculo la repara y retira el aval, igual que con una política retirada.
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 1}
+    repaired = service.get_entry(SOL, entry_id)
+    assert repaired["status"] == "CALCULADA" and repaired["commission_amount"] == 2_375
+    assert repaired["rate_bp"] == 50 and repaired["policy_version"] == 2
+    assert repaired["reviewed_by"] is None
+    service.review(SOL, entry_id)
+    service.approve(SOL, entry_id, "Sol")
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 2_375
+
+
+@pytest.mark.parametrize("status", ["REVISADA", "APROBADA"])
+def test_a_legacy_settlement_without_any_rate_is_repaired_too(tmp_path, status):
+    """Bloqueante QA/Auditor generación 2: el piloto no sembraba política alguna.
+
+    La reparación cubría sólo `POLITICA_HISTORICA_PREVIA` y dejaba varada para siempre a la
+    liquidación sin porcentaje, que era el estado por defecto del piloto anterior.
+    """
+    import sqlite3
+
+    database = tmp_path / "sin-politica.sqlite3"
+    service = CommissionService(CentralManagementService(CentralRepository(database)))
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    with sqlite3.connect(database) as con:
+        con.execute("UPDATE commission_entries SET status=?,rate_bp=NULL,commission_amount=NULL,"
+                    "policy_status=?,policy_code=NULL,policy_version=NULL,policy_effective_from=NULL,"
+                    "policy_scope=NULL,reviewed_by='Sol',reviewed_at='2026-07-01' WHERE id=?",
+                    (status, POLICY_ABSENT, entry_id))
+        con.commit()
+    service = CommissionService(CentralManagementService(CentralRepository(database)))
+    assert service.get_entry(SOL, entry_id)["policy_status"] == POLICY_ABSENT
+    with pytest.raises(ValueError, match="política oficial"):
+        service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-X") if status == "APROBADA" \
+            else service.approve(SOL, entry_id, "Sol")
+    # No queda varada: el recálculo la trae a la comisión oficial sin destruirla.
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 1}
+    repaired = service.get_entry(SOL, entry_id)
+    assert repaired["status"] == "CALCULADA" and repaired["commission_amount"] == 4_750
+    assert repaired["policy_status"] == POLICY_CANONICAL and repaired["reviewed_by"] is None
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 0}
+
+
+def test_recalculate_never_reaches_anything_that_moved_money(tmp_path):
+    """Bloqueante Auditor generación 2: `paid_at IS NULL` colgaba de una rama, no del WHERE."""
+    import sqlite3
+
+    database = tmp_path / "pagada.sqlite3"
+    service = CommissionService(CentralManagementService(CentralRepository(database)))
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    with sqlite3.connect(database) as con:
+        # Estado imposible por la API pública, pero es justo lo que el invariante afirma cubrir.
+        con.execute("UPDATE commission_entries SET status='CALCULADA',paid_at='2099-05-01',"
+                    "payment_reference='TRANSF-VIEJA',rate_bp=700,commission_amount=33250,"
+                    "policy_status=? WHERE id=?", (POLICY_LEGACY, entry_id))
+        con.commit()
+    service = CommissionService(CentralManagementService(CentralRepository(database)))
+    assert service.recalculate(SOL) == {"evaluated": 0, "changed": 0}
+    untouched = service.get_entry(SOL, entry_id)
+    assert untouched["commission_amount"] == 33_250 and untouched["rate_bp"] == 700
+    assert untouched["paid_at"] == "2099-05-01"
+
+
+def test_the_official_kpi_never_counts_an_amount_from_a_retired_policy(tmp_path):
+    """Bloqueante QA generación 2: el KPI «oficial 1,00%» sumaba importes al 7%."""
+    import sqlite3
+
+    service, entry_id = legacy_database(tmp_path, "APROBADA")
+    with sqlite3.connect(service.repository.database_path) as con:
+        con.execute("UPDATE commission_entries SET status='PAGADA',paid_at='2099-05-01',"
+                    "payment_reference='TRANSF-LEGADA' WHERE id=?", (entry_id,))
+        con.commit()
+    service.register_sale(SOL, common(source_sale_id="oficial", initial_paid=400_000))
+    service.recalculate(SOL)
+    kpi = service.report(SOL, "2099-04")["kpi"]
+    assert kpi["commission_amount"] == 4_000
+    assert kpi["non_official_amount"] == 33_250 and kpi["non_official_entries"] == 1
+    # Lo pagado sí incluye el importe histórico: ese dinero efectivamente salió.
+    assert kpi["paid_amount"] == 33_250
+    export = service.export_summary(SOL, "2099-04")
+    assert export["kpi"]["commission_amount"] == 4_000
+    assert export["kpi"]["non_official_amount"] == 33_250

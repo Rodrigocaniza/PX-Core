@@ -133,8 +133,12 @@ def test_the_screen_names_the_official_one_percent_policy(app, root):
     assert "COMISION_GENERAL_1PCT v1" in header and "vigente desde 2026-08-01" in header
     assert "HALF_UP" in header
     assert panel.kpi_captions["commission_amount"].cget("text") == "COMISIÓN OFICIAL 1,00%"
-    assert panel.tree.heading("commission_amount", "text") == "Comisión 1,00%"
-    assert panel.summary_tree.heading("commission_amount", "text") == "Comisión 1,00%"
+    # Las columnas no llevan el porcentaje: una fila puede arrastrar un importe de una
+    # política retirada, y encabezarla «Comisión 1,00%» lo declararía oficial sin serlo.
+    assert panel.tree.heading("commission_amount", "text") == "Comisión"
+    assert panel.summary_tree.heading("commission_amount", "text") == "Comisión"
+    # Sin importes fuera de la política vigente, el aviso no ocupa lugar en pantalla.
+    assert not panel.warning.winfo_ismapped()
     # Base y comisión oficial visibles en la fila, sin abrir el desglose.
     row = next(entry for entry in panel.report["entries"] if entry["sale_id"] == ids["settled"])
     values = panel.tree.item(row["id"], "values")
@@ -161,3 +165,36 @@ def test_full_hd_layout_keeps_every_control_visible(app, root):
         columns = sum(tree.column(key, "width") for key in tree.cget("columns"))
         assert columns <= tree.winfo_width(), f"columnas recortadas: {columns} > {tree.winfo_width()}"
     assert panel.kpis["partial_payments_amount"].cget("text").endswith("Gs.")
+
+
+def test_the_screen_never_calls_official_an_amount_from_a_retired_policy(app, root, tmp_path):
+    """Bloqueante QA generación 2: los agregados rotulaban «1,00%» un importe al 7%."""
+    import sqlite3
+
+    window, service, sol, ids = app
+    entry_id = next(row["id"] for row in service.list_entries(sol) if row["sale_id"] == ids["convenio"])
+    with sqlite3.connect(service.repository.database_path) as con:
+        # Liquidación legada ya pagada: conserva su importe y nunca se repara.
+        con.execute("UPDATE commission_entries SET status='PAGADA',paid_at='2099-05-01',"
+                    "payment_reference='TRANSF-LEGADA',rate_bp=700,commission_amount=33250,"
+                    "policy_status='POLITICA_HISTORICA_PREVIA',policy_code=NULL,policy_version=NULL,"
+                    "policy_effective_from=NULL,policy_scope=NULL WHERE id=?", (entry_id,))
+        con.commit()
+    window.show_commissions(); root.update()
+    panel = window.commissions_panel
+    panel.reload(); root.update()
+
+    kpi = panel.report["kpi"]
+    # 300.000 al 1% es lo único oficial del período; los 33.250 al 7% van aparte.
+    assert kpi["commission_amount"] == 3_000
+    assert kpi["non_official_amount"] == 33_250 and kpi["non_official_entries"] == 1
+    assert panel.kpis["commission_amount"].cget("text") == "3.000 Gs."
+    assert panel.warning.winfo_ismapped()
+    warning = panel.warning.cget("text")
+    assert "33.250 Gs." in warning and "política anterior" in warning
+    # El resumen por vendedora tampoco mezcla los dos importes.
+    bucket = next(row for row in panel.report["by_saleswoman"] if row["saleswoman"] == "Vendedora Dos")
+    assert bucket["commission_amount"] == 0 and bucket["non_official_amount"] == 33_250
+    # Y el desglose de esa fila lo dice sin ambigüedad.
+    panel.tree.selection_set(entry_id); panel.tree.event_generate("<<TreeviewSelect>>"); root.update()
+    assert "no pagable" in panel.breakdown.winfo_children()[-1].winfo_children()[0].cget("text")

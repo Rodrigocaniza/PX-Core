@@ -1,7 +1,7 @@
 # Evidencia visual
 
-`screenshots/comision-1pct-1920x1080.png` — 1920×1080, RGB, 93.753 bytes.
-SHA-256 `a08910a9e3a08a272aad616ff1cd854f76575068c4bbac99ba0e64471848a2f4`.
+`screenshots/comision-1pct-1920x1080.png` — 1920×1080, RGB, 93.307 bytes.
+SHA-256 `4c616c0c90b8d3bb6f3806a1d5ac85ea3d0cecb4846cb4e250b4dffd2105019e`.
 
 Generada por `python tools/capture_gestion_central_comisiones.py <destino>` sobre una base
 temporal con el piloto sintético. El capturador ya no configura porcentaje: la política oficial
@@ -21,11 +21,15 @@ da por sabido.
 **KPIs.** `BASE COMISIONABLE 4.345.000 Gs.` y `COMISIÓN OFICIAL 1,00% 43.450 Gs.` — el 1% exacto
 del agregado. El rótulo del KPI lleva el porcentaje vigente.
 
-**Resumen por vendedora.** Columna `Comisión 1,00%`. Tres locales y tres vendedoras distintas con
+**Resumen por vendedora.** Tres locales y tres vendedoras distintas con
 el mismo porcentaje: 620.000 → 6.200; 1.425.000 → 14.250; 2.300.000 → 23.000.
 
-**Ventas del período.** Columnas `Desc. 5%`, `Base comisionable` y `Comisión 1,00%` visibles en la
-misma fila. Se leen los tres casos de la decisión aprobada:
+**Ventas del período.** Columnas `Desc. 5%`, `Base comisionable` y `Comisión` visibles en la misma
+fila. La columna se titula «Comisión» a secas y no «Comisión 1,00%»: una fila puede arrastrar un
+importe heredado de una política retirada, y el encabezado no puede declararlo oficial. El
+porcentaje vigente lo nombran el encabezado de la pantalla, el KPI y el desglose.
+
+Se leen los tres casos de la decisión aprobada:
 
 - Común cancelada (S-301, `PAGADA`): 620.000 → base 620.000 → **6.200**.
 - Común con saldo (S-302, `PENDIENTE SALDO`): 340.000 con saldo 240.000 → base 0 → comisión **—**.
@@ -45,6 +49,10 @@ comisionable, igual para toda vendedora y local, vigente desde 2026-08-01. Redon
 guaraní entero».
 
 **Historial auditable** con `SALE_REGISTERED → ELEGIBLE` y `COMMISSION_RECALCULATED → CALCULADA`.
+
+**Sin banda de aviso**, porque en esta base todos los importes llevan la política vigente. Cuando
+hay alguno que no, la bandeja inserta sobre las tablas una franja con su total y su recuento; lo
+verifica `test_the_screen_never_calls_official_an_amount_from_a_retired_policy`.
 
 **Estados visibles**: `PAGADA`, `PENDIENTE SALDO`, `REVISADA`, `CALCULADA`, `APROBADA`,
 `OBSERVADA`. Los cinco botones de acción, `Recalcular` y `Exportar resumen`, todos dentro de la

@@ -50,7 +50,8 @@ ENTRY_COLUMNS = (
 HISTORY_COLUMNS = (("when", "Fecha", 125, "w"), ("action", "Acción", 195, "w"),
                    ("state", "Estado", 110, "w"), ("actor", "Responsable", 95, "w"))
 AMOUNT_KEYS = {"gross_informative", "agreement_discount", "commissionable_base", "commission_amount",
-               "balance_amount", "gross_amount", "paid_amount", "partial_payments_amount"}
+               "non_official_amount", "balance_amount", "gross_amount", "paid_amount",
+               "partial_payments_amount"}
 
 
 class CommissionsPanel(tk.Frame):
@@ -119,8 +120,13 @@ class CommissionsPanel(tk.Frame):
             value = tk.Label(box, text="0", bg=COLORS["card"], fg=COLORS["navy"], font=("Segoe UI", 14, "bold"))
             value.pack(anchor="w", padx=10); self.kpis[key] = value
 
+        # Aviso de importes fuera de la política oficial. Sólo aparece cuando los hay.
+        self.warning = tk.Label(self, text="", bg="#FBE7D2", fg="#8A4A11", anchor="w",
+                                font=("Segoe UI", 9, "bold"), padx=12, pady=5)
+
         panes = tk.PanedWindow(self, orient=tk.HORIZONTAL, bg=COLORS["surface"], sashwidth=7, relief="flat")
         panes.pack(fill="both", expand=True, padx=14, pady=5)
+        self.panes = panes
         # Anchos calibrados para 1920x1080: la tabla principal muestra hasta la comisión sin recorte.
         left = tk.Frame(panes, bg=COLORS["surface"]); right = tk.Frame(panes, bg=COLORS["card"], width=540)
         panes.add(left, minsize=1310, stretch="always"); panes.add(right, minsize=500, stretch="never")
@@ -226,15 +232,26 @@ class CommissionsPanel(tk.Frame):
             self.current = None
 
     def _apply_policy_labels(self):
-        """La pantalla nombra el porcentaje oficial vigente en vez de darlo por sabido."""
+        """La pantalla nombra el porcentaje oficial vigente en vez de darlo por sabido.
+
+        El KPI sí lleva el porcentaje porque suma únicamente lo calculado con la política
+        aprobada. Las columnas no: una fila puede arrastrar un importe de una política
+        retirada, y encabezarla «Comisión 1,00%» declararía como oficial algo que no lo es.
+        """
         policy = self.service.current_policy(self.principal)
         percent = rate_percent_text(policy["rate_bp"])
         self.policy_label.config(
             text=f"Comisión oficial {percent} de la base · {policy['code']} v{policy['version']} · "
                  f"vigente desde {policy['effective_from']} · redondeo {policy['rounding']} a Gs. enteros")
-        for tree in (self.tree, self.summary_tree):
-            tree.heading("commission_amount", text=f"Comisión {percent}")
         self.kpi_captions["commission_amount"].config(text=f"COMISIÓN OFICIAL {percent}")
+        kpi = self.report["kpi"]
+        if kpi["non_official_amount"]:
+            self.warning.config(
+                text=f"⚠ {kpi['non_official_entries']} liquidación(es) por {pyg(kpi['non_official_amount'])} "
+                     f"con política anterior, fuera de la comisión oficial. Recalcule las no pagadas.")
+            self.warning.pack(fill="x", padx=16, pady=(0, 4), before=self.panes)
+        else:
+            self.warning.pack_forget()
         return policy
 
     @staticmethod

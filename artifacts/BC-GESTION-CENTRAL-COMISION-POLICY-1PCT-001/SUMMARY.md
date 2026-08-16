@@ -5,11 +5,11 @@ Convierte el porcentaje de comisión de configuración sintética a **regla prod
 fecha de vigencia y con trazabilidad grabada en cada liquidación.
 
 Esta misión cierra el único punto que quedaba pendiente de aprobación en
-BC-GESTION-CENTRAL-COMISIONES-001. De su contrato económico quedan superadas exactamente la regla 5
-y la sección «Configuración pendiente de aprobación» —las dos que declaraban que el porcentaje no
-era canónico—; las reglas 1 a 4 y 6 a 8 se mantienen sin cambio alguno. El detalle está en
-«Cláusulas superadas» de `COMMISSION_POLICY_1PCT.md`, y el documento anterior lleva la anotación
-correspondiente en su encabezado.
+BC-GESTION-CENTRAL-COMISIONES-001. De su contrato económico quedan superadas tres cláusulas —la regla 5, la
+sección «Configuración pendiente de aprobación» y la fórmula de redondeo entera—; las reglas 1 a 4
+y 6 a 9 se mantienen sin cambio alguno. El detalle está en «Cláusulas superadas» de
+`COMMISSION_POLICY_1PCT.md`, y el documento anterior lleva la anotación correspondiente en su
+encabezado.
 
 ## Qué cambia
 
@@ -23,7 +23,8 @@ correspondiente en su encabezado.
 - Cada liquidación graba con qué política se calculó: `policy_code`, `policy_version`,
   `policy_effective_from`, `policy_scope` y `policy_status`.
 - El export estructurado sube a `contract_version: 2` y lleva el bloque `policy` completo.
-- La pantalla de Sol nombra el porcentaje vigente: encabezado, KPI, columnas y desglose.
+- La pantalla de Sol nombra el porcentaje vigente en el encabezado, el KPI y el desglose, y avisa
+  cuando hay importes fuera de la política oficial.
 
 ## Lo que NO cambia
 
@@ -48,23 +49,31 @@ Los dos últimos son medio guaraní hacia arriba: `3.166,66 → 3.167` y `12.345
 
 ## Protecciones
 
-- `recalculate` alcanza `ELEGIBLE` y `CALCULADA`, más las `REVISADA`/`APROBADA` cuyo importe venga
-  de una política ya retirada y que no hayan movido dinero. Nada con `paid_at` es alcanzable:
-  `PAGADA`, `OBSERVADA` y `REVERTIDA` no cambian nunca por un recálculo, ni siquiera después de
-  publicar una versión nueva de la política.
-- Recalcular es idempotente: la comparación incluye la traza de política completa, así que
-  repetirlo no duplica liquidaciones ni asienta historial de más.
-- **Sólo la política vigente llega al pago.** `review`, `approve` y `mark_paid` exigen
-  `policy_status = CANONICA_APROBADA`: no alcanza con que haya un importe. Un importe calculado
-  con una política retirada no es pagable, y `recalculate` lo repara devolviéndolo a `CALCULADA`
-  con el 1% oficial y retirando la revisión y la aprobación que respaldaban el importe anterior.
-- Un período anterior a la vigencia no aplica el porcentaje hacia atrás: informa la base,
+- **Sólo la política vigente llega al pago.** `review`, `approve` y `mark_paid` exigen que haya
+  importe, que su `policy_status` sea `CANONICA_APROBADA`, y que el porcentaje y la versión
+  grabados coincidan con la política que rige hoy el período de esa liquidación. El sello se graba
+  al calcular y puede quedar atrás: comprobar sólo el sello dejaría pasar un importe superado.
+- **Nada que no sea el importe oficial se queda varado.** `recalculate` repara toda liquidación no
+  pagada cuyo importe ya no sea el vigente —política retirada, ausente o versión superada—: la
+  lleva al porcentaje del período, la devuelve a `CALCULADA` y retira la revisión y la aprobación
+  que respaldaban el importe anterior, que queda asentado en el historial.
+- **Nada que haya movido dinero es alcanzable.** `paid_at IS NULL` cuelga del `WHERE` entero de
+  `recalculate`, no de una rama. `OBSERVADA` y `REVERTIDA` también quedan fuera.
+- Recalcular es idempotente: la comparación incluye la traza de política completa, y una
+  `REVISADA`/`APROBADA` ya correcta conserva su aval.
+- **Cada liquidación se resuelve contra la versión de su propio período.** Programar el porcentaje
+  del mes que viene no reescribe el mes en curso, y la vigencia no puede retroceder: se programa el
+  futuro, no se re-tarifa el pasado.
+- Un período anterior a toda vigencia no aplica el porcentaje hacia atrás: informa la base,
   marca `FUERA_DE_VIGENCIA` y no es revisable ni pagable.
+- **La comisión oficial no se mezcla.** Los agregados separan `commission_amount` —sólo lo
+  calculado con la política aprobada— de `non_official_amount`, y la bandeja avisa cuando hay
+  importes de la segunda clase. Ningún total rotulado «oficial 1,00%» incluye otra cosa.
 - La migración no toca dinero: las liquidaciones ya calculadas con la política sintética
   conservan su `rate_bp` y su `commission_amount`, y sólo pierden la etiqueta retirada.
 
 Base exacta: `e7732603d9eb098867a272598e6d30803a4f1ac3`.
 
-Regresión completa **323/323 PASS** (302 de línea base + 21 de esta misión: 20 de dominio y 1 de
+Regresión completa **331/331 PASS** (302 de línea base + 29 de esta misión: 27 de dominio y 2 de
 interfaz). Sin nómina, sin bancos, sin datos de clientes, sin proveedor externo, sin red, sin
 producción, sin merge a `main`.

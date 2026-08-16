@@ -6,7 +6,7 @@
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
   "current_state": "IMPLEMENTED",
   "mission_lease": "HELD",
-  "generation": 2,
+  "generation": 3,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -15,11 +15,11 @@
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "PENDING",
   "tests": {
-    "full_regression": 323,
+    "full_regression": 331,
     "baseline": 302,
-    "added_cases": 21,
-    "module_suite": 123,
-    "commissions_cases": 72
+    "added_cases": 29,
+    "module_suite": 131,
+    "commissions_cases": 80
   },
   "decision": {
     "code": "COMISION_GENERAL_1PCT",
@@ -110,23 +110,71 @@
     },
     {
       "generation": 2,
+      "snapshot_commit": "7abc30e6d33eb5dc522be7e43aa3ad3886a65b32",
+      "status": "INVALIDATED",
+      "tests": 323,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-002",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T04:00:34Z",
+          "blockers": [
+            "L1",
+            "L2",
+            "L3",
+            "L4"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-002",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T04:03:37Z",
+          "blockers": [
+            "Q1",
+            "Q2",
+            "Q3"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-002",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T04:05:25Z",
+          "blockers": [
+            "A1",
+            "A2",
+            "A3"
+          ]
+        }
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-2/"
+    },
+    {
+      "generation": 3,
       "snapshot_commit": null,
       "status": "PENDING_REVIEW",
-      "tests": 323,
+      "tests": 331,
       "verdicts": [],
-      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-2/"
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-3/"
     }
   ],
   "non_blocking_findings_recorded": [
     "1. Signo del desglose cerrado; badge de piloto duplicado sigue abierto (heredado 8)",
     "2. register_payment y sync_review_sales sin llamador productivo (heredado 11)",
-    "3. assert float( mas debil que la propiedad declarada, ahora sobre Decimal (heredado 7)",
+    "3. assert float( mas debil que la propiedad declarada, y no cubre comision_policy.py (heredado 7)",
     "4. COMMISSION_RULES.md y ARCHITECTURE.md generalizan de mas (heredado 16)",
-    "5. La vigencia se compara por periodo: una vigencia intramensual no se respeta al dia",
-    "6. Una POLITICA_HISTORICA_PREVIA ya pagada no tiene correccion; las no pagadas si las repara recalculate",
-    "7. POLICY_STATUSES se define y no se usa como guarda",
-    "8. El retiro de politicas por alcance elimina filas, auditadas pero no conservadas",
-    "9. set_general_rate no ofrece vista previa del impacto"
+    "5. La vigencia es de granularidad mensual aunque el parametro sea una fecha completa",
+    "6. Una liquidacion con importe no oficial ya pagada no tiene correccion",
+    "7. Una OBSERVADA legada conserva su importe no oficial indefinidamente",
+    "8. POLICY_STATUSES se define y no se usa como guarda",
+    "9. El retiro de politicas por alcance elimina filas, auditadas pero no conservadas",
+    "10. set_general_rate no ofrece vista previa ni exige permiso distinto del de pagar",
+    "11. cancelled_date viaja siempre nulo en el contrato v2",
+    "12. El chequeo de consistencia trata la generacion en curso como revisada",
+    "13. Una correccion de origen sobre una OBSERVADA no oficial borra el importe sin registrarlo",
+    "14. La nota de una SIN_POLITICA_APLICADA ya pagada invita a recalcular sin que sea posible"
   ],
   "inherited_open_findings": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/HANDOFF.md",
   "untouched": [
@@ -164,6 +212,56 @@
       "id": "A2",
       "role": "AUDITOR",
       "summary": "Fuga economica: una liquidacion legada era pagable al porcentaje retirado y el remedio documentado destruia la comision"
+    },
+    {
+      "id": "G2-L1",
+      "role": "LIBRARIAN",
+      "summary": "INDEPENDENCE declaraba quince observaciones de la generacion 1; son veintitres"
+    },
+    {
+      "id": "G2-L2",
+      "role": "LIBRARIAN",
+      "summary": "SUMMARY y COMMISSION_POLICY_1PCT discrepaban sobre cuantas clausulas quedan superadas; la anotacion omitia la formula de redondeo"
+    },
+    {
+      "id": "G2-L3",
+      "role": "LIBRARIAN",
+      "summary": "La prueba citada del invariante de traza no ejercitaba POLITICA_HISTORICA_PREVIA porque la reparacion la eliminaba"
+    },
+    {
+      "id": "G2-L4",
+      "role": "LIBRARIAN",
+      "summary": "ARTIFACT_CONSISTENCY afirmaba que la base es el padre directo del snapshot; es su abuelo"
+    },
+    {
+      "id": "G2-Q1",
+      "role": "QA",
+      "summary": "La reparacion cubria solo POLITICA_HISTORICA_PREVIA y dejaba varada la liquidacion sin porcentaje, que era el estado por defecto del piloto"
+    },
+    {
+      "id": "G2-Q2",
+      "role": "QA",
+      "summary": "Publicar la vigencia siguiente destruia la comision del mes en curso: la politica se resolvia por ultima version y no por periodo"
+    },
+    {
+      "id": "G2-Q3",
+      "role": "QA",
+      "summary": "Grilla, resumen, KPI y export rotulaban oficial 1,00% un importe calculado con la politica retirada"
+    },
+    {
+      "id": "G2-A1",
+      "role": "AUDITOR",
+      "summary": "Deriva de version: la guarda comprobaba el sello grabado y no la politica en vigor, de modo que se pagaba un porcentaje superado"
+    },
+    {
+      "id": "G2-A2",
+      "role": "AUDITOR",
+      "summary": "Liquidacion legada sin porcentaje: impagable, irreparable, y el unico remedio destruia la comision"
+    },
+    {
+      "id": "G2-A3",
+      "role": "AUDITOR",
+      "summary": "paid_at IS NULL colgaba de una rama y no del WHERE, de modo que el invariante declarado era falso"
     }
   ]
 }

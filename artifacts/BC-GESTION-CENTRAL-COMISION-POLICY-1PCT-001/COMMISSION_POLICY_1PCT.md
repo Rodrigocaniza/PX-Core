@@ -19,9 +19,9 @@ ellas:
   mismo resultado que la implementación actual para enteros no negativos, pero la implementación
   es `Decimal` con `ROUND_HALF_UP`.
 
-Las reglas 1 a 4 y 6 a 8 de ese documento siguen vigentes sin cambio alguno. El documento anterior
-lleva la anotación correspondiente en su encabezado; su cuerpo se conserva sin retocar como
-evidencia de su misión.
+Las reglas 1 a 4 y 6 a 9 de ese documento siguen vigentes sin cambio alguno. Su encabezado lleva la
+anotación con estas mismas tres cláusulas; su cuerpo se conserva sin retocar como evidencia de su
+misión.
 
 ## Decisión aprobada
 
@@ -62,19 +62,26 @@ informativos. Las ventas anuladas no comisionan. Gastos y entregas a administrac
 
 ## Vigencia
 
-La política rige para las liquidaciones cuyo **período** no es anterior al mes de su vigencia. Un
-período anterior no recibe el porcentaje hacia atrás: queda `FUERA_DE_VIGENCIA`, con la base
-informada, el motivo visible en pantalla y sin poder revisarse ni pagarse.
+Cada liquidación se resuelve contra la versión que gobierna **su propio período**: la de vigencia
+más reciente que no lo supera. No contra «la última publicada». Esa distinción es lo que impide que
+programar el porcentaje del mes que viene reescriba el mes en curso.
+
+Un período anterior a toda vigencia no recibe porcentaje hacia atrás: queda `FUERA_DE_VIGENCIA`,
+con la base informada, el motivo visible en pantalla y sin poder revisarse ni pagarse.
 
 La comparación es por período de liquidación —el mes en que la venta quedó cancelada— porque es la
-misma unidad con la que se agrupa, se reporta y se exporta todo el módulo.
+misma unidad con la que se agrupa, se reporta y se exporta todo el módulo. Consecuencia conocida:
+una vigencia fijada a mitad de mes rige el mes completo.
 
 ## Versionado
 
 Cambiar el porcentaje es un hecho versionado, no una edición:
 
 - `set_general_rate(actor, rate_bp, effective_from, note)` publica una versión nueva.
-- La versión anterior queda íntegra en `commission_policy_versions`, que es append-only.
+- La versión anterior queda íntegra en `commission_policy_versions`, que es append-only, y **sigue
+  gobernando los períodos que le corresponden**: el historial se consulta en cada cálculo.
+- **La vigencia no puede retroceder** respecto de la última publicada. Se puede programar el
+  futuro; no se puede re-tarifar el pasado. Una corrección hacia atrás no es un cambio de política.
 - La operación es idempotente: repetir el mismo porcentaje y la misma vigencia no crea versión.
 - Cada publicación se asienta en `central_audit` como `COMMISSION_POLICY_VERSION_PUBLISHED`.
 - **Publicar una versión nueva no recalcula nada por sí sola** y jamás toca lo ya pagado.
@@ -94,18 +101,34 @@ ambos datos justamente para dejar explícito que no alteran el resultado.
 
 ## Sólo se paga la política vigente
 
-`review`, `approve` y `mark_paid` exigen `policy_status = CANONICA_APROBADA`. No alcanza con que
-haya un importe: un importe calculado con una política ya retirada es exactamente lo que no debe
-llegar al pago. Los tres puntos de entrada a la cadena de pago lo rechazan.
+`review`, `approve` y `mark_paid` exigen tres cosas, en ese orden: que haya importe, que su
+`policy_status` sea `CANONICA_APROBADA`, y que **el porcentaje y la versión grabados coincidan con
+la política que rige hoy el período de esa liquidación**. Lo tercero importa tanto como lo primero:
+el sello se graba al calcular y puede quedar atrás, así que comprobar sólo el sello dejaría pasar
+al pago un importe que ya no es el oficial.
 
-Una liquidación con `POLITICA_HISTORICA_PREVIA` que **no** haya movido dinero tiene una salida, y
-no destruye la comisión: `recalculate` la repara. La lleva al 1% oficial con traza completa y la
-devuelve a `CALCULADA` **retirando su revisión y su aprobación** —el importe cambió, así que el aval
-anterior ya no lo respalda—, con el importe reemplazado asentado en el historial como
-`COMMISSION_POLICY_REPAIRED`. Luego se rehace la cadena sobre el importe correcto.
+Cualquier liquidación **no pagada** cuyo importe no sea el oficial tiene salida, y no destruye la
+comisión: `recalculate` la repara, sea cual sea la causa —política retirada, política ausente o
+versión superada—. La lleva al porcentaje vigente con traza completa y la devuelve a `CALCULADA`
+**retirando su revisión y su aprobación** —el importe cambió, así que el aval anterior ya no lo
+respalda—, con el importe reemplazado asentado en el historial como `COMMISSION_POLICY_REPAIRED`.
+Luego se rehace la cadena sobre el importe correcto.
 
-Una que **sí** movió dinero conserva su importe histórico intacto: `recalculate` no la alcanza y su
-nota lo dice. Ese es el único caso en que un importe no oficial permanece, y ya está pagado.
+Una que **sí** movió dinero conserva su importe histórico intacto: `recalculate` no la alcanza —la
+guarda es `paid_at IS NULL` sobre el `WHERE` entero, no sobre una rama— y su nota lo dice. Junto
+con las `OBSERVADA` y `REVERTIDA` heredadas, son los casos en que un importe no oficial permanece;
+ninguno es pagable, y los agregados los informan aparte.
+
+## La comisión oficial no se mezcla
+
+`report` y el export separan `commission_amount` —sólo lo calculado con la política aprobada— de
+`non_official_amount`, que agrupa los importes heredados de una política retirada. El KPI que la
+pantalla rotula «Comisión oficial 1,00%» suma exclusivamente lo primero, y cuando hay importes de
+la segunda clase la bandeja muestra un aviso con su total. Por la misma razón las columnas de las
+tablas se titulan «Comisión» a secas: una fila puede arrastrar un importe que no es el 1%.
+
+`paid_amount` sí incluye los importes históricos ya pagados: ese dinero salió, y ocultarlo sería la
+mentira contraria.
 
 `SINTETICA_PENDIENTE_APROBACION` queda **retirada**. Ningún código la produce; sobrevive únicamente
 como entrada de `RETIRED_POLICY_STATUSES`, que es la lista de lo que la migración elimina.
@@ -117,10 +140,12 @@ Cada liquidación graba, en el momento del cálculo, la política con la que se 
 `rate_bp` y `commission_amount`. No se reconstruye después: si la política cambia mañana, la
 liquidación sigue explicando su propio importe con la versión que efectivamente usó.
 
-La traza está completa **exactamente cuando** la política es la aprobada. Una liquidación
-`POLITICA_HISTORICA_PREVIA` tiene las cuatro columnas en `NULL`, y eso no es una omisión: dice con
-precisión que **ninguna política aprobada produjo ese importe**. La migración no las inventa, porque
-no sabe con qué versión se calcularon. Por eso ese importe tampoco es pagable.
+La traza está **completa o vacía, nunca a medias**. Completa cuando una política llegó a evaluar la
+liquidación: `CANONICA_APROBADA` con su importe, o `FUERA_DE_VIGENCIA` sin importe que respaldar.
+Vacía cuando ninguna la evaluó: `POLITICA_HISTORICA_PREVIA` —calculada antes de la aprobación— y
+`SIN_POLITICA_APLICADA` —aún sin recalcular—. La ausencia no es una omisión: dice con precisión que
+**ninguna política aprobada produjo ese importe**. La migración no la inventa, porque no sabe con
+qué versión se calculó. Por eso ese importe tampoco es pagable.
 
 Una corrección de origen que invalida el cálculo también borra la traza, porque la que había ya no
 describe el importe que se va a recalcular.

@@ -24,12 +24,14 @@ consumidor previo se rompe.
 | Antes | Ahora |
 |---|---|
 | `StoredCommissionPolicy.rate_for()` → `(rate, status)` | `CanonicalCommissionPolicy.decide()` → `PolicyDecision` |
-| Cascada `VENDEDORA → LOCAL → GENERAL` | Única política `GENERAL`, sin cascada |
+| Cascada `VENDEDORA → LOCAL → GENERAL` | Única política `GENERAL`, resuelta por período |
 | `set_policy(actor, scope, rate_bp, scope_value)` | `set_general_rate(actor, rate_bp, effective_from, note)` |
 | `apply_basis_points` con enteros | `Decimal` + `ROUND_HALF_UP`, precisión 60 |
 | `POLICY_PENDING` / `POLICY_ABSENT = SIN_POLITICA_CONFIGURADA` | cuatro estados en `comision_policy.py` |
 
-Métodos nuevos del servicio: `current_policy()` y `policy_versions()`.
+Métodos nuevos del servicio: `current_policy()` y `policy_versions()`. En la política:
+`catalogue()` y `in_force_for(period)`, que son las que hacen que el historial de versiones
+participe del cálculo en vez de quedar como registro decorativo.
 
 ## Esquema
 
@@ -46,20 +48,30 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
 
 1. **Un solo porcentaje.** Después de migrar, `commission_policies` contiene exactamente una fila,
    de alcance `GENERAL`. No hay ruta de código que escriba otro alcance.
-2. **La traza está completa exactamente cuando la política es la aprobada.** Con
-   `policy_status = CANONICA_APROBADA`, los cuatro campos de traza son no nulos y describen la
-   política que produjo el importe. Con `POLITICA_HISTORICA_PREVIA` los cuatro son `NULL`, y esa
-   ausencia es la afirmación de que ninguna política aprobada produjo ese importe: la migración no
-   los inventa porque no sabe con qué versión se calcularon. Con `FUERA_DE_VIGENCIA` hay traza de
-   qué política se evaluó pero no hay importe que respaldar.
-   Lo verifica `test_the_trace_is_complete_exactly_when_the_policy_is_the_canonical_one`.
+2. **La traza es completa o vacía, nunca a medias.** Completa cuando una política evaluó la
+   liquidación: `CANONICA_APROBADA` con importe, `FUERA_DE_VIGENCIA` sin importe que respaldar.
+   Vacía cuando ninguna la evaluó: `POLITICA_HISTORICA_PREVIA` y `SIN_POLITICA_APLICADA`. La
+   ausencia afirma que ninguna política aprobada produjo ese importe; la migración no la inventa
+   porque no sabe con qué versión se calculó.
+   Lo verifica `test_a_complete_trace_means_a_policy_evaluated_it_and_an_empty_one_means_none_did`,
+   con los cuatro estados conviviendo en una misma base y una liquidación pagada que conserva
+   importe sin traza.
 3. **Idempotencia con traza.** La comparación de `recalculate` incluye los cinco campos de política,
-   así que el primer recálculo tras migrar corrige la traza y el siguiente ya no cambia nada.
+   así que el primer recálculo tras migrar corrige la traza y el siguiente ya no cambia nada. Una
+   `REVISADA` o `APROBADA` cuyo importe ya es el oficial no se toca y conserva su aval.
 4. **Sólo la política vigente llega al pago.** `review`, `approve` y `mark_paid` rechazan una
-   liquidación con `rate_bp` o `commission_amount` nulos **y también** una cuyo `policy_status` no
-   sea `CANONICA_APROBADA`. Un importe calculado con una política retirada no es pagable.
-5. **Un cambio de política no mueve dinero pasado.** `set_general_rate` no recalcula, y nada que
-   haya movido dinero es alcanzable por `recalculate`.
+   liquidación sin importe, una cuyo `policy_status` no sea `CANONICA_APROBADA`, y una cuyo
+   porcentaje y versión grabados no coincidan con la política que rige hoy su período. El sello se
+   graba al calcular y puede quedar atrás: comprobar sólo el sello no alcanza.
+5. **Un cambio de política no mueve dinero pasado.** `set_general_rate` no recalcula, su vigencia no
+   puede retroceder, y `paid_at IS NULL` cuelga del `WHERE` entero de `recalculate`, de modo que
+   nada que haya movido dinero es alcanzable aunque su estado se hubiera alterado por otra vía.
+6. **La resolución es por período, no por «última publicada».** Cada liquidación se calcula con la
+   versión de vigencia más reciente que no supera su período. Programar el porcentaje del mes que
+   viene no puede reescribir el mes en curso.
+7. **La comisión oficial no se mezcla.** `report` y el export separan `commission_amount` —sólo
+   `CANONICA_APROBADA`— de `non_official_amount`. Ningún agregado rotulado «oficial 1,00%» incluye
+   un importe calculado con otra política.
 
 ## Límites que se mantienen
 

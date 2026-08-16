@@ -33,26 +33,34 @@ dinero**.
 | `ELEGIBLE` / `CALCULADA` con 3% sintético | etiqueta → `POLITICA_HISTORICA_PREVIA`, importe intacto | pasa al 1% oficial con traza completa |
 | `ELEGIBLE` / `CALCULADA` sin porcentaje | etiqueta → `SIN_POLITICA_APLICADA` | pasa al 1% oficial |
 | `REVISADA` / `APROBADA` con importe histórico | etiqueta → `POLITICA_HISTORICA_PREVIA`, importe intacto | **reparada**: vuelve a `CALCULADA` al 1%, y pierde revisión y aprobación |
+| `REVISADA` / `APROBADA` sin porcentaje | etiqueta → `SIN_POLITICA_APLICADA` | **reparada** igual: es el estado por defecto del piloto, que nunca sembró política |
 | `PAGADA` | etiqueta → `POLITICA_HISTORICA_PREVIA`, importe intacto | **no alcanzada**: ya movió dinero |
 | `OBSERVADA` / `REVERTIDA` | ídem | **no alcanzada** |
+
+Si el período de la liquidación es anterior a la vigencia, la reparación no la lleva al 1%: la deja
+`CALCULADA` con `FUERA_DE_VIGENCIA`, sin importe y no pagable, con el importe anterior asentado en
+el historial. Es el mismo criterio que para una venta nueva de ese período —no se aplica el
+porcentaje hacia atrás— y no un caso especial de la migración.
 
 ## El importe histórico nunca es pagable
 
 Entre la migración y el primer recálculo, una `REVISADA` o `APROBADA` legada conserva su importe
-histórico —que puede ser varias veces el oficial—. **No es pagable en ese estado**: `review`,
-`approve` y `mark_paid` exigen `policy_status = CANONICA_APROBADA` y la rechazan. El desglose la
-rotula «Comisión con política anterior (no pagable)» y su nota indica recalcular.
+histórico —que puede ser varias veces el oficial, o ninguno—. **No es pagable en ese estado**:
+`review`, `approve` y `mark_paid` exigen que el importe lleve la política que rige hoy su período y
+la rechazan. El desglose la rotula «Comisión con política anterior (no pagable)», su nota indica
+recalcular, y los agregados de la bandeja la informan aparte de la comisión oficial.
 
-La reparación la hace `recalculate`, que para este caso acotado sí alcanza `REVISADA` y `APROBADA`
-—nunca con `paid_at`—: las lleva al 1% oficial, las devuelve a `CALCULADA` y **retira su revisión y
-su aprobación**, porque el importe que esos avales respaldaban ya no existe. El importe reemplazado
-queda en el historial bajo `COMMISSION_POLICY_REPAIRED`. Después se rehace la cadena sobre el
-importe correcto, sin perder la comisión.
+La reparación la hace `recalculate`, que alcanza `REVISADA` y `APROBADA` —nunca con `paid_at`, y
+sólo cuando su importe no es ya el oficial—: las lleva al porcentaje vigente, las devuelve a
+`CALCULADA` y **retira su revisión y su aprobación**, porque el importe que esos avales respaldaban
+ya no existe. El importe reemplazado queda en el historial bajo `COMMISSION_POLICY_REPAIRED`.
+Después se rehace la cadena sobre el importe correcto, sin perder la comisión.
 
 Lo cubren `test_a_retired_rate_can_never_be_paid_through_the_normal_flow`,
-`test_recalculating_repairs_a_retired_rate_and_withdraws_its_approval` y
-`test_a_paid_legacy_settlement_keeps_its_amount_and_is_never_repaired`, los tres parametrizados o
-repetidos sobre `REVISADA` y `APROBADA`.
+`test_recalculating_repairs_a_retired_rate_and_withdraws_its_approval`,
+`test_a_legacy_settlement_without_any_rate_is_repaired_too`,
+`test_a_paid_legacy_settlement_keeps_its_amount_and_is_never_repaired` y
+`test_recalculate_never_reaches_anything_that_moved_money`.
 
 ## Reversibilidad
 

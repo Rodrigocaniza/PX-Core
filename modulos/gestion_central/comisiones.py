@@ -94,22 +94,7 @@ def _reject_paid(entry) -> None:
         )
 
 
-def _require_official_calculation(entry) -> None:
-    """Nadie revisa ni paga una liquidación que no lleve la política oficial vigente.
-
-    No alcanza con que haya un importe: un importe calculado con una política ya retirada
-    es exactamente lo que no debe llegar al pago. Se exige el estado `CANONICA_APROBADA`,
-    que sólo escribe `recalculate` al aplicar la regla aprobada.
-    """
-    if entry["rate_bp"] is None or entry["commission_amount"] is None:
-        raise ValueError(
-            "la liquidación no tiene la política oficial aplicada: recalcule antes de continuar"
-        )
-    if entry["policy_status"] != POLICY_CANONICAL:
-        raise ValueError(
-            f"la liquidación no lleva la política oficial vigente ({entry['policy_status']}): "
-            "recalcule antes de continuar"
-        )
+POLICY_STALE_MESSAGE = "recalcule antes de continuar"
 
 
 @dataclass(frozen=True)
@@ -166,7 +151,7 @@ class CanonicalCommissionPolicy:
         self.repository = repository
 
     def current(self) -> dict:
-        """Política vigente en la base; si faltara, la constante aprobada del módulo."""
+        """Última versión publicada; si faltara la fila, la constante aprobada del módulo."""
         with self.repository.connection() as con:
             row = con.execute(
                 "SELECT * FROM commission_policies WHERE scope=? AND scope_value=''",
@@ -179,17 +164,45 @@ class CanonicalCommissionPolicy:
                     "effective_from": CANONICAL_EFFECTIVE_FROM}
         return dict(row)
 
+    def catalogue(self) -> list[dict]:
+        """Versiones publicadas, ordenadas por vigencia. El historial no es decorativo."""
+        with self.repository.connection() as con:
+            return [dict(row) for row in con.execute(
+                "SELECT version,rate_bp,effective_from,code FROM commission_policy_versions"
+                " WHERE policy_id=? ORDER BY effective_from,version", (CANONICAL_POLICY_ID,))]
+
+    def in_force_for(self, period: str) -> dict | None:
+        """Versión que gobierna ese período: la de vigencia más reciente que no lo supera.
+
+        Resolver por período —y no por «la última publicada»— es lo que impide que
+        programar el porcentaje del mes que viene reescriba el mes en curso.
+        """
+        applicable = [row for row in self.catalogue() if is_in_effect(period, row["effective_from"])]
+        return applicable[-1] if applicable else None
+
     def decide(self, *, branch: str, saleswoman: str, period: str) -> PolicyDecision:
-        policy = self.current()
-        code, version = policy["code"] or CANONICAL_CODE, int(policy["version"])
-        effective_from = policy["effective_from"] or CANONICAL_EFFECTIVE_FROM
-        if not is_in_effect(period, effective_from):
-            # Un período anterior a la vigencia no comisiona bajo esta política: se informa
-            # la base y se deja dicho por qué, en vez de aplicar el porcentaje hacia atrás.
-            return PolicyDecision(None, POLICY_OUT_OF_EFFECT, version, effective_from,
-                                  CANONICAL_SCOPE, code)
-        return PolicyDecision(int(policy["rate_bp"]), POLICY_CANONICAL, version, effective_from,
-                              CANONICAL_SCOPE, code)
+        catalogue = self.catalogue()
+        if not catalogue:
+            # Base sin historial de versiones: se resuelve con la fila vigente.
+            policy = self.current()
+            effective_from = policy["effective_from"] or CANONICAL_EFFECTIVE_FROM
+            version, code = int(policy["version"]), policy["code"] or CANONICAL_CODE
+            if not is_in_effect(period, effective_from):
+                return PolicyDecision(None, POLICY_OUT_OF_EFFECT, version, effective_from,
+                                      CANONICAL_SCOPE, code)
+            return PolicyDecision(int(policy["rate_bp"]), POLICY_CANONICAL, version,
+                                  effective_from, CANONICAL_SCOPE, code)
+        version = self.in_force_for(period)
+        if version is None:
+            # Un período anterior a toda vigencia no comisiona: se informa la base y se deja
+            # dicho por qué, en vez de aplicar un porcentaje hacia atrás.
+            oldest = catalogue[0]
+            return PolicyDecision(None, POLICY_OUT_OF_EFFECT, int(oldest["version"]),
+                                  oldest["effective_from"], CANONICAL_SCOPE,
+                                  oldest["code"] or CANONICAL_CODE)
+        return PolicyDecision(int(version["rate_bp"]), POLICY_CANONICAL, int(version["version"]),
+                              version["effective_from"], CANONICAL_SCOPE,
+                              version["code"] or CANONICAL_CODE)
 
 
 class CommissionService:
@@ -208,6 +221,29 @@ class CommissionService:
 
     def _write(self, actor: Principal):
         self.core._require(actor, "reviews.manage")
+
+    # -------------------------------------------------------------- guardas
+    def _require_current_policy(self, entry) -> None:
+        """Nadie revisa, aprueba ni paga un importe que no sea el oficial vigente hoy.
+
+        No alcanza con que haya un importe, ni con que lleve el sello `CANONICA_APROBADA`:
+        el sello se grabó en el momento del cálculo y puede haber quedado atrás. Se compara
+        contra la política que rige **hoy el período de esa liquidación**, así que una
+        publicación posterior no puede colar al pago un porcentaje que ya no es el oficial.
+        """
+        if entry["rate_bp"] is None or entry["commission_amount"] is None:
+            raise ValueError(
+                f"la liquidación no tiene la política oficial aplicada: {POLICY_STALE_MESSAGE}")
+        if entry["policy_status"] != POLICY_CANONICAL:
+            raise ValueError(
+                f"la liquidación no lleva la política oficial vigente ({entry['policy_status']}): "
+                f"{POLICY_STALE_MESSAGE}")
+        decision = self.policy.decide(branch=entry["branch"], saleswoman=entry["saleswoman"],
+                                      period=entry["period"] or "")
+        if (decision.rate_bp, decision.version) != (int(entry["rate_bp"]), entry["policy_version"]):
+            raise ValueError(
+                f"la política del período cambió desde el cálculo "
+                f"(v{entry['policy_version']} → v{decision.version}): {POLICY_STALE_MESSAGE}")
 
     # -------------------------------------------------------------- historia
     def _history(self, con, entry_id, sale_id, before, after, actor, action, details=None):
@@ -594,7 +630,7 @@ class CommissionService:
         política oficial ya esté aplicada: nada sin porcentaje entra a la cadena de pago.
         """
         return self._transition(actor, entry_id, {"CALCULADA"}, "REVISADA", "CALCULATION_REVIEWED",
-                                {"note": note}, guard=_require_official_calculation,
+                                {"note": note}, guard=self._require_current_policy,
                                 reviewed_by=actor.username, reviewed_at=_now())
 
     def approve(self, actor: Principal, entry_id: str, responsible: str):
@@ -602,7 +638,7 @@ class CommissionService:
         if not responsible:
             raise ValueError("responsable obligatorio")
         return self._transition(actor, entry_id, {"REVISADA"}, "APROBADA", "COMMISSION_APPROVED",
-                                {"responsible": responsible}, guard=_require_official_calculation,
+                                {"responsible": responsible}, guard=self._require_current_policy,
                                 approved_by=responsible, approved_at=_now())
 
     def mark_paid(self, actor: Principal, entry_id: str, payment_date: str, reference: str):
@@ -613,7 +649,7 @@ class CommissionService:
         _month(payment_date)
         return self._transition(actor, entry_id, {"APROBADA"}, "PAGADA", "COMMISSION_PAID",
                                 {"payment_date": payment_date, "reference": reference},
-                                guard=_require_official_calculation,
+                                guard=self._require_current_policy,
                                 paid_at=payment_date, payment_reference=reference)
 
     def observe(self, actor: Principal, entry_id: str, reason: str):
@@ -655,6 +691,10 @@ class CommissionService:
         Cambiar el porcentaje es un hecho versionado: la versión anterior queda íntegra en
         `commission_policy_versions` y ninguna liquidación ya calculada se toca aquí. Repetir
         el mismo porcentaje y la misma vigencia no crea versión: la operación es idempotente.
+
+        La vigencia no puede retroceder respecto de la última publicada. Se puede programar
+        el futuro; no se puede re-tarifar el pasado, que es lo que el versionado existe para
+        impedir. Una corrección hacia atrás no es un cambio de política: es otra decisión.
         """
         self._write(actor)
         if isinstance(rate_bp, bool) or not isinstance(rate_bp, int) or not 0 <= rate_bp <= BASIS_POINTS:
@@ -662,6 +702,13 @@ class CommissionService:
         effective_from = normalize_effective_from(effective_from)
         with self.repository.connection() as con:
             con.execute("BEGIN IMMEDIATE")
+            latest = con.execute(
+                "SELECT MAX(effective_from) FROM commission_policy_versions WHERE policy_id=?",
+                (CANONICAL_POLICY_ID,),
+            ).fetchone()[0]
+            if latest and effective_from < latest:
+                raise ValueError(
+                    f"la vigencia no puede retroceder: la última publicada rige desde {latest}")
             current = con.execute(
                 "SELECT * FROM commission_policies WHERE scope=? AND scope_value=''", (CANONICAL_SCOPE,)
             ).fetchone()
@@ -714,20 +761,23 @@ class CommissionService:
     def recalculate(self, actor: Principal, *, period: str | None = None, branch: str | None = None):
         """Recalcula base y comisión oficial de forma segura e idempotente.
 
-        Alcanza `ELEGIBLE` y `CALCULADA`, más un caso acotado: una `REVISADA` o `APROBADA`
-        cuyo importe venga de una política ya retirada (`POLITICA_HISTORICA_PREVIA`). Esas
-        no pueden quedarse como están —serían pagables al porcentaje retirado— ni pueden
-        conservar su aval: vuelven a `CALCULADA` con la regla aprobada y pierden la revisión
-        y la aprobación, que deben rehacerse sobre el importe correcto.
+        Alcanza `ELEGIBLE` y `CALCULADA`, y también `REVISADA` y `APROBADA`, pero a estas
+        dos **sólo cuando su importe ya no es el oficial** del período: una política retirada,
+        una ausente, o una versión que quedó atrás. Esas no pueden quedarse como están
+        —serían pagables a un porcentaje que no rige— ni pueden conservar su aval: vuelven a
+        `CALCULADA` con la regla vigente y pierden la revisión y la aprobación, que deben
+        rehacerse sobre el importe correcto. Si su importe ya es el oficial, no se tocan.
 
-        Nunca alcanza nada que ya haya movido dinero: `PAGADA`, `OBSERVADA` y `REVERTIDA`
-        quedan fuera, y la reparación exige `paid_at IS NULL`. Repetirlo no duplica ni
-        reaplica nada, porque la comparación incluye la traza de política completa.
+        Nunca alcanza nada que haya movido dinero: `paid_at IS NULL` cuelga del `WHERE`
+        entero, no de una rama, así que `PAGADA` queda fuera aunque su estado se hubiera
+        alterado por otra vía. `OBSERVADA` y `REVERTIDA` también quedan fuera. Repetirlo no
+        duplica ni reaplica nada, porque la comparación incluye la traza de política completa.
         """
         self._write(actor)
-        query = ("SELECT * FROM commission_entries WHERE (status IN ('ELEGIBLE','CALCULADA')"
-                 " OR (status IN ('REVISADA','APROBADA') AND policy_status=? AND paid_at IS NULL))")
-        params: list = [POLICY_LEGACY]
+        query = ("SELECT * FROM commission_entries"
+                 " WHERE status IN ('ELEGIBLE','CALCULADA','REVISADA','APROBADA')"
+                 " AND paid_at IS NULL")
+        params: list = []
         if period:
             query += " AND period=?"
             params.append(period)
@@ -746,14 +796,16 @@ class CommissionService:
                 decision = self.policy.decide(
                     branch=sale["branch"], saleswoman=sale["saleswoman"], period=entry["period"] or "")
                 commission = None if decision.rate_bp is None else commission_for(base, decision.rate_bp)
-                current = (entry["status"], int(entry["gross_amount"]), int(entry["agreement_discount"]),
+                current = (int(entry["gross_amount"]), int(entry["agreement_discount"]),
                            int(entry["commissionable_base"]), entry["rate_bp"], entry["commission_amount"],
                            entry["policy_status"], entry["policy_code"], entry["policy_version"],
                            entry["policy_effective_from"], entry["policy_scope"])
-                target = ("CALCULADA", total, discount, base, decision.rate_bp, commission,
+                target = (total, discount, base, decision.rate_bp, commission,
                           decision.status, decision.code, decision.version, decision.effective_from,
                           decision.scope)
-                if current == target:
+                # `ELEGIBLE` avanza a `CALCULADA` aunque los números coincidan; el resto sólo
+                # se toca si algo cambió. Una `REVISADA` o `APROBADA` ya correcta conserva su aval.
+                if current == target and entry["status"] != "ELEGIBLE":
                     continue
                 changed += 1
                 # Reparar una REVISADA o APROBADA retira también su aval: el importe cambió,
@@ -923,6 +975,12 @@ class CommissionService:
             ).fetchone()
         countable = [row for row in rows if row["status"] != "REVERTIDA"]
         eligible = [row for row in countable if row["status"] != "PENDIENTE_SALDO"]
+        # «Comisión oficial» sólo suma lo calculado con la política aprobada. Un importe
+        # heredado de una política retirada existe y se informa, pero aparte: llamarlo
+        # oficial sería declarar como 1% una cifra que no lo es.
+        official = [row for row in eligible if row["policy_status"] == POLICY_CANONICAL]
+        unofficial = [row for row in eligible
+                      if row["policy_status"] != POLICY_CANONICAL and row["commission_amount"]]
         kpi = {
             "sales_in_period": sum(1 for row in countable if row["sale_date"][:7] == period),
             "cancelled_sales": sum(1 for row in eligible if row["sale_kind"] == "COMUN"),
@@ -933,7 +991,9 @@ class CommissionService:
             "gross_informative": sum(int(row["gross_amount"]) for row in countable),
             "agreement_discount": sum(int(row["agreement_discount"]) for row in eligible),
             "commissionable_base": sum(int(row["commissionable_base"]) for row in eligible),
-            "commission_amount": sum(int(row["commission_amount"] or 0) for row in eligible),
+            "commission_amount": sum(int(row["commission_amount"] or 0) for row in official),
+            "non_official_amount": sum(int(row["commission_amount"] or 0) for row in unofficial),
+            "non_official_entries": len(unofficial),
             "pending_approval": sum(1 for row in eligible if row["status"] in {"ELEGIBLE", "CALCULADA", "REVISADA"}),
             "observed": sum(1 for row in countable if row["status"] == "OBSERVADA"),
             "paid_entries": sum(1 for row in eligible if row["status"] == "PAGADA"),
@@ -945,7 +1005,8 @@ class CommissionService:
             bucket = grouped.setdefault(key, {
                 "branch": row["branch"], "saleswoman": row["saleswoman"], "sales": 0, "pending_balance": 0,
                 "cancelled": 0, "agreements": 0, "gross_informative": 0, "agreement_discount": 0,
-                "commissionable_base": 0, "commission_amount": 0, "paid_amount": 0,
+                "commissionable_base": 0, "commission_amount": 0, "non_official_amount": 0,
+                "paid_amount": 0,
             })
             bucket["sales"] += 1
             bucket["gross_informative"] += int(row["gross_amount"])
@@ -955,7 +1016,9 @@ class CommissionService:
             bucket["cancelled" if row["sale_kind"] == "COMUN" else "agreements"] += 1
             bucket["agreement_discount"] += int(row["agreement_discount"])
             bucket["commissionable_base"] += int(row["commissionable_base"])
-            bucket["commission_amount"] += int(row["commission_amount"] or 0)
+            official_row = row["policy_status"] == POLICY_CANONICAL
+            bucket["commission_amount" if official_row else "non_official_amount"] += \
+                int(row["commission_amount"] or 0)
             if row["status"] == "PAGADA":
                 bucket["paid_amount"] += int(row["commission_amount"] or 0)
         return {

@@ -36,24 +36,38 @@ los mismos treinta y siete. Cuatro de ellos cambian de estado:
 
 Nuevos, abiertos y **no** corregidos:
 
-5. **La vigencia se compara por período, no por fecha de cancelación.** Una venta cancelada el
-   2026-07-31 y otra el 2026-08-01 caen en meses distintos y reciben trato distinto, que es lo
-   deseado; pero una vigencia fijada a mitad de mes (`2026-08-15`) rige igual desde el 2026-08-01,
-   porque la comparación es `período >= effective_from[:7]`. Está documentado en
-   `COMMISSION_POLICY_1PCT.md` y es coherente con la granularidad mensual del módulo, pero una
-   vigencia intramensual no se respetaría al día.
-6. **Una `POLITICA_HISTORICA_PREVIA` ya pagada no tiene corrección.** `recalculate` no la alcanza
-   —correctamente, porque el dinero salió— y `revert` está bloqueado. Es el mismo callejón que el
-   hallazgo heredado 4 para la `OBSERVADA` pagada, ahora con un importe que además no es el
-   oficial. Las **no** pagadas sí tienen salida: la repara `recalculate`.
-7. **`POLICY_STATUSES` se define y no se usa.** Es documentación ejecutable del conjunto de
+5. **La vigencia es de granularidad mensual aunque el parámetro sea una fecha completa.**
+   `is_in_effect` compara `período >= effective_from[:7]`, así que una vigencia fijada al
+   `2026-08-20` rige igual desde el `2026-08-01`. Está documentado, es coherente con la
+   granularidad mensual del módulo, y la vigencia canónica es día 1; pero la API acepta un día que
+   no se respeta.
+6. **Una liquidación con importe no oficial ya pagada no tiene corrección.** `recalculate` no la
+   alcanza —correctamente, porque el dinero salió— y `revert` está bloqueado. Es el mismo callejón
+   que el hallazgo heredado 4 para la `OBSERVADA` pagada. Las **no** pagadas sí tienen salida.
+7. **Una `OBSERVADA` legada conserva su importe no oficial indefinidamente.** No es pagable y los
+   agregados la informan aparte, pero `recalculate` no la alcanza y la única salida pública,
+   `revert`, no crea liquidación de reemplazo. Es el complemento del hallazgo heredado 4.
+8. **`POLICY_STATUSES` se define y no se usa.** Es documentación ejecutable del conjunto de
    estados, pero ninguna guarda lo valida contra lo que se escribe en `policy_status`.
-8. **El retiro de políticas por alcance es una eliminación de filas.** Queda auditada con su
+9. **El retiro de políticas por alcance es una eliminación de filas.** Queda auditada con su
    `rate_bp` previo en `central_audit`, que es suficiente para reconstruirla, pero la fila en sí
    no se conserva en `commission_policy_versions`.
-9. **`set_general_rate` no ofrece una vista previa del impacto.** Publicar una versión no dice
-   cuántas liquidaciones cambiarían al recalcular. Con una sola política y un solo porcentaje el
-   riesgo es bajo, pero es un paso a ciegas.
+10. **`set_general_rate` no ofrece una vista previa del impacto**, ni exige un permiso distinto del
+    de pagar: el mismo principal publica el porcentaje y cobra con él. Con una sola política
+    general y auditoría de cada publicación el riesgo es acotado, pero no hay separación de
+    funciones ni segunda barrera para un 0% o un 100%.
+11. **`cancelled_date` viaja siempre nulo en el contrato v2.** `ENTRY_EXPORT_FIELDS` lo declara,
+    pero `list_entries` expone la fecha de la venta como `sale_cancelled_date`, así que el campo
+    sale vacío en el 100% de las filas. Viene de la misión anterior y el contrato v2 lo arrastró.
+12. **El chequeo de consistencia trata la generación en curso como revisada.** Calcula
+    `reviewed = max(generation)` sin mirar `status`, de modo que su regla de «no anticipar la
+    revisión en curso» queda inerte justo para la generación que se está revisando.
+13. **Una corrección de origen sobre una `OBSERVADA` con importe no oficial lo borra sin
+    registrarlo.** `_apply_source_update` no la considera un estado revisado, así que entra por la
+    rama de recálculo y anula `rate_bp` y `commission_amount`; el asiento `SOURCE_UPDATED` guarda
+    la base nueva pero no el importe reemplazado, a diferencia de `COMMISSION_POLICY_REPAIRED`.
+14. **La nota de una `SIN_POLITICA_APLICADA` ya pagada invita a recalcular** aunque `recalculate`
+    jamás la alcanzará. La rama `POLITICA_HISTORICA_PREVIA` sí distingue si movió dinero; esta no.
 
 ## Siguiente paso propuesto
 

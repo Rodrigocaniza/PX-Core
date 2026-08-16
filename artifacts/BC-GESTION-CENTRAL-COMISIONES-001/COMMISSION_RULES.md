@@ -1,10 +1,18 @@
 # Contrato de reglas económicas implementadas
 
 > **Parcialmente superado por BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001.** Las reglas 1 a 4 y 6
-> a 8 siguen vigentes sin cambios. Quedan **superadas** la regla 5 y la sección «Configuración
-> pendiente de aprobación»: el porcentaje ya es canónico —1% general— y la etiqueta
-> `SINTETICA_PENDIENTE_APROBACION` fue retirada. La prueba que la regla 5 cita como evidencia ya no
-> existe. Contrato vigente del porcentaje:
+> a 9 siguen vigentes sin cambios. Quedan **superadas** exactamente tres cláusulas:
+>
+> 1. La **regla 5**, «No inventar un porcentaje general de comisión». El porcentaje ya es canónico
+>    —1% general— y las etiquetas `SIN_POLITICA_CONFIGURADA` y `SINTETICA_PENDIENTE_APROBACION` que
+>    describe fueron retiradas. La prueba que cita como evidencia ya no existe.
+> 2. La sección **«Configuración pendiente de aprobación»**, que declara que el porcentaje «no es
+>    una regla productiva». Hoy lo es.
+> 3. La **fórmula de redondeo** de la sección «Redondeo y enteros»,
+>    `(importe * puntos_basicos + 5000) // 10000`. Da el mismo resultado para enteros no negativos,
+>    pero la implementación es `Decimal` con `ROUND_HALF_UP`.
+>
+> Contrato vigente del porcentaje:
 > `artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/COMMISSION_POLICY_1PCT.md`.
 > El resto de este documento se conserva sin retocar como evidencia de su misión.
 
