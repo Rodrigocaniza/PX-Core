@@ -21,7 +21,6 @@ def check(package: Path = PACKAGE) -> list[str]:
     problems: list[str] = []
 
     reviewed = max(g["generation"] for g in workflow["generations"])
-    current = workflow["generation"]
 
     for name, text in docs.items():
         for match in re.finditer(r"generation-1/` a `generation-(\d+)/", text):
@@ -29,8 +28,11 @@ def check(package: Path = PACKAGE) -> list[str]:
                 problems.append(
                     f"{name}: cita el rango hasta generation-{match.group(1)}"
                     f" pero la última generación revisada es la {reviewed}")
-        if re.search(rf"generation-{current}/", text):
-            problems.append(f"{name}: referencia generation-{current}/, que aún no existe")
+        for match in re.finditer(r"generation-(\d+)/", text):
+            if int(match.group(1)) > reviewed:
+                problems.append(
+                    f"{name}: referencia generation-{match.group(1)}/,"
+                    f" que aún no fue revisada")
         if text.count("`") % 2:
             problems.append(f"{name}: comillas invertidas desbalanceadas")
 

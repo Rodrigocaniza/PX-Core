@@ -23,9 +23,10 @@ reglas de BC Caja. No contiene credenciales nuevas ni datos de clientes.
 
 Base exacta: `eb6d082de4004d166379ffaae2b8f106fac10df1`.
 
-Este snapshot es la **generación 10 y está pendiente de revisión independiente**. Las generaciones
-1 a 9 fueron revisadas por runners independientes. En las generaciones 8 y 9, **QA y Auditor
-emitieron PASS**: los quince bloqueantes financieros acumulados quedaron cerrados y verificados por
-ejecución propia de ambos, con más de 130.000 aserciones y miles de pasos de fuzz sin una sola falla
-de dinero. Los bloqueantes restantes fueron de consistencia documental. Detalle y verdicts en
-`INDEPENDENCE.md` y en los directorios `generation-1/` a `generation-9/`.
+La misión fue **aprobada por los tres revisores independientes** en la generación 10, sobre el
+snapshot `c7a25a6a6439b555d1ea26a8f09ad1014a4f824c`. Safe Closure ejecutada, Mission Lease liberado.
+
+Hicieron falta diez generaciones. Los revisores independientes encontraron **quince bloqueantes
+financieros reales** y diez defectos de veracidad documental **después** de que la autorrevisión los
+declarara correctos y con la regresión completa en verde en todas las generaciones. Detalle y
+verdicts en `INDEPENDENCE.md` y en los directorios `generation-1/` a `generation-10/`.

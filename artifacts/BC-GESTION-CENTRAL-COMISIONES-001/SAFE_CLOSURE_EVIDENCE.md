@@ -1,14 +1,19 @@
 # Safe Closure
 
-**Estado: `NOT_EXECUTED` en este snapshot.**
+**Estado: `EXECUTED`.** Mission Lease: `RELEASED`.
 
-Este snapshot es la generación 10 y **todavía no fue revisado**. Las generaciones 1 a 9 fueron
-invalidadas por FAIL de revisores independientes, aunque en las generaciones 8 y 9 QA y Auditor ya
-emitieron PASS y los bloqueantes restantes fueron de consistencia documental.
+Los tres revisores independientes de la generación 10 emitieron **PASS** sobre el snapshot
+`c7a25a6a6439b555d1ea26a8f09ad1014a4f824c`, sin un solo bloqueante.
 
-## Trazabilidad
+| Runner | Rol | Verdict | Timestamp UTC |
+|---|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-010` | LIBRARIAN | **PASS** | 2026-08-16T02:40:03Z |
+| `QA-IND-COMISIONES-010` | QA | **PASS** | 2026-08-16T02:49:19Z |
+| `AUDITOR-IND-COMISIONES-010` | AUDITOR | **PASS** | 2026-08-16T02:45:19Z |
 
-| Generación | Snapshot | Librarian | QA | Auditor | Resultado |
+## Trazabilidad de las diez generaciones
+
+| Gen | Snapshot | Librarian | QA | Auditor | Resultado |
 |---|---|---|---|---|---|
 | 1 | `c24b4f19` | PASS | **FAIL** | **FAIL** | INVALIDADA |
 | 2 | `5ba11bd` | **FAIL** | **FAIL** | **FAIL** | INVALIDADA |
@@ -19,30 +24,27 @@ emitieron PASS y los bloqueantes restantes fueron de consistencia documental.
 | 7 | `cfc4371` | **FAIL** | **FAIL** | PASS | INVALIDADA |
 | 8 | `c4f6ee6` | **FAIL** | PASS | PASS | INVALIDADA |
 | 9 | `114aee8` | **FAIL** | PASS | PASS | INVALIDADA |
-| 10 | este snapshot | no ejecutado | no ejecutado | no ejecutado | pendiente |
+| 10 | `c7a25a6` | **PASS** | **PASS** | **PASS** | **APROBADA** |
 
-## Lo verificado en la generación 10
+Treinta verdicts independientes en total: catorce PASS y dieciséis FAIL, todos preservados sin
+retocar junto con las tres autorrevisiones originales.
 
-- Regresión completa: 302/302 PASS (línea base 251 + 51 de la misión: 47 de dominio + 4 de interfaz).
-- Los quince bloqueantes financieros acumulados, reproducidos con los escenarios exactos de cada
-  revisor y verificados muertos.
-- `compileall`, `git diff --check` y escaneo heurístico de secretos: PASS.
-- `MANIFEST.sha256` verificado, cubriendo también `ARTIFACT_CONSISTENCY.md`.
-- ZIP construido **después** de escribir todos los documentos y verificado miembro a miembro.
-- Evidencia de las generaciones 1 a 9 preservada íntegra: veintisiete verdicts independientes y las tres
-  autorrevisiones originales.
-- Sin merge a `main`, sin force-push, sin despliegue, sin tocar instalaciones productivas.
+## Verificado en el snapshot aprobado
 
-## Corrección de esta generación
+- Regresión completa 302/302 PASS, reproducida por QA y por el Auditor de forma independiente.
+- Los quince bloqueantes financieros históricos, cerrados y verificados uno por uno con escenarios
+  propios de cada revisor.
+- Invariantes económicos reproducidos por ejecución: dinero pagado, imposibilidad de doble pago
+  —incluida una prueba de concurrencia de doce hilos—, corrección de origen, integridad del libro
+  append-only y resiliencia de la ingesta.
+- 35.400 pasos de fuzz de QA en 18 semillas y 1.357 del Auditor, sin una sola violación.
+- `MANIFEST.sha256` y ZIP verificados miembro a miembro; captura 1920×1080 con hash coincidente.
+- Aislamiento, `main` intacto, sin force-push, remoto sincronizado.
 
-QA y Auditor dieron PASS sobre las generaciones 8 y 9, y el Librarian confirmó que el backlog es
-veraz. Lo corregido aquí es exclusivamente documental: el rango de generaciones citado y el conteo
-de bloqueantes. Para cortar la reincidencia de esa clase de defecto se añadió
-`tools/check_mission_package_consistency.py`, que se ejecuta antes de publicar. Ningún cambio de
-comportamiento.
+## Cierre
 
-## Condición de cierre
+Commit de cierre con cambios exclusivamente en artifacts, workflow y el chequeo de consistencia.
+Sin merge a `main`, sin force-push, sin despliegue, sin tocar instalaciones productivas.
 
-Safe Closure se ejecutará y el Mission Lease se liberará **sólo si los tres revisores
-independientes de la generación 10 emiten PASS** sobre este snapshot. Ningún documento de este
-paquete afirma que eso haya ocurrido.
+Queda abierta y documentada la única configuración pendiente de aprobación: el **porcentaje de
+comisión**, que sigue siendo configuración sintética y no regla productiva.

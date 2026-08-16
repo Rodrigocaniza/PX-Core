@@ -1,7 +1,7 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G10",
-  "mission_lease": "HELD",
+  "current_state": "SAFE_CLOSED",
+  "mission_lease": "RELEASED",
   "generation": 10,
   "autochain": [
     "LIBRARIAN",
@@ -9,7 +9,7 @@
     "AUDITOR"
   ],
   "independent_runners": "AVAILABLE_AND_USED",
-  "safe_closure": "NOT_EXECUTED",
+  "safe_closure": "EXECUTED",
   "generations": [
     {
       "generation": 1,
@@ -367,6 +367,39 @@
         "backlog veraz 30/30"
       ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-9/"
+    },
+    {
+      "generation": 10,
+      "snapshot_commit": "c7a25a6a6439b555d1ea26a8f09ad1014a4f824c",
+      "snapshot_tree": "11a13b26bb543125d0a0831489a7b66c3fe431da",
+      "status": "APPROVED",
+      "tests": 302,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-010",
+          "role": "LIBRARIAN",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T02:40:03Z"
+        },
+        {
+          "runner": "QA-IND-COMISIONES-010",
+          "role": "QA",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T02:49:19Z"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-010",
+          "role": "AUDITOR",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T02:45:19Z"
+        }
+      ],
+      "confirmed_closed_from_previous": [
+        "los quince bloqueantes financieros historicos",
+        "backlog veraz 30/30",
+        "rangos y conteos unificados"
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-10/"
     }
   ],
   "history": [
@@ -611,6 +644,43 @@
       "tests": 302,
       "baseline": 251,
       "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
+    },
+    {
+      "event": "GENERATION_10_PUBLISHED_AND_REVIEWED",
+      "verdicts": "PASS/PASS/PASS",
+      "outcome": "APPROVED"
+    },
+    {
+      "event": "ALL_THREE_INDEPENDENT_VERDICTS_PASS",
+      "runners": [
+        "LIBRARIAN-IND-COMISIONES-010",
+        "QA-IND-COMISIONES-010",
+        "AUDITOR-IND-COMISIONES-010"
+      ],
+      "snapshot": "c7a25a6a6439b555d1ea26a8f09ad1014a4f824c"
+    },
+    {
+      "event": "GENERATION_9_AND_10_OBSERVATIONS_ADDED_TO_BACKLOG",
+      "fix": "se incorporaron las observaciones no bloqueantes de las generaciones 9 y 10, incluida la que el Auditor senalo como no registrada"
+    },
+    {
+      "event": "CONSISTENCY_CHECKER_BOUND_TO_LAST_REVIEWED_GENERATION",
+      "fix": "el chequeo acota las referencias a directorios de verdicts por la ultima generacion revisada"
+    },
+    {
+      "event": "ARTIFACT_CONSISTENCY_REVERIFIED",
+      "note": "manifest, ZIP y chequeo automatico re-ejecutados sobre el snapshot de cierre"
+    },
+    {
+      "event": "PROTECTED_CLOSURE_COMMIT_PUSHED",
+      "note": "cambios exclusivamente en artifacts, workflow y el chequeo de consistencia"
+    },
+    {
+      "event": "SAFE_CLOSURE_EXECUTED",
+      "to": "SAFE_CLOSED"
+    },
+    {
+      "event": "MISSION_LEASE_RELEASED"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -643,12 +713,18 @@
     "27. `CommissionSaleInput` valida obligatoriedad sobre `str(valor)` (QA-008 obs. 3), así que",
     "28. Los KPI de cobros parciales se calculan sobre el saldo actual (QA-008 obs. 5): cuando una",
     "29. `test_expenses_and_administration_deliveries_never_enter_the_ledger` promete más que lo que",
-    "30. Defecto preexistente ajeno a la misión (LIB-001 obs. 4):"
+    "30. Orden no determinista del libro de cobros (AUD-009 obs. 1, AUD-010 obs. 4): `utc_now()` trunca",
+    "31. `sync_review_sales` no tiene guarda de autorización propia (AUD-009 obs. 2, AUD-010 obs. 5):",
+    "32. `tools/check_mission_package_consistency.py` no tiene pruebas (QA-010 obs. 1 y 2): la",
+    "33. El chequeo de consistencia tiene alcance más estrecho que su descripción (LIB-010 obs. 2,",
+    "34. El conteo de defectos documentales no es reconciliable con el registro (LIB-010 obs. 1): el",
+    "35. Matices de redacción en dos reglas económicas (LIB-010 obs. 3): la regla 6 incluye una",
+    "36. Imprecisión en el ítem 1 de este backlog (LIB-010 obs. 6): menciona «el desplegable de",
+    "37. Defecto preexistente ajeno a la misión (LIB-001 obs. 4):"
   ],
   "pending_configuration": {
     "item": "porcentaje de comision",
     "status": "SINTETICA_PENDIENTE_APROBACION",
     "note": "La base comisionable se calcula y se muestra siempre; el porcentaje no se afirma como regla productiva."
-  },
-  "generation_10_review": "NOT_YET_EXECUTED"
+  }
 }

@@ -7,9 +7,20 @@ conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el prop
 
 ## Estado de este snapshot
 
-**Generación 10. Pendiente de revisión independiente.** Los verdicts de generación 10 no existen
-todavía; cuando se emitan quedarán en un directorio propio. Ningún documento de este paquete debe
-leerse como si esa revisión ya hubiera ocurrido.
+**Generación 10: APROBADA.** Los tres revisores independientes emitieron **PASS** sobre el snapshot
+`c7a25a6a6439b555d1ea26a8f09ad1014a4f824c`, sin un solo bloqueante:
+
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-010` | LIBRARIAN | **PASS** |
+| `QA-IND-COMISIONES-010` | QA | **PASS** |
+| `AUDITOR-IND-COMISIONES-010` | AUDITOR | **PASS** |
+
+Evidencia íntegra en `generation-10/`. Safe Closure ejecutada y Mission Lease liberado.
+
+Ninguno de los tres conoció el verdict de los otros antes de emitir el propio. El Auditor lo dejó
+explícito: «Ninguna afirmación de invariante del paquete resultó falsa contra el código; los cinco
+invariantes económicos los reproduje yo mismo y ninguno cedió».
 
 ## Generación 1 — snapshot `c24b4f19c66dc685d1679ed266eb887f2dbfe773`
 
@@ -226,6 +237,26 @@ contradecía a sí mismo en el conteo de bloqueantes financieros. Corregidos en 
 —para cortar la reincidencia de raíz— se añadió `tools/check_mission_package_consistency.py`, que
 verifica rangos, conteos únicos, backlogs idénticos, ausencia de anticipación de la revisión en
 curso y code spans balanceados, y que se ejecuta antes de publicar cada snapshot.
+
+## Generación 10 — snapshot `c7a25a6a6439b555d1ea26a8f09ad1014a4f824c` — APROBADA
+
+Los tres en PASS. Verificaciones destacadas de esta ronda, todas por ejecución propia de cada
+revisor y sin apoyarse en la suite del repositorio:
+
+- **QA**: dominio byte-idéntico y AST-idéntico al de la generación 9; los quince bloqueantes
+  financieros históricos cerrados con escenario propio; **35.400 pasos de fuzz en 18 semillas** con
+  13 invariantes duros y ~30.500 aserciones, sin una sola falla de dinero; y **27 mutaciones**
+  inyectadas al chequeo de consistencia para comprobar que no es una autocertificación vacía.
+- **Auditor**: los cinco invariantes económicos reproducidos, incluida una **prueba de concurrencia
+  de 12 hilos** sobre `mark_paid` (1 éxito, 11 rechazos, un solo asiento) y 1.357 pasos de fuzz con
+  el invariante del libro verificado tras cada paso sobre todas las ventas.
+- **Librarian**: los 30 ítems del backlog contrastados uno por uno contra el código con cita de
+  línea; los 27 verdicts con **exactamente un commit cada uno**, es decir nunca reescritos; y
+  **mutation testing** del chequeo de consistencia, confirmando que detecta los dos bloqueantes que
+  motivaron su creación.
+
+Las observaciones no bloqueantes de esta ronda y de la anterior quedaron incorporadas al backlog
+—incluida la que el Auditor señaló como no registrada—, elevándolo a 37 hallazgos abiertos.
 
 ## Valor demostrado de la independencia
 

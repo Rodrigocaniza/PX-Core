@@ -4,8 +4,7 @@
   "worktree": ".worktrees/gc-comisiones-001",
   "branch": "mission/bc-gestion-central-comisiones-001",
   "base": "eb6d082de4004d166379ffaae2b8f106fac10df1",
-  "state": "HELD",
-  "release_blocked_by": "INDEPENDENT_REVIEW_PENDING",
+  "state": "RELEASED",
   "continuous_session": true,
   "auto_resume": true,
   "production_enabled": false,
@@ -17,5 +16,6 @@
     "BC-Core",
     "BC-Finanzas",
     "main"
-  ]
+  ],
+  "released_after": "tres verdicts independientes PASS sobre c7a25a6a6439b555d1ea26a8f09ad1014a4f824c"
 }

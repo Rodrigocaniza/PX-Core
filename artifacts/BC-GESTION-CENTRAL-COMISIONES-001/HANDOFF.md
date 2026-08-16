@@ -2,7 +2,7 @@
 
 Cadena: Librarian → QA → Auditor, con independencia real en tres subagentes separados por
 generación. Estado de revisión de este snapshot: ver `INDEPENDENCE.md`. Evidencia de las
-generaciones ya revisadas en `generation-1/` a `generation-9/`.
+generaciones ya revisadas en `generation-1/` a `generation-10/`.
 
 ## Matriz de revisión
 
@@ -108,7 +108,37 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
     prueba** (LIB-008 obs.): son dos `pytest.raises` sobre el constructor, sin construir un gasto ni
     tocar el libro. Igual observación para la prueba citada por la regla 8, que cubre sólo la mitad
     `REVERTIDA`.
-30. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
+30. **Orden no determinista del libro de cobros** (AUD-009 obs. 1, AUD-010 obs. 4): `utc_now()` trunca
+    a segundos y `payments()` ordena por `recorded_at, id` con `id` aleatorio, de modo que dos
+    asientos del mismo segundo se listan en orden arbitrario. Sin efecto monetario; afecta la
+    lectura cronológica del libro.
+31. **`sync_review_sales` no tiene guarda de autorización propia** (AUD-009 obs. 2, AUD-010 obs. 5):
+    no llama a `self._write(actor)` al inicio y depende de que `register_sale` rechace. `AccessDenied`
+    sí propaga y no se escribe nada, pero un actor sin permiso llega a **leer** todo el lote antes
+    del rechazo. Defensa en profundidad, sin impacto monetario.
+32. **`tools/check_mission_package_consistency.py` no tiene pruebas** (QA-010 obs. 1 y 2): la
+    regresión no lo ejecuta (`testpaths = tests`) y su ejecución antes de publicar es convención
+    manual. Ante un `HANDOFF.md` ausente o un `WORKFLOW.json` corrupto muere con traceback en vez de
+    reportar el problema, aunque el exit code 1 mantiene el gate. QA escribió 27 mutaciones que son
+    directamente convertibles en suite.
+33. **El chequeo de consistencia tiene alcance más estrecho que su descripción** (LIB-010 obs. 2,
+    QA-010 obs. 3, AUD-010 obs. 2 y 3): compara la cardinalidad de los backlogs y no su contenido;
+    el regex de conteo sólo reconoce cuatro numerales escritos y sólo bloqueantes financieros; no
+    mira subdirectorios, `WORKFLOW.json` ni los `PROMPT_*.txt`; no detecta una afirmación en prosa de
+    una revisión no ocurrida ni verifica que las observaciones de la última generación revisada
+    estén incorporadas al backlog.
+34. **El conteo de defectos documentales no es reconciliable con el registro** (LIB-010 obs. 1): el
+    paquete no define la partición entre «veracidad documental» y «bookkeeping/consistencia», de modo
+    que la cifra «diez» no es verificable como lo es «quince» para los financieros. Conviene
+    enumerarlos explícitamente o definir la partición.
+35. **Matices de redacción en dos reglas económicas** (LIB-010 obs. 3): la regla 6 incluye una
+    negativa sin cita y la regla 9 llama «append-only» a una convención sostenida por disciplina de
+    código, no por restricción de esquema. `COMMISSION_RULES.md` no cita `archivo:línea` en ninguna
+    afirmación.
+36. **Imprecisión en el ítem 1 de este backlog** (LIB-010 obs. 6): menciona «el desplegable de
+    meses», pero el filtro de período es un `tk.Entry`. El defecto descrito es real; sólo el nombre
+    del control está mal.
+37. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
    `tests/gestion_central/test_ui_interactions.py` (commit `bb27034`) define dos veces
    `test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll`; pytest sólo
    recolecta la segunda y un cuerpo de aserciones queda muerto. **Fuera del alcance de esta
