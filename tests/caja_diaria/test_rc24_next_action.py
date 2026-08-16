@@ -249,3 +249,43 @@ class ObservacionTests(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BarraDeAccionesTests(unittest.TestCase):
+    """Tres acciones conceptuales, no seis transiciones."""
+
+    FUENTE = open("CajaDiaria.py", encoding="utf-8").read()
+
+    def test_solo_hay_tres_botones_principales(self):
+        barra = self.FUENTE[
+            self.FUENTE.index("boton_accion_siguiente = ctk.CTkButton"):
+            self.FUENTE.index("etiqueta_seleccion = ctk.CTkLabel")
+        ]
+        self.assertEqual(barra.count("ctk.CTkButton("), 3)
+        for texto in ('text="Acción siguiente"', 'text="Novedad"', 'text="Más  ▾"'):
+            self.assertIn(texto, barra)
+
+    def test_ya_no_existen_los_seis_botones_de_transicion(self):
+        for residuo in ("ACCIONES_SEGUIMIENTO", "botones_accion_seguimiento"):
+            self.assertNotIn(residuo, self.FUENTE)
+
+    def test_el_boton_principal_toma_su_texto_de_next_action_for(self):
+        self.assertIn("info = controller.tracking.next_action_for(ids)", self.FUENTE)
+        self.assertIn('text=info["label"] or "Acción siguiente"', self.FUENTE)
+
+    def test_hay_seleccion_multiple_con_contador(self):
+        for pieza in ("def alternar_marca", "def seleccionar_visibles",
+                      "def limpiar_seleccion", "ctk.CTkCheckBox(",
+                      "seleccionado{'' if len(ids) == 1 else 's'}"):
+            self.assertIn(pieza, self.FUENTE)
+
+    def test_las_acciones_secundarias_viven_en_el_menu_mas(self):
+        menu = self.FUENTE[self.FUENTE.index("def abrir_menu_mas"):]
+        for etiqueta in ("Ver detalle", "Seleccionar visibles", "Limpiar selección",
+                         "Cerrar trabajo"):
+            self.assertIn(etiqueta, menu[:1200])
+
+    def test_la_novedad_aplica_a_varios_trabajos(self):
+        self.assertIn("def abrir_novedad(work_ids):", self.FUENTE)
+        for atajo in ("Más tarde hoy", "Mañana", "Elegir fecha/hora", "Solo observación"):
+            self.assertIn(atajo, self.FUENTE)

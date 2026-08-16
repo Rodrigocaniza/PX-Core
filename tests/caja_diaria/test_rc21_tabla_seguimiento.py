@@ -36,12 +36,14 @@ def momento(dia: date, hora: str) -> datetime:
 
 
 class ColumnasTests(unittest.TestCase):
-    def test_las_cinco_columnas_estan_en_el_orden_pedido(self):
+    def test_las_columnas_estan_en_el_orden_pedido(self):
+        """RC24 agrega el selector al inicio y Observación al final."""
         claves = [
             linea.split('("')[1].split('"')[0]
             for linea in TABLA.splitlines() if linea.strip().startswith('("')
         ]
-        self.assertEqual(claves, ["sobre", "cliente", "tipo", "laboratorio", "estado"])
+        self.assertEqual(claves, ["sel", "sobre", "cliente", "tipo",
+                                  "laboratorio", "estado", "observacion"])
 
     def test_vendedora_ya_no_se_muestra_en_seguimiento(self):
         self.assertNotIn("vendedora", TABLA.lower())
@@ -60,8 +62,9 @@ class ColumnasTests(unittest.TestCase):
         ]
         self.assertEqual(claves[claves.index("tipo") + 1], "laboratorio")
 
-    def test_estado_es_la_columna_que_se_expande(self):
-        ultima = [l for l in TABLA.splitlines() if l.strip().startswith('("estado"')][0]
+    def test_observacion_es_la_columna_que_se_expande(self):
+        ultima = [l for l in TABLA.splitlines()
+                  if l.strip().startswith('("observacion"')][0]
         self.assertTrue(ultima.rstrip().endswith("True),"))
 
 
@@ -250,12 +253,14 @@ class AnchosResponsiveTests(unittest.TestCase):
         self.assertLessEqual(sum(self._anchos()) + 40, 1330)
 
     def test_la_prioridad_de_ancho_respeta_el_orden_pedido(self):
-        sobre, cliente, tipo, laboratorio, estado = self._anchos()
+        sel, sobre, cliente, tipo, laboratorio, estado, observacion = self._anchos()
+        self.assertLess(sel, sobre)
         self.assertLess(sobre, cliente)
         self.assertGreaterEqual(cliente, laboratorio)
         self.assertGreaterEqual(tipo, laboratorio)
         # Estado es la mas ancha: aloja "CONFIRMADO PARA MAÑANA · <etapa>".
         self.assertGreater(estado, cliente)
+        self.assertGreater(observacion, laboratorio)
 
 
 if __name__ == "__main__":

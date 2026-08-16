@@ -85,3 +85,48 @@ columna Observación, la línea de conciliación, los atajos de novedad
 (*Más tarde hoy* / *Mañana*), la alerta en la página principal de Caja y la
 agrupación compacta de estados. El dominio y el servicio ya exponen todo lo
 necesario para hacerlo sin volver a tocar reglas.
+
+---
+
+# Misión 1 — UI de tres botones (COMPLETA)
+
+## Barra de acciones
+
+Los seis botones de transición desaparecen. Quedan tres:
+
+- **`Acción siguiente`** — su texto y su operación salen de
+  `next_action_for(selección)`. Muestra `Recibir 5 en Asunción`,
+  `Enviar 4 a laboratorio`, `Contactar laboratorio`… La operadora no elige
+  entre etapas: marca trabajos y ejecuta lo sugerido.
+- **`Novedad`** — aplica a toda la selección, con los atajos *Más tarde hoy*,
+  *Mañana*, *Elegir fecha/hora* y *Solo observación*, y medio llamada /
+  WhatsApp / otro.
+- **`Más ▾`** — menú con lo poco frecuente: Ver detalle, Seleccionar visibles,
+  Limpiar selección, Cerrar trabajo.
+
+Si la selección mezcla etapas, el botón principal se deshabilita y explica
+*"Los trabajos seleccionados están en etapas diferentes"*.
+
+## Selección múltiple
+
+Checkbox por fila, `Seleccionar visibles` y `Limpiar selección` en el menú, y
+contador compacto (`5 seleccionados`). Al refrescar, los marcados que ya no
+están en la vista se descartan solos.
+
+## Envío masivo
+
+Un único diálogo pide laboratorio, fecha y hora, y aplica a todo el grupo.
+Cada trabajo conserva su transición individual auditada.
+
+## Tabla
+
+`selector · Sobre · Cliente · Tipo de trabajo · Laboratorio · Estado ·
+Observación`. Sin Vendedora. La observación se lee directamente en la lista:
+`Lab confirmo salida 14:30`, `Debía 15-08 15:00`,
+`17-08 15:30 · Lab confirma envío mañana`.
+
+## Verificación
+
+- Regresión: **432 PASS, 0 FAIL**.
+- Smoke GUI real en 1920×1080: tres botones, checkboxes, observaciones
+  pobladas, chips anclados, sin overlays.

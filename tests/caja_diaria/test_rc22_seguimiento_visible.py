@@ -242,19 +242,20 @@ class InterfazTests(unittest.TestCase):
 
     def test_el_detalle_es_alcanzable_por_boton_y_doble_clic(self):
         self.assertIn("def abrir_detalle_trabajo", FUENTE)
-        self.assertIn('text="Ver detalle"', FUENTE)
+        # RC24: Ver detalle deja de ser boton primario y vive en el menu Mas.
+        self.assertIn('label="Ver detalle", command=abrir_detalle_trabajo', FUENTE)
         self.assertIn('"<Double-Button-1>",', FUENTE)
         self.assertIn("abrir_detalle_trabajo()", FUENTE)
 
     def test_los_comandos_de_funciones_tardias_se_resuelven_al_pulsar(self):
-        """El boton se crea antes de que exista la funcion del detalle.
+        """Los widgets se crean antes que las funciones que invocan.
 
-        Pasarla como referencia directa lanzaba UnboundLocalError al abrir la
-        pestaña. Tiene que ir envuelta para resolverse recien al pulsar.
+        Pasarlas como referencia directa lanzaba UnboundLocalError al abrir la
+        pestaña. Tienen que ir envueltas para resolverse recien al pulsar.
         """
-        self.assertIn("command=lambda: abrir_detalle_trabajo()", FUENTE)
-        boton = FUENTE[FUENTE.index('text="Ver detalle"'):]
-        self.assertNotIn("command=abrir_detalle_trabajo,", boton[:400])
+        for envuelto in ("command=lambda: abrir_menu_mas()",
+                         "command=lambda: abrir_novedad(seleccion_actual())"):
+            self.assertIn(envuelto, FUENTE)
 
     def test_crear_envio_refresca_la_tabla(self):
         bloque = FUENTE[FUENTE.index("def crear_envio()"):]
