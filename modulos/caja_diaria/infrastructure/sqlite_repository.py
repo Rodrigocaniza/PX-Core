@@ -805,6 +805,17 @@ class SQLiteCashDayRepository:
             ).fetchall()
         return [self._hydrate_order(row) for row in rows]
 
+    def list_orders_by_ids(self, order_ids: Sequence[str]) -> Sequence[Order]:
+        """Pedidos por id exacto, sin filtrar por fecha ni sucursal."""
+        if not order_ids:
+            return []
+        marcadores = ",".join("?" for _ in order_ids)
+        with self._connection() as connection:
+            rows = connection.execute(
+                f"SELECT * FROM orders WHERE id IN ({marcadores})", tuple(order_ids),
+            ).fetchall()
+        return [self._hydrate_order(row) for row in rows]
+
     def list_tracked_works_for_orders(self, order_ids: Sequence[str]) -> Sequence[TrackedWork]:
         if not order_ids:
             return []

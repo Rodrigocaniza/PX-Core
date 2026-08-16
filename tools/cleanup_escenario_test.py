@@ -29,6 +29,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--aplicar", action="store_true",
                         help="ejecuta el borrado; sin esta bandera solo simula")
+    parser.add_argument("--reset-circuito", action="store_true",
+                        help="deja los pedidos TEST como candidatos otra vez: borra "
+                             "los trabajos y envios generados, conserva pedidos y "
+                             "laboratorios")
     parser.add_argument("--manifiesto", type=Path, default=MANIFIESTO)
     args = parser.parse_args()
 
@@ -64,6 +68,33 @@ def main() -> int:
         print(f"pedidos TEST    : {len(order_ids)}")
         print(f"laboratorios    : {len(lab_ids)}")
         print(f"trabajos creados: {len(work_ids)} (con sus transiciones y contactos)")
+
+        if args.reset_circuito:
+            envios = [
+                r[0] for r in conexion.execute(
+                    f"SELECT DISTINCT shipment_id FROM tracked_works"
+                    f" WHERE shipment_id IS NOT NULL AND order_id IN ({marcas_o})",
+                    order_ids,
+                )
+            ]
+            print(f"\nreset: borraria {len(work_ids)} trabajos y {len(envios)} envio(s);"
+                  " los 15 pedidos y los laboratorios se conservan")
+            if not args.aplicar:
+                print("Simulacion. Nada fue borrado. Repetir con --aplicar.")
+                return 0
+            marcas_w = ",".join("?" for _ in work_ids) or "''"
+            marcas_e = ",".join("?" for _ in envios) or "''"
+            conexion.execute("BEGIN IMMEDIATE")
+            conexion.execute(
+                f"DELETE FROM tracked_work_contacts WHERE work_id IN ({marcas_w})", work_ids)
+            conexion.execute(
+                f"DELETE FROM tracked_work_transitions WHERE work_id IN ({marcas_w})", work_ids)
+            conexion.execute(f"DELETE FROM tracked_works WHERE id IN ({marcas_w})", work_ids)
+            conexion.execute(f"DELETE FROM pilar_shipments WHERE id IN ({marcas_e})", envios)
+            conexion.commit()
+            print("Circuito reiniciado. integrity_check:",
+                  conexion.execute("PRAGMA integrity_check").fetchone()[0])
+            return 0
 
         if movimientos:
             print("\nABORTADO: la caja TEST tiene movimientos. Revisar a mano "

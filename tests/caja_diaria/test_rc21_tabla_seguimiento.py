@@ -12,6 +12,7 @@ from datetime import date, datetime, time, timedelta
 from modulos.caja_diaria.application.services import CashDayService
 from modulos.caja_diaria.application.tracking_service import (
     ALERTA_ATRASADO,
+    SCOPE_TODOS,
     ALERTA_CONFIRMADO,
     ESTADOS_VISIBLES,
     ETIQUETAS_ESTADO,
@@ -84,6 +85,9 @@ class EstadosTests(unittest.TestCase):
         )[0]
 
     def _fila(self, **kwargs):
+        # Alcance completo: estos casos verifican el rotulo de cada etapa,
+        # incluida RECIBIDO EN PILAR, que ya no esta en la vista activa.
+        kwargs.setdefault("scope", SCOPE_TODOS)
         return self.tracking.board(**kwargs)["rows"][0]
 
     def test_los_seis_estados_canonicos_tienen_rotulo_legible(self):

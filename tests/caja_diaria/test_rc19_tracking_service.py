@@ -358,7 +358,9 @@ class IdentidadYLocalFirstTests(TrackingServiceTests):
             self.service.receive_in_pilar(work.id, responsible="Nidia")
             final = self.service.close_work(work.id, responsible="Nidia")
             self.assertIs(final.status, TrackingStatus.CLOSED)
-            self.assertTrue(self.service.board(now=momento(SABADO, "16:00"))["rows"])
+            # El trabajo quedo cerrado: se consulta el alcance completo.
+            self.assertTrue(self.service.board(
+                scope="TODOS", now=momento(SABADO, "16:00"))["rows"])
         finally:
             socket.socket = original
 

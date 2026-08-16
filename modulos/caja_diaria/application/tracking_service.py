@@ -55,6 +55,14 @@ ESTADOS_VISIBLES = (
     TrackingStatus.RECEIVED_IN_PILAR,
 )
 
+#: Un trabajo esta activo mientras no completo el circuito. `RECIBIDO EN
+#: PILAR` lo completa; `CERRADO` es el archivado posterior.
+ESTADOS_COMPLETADOS = (TrackingStatus.RECEIVED_IN_PILAR, TrackingStatus.CLOSED)
+
+SCOPE_ACTIVOS = "ACTIVOS"
+SCOPE_COMPLETADOS = "COMPLETADOS"
+SCOPE_TODOS = "TODOS"
+
 ALERTA_ATRASADO = "ATRASADO"
 ALERTA_CONFIRMADO = "CONFIRMADO PARA MAÑANA"
 SIN_LABORATORIO = "SIN ASIGNAR"
@@ -266,17 +274,31 @@ class TrackingService:
             raise InvalidCashDayError(
                 f"estos trabajos ya salieron en un envío anterior: {sobres}"
             )
-        consulta = parse_business_date(consultation_date or date.today())
+        # La elegibilidad se resuelve sobre los pedidos elegidos, no volviendo
+        # a filtrar por fecha. La operadora ya los selecciono de una busqueda
+        # que puede abarcar un rango; re-derivar por un unico dia hacia fallar
+        # el envio con "ya no estan disponibles" aunque estuvieran a la vista.
         catalogo = {
-            pedido.id: pedido for pedido in self.repository.list_shipment_candidates(
-                branch=branch, start_date=consulta, end_date=consulta,
-            )
+            pedido.id: pedido for pedido in self.repository.list_orders_by_ids(seleccion)
         }
         faltantes = [order_id for order_id in seleccion if order_id not in catalogo]
         if faltantes:
             raise InvalidCashDayError(
-                f"{len(faltantes)} trabajo(s) ya no están disponibles para envío"
+                f"{len(faltantes)} trabajo(s) ya no existen y no pueden enviarse"
             )
+        ajenos = sorted(
+            pedido.envelope for pedido in catalogo.values()
+            if pedido.branch.casefold() != branch.strip().casefold()
+        )
+        if ajenos:
+            raise InvalidCashDayError(
+                f"estos trabajos no son de {branch}: {', '.join(ajenos)}"
+            )
+        # Sin fecha explicita, la consulta se deduce del propio lote.
+        consulta = (
+            parse_business_date(consultation_date) if consultation_date not in (None, "")
+            else max(pedido.created_at.date() for pedido in catalogo.values())
+        )
         envio = self.repository.save_pilar_shipment(PilarShipment(
             shipped_on=shipped_on or consulta, operator=operator,
             consultation_date=consulta, origin_branch=branch, note=note,
@@ -302,6 +324,37 @@ class TrackingService:
             if work.shipment_id == shipment_id
         ]
         return {"shipment": envio, "works": trabajos, **shipment_progress(trabajos)}
+
+    def work_detail(self, work_id: str, *, now: datetime | None = None) -> dict:
+        """Ficha completa del trabajo: identidad, plazo, contacto e historial."""
+        work = self._load(work_id)
+        laboratorio = (
+            self.repository.get_laboratory(work.laboratory_id)
+            if work.laboratory_id else None
+        )
+        fila = BoardRow(
+            work=work, laboratory=laboratorio,
+            overdue=work.is_overdue(now or datetime.now(BUSINESS_TIMEZONE)),
+        )
+        return {
+            "envelope": fila.envelope,
+            "customer_name": fila.customer_name,
+            "work_type": fila.work_type,
+            "status": fila.status_display,
+            "physical_status": fila.physical_status,
+            "alert": fila.alert,
+            "laboratory": fila.laboratory_name,
+            "phone_line": fila.phone_line,
+            "whatsapp": fila.whatsapp,
+            "expected": fila.expected_label,
+            "last_news": fila.last_news,
+            "contacts": work.contacts,
+            "transitions": work.transitions,
+            "order_id": work.order_id,
+            "shipment_id": work.shipment_id,
+            "created_by": work.created_by,
+            "observations": work.observations,
+        }
 
     def list_shipments(self, *, limit: int = 50) -> Sequence[PilarShipment]:
         return self.repository.list_pilar_shipments(limit=limit)
@@ -440,15 +493,25 @@ class TrackingService:
     def board(
         self, *, consultation_date: date | str | None = None, status: str | None = None,
         laboratory_id: str | None = None, only_overdue: bool = False,
-        origin_branch: str | None = None, now: datetime | None = None,
+        origin_branch: str | None = None, scope: str = SCOPE_ACTIVOS,
+        now: datetime | None = None,
     ) -> dict:
-        """Todo lo que la pantalla necesita, resuelto en una sola consulta."""
+        """Todo lo que la pantalla necesita, resuelto en una sola consulta.
+
+        Por defecto devuelve los trabajos **activos**: la operadora entra a la
+        pestaña para saber que tiene pendiente, no para revisar lo terminado.
+        Los completados siguen consultables con `scope=COMPLETADOS`.
+        """
         momento = now or datetime.now(BUSINESS_TIMEZONE)
         works = list(self.list_works(
             consultation_date=consultation_date, status=status, laboratory_id=laboratory_id,
         ))
         if origin_branch:
             works = [work for work in works if work.origin_branch == origin_branch.strip().upper()]
+        if scope == SCOPE_ACTIVOS:
+            works = [w for w in works if w.status not in ESTADOS_COMPLETADOS]
+        elif scope == SCOPE_COMPLETADOS:
+            works = [w for w in works if w.status in ESTADOS_COMPLETADOS]
         catalogo = self.laboratory_catalog()
         filas = [
             BoardRow(
