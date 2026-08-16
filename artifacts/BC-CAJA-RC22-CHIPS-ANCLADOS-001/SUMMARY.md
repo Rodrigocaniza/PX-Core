@@ -74,3 +74,28 @@ recibidos en Pilar             ve 12                           ve 0 · —
 
 Paquete `1.0.0-rc.23` construido y verificado. **No instalado**: había una
 ventana de BC Caja abierta y la política es no cerrarla por la fuerza.
+
+## Instalación ejecutada
+
+| Item | Valor |
+|---|---|
+| Precheck instancias | 0 |
+| Artifact | `BC-CAJA-1.0.0-rc.23-win64.zip`, 34.056.880 bytes, 1158 entradas, 18 migraciones |
+| SHA256 ZIP | `82EEFD6E6F90F75F3F041E6C5E05C461647A0890500CC0D86B6C28140A13644D` |
+| SHA256 EXE | `93B300E8608740541FE04B38DA55CA39A68544765F1F1F1A7CFE7FA187BD5013` |
+| Backup | `Caja-RC23-preinstall-20260816d`, 33 archivos, `integrity_check=ok` |
+| Rollback creado | `BC-Caja-Pilot.rollback-rc22-20260816d` |
+| Rollbacks preservados | rc.22, rc.21, rc.20, rc.17, rc.16, rc.15 |
+| Versión instalada | `BC Caja 1.0.0-rc.23` |
+| `integrity_check` | ok |
+| Migraciones | 001–018, sin migraciones nuevas |
+| Datos | ninguna diferencia contra el precheck |
+| Bindings | `P2 → PILAR`, `PC → ASUNCION`, `PILAR → PILAR` |
+| Correos / cierres nuevos | 0 / 0 |
+| Rollback usado | NO |
+
+Smoke visual post-install en 1920×1080 y 1366×768: 15 filas con el estado
+anclado dentro de cada fila, sin capas flotantes, y la sonda de chips
+huérfanos en verde. Pedidos verificado sin overlays.
+
+Escenario TEST en punto inicial: 15 candidatos, 0 en circuito, 3 laboratorios.
