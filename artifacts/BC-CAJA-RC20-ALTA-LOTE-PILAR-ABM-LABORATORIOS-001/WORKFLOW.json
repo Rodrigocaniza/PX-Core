@@ -1,0 +1,31 @@
+{
+  "mission": "BC-CAJA-RC20-ALTA-LOTE-PILAR-ABM-LABORATORIOS-001",
+  "base_commit": "c4e5344aa89b4f87c293ac54174679a273f1ee01",
+  "branch": "feature/bc-caja-rc20-alta-lote-pilar-abm-laboratorios-001",
+  "current_state": "CLOSED",
+  "continuous_session": "ACTIVE",
+  "auto_resume": "ACTIVE",
+  "safe_closure": "COMPLETE",
+  "mission_lease": {"state": "RELEASED", "holder": null},
+  "history": [
+    {"event": "CANONICAL_STATE_VERIFIED", "head": "c4e5344", "rc19": "CLOSED", "worktree": "clean", "remote": "0/0"},
+    {"event": "DESIGN_DECISION", "topic": "candidatos", "choice": "orders existentes, exclusion de ya seguidos en SQL"},
+    {"event": "DESIGN_DECISION", "topic": "lote", "choice": "condicion derivada de sus trabajos, identidad individual preservada"},
+    {"event": "DESIGN_DECISION", "topic": "laboratorio", "choice": "baja logica, nunca borrado fisico"},
+    {"event": "SLICE_S20_1_PASS", "scope": "dominio de lote y migracion 017", "targeted": 11},
+    {"event": "SLICE_S20_2_PASS", "scope": "servicio de candidatos, lote y ABM", "targeted": 23},
+    {"event": "SLICE_S20_3_PASS", "scope": "dialogos de envio y laboratorios"},
+    {"event": "GUI_DEFECT_FOUND", "detail": "la sonda capturaba la pantalla completa e incluia contenido ajeno", "fixed": true},
+    {"event": "GUI_DEFECT_FOUND", "detail": "el dialogo de laboratorios cortaba el campo WhatsApp", "fixed": true},
+    {"event": "SCHEMA_ASSERTIONS_EXTENDED", "count": 6, "from": "016", "to": "017"},
+    {"event": "SLICE_S20_4_PASS", "scope": "regresion canonica", "full": 327, "failed": 0},
+    {"event": "VISUAL_SMOKE_PASSED", "resolutions": ["1920x1080", "1366x768"], "candidatos": 15, "seleccion_parcial": 3, "emails": 0, "new_closures": 0},
+    {"event": "RC18_NON_REGRESSION_PASSED"},
+    {"event": "RC19_NON_REGRESSION_PASSED"},
+    {"event": "VALIDATION_MATRIX_COVERED", "required": 18, "covered": 18},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "FUNCTIONAL_COMMIT_PASSED", "commit": "239e01b", "staging": "rutas explicitas", "comunicaciones_excluido": true, "main_no_tocada": true},
+    {"event": "MISSION_LEASE_RELEASED"},
+    {"event": "CLOSED", "installation": false}
+  ]
+}
