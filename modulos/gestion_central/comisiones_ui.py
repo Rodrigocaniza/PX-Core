@@ -6,6 +6,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import messagebox, simpledialog, ttk
 
+from .comision_policy import rate_percent_text
 from .comisiones import COMMISSION_STATES, CommissionService
 from .ui import COLORS, pyg
 
@@ -27,7 +28,7 @@ KPI_LAYOUT = (
     ("Cobros parciales", "partial_payments_amount", True),
     ("Convenios", "agreements", False),
     ("Base comisionable", "commissionable_base", True),
-    ("Comisión calculada", "commission_amount", True),
+    ("Comisión oficial", "commission_amount", True),
     ("Pendiente de aprobación", "pending_approval", False),
     ("Pagado", "paid_amount", True),
 )
@@ -63,7 +64,7 @@ class CommissionsPanel(tk.Frame):
         self.notifier = notifier or messagebox.showinfo
         self.asker = asker or (lambda title, prompt: simpledialog.askstring(title, prompt, parent=self))
         self.data_root = Path(data_root or core.repository.database_path.parent)
-        self.rows, self.current, self.report = {}, None, None
+        self.rows, self.current, self.report, self.policy = {}, None, None, None
         self._build()
         self.reload()
 
@@ -106,13 +107,15 @@ class CommissionsPanel(tk.Frame):
                                             bg="#2A86C7", fg="white", relief="flat", padx=12, pady=4)
         self.recalculate_button.pack(side="right", padx=4)
 
-        kpis = tk.Frame(self, bg=COLORS["surface"]); kpis.pack(fill="x", padx=14, pady=5); self.kpis = {}
+        kpis = tk.Frame(self, bg=COLORS["surface"]); kpis.pack(fill="x", padx=14, pady=5)
+        self.kpis, self.kpi_captions = {}, {}
         for column, (label, key, _money) in enumerate(KPI_LAYOUT):
             kpis.grid_columnconfigure(column, weight=1, uniform="com-kpi")
             box = tk.Frame(kpis, bg=COLORS["card"], height=68, highlightthickness=1, highlightbackground="#D7E0E8")
             box.grid(row=0, column=column, padx=3, sticky="ew"); box.grid_propagate(False)
-            tk.Label(box, text=label.upper(), bg=COLORS["card"], fg=COLORS["muted"],
-                     font=("Segoe UI", 8, "bold")).pack(anchor="w", padx=10, pady=(9, 0))
+            caption = tk.Label(box, text=label.upper(), bg=COLORS["card"], fg=COLORS["muted"],
+                               font=("Segoe UI", 8, "bold"))
+            caption.pack(anchor="w", padx=10, pady=(9, 0)); self.kpi_captions[key] = caption
             value = tk.Label(box, text="0", bg=COLORS["card"], fg=COLORS["navy"], font=("Segoe UI", 14, "bold"))
             value.pack(anchor="w", padx=10); self.kpis[key] = value
 
@@ -215,14 +218,24 @@ class CommissionsPanel(tk.Frame):
         for row in self.report["entries"]:
             self.tree.insert("", "end", iid=row["id"], tags=(row["status"],), values=tuple(
                 self._cell(row, key) for key, *_ in ENTRY_COLUMNS))
-        policies = self.service.policies(self.principal)
-        self.policy_label.config(text="Porcentaje: sin configurar (sólo base comisionable)" if not policies
-                                 else f"Porcentaje sintético pendiente de aprobación · {len(policies)} regla(s)")
+        self.policy = self._apply_policy_labels()
         self.feedback.config(text=f"{len(self.report['entries'])} venta(s) en {period} · filtros aplicados")
         if self.current in self.rows:
             self.tree.selection_set(self.current)
         else:
             self.current = None
+
+    def _apply_policy_labels(self):
+        """La pantalla nombra el porcentaje oficial vigente en vez de darlo por sabido."""
+        policy = self.service.current_policy(self.principal)
+        percent = rate_percent_text(policy["rate_bp"])
+        self.policy_label.config(
+            text=f"Comisión oficial {percent} de la base · {policy['code']} v{policy['version']} · "
+                 f"vigente desde {policy['effective_from']} · redondeo {policy['rounding']} a Gs. enteros")
+        for tree in (self.tree, self.summary_tree):
+            tree.heading("commission_amount", text=f"Comisión {percent}")
+        self.kpi_captions["commission_amount"].config(text=f"COMISIÓN OFICIAL {percent}")
+        return policy
 
     @staticmethod
     def _cell(row, key):

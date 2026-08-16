@@ -40,7 +40,8 @@ def main() -> int:
         for row in SALES:
             sale_id, _ = service.register_sale(sol, CommissionSaleInput(*row))
             ids[row[1]] = sale_id
-        service.set_policy(sol, "GENERAL", 300)
+        # El porcentaje ya no se configura para la captura: la política oficial del 1%
+        # queda instalada por la migración y el recálculo la aplica sola.
         service.recalculate(sol)
         entries = {row["sale_id"]: row["id"] for row in service.list_entries(sol)}
         # Estados visibles: revisada, aprobada, pagada y observada.

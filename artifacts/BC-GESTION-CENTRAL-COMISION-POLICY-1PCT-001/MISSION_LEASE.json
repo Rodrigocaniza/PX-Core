@@ -1,0 +1,23 @@
+{
+  "mission": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001",
+  "authority": "PX-Core",
+  "worktree": ".worktrees/gc-comision-policy-1pct-001",
+  "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
+  "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
+  "continues": "BC-GESTION-CENTRAL-COMISIONES-001",
+  "state": "HELD",
+  "continuous_session": true,
+  "auto_resume": true,
+  "production_enabled": false,
+  "untouched": [
+    "C:\\PX\\GDR-*",
+    ".worktrees/gc-comisiones-001",
+    ".worktrees/gc-sol-001",
+    ".worktrees/gc-outbox-ack-001",
+    ".worktrees/gc-factufacil-001",
+    "BC-Core",
+    "BC-Finanzas",
+    "main"
+  ],
+  "release_condition": "tres verdicts independientes PASS sobre el snapshot publicado"
+}

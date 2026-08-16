@@ -4,6 +4,7 @@ import pytest
 
 from bc_gestion_central import build_service
 from modulos.gestion_central.comisiones import CommissionSaleInput, CommissionService
+from modulos.gestion_central.comisiones_ui import ENTRY_COLUMNS
 from modulos.gestion_central.ui import CentralPilotWindow
 
 
@@ -49,8 +50,12 @@ def test_navigation_filters_and_state_reasons(app, root):
     panel.tree.selection_set(entry_of(panel, ids["convenio"])); panel.tree.event_generate("<<TreeviewSelect>>")
     root.update()
     assert "Convenio" in panel.reason.cget("text")
+    # Total, descuento del convenio, base comisionable y comisión oficial del 1%.
+    labels = [child.winfo_children()[0].cget("text") for child in panel.breakdown.winfo_children()]
     amounts = [child.winfo_children()[1].cget("text") for child in panel.breakdown.winfo_children()]
-    assert amounts == ["500.000 Gs.", "25.000 Gs.", "475.000 Gs."]
+    assert amounts == ["500.000 Gs.", "25.000 Gs.", "475.000 Gs.", "4.750 Gs."]
+    assert labels[-1] == "= Comisión oficial (1,00% de la base)"
+    assert "1,00%" in panel.policy_note.cget("text")
 
     panel.branch_var.set("Óptica Pilar"); panel.branch_box.event_generate("<<ComboboxSelected>>"); root.update()
     assert len(panel.tree.get_children()) == 1
@@ -112,8 +117,31 @@ def test_observe_revert_recalculate_and_export(app, root, tmp_path):
     assert panel.recalculate()["changed"] == 0
     target = panel.export()
     assert target.exists()
-    assert '"contract_version": 1' in target.read_text(encoding="utf-8")
-    assert "pendiente de aprobación" in panel.feedback.cget("text") or target.name.endswith(".local.json")
+    exported = target.read_text(encoding="utf-8")
+    assert '"contract_version": 2' in exported
+    assert '"code": "COMISION_GENERAL_1PCT"' in exported and '"rate_percent": "1.00"' in exported
+    assert '"policy_version": 1' in exported and '"rounding": "HALF_UP"' in exported
+    assert target.name.endswith(".local.json")
+
+
+def test_the_screen_names_the_official_one_percent_policy(app, root):
+    window, service, sol, ids = app
+    window.show_commissions(); root.update()
+    panel = window.commissions_panel
+    header = panel.policy_label.cget("text")
+    assert "Comisión oficial 1,00% de la base" in header
+    assert "COMISION_GENERAL_1PCT v1" in header and "vigente desde 2026-08-01" in header
+    assert "HALF_UP" in header
+    assert panel.kpi_captions["commission_amount"].cget("text") == "COMISIÓN OFICIAL 1,00%"
+    assert panel.tree.heading("commission_amount", "text") == "Comisión 1,00%"
+    assert panel.summary_tree.heading("commission_amount", "text") == "Comisión 1,00%"
+    # Base y comisión oficial visibles en la fila, sin abrir el desglose.
+    row = next(entry for entry in panel.report["entries"] if entry["sale_id"] == ids["settled"])
+    values = panel.tree.item(row["id"], "values")
+    columns = [key for key, *_ in ENTRY_COLUMNS]
+    assert values[columns.index("commissionable_base")] == "300.000 Gs."
+    assert values[columns.index("commission_amount")] == "3.000 Gs."
+    assert panel.kpis["commission_amount"].cget("text") == "7.750 Gs."
 
 
 def test_full_hd_layout_keeps_every_control_visible(app, root):

@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
+from . import comision_policy
 from .models import Alert, CashSnapshot, Unit
 
 
@@ -145,6 +146,7 @@ class CentralRepository:
               gross_amount INTEGER NOT NULL, agreement_discount INTEGER NOT NULL DEFAULT 0,
               commissionable_base INTEGER NOT NULL DEFAULT 0,
               rate_bp INTEGER, commission_amount INTEGER, policy_status TEXT NOT NULL,
+              policy_code TEXT, policy_version INTEGER, policy_effective_from TEXT, policy_scope TEXT,
               eligible_date TEXT, reviewed_by TEXT, reviewed_at TEXT, approved_by TEXT, approved_at TEXT,
               paid_at TEXT, payment_reference TEXT, observation TEXT,
               created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
@@ -165,23 +167,103 @@ class CentralRepository:
             CREATE TABLE IF NOT EXISTS commission_policies(
               id TEXT PRIMARY KEY, scope TEXT NOT NULL, scope_value TEXT NOT NULL DEFAULT '',
               rate_bp INTEGER NOT NULL, approval_status TEXT NOT NULL,
+              code TEXT NOT NULL DEFAULT '', version INTEGER NOT NULL DEFAULT 1,
+              effective_from TEXT NOT NULL DEFAULT '',
               created_by TEXT NOT NULL, created_at TEXT NOT NULL,
               UNIQUE(scope,scope_value)
             );
+            CREATE TABLE IF NOT EXISTS commission_policy_versions(
+              id INTEGER PRIMARY KEY AUTOINCREMENT, policy_id TEXT NOT NULL, code TEXT NOT NULL,
+              scope TEXT NOT NULL, scope_value TEXT NOT NULL DEFAULT '', version INTEGER NOT NULL,
+              rate_bp INTEGER NOT NULL, approval_status TEXT NOT NULL, effective_from TEXT NOT NULL,
+              note TEXT NOT NULL DEFAULT '', actor TEXT NOT NULL, recorded_at TEXT NOT NULL,
+              UNIQUE(policy_id,version)
+            );
             """)
             self._add_missing_columns(con)
+            self._migrate_commission_policy(con)
             con.commit()
 
     @staticmethod
     def _add_missing_columns(con):
         """Migración aditiva idempotente para bases de pilotos ya creadas."""
-        additions = (("commission_payments", "client_key", "TEXT"),)
+        additions = (
+            ("commission_payments", "client_key", "TEXT"),
+            ("commission_policies", "code", "TEXT NOT NULL DEFAULT ''"),
+            ("commission_policies", "version", "INTEGER NOT NULL DEFAULT 1"),
+            ("commission_policies", "effective_from", "TEXT NOT NULL DEFAULT ''"),
+            ("commission_entries", "policy_code", "TEXT"),
+            ("commission_entries", "policy_version", "INTEGER"),
+            ("commission_entries", "policy_effective_from", "TEXT"),
+            ("commission_entries", "policy_scope", "TEXT"),
+        )
         for table, column, kind in additions:
             existing = {row[1] for row in con.execute(f"PRAGMA table_info({table})")}
             if column not in existing:
                 con.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
         con.execute("CREATE INDEX IF NOT EXISTS idx_commission_payments_client_key"
                     " ON commission_payments(client_key)")
+
+    def _migrate_commission_policy(self, con):
+        """Instala la política canónica del 1% sobre bases que traen el piloto sintético.
+
+        Es idempotente y no toca dinero: las liquidaciones ya pagadas conservan su
+        `rate_bp` y su `commission_amount` históricos; sólo se les reemplaza la etiqueta
+        de política retirada por `POLITICA_HISTORICA_PREVIA`, que dice la verdad sobre
+        ellas sin afirmar que se calcularon con la regla aprobada. Cada retiro queda
+        asentado en la auditoría con el valor anterior, así nada desaparece en silencio.
+        """
+        now = datetime.now().astimezone().isoformat()
+        seed = comision_policy.canonical_seed()
+
+        retired = con.execute(
+            "SELECT id,scope,scope_value,rate_bp,approval_status FROM commission_policies"
+            " WHERE approval_status IN (?,?) OR scope<>?",
+            (*comision_policy.RETIRED_POLICY_STATUSES, comision_policy.CANONICAL_SCOPE),
+        ).fetchall()
+        for row in retired:
+            # Un porcentaje por vendedora o por local contradice la decisión aprobada:
+            # el 1% es igual para todas. Se retira con su valor previo en la auditoría.
+            self.audit(con, "MIGRACION", "COMMISSION_POLICY_RETIRED",
+                       f"{row['scope']}:{row['scope_value']}", details={
+                           "rate_bp": row["rate_bp"], "approval_status": row["approval_status"],
+                           "replaced_by": seed["code"]})
+            if row["scope"] != comision_policy.CANONICAL_SCOPE:
+                con.execute("DELETE FROM commission_policies WHERE id=?", (row["id"],))
+
+        current = con.execute(
+            "SELECT * FROM commission_policies WHERE scope=? AND scope_value=''",
+            (comision_policy.CANONICAL_SCOPE,),
+        ).fetchone()
+        if current is None or current["approval_status"] != comision_policy.POLICY_CANONICAL:
+            con.execute(
+                "INSERT INTO commission_policies(id,scope,scope_value,rate_bp,approval_status,code,version,"
+                "effective_from,created_by,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)"
+                " ON CONFLICT(scope,scope_value) DO UPDATE SET rate_bp=excluded.rate_bp,"
+                "approval_status=excluded.approval_status,code=excluded.code,version=excluded.version,"
+                "effective_from=excluded.effective_from,created_by=excluded.created_by,created_at=excluded.created_at",
+                (seed["id"], seed["scope"], seed["scope_value"], seed["rate_bp"], seed["approval_status"],
+                 seed["code"], seed["version"], seed["effective_from"], "MIGRACION", now),
+            )
+            con.execute(
+                "INSERT OR IGNORE INTO commission_policy_versions(policy_id,code,scope,scope_value,version,"
+                "rate_bp,approval_status,effective_from,note,actor,recorded_at)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                (seed["id"], seed["code"], seed["scope"], seed["scope_value"], seed["version"],
+                 seed["rate_bp"], seed["approval_status"], seed["effective_from"],
+                 "decisión aprobada: 1% general para toda vendedora y local", "MIGRACION", now),
+            )
+
+        for status in comision_policy.RETIRED_POLICY_STATUSES:
+            # La liquidación conserva su importe; sólo deja de mostrar una etiqueta retirada.
+            con.execute(
+                "UPDATE commission_entries SET policy_status=? WHERE policy_status=? AND rate_bp IS NOT NULL",
+                (comision_policy.POLICY_LEGACY, status),
+            )
+            con.execute(
+                "UPDATE commission_entries SET policy_status=? WHERE policy_status=? AND rate_bp IS NULL",
+                (comision_policy.POLICY_ABSENT, status),
+            )
 
     def audit(self, con, actor, action, target, result="SUCCESS", details=None):
         con.execute(

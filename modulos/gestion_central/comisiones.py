@@ -1,7 +1,11 @@
 """Comisiones por vendedora y local: reglas económicas aprobadas, cálculo local-first.
 
-La lógica vive separada de la interfaz. Los importes son enteros de guaraníes;
-no se usan floats monetarios en ningún punto del cálculo.
+La lógica vive separada de la interfaz. Los importes son enteros de guaraníes y el
+cálculo es `Decimal` con redondeo HALF_UP: no se usan floats en ningún punto.
+
+El porcentaje ya no es configuración sintética. La regla productiva aprobada —1% general,
+igual para toda vendedora y todo local— vive en `comision_policy.py`; aquí se aplica y se
+deja grabada en cada liquidación junto con su versión y su vigencia.
 """
 from __future__ import annotations
 
@@ -12,6 +16,14 @@ from dataclasses import asdict, dataclass
 from datetime import date
 from typing import Protocol
 
+from .comision_policy import (
+    AGREEMENT_DISCOUNT_BP, BASIS_POINTS, CANONICAL_CODE, CANONICAL_EFFECTIVE_FROM,
+    CANONICAL_POLICY_ID, CANONICAL_RATE_BP, CANONICAL_SCOPE, CANONICAL_VERSION, CURRENCY,
+    POLICY_ABSENT, POLICY_CANONICAL, POLICY_LEGACY, POLICY_OUT_OF_EFFECT, POLICY_STATUSES,
+    ROUNDING_MODE, PolicyDecision, agreement_discount, apply_basis_points, commission_for,
+    commissionable_base, is_in_effect, normalize_effective_from, rate_decimal_text,
+    rate_percent_text,
+)
 from .models import Principal, Role, utc_now
 from .service import AccessDenied, CentralManagementService
 
@@ -22,10 +34,6 @@ COMMISSION_STATES = (
 )
 SALE_KINDS = ("COMUN", "CONVENIO")
 
-# Regla aprobada 4: el convenio deduce exactamente 5% del total de la venta.
-AGREEMENT_DISCOUNT_BP = 500
-BASIS_POINTS = 10_000
-
 # Estados que no pueden recalcularse ni revertirse en silencio.
 FROZEN_STATES = frozenset({"PAGADA"})
 RECALCULABLE_STATES = frozenset({"ELEGIBLE", "CALCULADA"})
@@ -33,16 +41,17 @@ OPEN_STATES = frozenset({"ELEGIBLE", "CALCULADA", "REVISADA", "APROBADA"})
 # Ya pasaron por revisión humana: una corrección de origen no puede recalcularlos en silencio.
 REVIEWED_STATES = frozenset({"REVISADA", "APROBADA", "PAGADA"})
 
+# La trazabilidad de la política viaja con la liquidación, no se reconstruye después.
+POLICY_TRACE_FIELDS = ("policy_status", "policy_code", "policy_version",
+                       "policy_effective_from", "policy_scope")
+
 ENTRY_EXPORT_FIELDS = (
     "entry_id", "period", "branch", "saleswoman", "sale_kind", "status",
     "sale_date", "cancelled_date", "gross_amount", "agreement_discount",
     "commissionable_base", "rate_bp", "commission_amount", "policy_status",
+    "policy_code", "policy_version", "policy_effective_from", "policy_scope",
     "balance_amount", "observation",
 )
-
-# La política de porcentaje NO es una regla productiva aprobada todavía.
-POLICY_PENDING = "SINTETICA_PENDIENTE_APROBACION"
-POLICY_ABSENT = "SIN_POLITICA_CONFIGURADA"
 
 
 def _canonical(value) -> str:
@@ -85,21 +94,12 @@ def _reject_paid(entry) -> None:
         )
 
 
-def apply_basis_points(amount: int, points: int) -> int:
-    """Aplica puntos básicos sobre enteros con redondeo half-up y sin floats."""
-    return (int(amount) * int(points) + BASIS_POINTS // 2) // BASIS_POINTS
-
-
-def agreement_discount(total: int) -> int:
-    """Descuento del convenio: exactamente 5% del total de la venta."""
-    return apply_basis_points(total, AGREEMENT_DISCOUNT_BP)
-
-
-def commissionable_base(kind: str, total: int) -> int:
-    """Base comisionable: total para venta común, total − 5% para convenio."""
-    if kind == "CONVENIO":
-        return int(total) - agreement_discount(total)
-    return int(total)
+def _require_official_calculation(entry) -> None:
+    """Nadie revisa ni paga una liquidación sin la política oficial ya aplicada."""
+    if entry["rate_bp"] is None or entry["commission_amount"] is None:
+        raise ValueError(
+            "la liquidación no tiene la política oficial aplicada: recalcule antes de continuar"
+        )
 
 
 @dataclass(frozen=True)
@@ -139,28 +139,47 @@ class CommissionSaleInput:
 
 
 class CommissionPolicyPort(Protocol):
-    """Puerto para políticas configurables de comisión (pendiente de aprobación)."""
+    """Puerto de resolución de la política oficial de comisión."""
 
-    def rate_for(self, *, branch: str, saleswoman: str, period: str) -> tuple[int | None, str]: ...
+    def decide(self, *, branch: str, saleswoman: str, period: str) -> PolicyDecision: ...
 
 
-class StoredCommissionPolicy:
-    """Política leída de la base local. Nunca se afirma como regla productiva."""
+class CanonicalCommissionPolicy:
+    """Regla productiva aprobada: un único porcentaje general, versionado y con vigencia.
+
+    `branch` y `saleswoman` se reciben para dejar explícito en la firma que **no** alteran
+    el porcentaje: la decisión aprobada es el mismo 1% para toda vendedora y todo local.
+    No existe alcance por vendedora ni por local, y la migración retiró los que había.
+    """
 
     def __init__(self, repository):
         self.repository = repository
 
-    def rate_for(self, *, branch: str, saleswoman: str, period: str) -> tuple[int | None, str]:
-        candidates = (("VENDEDORA", saleswoman), ("LOCAL", branch), ("GENERAL", ""))
+    def current(self) -> dict:
+        """Política vigente en la base; si faltara, la constante aprobada del módulo."""
         with self.repository.connection() as con:
-            for scope, value in candidates:
-                row = con.execute(
-                    "SELECT rate_bp,approval_status FROM commission_policies WHERE scope=? AND scope_value=?",
-                    (scope, value),
-                ).fetchone()
-                if row:
-                    return int(row["rate_bp"]), row["approval_status"]
-        return None, POLICY_ABSENT
+            row = con.execute(
+                "SELECT * FROM commission_policies WHERE scope=? AND scope_value=''",
+                (CANONICAL_SCOPE,),
+            ).fetchone()
+        if row is None:
+            return {"id": CANONICAL_POLICY_ID, "scope": CANONICAL_SCOPE, "scope_value": "",
+                    "rate_bp": CANONICAL_RATE_BP, "approval_status": POLICY_CANONICAL,
+                    "code": CANONICAL_CODE, "version": CANONICAL_VERSION,
+                    "effective_from": CANONICAL_EFFECTIVE_FROM}
+        return dict(row)
+
+    def decide(self, *, branch: str, saleswoman: str, period: str) -> PolicyDecision:
+        policy = self.current()
+        code, version = policy["code"] or CANONICAL_CODE, int(policy["version"])
+        effective_from = policy["effective_from"] or CANONICAL_EFFECTIVE_FROM
+        if not is_in_effect(period, effective_from):
+            # Un período anterior a la vigencia no comisiona bajo esta política: se informa
+            # la base y se deja dicho por qué, en vez de aplicar el porcentaje hacia atrás.
+            return PolicyDecision(None, POLICY_OUT_OF_EFFECT, version, effective_from,
+                                  CANONICAL_SCOPE, code)
+        return PolicyDecision(int(policy["rate_bp"]), POLICY_CANONICAL, version, effective_from,
+                              CANONICAL_SCOPE, code)
 
 
 class CommissionService:
@@ -169,7 +188,7 @@ class CommissionService:
     def __init__(self, core: CentralManagementService, policy: CommissionPolicyPort | None = None):
         self.core = core
         self.repository = core.repository
-        self.policy = policy or StoredCommissionPolicy(core.repository)
+        self.policy = policy or CanonicalCommissionPolicy(core.repository)
 
     # ---------------------------------------------------------------- acceso
     def _read(self, actor: Principal):
@@ -320,8 +339,11 @@ class CommissionService:
         base = 0 if pending else commissionable_base(sale.kind, sale.total_amount)
         target = "ELEGIBLE" if entry["status"] == "CALCULADA" else entry["status"]
         con.execute(
+            # La corrección invalida el cálculo anterior: cae también la traza de política,
+            # porque la que había ya no describe el importe que se va a recalcular.
             "UPDATE commission_entries SET saleswoman=?,sale_kind=?,gross_amount=?,agreement_discount=?,"
-            "commissionable_base=?,rate_bp=NULL,commission_amount=NULL,policy_status=?,status=?,updated_at=?"
+            "commissionable_base=?,rate_bp=NULL,commission_amount=NULL,policy_status=?,policy_code=NULL,"
+            "policy_version=NULL,policy_effective_from=NULL,policy_scope=NULL,status=?,updated_at=?"
             " WHERE id=?",
             (sale.saleswoman, sale.kind, sale.total_amount, discount, base, POLICY_ABSENT, target,
              _now(), entry["id"]),
@@ -556,9 +578,14 @@ class CommissionService:
         return True
 
     def review(self, actor: Principal, entry_id: str, note: str = ""):
-        """Revisar el cálculo antes de cualquier aprobación."""
+        """Revisar el cálculo antes de cualquier aprobación.
+
+        Es el primer punto donde una persona avala un importe, así que exige que la
+        política oficial ya esté aplicada: nada sin porcentaje entra a la cadena de pago.
+        """
         return self._transition(actor, entry_id, {"CALCULADA"}, "REVISADA", "CALCULATION_REVIEWED",
-                                {"note": note}, reviewed_by=actor.username, reviewed_at=_now())
+                                {"note": note}, guard=_require_official_calculation,
+                                reviewed_by=actor.username, reviewed_at=_now())
 
     def approve(self, actor: Principal, entry_id: str, responsible: str):
         responsible = responsible.strip()
@@ -575,6 +602,7 @@ class CommissionService:
         _month(payment_date)
         return self._transition(actor, entry_id, {"APROBADA"}, "PAGADA", "COMMISSION_PAID",
                                 {"payment_date": payment_date, "reference": reference},
+                                guard=_require_official_calculation,
                                 paid_at=payment_date, payment_reference=reference)
 
     def observe(self, actor: Principal, entry_id: str, reason: str):
@@ -594,28 +622,69 @@ class CommissionService:
                                 guard=_reject_paid, observation=reason)
 
     # ------------------------------------------------------------- política
-    def set_policy(self, actor: Principal, scope: str, rate_bp: int, scope_value: str = ""):
-        """Configuración sintética de porcentaje: NO es una regla productiva aprobada."""
+    def current_policy(self, actor: Principal) -> dict:
+        """Política oficial vigente, con porcentaje, versión, vigencia y redondeo."""
+        self._read(actor)
+        policy = self.policy.current()
+        return {
+            "code": policy["code"] or CANONICAL_CODE,
+            "scope": policy["scope"],
+            "status": policy["approval_status"],
+            "version": int(policy["version"]),
+            "effective_from": policy["effective_from"] or CANONICAL_EFFECTIVE_FROM,
+            "rate_bp": int(policy["rate_bp"]),
+            "rate_percent": rate_decimal_text(int(policy["rate_bp"])),
+            "rounding": ROUNDING_MODE,
+            "currency": CURRENCY,
+        }
+
+    def set_general_rate(self, actor: Principal, rate_bp: int, effective_from: str, note: str = ""):
+        """Publica una nueva versión de la política general. No admite alcances parciales.
+
+        Cambiar el porcentaje es un hecho versionado: la versión anterior queda íntegra en
+        `commission_policy_versions` y ninguna liquidación ya calculada se toca aquí. Repetir
+        el mismo porcentaje y la misma vigencia no crea versión: la operación es idempotente.
+        """
         self._write(actor)
-        if scope not in {"GENERAL", "LOCAL", "VENDEDORA"}:
-            raise ValueError("alcance de política inválido")
         if isinstance(rate_bp, bool) or not isinstance(rate_bp, int) or not 0 <= rate_bp <= BASIS_POINTS:
             raise ValueError("porcentaje inválido: use puntos básicos enteros de 0 a 10000")
-        if scope != "GENERAL" and not scope_value.strip():
-            raise ValueError("el alcance requiere un valor")
-        scope_value = "" if scope == "GENERAL" else scope_value.strip()
+        effective_from = normalize_effective_from(effective_from)
         with self.repository.connection() as con:
             con.execute("BEGIN IMMEDIATE")
+            current = con.execute(
+                "SELECT * FROM commission_policies WHERE scope=? AND scope_value=''", (CANONICAL_SCOPE,)
+            ).fetchone()
+            if (current is not None and int(current["rate_bp"]) == rate_bp
+                    and current["effective_from"] == effective_from
+                    and current["approval_status"] == POLICY_CANONICAL):
+                con.rollback()
+                return int(current["version"]), False
+            version = int(con.execute(
+                "SELECT COALESCE(MAX(version),0) FROM commission_policy_versions WHERE policy_id=?",
+                (CANONICAL_POLICY_ID,),
+            ).fetchone()[0]) + 1
+            now = _now()
             con.execute(
-                "INSERT INTO commission_policies(id,scope,scope_value,rate_bp,approval_status,created_by,created_at)"
-                " VALUES(?,?,?,?,?,?,?) ON CONFLICT(scope,scope_value) DO UPDATE SET rate_bp=excluded.rate_bp,"
-                "approval_status=excluded.approval_status,created_by=excluded.created_by,created_at=excluded.created_at",
-                (str(uuid.uuid5(uuid.NAMESPACE_URL, f"bc-comision-politica:{scope}:{scope_value}")),
-                 scope, scope_value, rate_bp, POLICY_PENDING, actor.username, _now()),
+                "INSERT INTO commission_policies(id,scope,scope_value,rate_bp,approval_status,code,version,"
+                "effective_from,created_by,created_at) VALUES(?,?,'',?,?,?,?,?,?,?)"
+                " ON CONFLICT(scope,scope_value) DO UPDATE SET rate_bp=excluded.rate_bp,"
+                "approval_status=excluded.approval_status,code=excluded.code,version=excluded.version,"
+                "effective_from=excluded.effective_from,created_by=excluded.created_by,created_at=excluded.created_at",
+                (CANONICAL_POLICY_ID, CANONICAL_SCOPE, rate_bp, POLICY_CANONICAL, CANONICAL_CODE,
+                 version, effective_from, actor.username, now),
             )
-            self.repository.audit(con, actor.username, "COMMISSION_POLICY_SET", f"{scope}:{scope_value}",
-                                  details={"rate_bp": rate_bp, "approval_status": POLICY_PENDING})
+            con.execute(
+                "INSERT INTO commission_policy_versions(policy_id,code,scope,scope_value,version,rate_bp,"
+                "approval_status,effective_from,note,actor,recorded_at) VALUES(?,?,?,'',?,?,?,?,?,?,?)",
+                (CANONICAL_POLICY_ID, CANONICAL_CODE, CANONICAL_SCOPE, version, rate_bp,
+                 POLICY_CANONICAL, effective_from, note, actor.username, now),
+            )
+            self.repository.audit(con, actor.username, "COMMISSION_POLICY_VERSION_PUBLISHED",
+                                  f"{CANONICAL_CODE}:v{version}",
+                                  details={"rate_bp": rate_bp, "effective_from": effective_from,
+                                           "approval_status": POLICY_CANONICAL, "note": note})
             con.commit()
+        return version, True
 
     def policies(self, actor: Principal):
         self._read(actor)
@@ -623,9 +692,22 @@ class CommissionService:
             return [dict(row) for row in con.execute(
                 "SELECT * FROM commission_policies ORDER BY scope,scope_value")]
 
+    def policy_versions(self, actor: Principal):
+        """Historial append-only de versiones de la política oficial."""
+        self._read(actor)
+        with self.repository.connection() as con:
+            return [dict(row) for row in con.execute(
+                "SELECT * FROM commission_policy_versions ORDER BY version,id")]
+
     # ------------------------------------------------------------- recálculo
     def recalculate(self, actor: Principal, *, period: str | None = None, branch: str | None = None):
-        """Recalcula base y comisión de forma segura e idempotente."""
+        """Recalcula base y comisión oficial de forma segura e idempotente.
+
+        Sólo alcanza liquidaciones no pagadas y aún no revisadas: `PAGADA`, `APROBADA`,
+        `REVISADA`, `OBSERVADA` y `REVERTIDA` quedan fuera del `WHERE` y no cambian nunca
+        por un recálculo. Repetirlo no duplica ni reaplica nada, porque la comparación
+        incluye la traza de política completa.
+        """
         self._write(actor)
         query = "SELECT * FROM commission_entries WHERE status IN ('ELEGIBLE','CALCULADA')"
         params: list = []
@@ -644,25 +726,30 @@ class CommissionService:
                 total = int(sale["total_amount"])
                 discount = agreement_discount(total) if sale["sale_kind"] == "CONVENIO" else 0
                 base = commissionable_base(sale["sale_kind"], total)
-                rate, policy_status = self.policy.rate_for(
+                decision = self.policy.decide(
                     branch=sale["branch"], saleswoman=sale["saleswoman"], period=entry["period"] or "")
-                commission = None if rate is None else apply_basis_points(base, rate)
+                commission = None if decision.rate_bp is None else commission_for(base, decision.rate_bp)
                 current = (entry["status"], int(entry["gross_amount"]), int(entry["agreement_discount"]),
                            int(entry["commissionable_base"]), entry["rate_bp"], entry["commission_amount"],
-                           entry["policy_status"])
-                target = ("CALCULADA", total, discount, base, rate, commission, policy_status)
+                           entry["policy_status"], entry["policy_code"], entry["policy_version"],
+                           entry["policy_effective_from"], entry["policy_scope"])
+                target = ("CALCULADA", total, discount, base, decision.rate_bp, commission,
+                          decision.status, decision.code, decision.version, decision.effective_from,
+                          decision.scope)
                 if current == target:
                     continue
                 changed += 1
                 con.execute(
                     "UPDATE commission_entries SET status='CALCULADA',gross_amount=?,agreement_discount=?,"
-                    "commissionable_base=?,rate_bp=?,commission_amount=?,policy_status=?,updated_at=? WHERE id=?",
-                    (total, discount, base, rate, commission, policy_status, _now(), entry["id"]),
+                    "commissionable_base=?,rate_bp=?,commission_amount=?,policy_status=?,policy_code=?,"
+                    "policy_version=?,policy_effective_from=?,policy_scope=?,updated_at=? WHERE id=?",
+                    (total, discount, base, decision.rate_bp, commission, decision.status, decision.code,
+                     decision.version, decision.effective_from, decision.scope, _now(), entry["id"]),
                 )
                 self._history(con, entry["id"], entry["sale_id"], entry["status"], "CALCULADA", actor.username,
                               "COMMISSION_RECALCULATED",
                               {"commissionable_base": base, "agreement_discount": discount,
-                               "rate_bp": rate, "commission_amount": commission, "policy_status": policy_status})
+                               "commission_amount": commission, "policy": decision.as_dict()})
             con.commit()
         return {"evaluated": evaluated, "changed": changed}
 
@@ -714,8 +801,9 @@ class CommissionService:
                           "amount": int(entry["agreement_discount"]), "sign": "−"})
         lines.append({"label": "Base comisionable", "amount": int(entry["commissionable_base"]), "sign": "="})
         if entry["rate_bp"] is not None:
-            lines.append({"label": f"Porcentaje configurado ({entry['rate_bp'] / 100:.2f}%)",
-                          "amount": int(entry["commission_amount"] or 0), "sign": "×"})
+            # El signo acompaña al resultado, no al factor: la línea ya es la comisión.
+            lines.append({"label": f"Comisión oficial ({rate_percent_text(int(entry['rate_bp']))} de la base)",
+                          "amount": int(entry["commission_amount"] or 0), "sign": "="})
         reasons = {
             "PENDIENTE_SALDO": f"Todavía no comisiona: saldo pendiente de {int(entry['balance_amount'])} Gs.",
             "ELEGIBLE": "Elegible: la venta quedó totalmente cancelada.",
@@ -735,9 +823,38 @@ class CommissionService:
             "entry_id": entry_id, "status": entry["status"], "reason": reason,
             "lines": lines,
             "policy_status": entry["policy_status"],
-            "policy_note": "Porcentaje sintético pendiente de aprobación." if entry["policy_status"] == POLICY_PENDING
-            else "Sin porcentaje canónico configurado: se informa sólo la base comisionable.",
+            "policy": self._entry_policy(entry),
+            "policy_note": self._policy_note(entry),
         }
+
+    @staticmethod
+    def _entry_policy(entry) -> dict:
+        """Política con la que se calculó esta liquidación, tal como quedó grabada."""
+        rate = entry["rate_bp"]
+        return {
+            "code": entry["policy_code"], "scope": entry["policy_scope"],
+            "status": entry["policy_status"], "version": entry["policy_version"],
+            "effective_from": entry["policy_effective_from"],
+            "rate_bp": None if rate is None else int(rate),
+            "rate_percent": None if rate is None else rate_decimal_text(int(rate)),
+            "rounding": ROUNDING_MODE, "currency": CURRENCY,
+        }
+
+    @staticmethod
+    def _policy_note(entry) -> str:
+        status, rate = entry["policy_status"], entry["rate_bp"]
+        if status == POLICY_CANONICAL:
+            return (f"Política oficial {entry['policy_code']} v{entry['policy_version']}: "
+                    f"{rate_percent_text(int(rate))} de la base comisionable, igual para toda vendedora y "
+                    f"local, vigente desde {entry['policy_effective_from']}. "
+                    f"Redondeo {ROUNDING_MODE} a guaraní entero.")
+        if status == POLICY_OUT_OF_EFFECT:
+            return (f"El período es anterior a la vigencia de la política oficial "
+                    f"({entry['policy_effective_from']}): se informa sólo la base comisionable.")
+        if status == POLICY_LEGACY:
+            return (f"Importe calculado con una política anterior a la regla aprobada "
+                    f"({rate_percent_text(int(rate))}). Se conserva tal cual por auditoría.")
+        return "Todavía sin política aplicada: recalcule para obtener la comisión oficial."
 
     def history(self, actor: Principal, entry_id: str):
         self._read(actor)
@@ -822,15 +939,24 @@ class CommissionService:
         entries = []
         for row in data["entries"]:
             entries.append({name: row.get(name if name != "entry_id" else "id") for name in ENTRY_EXPORT_FIELDS})
+        policy = self.current_policy(actor)
         return {
-            "contract_version": 1,
+            "contract_version": 2,
             "period": period,
             "generated_at": _now(),
             "filters": data["filters"],
+            # Política vigente al exportar; cada liquidación lleva además la suya propia,
+            # que es la que explica su importe aunque la política haya cambiado después.
+            "policy": policy,
             "kpi": data["kpi"],
             "by_saleswoman": data["by_saleswoman"],
             "entries": entries,
-            "policy_disclaimer": "El porcentaje de comisión es configuración sintética pendiente de aprobación.",
+            "policy_disclaimer": (
+                f"Comisión oficial {policy['rate_percent']}% de la base comisionable "
+                f"({policy['code']} v{policy['version']}, vigente desde {policy['effective_from']}), "
+                f"igual para toda vendedora y local. Convenio: 5% de descuento antes de la base. "
+                f"Redondeo {policy['rounding']} a guaraní entero."
+            ),
         }
 
     # ------------------------------------------------------------ integración

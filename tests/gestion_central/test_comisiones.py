@@ -2,9 +2,13 @@ from pathlib import Path
 
 import pytest
 
+from modulos.gestion_central.comision_policy import (
+    CANONICAL_CODE, CANONICAL_EFFECTIVE_FROM, CANONICAL_RATE_BP, RETIRED_POLICY_STATUSES,
+)
 from modulos.gestion_central.comisiones import (
-    AGREEMENT_DISCOUNT_BP, COMMISSION_STATES, POLICY_ABSENT, POLICY_PENDING,
-    CommissionSaleInput, CommissionService, agreement_discount, commissionable_base,
+    AGREEMENT_DISCOUNT_BP, COMMISSION_STATES, POLICY_ABSENT, POLICY_CANONICAL, POLICY_LEGACY,
+    POLICY_OUT_OF_EFFECT, CommissionSaleInput, CommissionService, agreement_discount,
+    apply_basis_points, commissionable_base,
 )
 from modulos.gestion_central.models import Principal, Role
 from modulos.gestion_central.repository import CentralRepository
@@ -198,13 +202,13 @@ def test_recalculation_is_idempotent(service):
 
 def test_amounts_stay_integers_end_to_end(service):
     service.register_sale(SOL, agreement(total_amount=333_333))
-    service.set_policy(SOL, "GENERAL", 250)
     service.recalculate(SOL)
     entry = service.list_entries(SOL)[0]
     for name in ("gross_amount", "agreement_discount", "commissionable_base", "rate_bp", "commission_amount"):
         assert isinstance(entry[name], int) and not isinstance(entry[name], bool)
     assert entry["agreement_discount"] == 16_667 and entry["commissionable_base"] == 316_666
-    assert entry["commission_amount"] == 7_917
+    # 1% de 316.666 son 3.166,66 guaraníes: HALF_UP redondea a 3.167.
+    assert entry["commission_amount"] == 3_167
 
 
 # ------------------------------------------------------------------------ estados
@@ -448,7 +452,6 @@ def test_reverted_payments_are_never_reported_as_collected(service):
 def test_an_agreement_total_can_be_corrected_downwards(service):
     """Bloqueante QA generación 6: su propia liquidación impedía corregir el convenio a la baja."""
     sale_id, _ = service.register_sale(SOL, agreement(total_amount=1_000_000))
-    service.set_policy(SOL, "GENERAL", 300)
     service.recalculate(SOL)
     assert active(service, sale_id)["commissionable_base"] == 950_000
     service.register_sale(SOL, agreement(total_amount=900_000))
@@ -560,7 +563,6 @@ def test_state_contract_and_append_only_history(service):
 def test_source_correction_after_review_never_pays_a_stale_base(service):
     """Bloqueante QA generación 2: REVISADA caía al UPDATE sin recalcular la base."""
     sale_id, _ = service.register_sale(SOL, agreement())
-    service.set_policy(SOL, "GENERAL", 300)
     service.recalculate(SOL)
     entry_id = active(service, sale_id)["id"]
     service.review(SOL, entry_id)
@@ -577,7 +579,6 @@ def test_source_correction_after_review_never_pays_a_stale_base(service):
 def test_source_correction_before_review_recomputes_the_whole_base(service):
     """La corrección previa a la revisión recalcula base y descuento, no sólo el total."""
     sale_id, _ = service.register_sale(SOL, agreement())
-    service.set_policy(SOL, "GENERAL", 300)
     service.recalculate(SOL)
     assert active(service, sale_id)["commissionable_base"] == 475_000
     service.register_sale(SOL, agreement(total_amount=900_000))
@@ -588,7 +589,7 @@ def test_source_correction_before_review_recomputes_the_whole_base(service):
     assert entry["rate_bp"] is None and entry["commission_amount"] is None
     service.recalculate(SOL)
     entry = active(service, sale_id)
-    assert entry["commission_amount"] == 25_650
+    assert entry["commission_amount"] == 8_550
     # Cambio de tipo: el 5% del convenio debe aplicarse, nunca quedar en cero.
     other, _ = service.register_sale(SOL, common(source_sale_id="mixta", initial_paid=400_000))
     service.recalculate(SOL)
@@ -660,23 +661,244 @@ def test_persistence_survives_reopening(service):
     assert len(reopened.history(SOL, entry_id)) == 3
 
 
-# ---------------------------------------------------------------------- política
-def test_policy_is_synthetic_pending_approval_and_optional(service):
+# ------------------------------------------------------- política canónica del 1%
+def test_the_official_policy_is_the_approved_general_one_percent(service):
+    policy = service.current_policy(SOL)
+    assert policy["rate_bp"] == CANONICAL_RATE_BP == 100
+    assert policy["rate_percent"] == "1.00" and policy["scope"] == "GENERAL"
+    assert policy["status"] == POLICY_CANONICAL and policy["code"] == CANONICAL_CODE
+    assert policy["version"] == 1 and policy["effective_from"] == CANONICAL_EFFECTIVE_FROM
+    assert policy["rounding"] == "HALF_UP" and policy["currency"] == "GS"
+    # La etiqueta sintética del piloto ya no existe en ninguna política almacenada.
+    stored = service.policies(SOL)
+    assert [row["scope"] for row in stored] == ["GENERAL"]
+    assert all(row["approval_status"] not in RETIRED_POLICY_STATUSES for row in stored)
+    assert [row["version"] for row in service.policy_versions(SOL)] == [1]
+
+
+def test_a_cancelled_common_sale_of_400000_commissions_exactly_4000(service):
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    service.recalculate(SOL)
+    entry = active(service, sale_id)
+    assert entry["gross_amount"] == 400_000 and entry["agreement_discount"] == 0
+    assert entry["commissionable_base"] == 400_000
+    assert entry["rate_bp"] == 100 and entry["commission_amount"] == 4_000
+    assert entry["policy_status"] == POLICY_CANONICAL
+
+
+def test_a_common_sale_with_balance_has_zero_payable_commission(service):
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=200_000))
+    service.recalculate(SOL)
+    entry = active(service, sale_id)
+    assert entry["status"] == "PENDIENTE_SALDO" and entry["balance_amount"] == 200_000
+    # No hay comisión pagable: ni base, ni porcentaje aplicado, ni importe.
+    assert entry["commissionable_base"] == 0
+    assert entry["rate_bp"] is None and entry["commission_amount"] is None
+    assert service.report(SOL, "2099-04")["kpi"]["commission_amount"] == 0
+    # Un cobro parcial sigue siendo informativo y no crea comisión.
+    service.register_payment(SOL, sale_id, 100_000, "2099-04-25", "seña")
+    service.recalculate(SOL)
+    assert active(service, sale_id)["commission_amount"] is None
+
+
+def test_an_agreement_of_500000_discounts_25000_and_commissions_4750(service):
+    sale_id, _ = service.register_sale(SOL, agreement(total_amount=500_000))
+    service.recalculate(SOL)
+    entry = active(service, sale_id)
+    # Primero el 5% del total, después el 1% sobre la base resultante.
+    assert entry["gross_amount"] == 500_000 and entry["agreement_discount"] == 25_000
+    assert entry["commissionable_base"] == 475_000
+    assert entry["rate_bp"] == 100 and entry["commission_amount"] == 4_750
+    assert entry["policy_status"] == POLICY_CANONICAL
+
+
+def test_the_same_one_percent_applies_to_every_saleswoman_and_branch(service):
+    sales = [
+        service.register_sale(SOL, common(branch="Óptica Asunción", source_sale_id="p1",
+                                          saleswoman="Vendedora Uno", initial_paid=400_000))[0],
+        service.register_sale(SOL, common(branch="Óptica Pilar", source_sale_id="p2",
+                                          saleswoman="Vendedora Dos", initial_paid=400_000))[0],
+        service.register_sale(SOL, common(branch="Óptica Encarnación", source_sale_id="p3",
+                                          saleswoman="Vendedora Tres", initial_paid=400_000))[0],
+    ]
+    service.recalculate(SOL)
+    entries = [active(service, sale_id) for sale_id in sales]
+    assert {entry["rate_bp"] for entry in entries} == {100}
+    assert {entry["commission_amount"] for entry in entries} == {4_000}
+    assert {entry["policy_scope"] for entry in entries} == {"GENERAL"}
+
+
+def test_the_policy_used_is_traceable_on_every_settlement(service):
     sale_id, _ = service.register_sale(SOL, agreement())
     service.recalculate(SOL)
     entry = active(service, sale_id)
-    assert entry["rate_bp"] is None and entry["commission_amount"] is None
-    assert entry["policy_status"] == POLICY_ABSENT
-    assert "sólo la base" in service.breakdown(SOL, entry["id"])["policy_note"]
-    service.set_policy(SOL, "GENERAL", 300)
-    service.set_policy(SOL, "VENDEDORA", 500, "Vendedora Dos")
+    assert entry["policy_code"] == CANONICAL_CODE and entry["policy_version"] == 1
+    assert entry["policy_effective_from"] == CANONICAL_EFFECTIVE_FROM
+    assert entry["policy_scope"] == "GENERAL"
+    detail = service.breakdown(SOL, entry["id"])
+    assert detail["policy"]["rate_percent"] == "1.00" and detail["policy"]["rounding"] == "HALF_UP"
+    assert "1,00%" in detail["policy_note"] and CANONICAL_EFFECTIVE_FROM in detail["policy_note"]
+    assert [line["label"] for line in detail["lines"]][-1].startswith("Comisión oficial (1,00%")
+    assert detail["lines"][-1]["amount"] == 4_750
+    history = [event for event in service.history(SOL, entry["id"])
+               if event["action"] == "COMMISSION_RECALCULATED"]
+    assert "COMISION_GENERAL_1PCT" in history[-1]["details_json"]
+
+
+def test_a_period_before_the_effective_date_never_applies_the_rate(service):
+    """La vigencia no se aplica hacia atrás: se informa la base y se dice por qué."""
+    sale_id, _ = service.register_sale(SOL, common(sale_date="2026-07-10", initial_paid=400_000))
     service.recalculate(SOL)
     entry = active(service, sale_id)
-    assert entry["rate_bp"] == 500 and entry["commission_amount"] == 23_750
-    assert entry["policy_status"] == POLICY_PENDING
-    assert all(row["approval_status"] == POLICY_PENDING for row in service.policies(SOL))
+    assert entry["period"] == "2026-07" and entry["commissionable_base"] == 400_000
+    assert entry["rate_bp"] is None and entry["commission_amount"] is None
+    assert entry["policy_status"] == POLICY_OUT_OF_EFFECT
+    assert "anterior a la vigencia" in service.breakdown(SOL, entry["id"])["policy_note"]
+    # Sin comisión oficial aplicada no hay revisión ni pago posible.
+    with pytest.raises(ValueError, match="política oficial"):
+        service.review(SOL, entry["id"])
+
+
+def test_half_up_rounding_to_whole_guarani_is_explicit(service):
+    # Medio guaraní exacto: HALF_UP sube, no trunca ni redondea al par.
+    assert apply_basis_points(50, 100) == 1          # 0,50 → 1
+    assert apply_basis_points(150, 100) == 2         # 1,50 → 2
+    assert apply_basis_points(49, 100) == 0          # 0,49 → 0
+    assert apply_basis_points(1_234_567, 100) == 12_346  # 12.345,67 → 12.346
+    sale_id, _ = service.register_sale(SOL, common(total_amount=1_234_567, initial_paid=1_234_567))
+    service.recalculate(SOL)
+    entry = active(service, sale_id)
+    assert entry["commission_amount"] == 12_346 and isinstance(entry["commission_amount"], int)
+
+
+def test_recalculating_never_duplicates_and_never_reapplies(service):
+    service.register_sale(SOL, common(initial_paid=400_000))
+    service.register_sale(SOL, agreement())
+    assert service.recalculate(SOL) == {"evaluated": 2, "changed": 2}
+    for _ in range(3):
+        assert service.recalculate(SOL) == {"evaluated": 2, "changed": 0}
+    entries = service.list_entries(SOL)
+    assert len(entries) == 2
+    assert sorted(entry["commission_amount"] for entry in entries) == [4_000, 4_750]
+    recalculations = sum(1 for entry in entries
+                         for event in service.history(SOL, entry["id"])
+                         if event["action"] == "COMMISSION_RECALCULATED")
+    assert recalculations == 2
+
+
+def test_a_paid_settlement_is_never_touched_by_a_policy_change(service):
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    service.review(SOL, entry_id)
+    service.approve(SOL, entry_id, "Sol")
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-1")
+    paid = service.get_entry(SOL, entry_id)
+    version, published = service.set_general_rate(SOL, 200, "2099-06-01", "prueba de cambio")
+    assert (version, published) == (2, True)
+    assert service.recalculate(SOL) == {"evaluated": 0, "changed": 0}
+    after = service.get_entry(SOL, entry_id)
+    assert after["commission_amount"] == paid["commission_amount"] == 4_750
+    assert after["rate_bp"] == 100 and after["policy_version"] == 1
+    assert after["status"] == "PAGADA" and after["updated_at"] == paid["updated_at"]
+
+
+def test_publishing_a_policy_version_is_audited_and_idempotent(service):
+    assert service.set_general_rate(SOL, 100, CANONICAL_EFFECTIVE_FROM) == (1, False)
+    assert service.set_general_rate(SOL, 150, "2099-01-01", "suba pactada") == (2, True)
+    assert service.set_general_rate(SOL, 150, "2099-01-01") == (2, False)
+    versions = service.policy_versions(SOL)
+    assert [(row["version"], row["rate_bp"]) for row in versions] == [(1, 100), (2, 150)]
+    assert service.current_policy(SOL)["rate_bp"] == 150
     with pytest.raises(ValueError, match="porcentaje inválido"):
-        service.set_policy(SOL, "GENERAL", 20_000)
+        service.set_general_rate(SOL, 20_000, "2099-01-01")
+    with pytest.raises(ValueError, match="vigencia inválida"):
+        service.set_general_rate(SOL, 100, "2099-13-40")
+    audit = [row for row in service.repository.audit_log()
+             if row["action"] == "COMMISSION_POLICY_VERSION_PUBLISHED"]
+    assert len(audit) == 1 and "150" in audit[0]["details_json"]
+
+
+def test_voiding_and_reverting_keep_the_audit_trail_of_the_policy(service):
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry = active(service, sale_id)
+    assert entry["commission_amount"] == 4_750 and entry["policy_version"] == 1
+    assert service.void_sale(SOL, sale_id, "anulada por error de carga")
+    reverted = next(row for row in service.list_entries(SOL) if row["id"] == entry["id"])
+    assert reverted["status"] == "REVERTIDA"
+    # La liquidación revertida conserva intacta la traza de la política que usó.
+    assert reverted["rate_bp"] == 100 and reverted["policy_code"] == CANONICAL_CODE
+    assert reverted["policy_version"] == 1 and reverted["policy_effective_from"] == CANONICAL_EFFECTIVE_FROM
+    assert [event["to_state"] for event in service.history(SOL, entry["id"])] == \
+        ["ELEGIBLE", "CALCULADA", "REVERTIDA"]
+    assert service.report(SOL, "2099-04")["kpi"]["commission_amount"] == 0
+
+
+def test_the_official_commission_survives_reopening_the_database(service):
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    reopened = CommissionService(CentralManagementService(CentralRepository(service.repository.database_path)))
+    entry = reopened.get_entry(SOL, entry_id)
+    assert entry["commission_amount"] == 4_750 and entry["rate_bp"] == 100
+    assert entry["policy_code"] == CANONICAL_CODE and entry["policy_version"] == 1
+    assert reopened.current_policy(SOL)["rate_bp"] == 100
+    # Reabrir vuelve a migrar y la migración no puede duplicar versiones ni políticas.
+    assert len(reopened.policies(SOL)) == 1 and len(reopened.policy_versions(SOL)) == 1
+    assert reopened.recalculate(SOL) == {"evaluated": 1, "changed": 0}
+
+
+def test_migration_retires_the_synthetic_label_without_touching_money(tmp_path):
+    """Una base del piloto anterior se abre con la política canónica y sin perder importes."""
+    import sqlite3
+
+    database = tmp_path / "legado.sqlite3"
+    service = CommissionService(CentralManagementService(CentralRepository(database)))
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    legacy_status = RETIRED_POLICY_STATUSES[0]
+    with sqlite3.connect(database) as con:
+        # Se reconstruye el estado que dejaba el piloto: 3% sintético por vendedora.
+        con.execute("UPDATE commission_entries SET rate_bp=300,commission_amount=14250,policy_status=?,"
+                    "policy_code=NULL,policy_version=NULL,policy_effective_from=NULL,policy_scope=NULL"
+                    " WHERE id=?", (legacy_status, entry_id))
+        con.execute("UPDATE commission_policies SET approval_status=?,rate_bp=300", (legacy_status,))
+        con.execute("INSERT INTO commission_policies(id,scope,scope_value,rate_bp,approval_status,code,"
+                    "version,effective_from,created_by,created_at)"
+                    " VALUES('legacy-v','VENDEDORA','Vendedora Dos',500,?,'',1,'','sol','2026-01-01')",
+                    (legacy_status,))
+        con.commit()
+
+    migrated = CommissionService(CentralManagementService(CentralRepository(database)))
+    policy = migrated.current_policy(SOL)
+    assert policy["rate_bp"] == 100 and policy["status"] == POLICY_CANONICAL
+    assert [row["scope"] for row in migrated.policies(SOL)] == ["GENERAL"]
+    entry = migrated.get_entry(SOL, entry_id)
+    # El importe histórico no se toca; sólo cae la etiqueta retirada.
+    assert entry["rate_bp"] == 300 and entry["commission_amount"] == 14_250
+    assert entry["policy_status"] == POLICY_LEGACY
+    assert "política anterior" in migrated.breakdown(SOL, entry_id)["policy_note"]
+    retired = [row for row in migrated.repository.audit_log()
+               if row["action"] == "COMMISSION_POLICY_RETIRED"]
+    assert {"VENDEDORA:Vendedora Dos", "GENERAL:"} <= {row["target"] for row in retired}
+    # El recálculo posterior sí la trae a la regla aprobada, porque no está pagada.
+    assert migrated.recalculate(SOL)["changed"] == 1
+    recalculated = migrated.get_entry(SOL, entry_id)
+    assert recalculated["rate_bp"] == 100 and recalculated["commission_amount"] == 4_750
+    assert recalculated["policy_status"] == POLICY_CANONICAL
+
+
+def test_the_retired_label_survives_only_as_the_thing_the_migration_removes():
+    """`SINTETICA_PENDIENTE_APROBACION` no se produce en ningún lado; sólo se retira."""
+    modules = Path(__file__).resolve().parents[2] / "modulos" / "gestion_central"
+    for name in ("comisiones.py", "comisiones_ui.py", "repository.py"):
+        assert "SINTETICA_PENDIENTE_APROBACION" not in (modules / name).read_text("utf-8"), name
+    policy_source = (modules / "comision_policy.py").read_text("utf-8")
+    retired = policy_source.split("RETIRED_POLICY_STATUSES", 1)[1]
+    assert "SINTETICA_PENDIENTE_APROBACION" in retired.split("\n\n", 1)[0]
+    assert policy_source.count("SINTETICA_PENDIENTE_APROBACION") == 1
 
 
 # ------------------------------------------------------------- permisos y export
@@ -695,14 +917,23 @@ def test_structured_export_has_stable_contract_and_no_customer_data(service):
     service.register_sale(SOL, agreement())
     service.recalculate(SOL)
     export = service.export_summary(SOL, "2099-04")
-    assert export["contract_version"] == 1 and export["period"] == "2099-04"
-    assert "pendiente de aprobación" in export["policy_disclaimer"]
+    assert export["contract_version"] == 2 and export["period"] == "2099-04"
+    assert export["policy"] == {
+        "code": CANONICAL_CODE, "scope": "GENERAL", "status": POLICY_CANONICAL, "version": 1,
+        "effective_from": CANONICAL_EFFECTIVE_FROM, "rate_bp": 100, "rate_percent": "1.00",
+        "rounding": "HALF_UP", "currency": "GS"}
+    assert "1.00%" in export["policy_disclaimer"] and "5%" in export["policy_disclaimer"]
+    assert "HALF_UP" in export["policy_disclaimer"]
     entry = export["entries"][0]
     assert entry["commissionable_base"] == 475_000 and entry["agreement_discount"] == 25_000
+    assert entry["commission_amount"] == 4_750 and entry["rate_bp"] == 100
+    assert entry["policy_code"] == CANONICAL_CODE and entry["policy_version"] == 1
+    assert entry["policy_effective_from"] == CANONICAL_EFFECTIVE_FROM
     assert set(entry) == {
         "entry_id", "period", "branch", "saleswoman", "sale_kind", "status", "sale_date",
         "cancelled_date", "gross_amount", "agreement_discount", "commissionable_base",
-        "rate_bp", "commission_amount", "policy_status", "balance_amount", "observation"}
+        "rate_bp", "commission_amount", "policy_status", "policy_code", "policy_version",
+        "policy_effective_from", "policy_scope", "balance_amount", "observation"}
 
 
 def test_review_sales_integration_skips_non_sale_rows(service, tmp_path):

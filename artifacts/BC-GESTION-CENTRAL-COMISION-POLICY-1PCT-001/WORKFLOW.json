@@ -1,0 +1,76 @@
+{
+  "mission": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001",
+  "continues": "BC-GESTION-CENTRAL-COMISIONES-001",
+  "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
+  "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
+  "worktree": ".worktrees/gc-comision-policy-1pct-001",
+  "current_state": "IMPLEMENTED",
+  "mission_lease": "HELD",
+  "generation": 1,
+  "autochain": [
+    "LIBRARIAN",
+    "QA",
+    "AUDITOR"
+  ],
+  "independent_runners": "AVAILABLE",
+  "safe_closure": "PENDING",
+  "tests": {
+    "full_regression": 317,
+    "baseline": 302,
+    "added": 15,
+    "module_suite": 117,
+    "commissions_suite": 66
+  },
+  "decision": {
+    "code": "COMISION_GENERAL_1PCT",
+    "scope": "GENERAL",
+    "rate_bp": 100,
+    "rate_percent": "1.00",
+    "status": "CANONICA_APROBADA",
+    "version": 1,
+    "effective_from": "2026-08-01",
+    "agreement_discount_bp": 500,
+    "order": "descuento 5% del total, luego 1% sobre la base resultante",
+    "rounding": "HALF_UP",
+    "currency": "GS"
+  },
+  "verified_examples": [
+    {"case": "venta comun cancelada", "total": 400000, "discount": 0, "base": 400000, "commission": 4000},
+    {"case": "venta comun con saldo", "total": 400000, "discount": null, "base": 0, "commission": null},
+    {"case": "convenio", "total": 500000, "discount": 25000, "base": 475000, "commission": 4750},
+    {"case": "convenio borde HALF_UP", "total": 333333, "discount": 16667, "base": 316666, "commission": 3167},
+    {"case": "comun borde HALF_UP", "total": 1234567, "discount": 0, "base": 1234567, "commission": 12346}
+  ],
+  "generations": [
+    {
+      "generation": 1,
+      "snapshot_commit": null,
+      "status": "PENDING_REVIEW",
+      "tests": 317,
+      "verdicts": [],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-1/"
+    }
+  ],
+  "non_blocking_findings_recorded": [
+    "1. Signo del desglose cerrado; badge de piloto duplicado sigue abierto (heredado 8)",
+    "2. register_payment y sync_review_sales sin llamador productivo (heredado 11)",
+    "3. assert float( mas debil que la propiedad declarada, ahora sobre Decimal (heredado 7)",
+    "4. COMMISSION_RULES.md y ARCHITECTURE.md generalizan de mas (heredado 16)",
+    "5. La vigencia se compara por periodo: una vigencia intramensual no se respeta al dia",
+    "6. Una REVISADA o APROBADA con importe historico no se corrige sola",
+    "7. POLICY_STATUSES se define y no se usa como guarda",
+    "8. El retiro de politicas por alcance elimina filas, auditadas pero no conservadas",
+    "9. set_general_rate no ofrece vista previa del impacto"
+  ],
+  "inherited_open_findings": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/HANDOFF.md",
+  "untouched": [
+    "C:\\PX\\GDR-*",
+    ".worktrees/gc-comisiones-001",
+    ".worktrees/gc-sol-001",
+    ".worktrees/gc-outbox-ack-001",
+    ".worktrees/gc-factufacil-001",
+    "BC-Core",
+    "BC-Finanzas",
+    "main"
+  ]
+}

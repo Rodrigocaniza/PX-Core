@@ -1,8 +1,11 @@
-"""Chequeo de consistencia del paquete de la misión de comisiones.
+"""Chequeo de consistencia del paquete de una misión de comisiones.
 
 Verifica las propiedades que los revisores independientes exigieron una y otra vez:
 rangos de generación al día, conteos únicos, backlogs idénticos, sin anticipar la
 revisión en curso y sin code spans rotos. Se ejecuta antes de publicar cada snapshot.
+
+Sin argumentos revisa el paquete de la misión original; con un directorio, el que se
+le indique, para que cada misión posterior reutilice el mismo chequeo en vez de copiarlo.
 """
 from __future__ import annotations
 
@@ -54,8 +57,11 @@ def check(package: Path = PACKAGE) -> list[str]:
     return problems
 
 
-def main() -> int:
-    problems = check()
+def main(argv: list[str] | None = None) -> int:
+    arguments = sys.argv[1:] if argv is None else argv
+    package = Path(arguments[0]).resolve() if arguments else PACKAGE
+    problems = check(package)
+    print(f"paquete: {package.name}")
     if problems:
         print("PAQUETE INCONSISTENTE:")
         for problem in problems:
