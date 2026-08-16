@@ -26,7 +26,7 @@ from modulos.caja_diaria.infrastructure.sqlite_repository import SQLiteCashDayRe
 HOY = date.today()
 FUENTE = open("CajaDiaria.py", encoding="utf-8").read()
 TABLA = FUENTE[
-    FUENTE.index("COLUMNAS_SEGUIMIENTO = ("):FUENTE.index("grilla_seguimiento = ttk.Treeview")
+    FUENTE.index("COLUMNAS_SEGUIMIENTO = ("):FUENTE.index("lista_seguimiento = ctk.CTkScrollableFrame")
 ]
 
 
@@ -209,12 +209,11 @@ class LaboratorioYTipoTests(EstadosTests):
 
 
 class PresentacionTests(unittest.TestCase):
-    def test_el_estado_se_dibuja_como_chip_y_no_tiñe_la_fila(self):
-        self.assertIn("posicionar_chips_seguimiento", FUENTE)
+    def test_el_estado_se_dibuja_como_chip_dentro_de_la_fila(self):
         self.assertIn("COLORES_ESTADO_SEGUIMIENTO", FUENTE)
-        # La unica marca de fila que queda es la de atraso, y es tenue.
-        self.assertIn('grilla_seguimiento.tag_configure("atrasado", background="#FFF5F5")', FUENTE)
-        self.assertNotIn('tag_configure("confirmado"', FUENTE)
+        # El chip es hijo de la celda de la fila, no una capa flotante.
+        self.assertIn("celda_estado = ctk.CTkFrame(marco_fila", FUENTE)
+        self.assertNotIn("posicionar_chips_seguimiento", FUENTE)
 
     def test_hay_un_color_por_cada_estado_visible(self):
         bloque = FUENTE[
@@ -226,10 +225,12 @@ class PresentacionTests(unittest.TestCase):
     def test_el_atraso_tiene_prioridad_visual_roja(self):
         self.assertIn('COLOR_CHIP_ATRASADO = ("#FDECEC", "#E5A3A3", "#A32626")', FUENTE)
 
-    def test_los_chips_se_reposicionan_al_desplazar_y_redimensionar(self):
-        for gancho in ("desplazar_seguimiento", "actualizar_scroll_seguimiento",
-                       '"<Configure>", lambda _e: ventana.after_idle(posicionar_chips_seguimiento)'):
-            self.assertIn(gancho, FUENTE)
+    def test_no_queda_ninguna_capa_flotante_de_estado(self):
+        """El chip ya no se posiciona a mano: se desplaza con su fila."""
+        for residuo in ("posicionar_chips_seguimiento", "posicionar_chips_pedidos",
+                        "chips_pedidos", 'estado_seguimiento["chips"]'):
+            self.assertNotIn(residuo, FUENTE)
+        self.assertIn("lista_seguimiento = ctk.CTkScrollableFrame", FUENTE)
 
 
 class AnchosResponsiveTests(unittest.TestCase):

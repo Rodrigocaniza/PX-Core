@@ -1,6 +1,6 @@
-BC Caja 1.0.0-rc.22
-Misión: BC-CAJA-RC22-CAJA-SUCURSAL-001
-Integra: RC18 UX ViewSonic 24" · RC19 Seguimiento · RC20 Alta de lote + ABM Laboratorios · RC21 Tabla logística · RC22 Envío por rango corregido, vista por sucursal y alertas por local
+BC Caja 1.0.0-rc.23
+Misión: BC-CAJA-RC22-CHIPS-ANCLADOS-001
+Integra: RC18 UX · RC19 Seguimiento · RC20 Alta de lote + ABM · RC21 Tabla logística · RC22 Vista por sucursal y alertas por local · RC23 Estado anclado a la fila
 Fecha: 2026-08-16
 Esquema: migraciones 001-018
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)

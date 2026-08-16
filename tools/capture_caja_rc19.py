@@ -118,45 +118,85 @@ def verificar(root) -> dict:
     if "021 111 222" not in agrupacion or "0981 111 222" not in agrupacion:
         raise RuntimeError("la agrupacion no expone linea y WhatsApp distintos")
 
-    # La columna "sobre" tambien existe en movimientos e historial: la grilla
-    # de seguimiento se identifica por sus columnas propias.
-    grillas = [
+    # RC22: la tabla son filas reales, no un Treeview con chips flotantes.
+    # La sonda lee los widgets de cada fila y verifica ademas que no quede
+    # ninguna etiqueta de estado colgando fuera de su fila.
+    # "Cliente" y "Laboratorio" tambien rotulan campos del formulario de venta:
+    # el encabezado se identifica por el contenedor que tiene las cinco.
+    def es_encabezado(contenedor):
+        directos = [
+            str(w.cget("text")) for w in contenedor.winfo_children()
+            if isinstance(w, ctk.CTkLabel)
+        ]
+        return {"Sobre", "Estado"} <= set(directos)
+
+    cabeceras = [
         w for w in descendants(root)
-        if w.winfo_class() == "Treeview"
-        and {"tipo", "laboratorio", "estado"} <= {str(c) for c in w.cget("columns")}
+        if isinstance(w, ctk.CTkFrame) and es_encabezado(w)
     ]
-    if not grillas:
-        raise RuntimeError("la grilla de seguimiento no existe")
-    grilla = grillas[0]
-    filas = grilla.get_children()
-    if not filas:
-        raise RuntimeError("la grilla de seguimiento esta vacia")
-    columnas = [str(columna) for columna in grilla.cget("columns")]
-    # RC21: la tabla queda en cinco columnas logisticas, sin Vendedora.
-    if columnas != ["sobre", "cliente", "tipo", "laboratorio", "estado"]:
-        raise RuntimeError(f"columnas inesperadas: {columnas}")
-    if any("vendedora" in c for c in columnas):
+    if not cabeceras:
+        raise RuntimeError("no se encontro el encabezado de la tabla de seguimiento")
+    encabezados = [
+        str(w.cget("text")) for w in cabeceras[0].winfo_children()
+        if isinstance(w, ctk.CTkLabel)
+    ]
+    if encabezados != ["Sobre", "Cliente", "Tipo de trabajo", "Laboratorio", "Estado"]:
+        raise RuntimeError(f"columnas inesperadas: {encabezados}")
+    if "Vendedora" in encabezados:
         raise RuntimeError("Vendedora no debe mostrarse en Seguimiento")
 
-    primera = {clave: str(grilla.set(filas[0], clave)) for clave in columnas}
-    if not primera["estado"].startswith("ATRASADO · "):
-        raise RuntimeError(f"las excepciones no se ordenan primero: {primera['estado']}")
-    # La alerta antepone, pero la etapa fisica real sigue visible.
-    if "EN LABORATORIO" not in primera["estado"]:
-        raise RuntimeError(f"la alerta borro la etapa fisica: {primera['estado']}")
-    if not primera["laboratorio"] or primera["laboratorio"] == "SIN ASIGNAR":
-        raise RuntimeError("la fila atrasada no muestra su laboratorio")
+    etapas = {
+        "ENVIADO DESDE PILAR", "RECIBIDO EN ASUNCIÓN", "EN LABORATORIO",
+        "RECIBIDO DEL LABORATORIO", "ENVIADO A PILAR", "RECIBIDO EN PILAR",
+    }
+    alertas_chip = {"ATRASADO", "CONFIRMADO PARA MAÑANA"}
+    chips = [
+        w for w in descendants(root)
+        if isinstance(w, ctk.CTkLabel)
+        and str(w.cget("text")).strip() in (etapas | alertas_chip)
+    ]
+    if not chips:
+        raise RuntimeError("la grilla de seguimiento esta vacia")
 
-    estados = [str(grilla.set(fila, "estado")) for fila in filas]
-    if not any(e.startswith("CONFIRMADO PARA MAÑANA · ") for e in estados):
-        raise RuntimeError(f"falta el estado confirmado: {sorted(set(estados))}")
-    if not any(str(grilla.set(f, "laboratorio")) == "SIN ASIGNAR" for f in filas):
+    # Fail-closed del bug: todo chip tiene que colgar de una fila de la lista,
+    # nunca del marco contenedor ni de la ventana.
+    huerfanos = []
+    for chip in chips:
+        cadena, dentro_de_fila = chip.master, False
+        while cadena is not None:
+            if getattr(cadena, "_bc_fila_seguimiento", False):
+                dentro_de_fila = True
+                break
+            cadena = getattr(cadena, "master", None)
+        if not dentro_de_fila:
+            huerfanos.append(str(chip.cget("text")).strip())
+    if huerfanos:
+        raise RuntimeError(f"chips flotando fuera de su fila: {huerfanos}")
+
+    filas = [
+        w for w in descendants(root) if getattr(w, "_bc_fila_seguimiento", False)
+    ]
+    estados = []
+    for fila in filas:
+        textos = [
+            str(x.cget("text")).strip() for x in descendants(fila)
+            if isinstance(x, ctk.CTkLabel)
+        ]
+        etapa = next((t for t in textos if t in etapas), None)
+        alerta = next((t for t in textos if t in alertas_chip), None)
+        if etapa is None:
+            raise RuntimeError(f"fila sin etapa visible: {textos}")
+        estados.append(f"{alerta} · {etapa}" if alerta else etapa)
+        if alerta and etapa not in textos:
+            raise RuntimeError("la alerta borro la etapa fisica")
+    if "SIN ASIGNAR" not in [
+        str(x.cget("text")).strip() for f in filas for x in descendants(f)
+        if isinstance(x, ctk.CTkLabel)
+    ]:
         raise RuntimeError("no se muestra SIN ASIGNAR para los trabajos sin laboratorio")
-    tipos = [str(grilla.set(fila, "tipo")) for fila in filas]
-    if not any(tipos):
-        raise RuntimeError("la columna Tipo de trabajo llega vacia")
 
     atrasados = sum(1 for estado in estados if estado.startswith("ATRASADO"))
+
     return {
         "filas": len(filas),
         "atrasados": atrasados,

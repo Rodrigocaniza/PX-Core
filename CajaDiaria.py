@@ -138,7 +138,7 @@ def metricas_resumen_kpi(perfil: dict) -> dict:
 
 #: Ultimo recurso si no se encuentra VERSION.txt. Debe coincidir con
 #: pilot/package_docs/VERSION.txt; hay una prueba que lo verifica.
-VERSION_APLICACION = "1.0.0-rc.22"
+VERSION_APLICACION = "1.0.0-rc.23"
 
 
 def version_aplicacion() -> str:
@@ -3094,6 +3094,17 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         "documento": "center", "sobre": "center", "sucursal": "center",
         "vendedora": "center", "origen": "center", "estado": "center",
     }
+    # RC22: el estado del pedido pasa a color de fila del propio Treeview.
+    # Antes se dibujaba como chip flotante sobre el frame contenedor y quedaba
+    # desacoplado al desplazar o repintar.
+    for estado_pedido, (fondo_pedido, _borde, texto_pedido) in {
+        "PENDIENTE": ("#FFF1CC", "#E6A23C", "#8A4B08"),
+        "LISTO": ("#DCEEFF", "#82B7E8", "#174A7E"),
+        "ENTREGADO": ("#DDF5E8", "#79C99E", "#17633A"),
+        "ANULADO": ("#FDECEC", "#E5A3A3", "#A32626"),
+    }.items():
+        grilla_pedidos.tag_configure(
+            f"estado_{estado_pedido}", background=fondo_pedido, foreground=texto_pedido)
     for clave, titulo, ancho in (
         ("entrega", "Entrega", 100), ("cliente", "Cliente", 220),
         ("telefono", "Teléfono", 125), ("documento", "CI/RUC", 120),
@@ -3107,45 +3118,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     scroll_pedidos = ttk.Scrollbar(marco_pedidos, orient="vertical")
     grilla_pedidos.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
     scroll_pedidos.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
-    chips_pedidos = []
-    colores_estado_pedido = {
-        "PENDIENTE": ("#FFF1CC", "#E6A23C", "#8A4B08"),
-        "LISTO": ("#DCEEFF", "#82B7E8", "#174A7E"),
-        "ENTREGADO": ("#DDF5E8", "#79C99E", "#17633A"),
-        "ANULADO": ("#FDECEC", "#E5A3A3", "#A32626"),
-    }
 
-    def posicionar_chips_pedidos():
-        for chip in chips_pedidos:
-            chip.destroy()
-        chips_pedidos.clear()
-        for iid in grilla_pedidos.get_children():
-            caja = grilla_pedidos.bbox(iid, "estado")
-            if not caja:
-                continue
-            x, y, ancho, alto = caja
-            estado = str(grilla_pedidos.set(iid, "estado"))
-            fondo, borde, texto = colores_estado_pedido.get(estado, ("#EEF4FB", "#B9CDE5", "#132238"))
-            chip = ctk.CTkLabel(
-                marco_pedidos, text=estado, width=max(72, ancho - 14), height=max(20, alto - 6),
-                corner_radius=8, fg_color=fondo, text_color=texto,
-                font=ctk.CTkFont(size=9, weight="bold"),
-            )
-            chip.configure(cursor="hand2")
-            chip.bind("<Button-1>", lambda _e, pedido=iid: (grilla_pedidos.selection_set(pedido), actualizar_botones_pedido()))
-            chip.place(x=grilla_pedidos.winfo_x() + x + 7, y=grilla_pedidos.winfo_y() + y + 3)
-            chips_pedidos.append(chip)
-
-    def actualizar_scroll_pedidos(inicio, fin):
-        scroll_pedidos.set(inicio, fin)
-        ventana.after_idle(posicionar_chips_pedidos)
-
-    def desplazar_pedidos(*args):
-        grilla_pedidos.yview(*args)
-        ventana.after_idle(posicionar_chips_pedidos)
-
-    scroll_pedidos.configure(command=desplazar_pedidos)
-    grilla_pedidos.configure(yscrollcommand=actualizar_scroll_pedidos)
+    scroll_pedidos.configure(command=grilla_pedidos.yview)
+    grilla_pedidos.configure(yscrollcommand=scroll_pedidos.set)
 
     def refrescar_pedidos(nombre=None):
         if nombre:
@@ -3153,13 +3128,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         for item in grilla_pedidos.get_children():
             grilla_pedidos.delete(item)
         for pedido in controller.list_orders(filtro_pedidos.get()):
-            grilla_pedidos.insert("", "end", iid=pedido.id, values=(
+            grilla_pedidos.insert("", "end", iid=pedido.id,
+                                  tags=(f"estado_{pedido.status.value}",), values=(
                 pedido.delivery_date.strftime("%d-%m-%Y"), pedido.customer_name,
                 pedido.customer_phone, pedido.customer_document, pedido.envelope, pedido.branch,
                 pedido.saleswoman, pedido.origin.value, pedido.status.value,
             ))
         actualizar_botones_pedido()
-        ventana.after_idle(posicionar_chips_pedidos)
 
     for nombre in ("Hoy", "Atrasados", "Próximos", "Todos"):
         ctk.CTkButton(
@@ -3227,7 +3202,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         boton.pack(side="right", padx=3)
         botones_estado_pedido[estado] = boton
     grilla_pedidos.bind("<<TreeviewSelect>>", actualizar_botones_pedido, add="+")
-    grilla_pedidos.bind("<Configure>", lambda _e: ventana.after_idle(posicionar_chips_pedidos), add="+")
     actualizar_botones_pedido()
     def refrescar_avisos():
         hoy, atrasados = controller.order_counts()
@@ -3377,7 +3351,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     marco_seguimiento = ctk.CTkFrame(seguimiento, fg_color="#FFFFFF", corner_radius=6)
     marco_seguimiento.pack(fill="both", expand=True)
-    marco_seguimiento.grid_rowconfigure(0, weight=1)
+    marco_seguimiento.grid_rowconfigure(0, weight=0)
+    marco_seguimiento.grid_rowconfigure(1, weight=1)
+
+    vacio_seguimiento = ctk.CTkLabel(
+        marco_seguimiento, text="", justify="center", text_color=color_suave,
+        font=ctk.CTkFont(size=perfil["fuente_label"] + 1),
+    )
     marco_seguimiento.grid_columnconfigure(0, weight=1)
     # RC21: la tabla queda orientada al circuito logistico. Vendedora sale de
     # la vista (el dato sigue en el dominio y en ventas) y el ancho de Estado
@@ -3390,18 +3370,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("laboratorio", "Laboratorio", 190, "w", False),
         ("estado", "Estado", 330, "w", True),
     )
-    grilla_seguimiento = ttk.Treeview(
-        marco_seguimiento, columns=[clave for clave, *_ in COLUMNAS_SEGUIMIENTO],
-        show="headings", style="Caja.Treeview",
-    )
-    for clave, titulo, ancho, anclaje, expandible in COLUMNAS_SEGUIMIENTO:
-        grilla_seguimiento.heading(clave, text=titulo, anchor=anclaje)
-        grilla_seguimiento.column(
-            clave, width=ancho, minwidth=ancho, anchor=anclaje, stretch=expandible,
-        )
-    # Sin teñir la fila entera: la diferenciacion vive en el chip de Estado.
-    # Solo el atraso deja una marca tenue de fondo, para que salte a la vista.
-    grilla_seguimiento.tag_configure("atrasado", background="#FFF5F5")
     # Paleta de estados, alineada con RC18: fondo, borde y texto por etapa.
     COLORES_ESTADO_SEGUIMIENTO = {
         "ENVIADO DESDE PILAR": ("#FFF3CD", "#E6B85C", "#7A4B00"),
@@ -3413,20 +3381,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     }
     COLOR_CHIP_ATRASADO = ("#FDECEC", "#E5A3A3", "#A32626")
     COLOR_CHIP_CONFIRMADO = ("#F3EFFA", "#B9A7E0", "#5B3FA8")
-    scroll_seguimiento = ttk.Scrollbar(marco_seguimiento, orient="vertical")
-
-    def desplazar_seguimiento(*args):
-        grilla_seguimiento.yview(*args)
-        ventana.after_idle(posicionar_chips_seguimiento)
-
-    def actualizar_scroll_seguimiento(inicio, fin):
-        scroll_seguimiento.set(inicio, fin)
-        ventana.after_idle(posicionar_chips_seguimiento)
-
-    scroll_seguimiento.configure(command=desplazar_seguimiento)
-    grilla_seguimiento.configure(yscrollcommand=actualizar_scroll_seguimiento)
-    grilla_seguimiento.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
-    scroll_seguimiento.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
 
     # Una tabla vacia debe explicar por que lo esta, no dejar a la operadora
     # dudando de si el envio se guardo.
@@ -3442,10 +3396,44 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         "Completados": "Todavía no hay trabajos recibidos en Pilar.",
         "Todos": "No hay trabajos registrados en el seguimiento.",
     }
-    vacio_seguimiento = ctk.CTkLabel(
-        marco_seguimiento, text="", justify="center", text_color=color_suave,
-        font=ctk.CTkFont(size=perfil["fuente_label"] + 1),
+
+    # RC22: la tabla deja de ser un Treeview con chips flotantes.
+    #
+    # Antes el estado se dibujaba como widget `.place()` sobre el frame que
+    # contiene la grilla: vivia en otra capa que el contenido scrollable, no se
+    # recortaba al viewport y solo se reubicaba en los eventos interceptados a
+    # mano, de modo que cualquier repintado no previsto lo dejaba flotando.
+    #
+    # Ahora cada fila es un widget real dentro de un frame scrollable: el chip
+    # es hijo de su propia fila, asi que se desplaza, se recorta, se repinta y
+    # se destruye con ella. No queda ninguna capa flotante que sincronizar.
+    # Encabezado y lista van en filas distintas del grid: compartiendo celda,
+    # el encabezado tapaba la primera fila de datos.
+    encabezado_seguimiento = ctk.CTkFrame(
+        marco_seguimiento, fg_color="#EEF4FB", corner_radius=0,
+        height=perfil["fuente"] + 20,
     )
+    encabezado_seguimiento.grid(row=0, column=0, sticky="ew", padx=5, pady=(5, 0))
+    encabezado_seguimiento.grid_propagate(False)
+
+    lista_seguimiento = ctk.CTkScrollableFrame(
+        marco_seguimiento, fg_color="#FFFFFF", corner_radius=0,
+    )
+    lista_seguimiento.grid(row=1, column=0, sticky="nsew", padx=5, pady=(0, 5))
+    lista_seguimiento.grid_columnconfigure(0, weight=1)
+    for indice, (_clave, titulo, ancho, anclaje, expandible) in enumerate(COLUMNAS_SEGUIMIENTO):
+        encabezado_seguimiento.grid_columnconfigure(
+            indice, weight=1 if expandible else 0, minsize=ancho)
+        ctk.CTkLabel(
+            encabezado_seguimiento, text=titulo, anchor="w" if anclaje == "w" else "center",
+            text_color=color_texto,
+            font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
+        ).grid(row=0, column=indice, sticky="ew", padx=(10, 6), pady=6)
+    # El encabezado no lleva peso: con peso, la fila crecia y el frame quedaba
+    # centrado dejando bandas vacias arriba y abajo. Todo el sobrante va a la
+    # lista, que es la que debe estirarse.
+    marco_seguimiento.grid_rowconfigure(0, weight=0)
+    marco_seguimiento.grid_rowconfigure(1, weight=1)
 
     panel_atrasados = ctk.CTkFrame(seguimiento, fg_color="#FFF7F7", corner_radius=6)
     etiqueta_atrasados = ctk.CTkLabel(
@@ -3457,62 +3445,19 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     acciones_seguimiento = ctk.CTkFrame(seguimiento, fg_color="transparent")
     acciones_seguimiento.pack(fill="x", pady=(6, 0))
 
-    estado_seguimiento = {"filas": {}, "chips": []}
+    estado_seguimiento = {"filas": {}, "widgets": {}, "seleccion": None}
     contexto_alerta = {"filtro": "Atrasados"}
 
-    def posicionar_chips_seguimiento():
-        """Dibuja el estado como chip compacto sobre la celda de Estado.
-
-        Treeview no admite widgets por celda; el mismo recurso ya se usa en
-        Pedidos. El chip permite distinguir la etapa de un vistazo sin teñir
-        la fila entera.
-        """
-        for chip in estado_seguimiento["chips"]:
-            chip.destroy()
-        estado_seguimiento["chips"].clear()
-        for iid in grilla_seguimiento.get_children():
-            caja = grilla_seguimiento.bbox(iid, "estado")
-            if not caja:
-                continue
-            x, y, ancho, alto = caja
-            fila = estado_seguimiento["filas"].get(iid)
-            if fila is None:
-                continue
-            # El contenedor es opaco y cubre la celda entera: si fuera
-            # transparente, el texto del Treeview asomaria al costado del chip.
-            contenedor = ctk.CTkFrame(
-                marco_seguimiento, corner_radius=0,
-                fg_color="#FFF5F5" if fila.overdue else "#FFFFFF",
-                width=max(1, ancho - 8), height=max(18, alto - 2),
-            )
-            contenedor.pack_propagate(False)
-            if fila.alert:
-                fondo, borde, texto = (
-                    COLOR_CHIP_ATRASADO if fila.overdue else COLOR_CHIP_CONFIRMADO
-                )
-                ctk.CTkLabel(
-                    contenedor, text=f"  {fila.alert}  ", corner_radius=7,
-                    fg_color=fondo, text_color=texto,
-                    height=max(18, alto - 6),
-                    font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
-                ).pack(side="left", padx=(0, 4))
-            fondo, borde, texto = COLORES_ESTADO_SEGUIMIENTO.get(
-                fila.physical_status, ("#EEF4FB", "#B9CDE5", "#132238"),
-            )
-            ctk.CTkLabel(
-                contenedor, text=f"  {fila.physical_status}  ", corner_radius=7,
-                fg_color=fondo, text_color=texto, height=max(18, alto - 6),
-                font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
-            ).pack(side="left")
-            contenedor.place(
-                x=grilla_seguimiento.winfo_x() + x + 4,
-                y=grilla_seguimiento.winfo_y() + y + 1,
-            )
-            estado_seguimiento["chips"].append(contenedor)
-
     def trabajo_seleccionado():
-        seleccion = grilla_seguimiento.selection()
-        return estado_seguimiento["filas"].get(seleccion[0]) if seleccion else None
+        return estado_seguimiento["filas"].get(estado_seguimiento["seleccion"])
+
+    def seleccionar_fila(work_id):
+        estado_seguimiento["seleccion"] = work_id
+        for identificador, widgets in estado_seguimiento["widgets"].items():
+            elegido = identificador == work_id
+            widgets["fila"].configure(
+                fg_color=widgets["fondo_activo"] if elegido else widgets["fondo"])
+        actualizar_acciones_seguimiento()
 
     def responsable_actual():
         return os.environ.get("BC_CAJA_RESPONSABLE") or os.environ.get("USERNAME") or "Operadora"
@@ -3565,19 +3510,62 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 state="normal",
                 text=("Ver solo mi sucursal" if contexto_sucursal["todas"]
                       else "Ver todas las sucursales"))
-        for item in grilla_seguimiento.get_children():
-            grilla_seguimiento.delete(item)
+        for widgets in estado_seguimiento["widgets"].values():
+            widgets["fila"].destroy()
+        estado_seguimiento["widgets"].clear()
         estado_seguimiento["filas"].clear()
-        for fila in tablero["rows"]:
-            grilla_seguimiento.insert(
-                "", "end", iid=fila.work.id,
-                tags=("atrasado",) if fila.overdue else (),
-                values=(
-                    fila.envelope, fila.customer_name, fila.work_type,
-                    fila.laboratory_name, fila.status_display,
-                ),
-            )
-            estado_seguimiento["filas"][fila.work.id] = fila
+        for indice, fila in enumerate(tablero["rows"]):
+            fondo = "#FFF5F5" if fila.overdue else ("#FFFFFF" if indice % 2 else "#FAFCFE")
+            marco_fila = ctk.CTkFrame(
+                lista_seguimiento, fg_color=fondo, corner_radius=0,
+                height=perfil["fuente"] + 22)
+            # Marca de pertenencia: la sonda verifica que cada chip cuelgue de
+            # una fila y no de una capa flotante.
+            marco_fila._bc_fila_seguimiento = True
+            marco_fila.grid(row=indice, column=0, sticky="ew", pady=(0, 1))
+            marco_fila.grid_propagate(False)
+            for columna, (_c, _t, ancho, anclaje, expandible) in enumerate(COLUMNAS_SEGUIMIENTO):
+                marco_fila.grid_columnconfigure(
+                    columna, weight=1 if expandible else 0, minsize=ancho)
+            for columna, texto in enumerate((
+                fila.envelope, fila.customer_name, fila.work_type, fila.laboratory_name,
+            )):
+                ctk.CTkLabel(
+                    marco_fila, text=texto, anchor="w",
+                    text_color="#A32626" if fila.overdue else color_texto,
+                    font=ctk.CTkFont(size=perfil["fuente"]),
+                ).grid(row=0, column=columna, sticky="ew", padx=(10, 6), pady=5)
+            # El chip vive dentro de la fila: se desplaza y se destruye con ella.
+            celda_estado = ctk.CTkFrame(marco_fila, fg_color="transparent")
+            celda_estado.grid(row=0, column=4, sticky="w", padx=(10, 6), pady=4)
+            if fila.alert:
+                fondo_chip, _b, texto_chip = (
+                    COLOR_CHIP_ATRASADO if fila.overdue else COLOR_CHIP_CONFIRMADO)
+                ctk.CTkLabel(
+                    celda_estado, text=f"  {fila.alert}  ", corner_radius=7,
+                    fg_color=fondo_chip, text_color=texto_chip, height=20,
+                    font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
+                ).pack(side="left", padx=(0, 4))
+            fondo_chip, _b, texto_chip = COLORES_ESTADO_SEGUIMIENTO.get(
+                fila.physical_status, ("#EEF4FB", "#B9CDE5", "#132238"))
+            ctk.CTkLabel(
+                celda_estado, text=f"  {fila.physical_status}  ", corner_radius=7,
+                fg_color=fondo_chip, text_color=texto_chip, height=20,
+                font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
+            ).pack(side="left")
+
+            identificador = fila.work.id
+            for widget in [marco_fila] + list(marco_fila.winfo_children()) +                     list(celda_estado.winfo_children()):
+                widget.bind("<Button-1>",
+                            lambda _e, w=identificador: seleccionar_fila(w), add="+")
+                widget.bind("<Double-Button-1>",
+                            lambda _e, w=identificador: (seleccionar_fila(w),
+                                                         abrir_detalle_trabajo()), add="+")
+            estado_seguimiento["filas"][identificador] = fila
+            estado_seguimiento["widgets"][identificador] = {
+                "fila": marco_fila, "fondo": fondo, "fondo_activo": "#DCEBFA"}
+        if estado_seguimiento["seleccion"] not in estado_seguimiento["filas"]:
+            estado_seguimiento["seleccion"] = None
         for clave, _titulo, _color in INDICADORES_SEGUIMIENTO:
             tarjeta, valor = etiquetas_seguimiento[clave]
             cantidad = tablero["summary"][clave]
@@ -3633,7 +3621,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         else:
             panel_atrasados.pack_forget()
         actualizar_acciones_seguimiento()
-        ventana.after_idle(posicionar_chips_seguimiento)
 
     def accion_seguimiento(operacion):
         fila = trabajo_seleccionado()
@@ -4212,14 +4199,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         refrescar_labs()
         return dialogo
 
-    grilla_seguimiento.bind("<<TreeviewSelect>>", actualizar_acciones_seguimiento, add="+")
-    grilla_seguimiento.bind("<Double-1>", abrir_detalle_trabajo, add="+")
-    grilla_seguimiento.bind(
-        "<Configure>", lambda _e: ventana.after_idle(posicionar_chips_seguimiento), add="+",
-    )
-    grilla_seguimiento.bind(
-        "<MouseWheel>", lambda _e: ventana.after_idle(posicionar_chips_seguimiento), add="+",
-    )
     refrescar_seguimiento()
 
     if not controller.admin.has_admin() and not os.environ.get("BC_CAJA_AUTOMATED"):

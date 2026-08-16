@@ -243,7 +243,8 @@ class InterfazTests(unittest.TestCase):
     def test_el_detalle_es_alcanzable_por_boton_y_doble_clic(self):
         self.assertIn("def abrir_detalle_trabajo", FUENTE)
         self.assertIn('text="Ver detalle"', FUENTE)
-        self.assertIn('grilla_seguimiento.bind("<Double-1>", abrir_detalle_trabajo', FUENTE)
+        self.assertIn('"<Double-Button-1>",', FUENTE)
+        self.assertIn("abrir_detalle_trabajo()", FUENTE)
 
     def test_los_comandos_de_funciones_tardias_se_resuelven_al_pulsar(self):
         """El boton se crea antes de que exista la funcion del detalle.
