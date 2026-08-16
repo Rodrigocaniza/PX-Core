@@ -806,6 +806,35 @@ class SQLiteCashDayRepository:
             ).fetchall()
         return [self._hydrate_order(row) for row in rows]
 
+    def search_untracked_orders(
+        self, term: str, *, branch: str | None = None, limit: int = 25,
+    ) -> Sequence[Order]:
+        """Pedidos por sobre o cliente que aun no entraron al circuito.
+
+        Sostiene NO ESTABA EN LISTA: el fisico que aparecio suele tener su
+        pedido ya cargado, y encontrarlo evita volver a escribir cliente y
+        receta. La exclusion de los ya seguidos se resuelve en SQL, de modo que
+        no se pueda agregar dos veces el mismo trabajo.
+        """
+        if not str(term or "").strip():
+            return []
+        patron = f"%{str(term).strip()}%"
+        condicion_sucursal = "AND o.branch = ? COLLATE NOCASE" if branch else ""
+        parametros = [patron, patron] + ([branch] if branch else []) + [int(limit)]
+        with self._connection() as connection:
+            rows = connection.execute(
+                f"""SELECT o.* FROM orders o
+                LEFT JOIN tracked_works t ON t.order_id = o.id
+                WHERE t.id IS NULL
+                  AND (o.envelope LIKE ? COLLATE NOCASE
+                       OR o.customer_name LIKE ? COLLATE NOCASE)
+                  {condicion_sucursal}
+                ORDER BY o.created_at DESC, o.envelope
+                LIMIT ?""",
+                tuple(parametros),
+            ).fetchall()
+        return [self._hydrate_order(row) for row in rows]
+
     def list_orders_by_ids(self, order_ids: Sequence[str]) -> Sequence[Order]:
         """Pedidos por id exacto, sin filtrar por fecha ni sucursal."""
         if not order_ids:

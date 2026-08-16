@@ -225,8 +225,10 @@ class ObservacionTests(Base):
         self.tracking.confirm_for_next_day(
             work.id, operator="Ana", next_expected_date=HOY, next_expected_time="15:00",
             result="Lab confirmó para mañana", recorded_at=momento(AYER, "16:00"))
+        # RC25: el plazo se lee en dias relativos. Registrado ayer para hoy, la
+        # operadora tiene que leer "Mañana", que es lo que era al registrarlo.
         observacion = self._fila(now=momento(AYER, "17:00")).observation
-        self.assertIn(HOY.strftime("%d-%m"), observacion)
+        self.assertIn("Mañana 15:00", observacion)
         self.assertIn("Lab confirmó para mañana", observacion)
 
     def test_la_discrepancia_se_lee_en_la_lista(self):
@@ -240,7 +242,9 @@ class ObservacionTests(Base):
         self.tracking.send_to_laboratory(
             work.id, self.lab_a.id, expected_date=HOY, expected_time="15:30",
             responsible="Ana")
-        self.assertIn("Debía", self._fila(now=momento(HOY, "09:00")).observation)
+        # RC25: en pasado solo si ya vencio. A las 09:00 todavia vence.
+        self.assertIn("Vence Hoy 15:30", self._fila(now=momento(HOY, "09:00")).observation)
+        self.assertIn("Debía Hoy 15:30", self._fila(now=momento(HOY, "16:00")).observation)
 
     def test_un_trabajo_recien_enviado_no_tiene_observacion(self):
         self._lote(1)

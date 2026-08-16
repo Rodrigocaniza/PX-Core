@@ -10,7 +10,7 @@ duplicar registros ni perder su etapa real.
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from enum import Enum
 from typing import Iterable, Mapping, Sequence
 
@@ -60,6 +60,13 @@ class ReceptionIssue(str, Enum):
 
     NOT_ARRIVED = "NO_LLEGO"
     NOT_IN_LIST = "NO_ESTABA_EN_LISTA"
+
+
+#: Rotulo con el que la operadora lee la discrepancia en la propia fila.
+ETIQUETA_DISCREPANCIA = {
+    ReceptionIssue.NOT_ARRIVED: "NO LLEGÓ",
+    ReceptionIssue.NOT_IN_LIST: "NO ESTABA EN LISTA",
+}
 
 
 class NextAction(str, Enum):
@@ -590,6 +597,55 @@ def reception_progress(works: Sequence[TrackedWork]) -> dict[str, int]:
         "recibidos": enviados - pendientes,
         "falta_recibir": pendientes,
     }
+
+
+def reception_reconciliation(works: Sequence[TrackedWork]) -> dict[str, int]:
+    """Declarados / Recibidos / No llego / Extra sobre un conjunto de trabajos.
+
+    Unica cuenta de la recepcion. El servicio la aplica al lote y el tablero al
+    conjunto visible, de modo que la linea que lee la operadora y la que audita
+    el lote no puedan discrepar.
+
+    `recibidos` cuenta solo entre los declarados: si sumara los extra, los
+    numeros no cerrarian contra el total que Pilar envio.
+    """
+    extra = sum(1 for w in works if w.reception_issue is ReceptionIssue.NOT_IN_LIST)
+    no_llego = sum(1 for w in works if w.reception_issue is ReceptionIssue.NOT_ARRIVED)
+    recibidos = sum(
+        1 for w in works
+        if w.status is not TrackingStatus.SENT_FROM_PILAR and w.reception_issue is None
+    )
+    return {"declarados": len(works) - extra, "recibidos": recibidos,
+            "no_llego": no_llego, "extra": extra}
+
+
+def reconciliation_line(datos: Mapping[str, int]) -> str:
+    """`Declarados 15 · Recibidos 14 · No llegó 1 · Extra 1`, en una sola linea.
+
+    Los ceros no se ocultan: la operadora tiene que poder confirmar que la
+    recepcion cerro sin discrepancias, y una linea que cambia de forma segun el
+    caso obliga a releerla entera.
+    """
+    return " · ".join((
+        f"Declarados {datos['declarados']}",
+        f"Recibidos {datos['recibidos']}",
+        f"No llegó {datos['no_llego']}",
+        f"Extra {datos['extra']}",
+    ))
+
+
+def etiqueta_dia(valor: date, hoy: date | None = None) -> str:
+    """`Hoy`, `Mañana` o `dd-mm`.
+
+    La operadora razona en dias relativos, no en fechas: "Hoy 17:30" se lee de
+    un golpe y "16-08 17:30" obliga a compararla con el calendario.
+    """
+    referencia = hoy or date.today()
+    if valor == referencia:
+        return "Hoy"
+    if valor == referencia + timedelta(days=1):
+        return "Mañana"
+    return valor.strftime("%d-%m")
 
 
 def overdue_alert(works: Sequence[TrackedWork], now: datetime | None = None) -> str:

@@ -75,7 +75,20 @@ class BindingTests(unittest.TestCase):
         self.assertIn("018", versiones)
 
     def test_una_caja_sin_asignar_no_inventa_sucursal(self):
-        self.assertIsNone(self.tracking.branch_of_register("P2"))
+        """El principio sigue siendo no adivinar.
+
+        La 020 siembra PC, P2 y PILAR porque la operacion las declaro
+        inequivocas, no porque se hayan deducido. Cualquier otra caja sigue sin
+        sucursal hasta que alguien la asigne: inventarsela enrutaria trabajos
+        al local errado.
+        """
+        self.assertIsNone(self.tracking.branch_of_register("CAJA-NUEVA"))
+
+    def test_los_tres_vinculos_canonicos_vienen_sembrados(self):
+        """RC25: la alerta principal necesita saber en que local esta la caja."""
+        self.assertEqual(self.tracking.branch_of_register("PC"), "ASUNCION")
+        self.assertEqual(self.tracking.branch_of_register("P2"), "PILAR")
+        self.assertEqual(self.tracking.branch_of_register("PILAR"), "PILAR")
 
     def test_el_binding_persiste_y_es_unico_por_caja(self):
         self.tracking.bind_register_to_branch("PC", "ASUNCION", assigned_by="Admin")
@@ -84,7 +97,9 @@ class BindingTests(unittest.TestCase):
         self.tracking.bind_register_to_branch(
             "PC", "PILAR", assigned_by="Admin", reason="mudanza")
         self.assertEqual(self.tracking.branch_of_register("PC"), "PILAR")
-        self.assertEqual(len(self.tracking.list_register_branches()), 1)
+        self.assertEqual(
+            len([b for b in self.tracking.list_register_branches()
+                 if b["cash_register"] == "PC"]), 1)
 
     def test_el_binding_sobrevive_a_reabrir_la_aplicacion(self):
         import tempfile
@@ -120,7 +135,9 @@ class BindingTests(unittest.TestCase):
         servicio.open_day(business_date=HOY + timedelta(days=1), unit="PC",
                           opening_cash=0, opened_by="Carla")
         self.assertEqual(self.tracking.branch_of_register("PC"), "ASUNCION")
-        self.assertEqual(len(self.tracking.list_register_branches()), 1)
+        self.assertEqual(
+            len([b for b in self.tracking.list_register_branches()
+                 if b["cash_register"] == "PC"]), 1)
 
 
 class DosLocalesTests(unittest.TestCase):

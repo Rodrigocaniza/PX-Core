@@ -17,12 +17,16 @@ from ..domain.models import BUSINESS_TIMEZONE, parse_business_date, utc_now
 from ..domain.tracking import (
     DEFAULT_EXPECTED_TIME,
     ETIQUETA_ACCION,
+    ETIQUETA_DISCREPANCIA,
     TRANSICION_DE_ACCION,
     NextAction,
     ReceptionIssue,
     next_action as calcular_next_action,
     SUCURSAL_PROCESO_POR_DEFECTO,
+    etiqueta_dia,
     normalizar_sucursal,
+    reconciliation_line,
+    reception_reconciliation,
     ContactChannel,
     ContactRecord,
     Laboratory,
@@ -74,6 +78,35 @@ ALERTA_ATRASADO = "ATRASADO"
 ALERTA_CONFIRMADO = "CONFIRMADO PARA MAÑANA"
 SIN_LABORATORIO = "SIN ASIGNAR"
 
+#: Como se hablo con el laboratorio, en un caracter. La operadora necesita
+#: distinguir de un vistazo lo que se confirmo por telefono de lo que llego por
+#: WhatsApp, y un rotulo completo no entra en la columna.
+MARCA_CANAL = {
+    ContactChannel.CALL: "☎",
+    ContactChannel.WHATSAPP: "✆",
+    ContactChannel.OTHER: "",
+}
+
+#: Los seis grupos con los que la operadora piensa el circuito. El orden es el
+#: del flujo fisico, y cada uno resuelve una etapa entera: son secciones de una
+#: misma lista, no seis pantallas ni seis barras de botones.
+GRUPOS_SEGUIMIENTO = (
+    ("por_recibir", "Por recibir", TrackingStatus.SENT_FROM_PILAR),
+    ("para_laboratorio", "Para laboratorio", TrackingStatus.RECEIVED_IN_ASUNCION),
+    ("en_laboratorio", "En laboratorio", TrackingStatus.IN_LABORATORY),
+    ("para_pilar", "Para enviar a Pilar", TrackingStatus.RECEIVED_FROM_LABORATORY),
+    ("por_recibir_pilar", "Por recibir en Pilar", TrackingStatus.SENT_TO_PILAR),
+    ("completados", "Completados", TrackingStatus.RECEIVED_IN_PILAR),
+)
+
+#: Etapa -> grupo. `CERRADO` es archivado y comparte grupo con la recepcion en
+#: Pilar: para la operadora ambos son "ya esta".
+GRUPO_DE_ETAPA = {
+    **{etapa: clave for clave, _titulo, etapa in GRUPOS_SEGUIMIENTO},
+    TrackingStatus.CLOSED: "completados",
+}
+TITULO_DE_GRUPO = {clave: titulo for clave, titulo, _etapa in GRUPOS_SEGUIMIENTO}
+
 
 @dataclass(frozen=True)
 class BoardRow:
@@ -86,6 +119,14 @@ class BoardRow:
     work: TrackedWork
     laboratory: Laboratory | None
     overdue: bool
+    #: Momento contra el que se leen los dias relativos. Viaja con la fila para
+    #: que "Hoy" signifique lo mismo en la grilla que en el calculo del atraso.
+    now: datetime | None = None
+
+    @property
+    def _hoy(self) -> date:
+        momento = self.now or datetime.now(BUSINESS_TIMEZONE)
+        return momento.astimezone(BUSINESS_TIMEZONE).date()
 
     @property
     def envelope(self) -> str:
@@ -112,9 +153,17 @@ class BoardRow:
 
     @property
     def alert(self) -> str:
-        """Condicion derivada que acompaña a la etapa, si la hay."""
+        """Condicion derivada que acompaña a la etapa, si la hay.
+
+        El atraso va primero porque exige una llamada ahora. Despues las
+        discrepancias de recepcion, que la operadora tiene que ver en la fila
+        sin abrir nada: `NO LLEGÓ · ENVIADO DESDE PILAR` dice a la vez que el
+        trabajo falta y de donde venia.
+        """
         if self.overdue:
             return ALERTA_ATRASADO
+        if self.work.reception_issue is not None:
+            return ETIQUETA_DISCREPANCIA[self.work.reception_issue]
         if self.work.confirmed_for_next_day and self.work.status is TrackingStatus.IN_LABORATORY:
             return ALERTA_CONFIRMADO
         return ""
@@ -129,6 +178,15 @@ class BoardRow:
     @property
     def responsible_branch(self) -> str | None:
         return self.work.responsible_branch
+
+    @property
+    def group(self) -> str:
+        """Grupo operativo al que pertenece la fila. Deriva de la etapa."""
+        return GRUPO_DE_ETAPA[self.work.status]
+
+    @property
+    def group_title(self) -> str:
+        return TITULO_DE_GRUPO[self.group]
 
     @property
     def next_action(self) -> NextAction:
@@ -151,14 +209,23 @@ class BoardRow:
             return "Recibido sin figurar en la lista"
         contacto = self.work.last_contact
         if contacto is not None:
+            partes = []
             if contacto.next_expected_date is not None:
-                cuando = contacto.next_expected_date.strftime("%d-%m")
+                # "Hoy 17:30" / "Mañana 15:00": el plazo se lee sin comparar
+                # la fecha contra el calendario.
                 hora = (contacto.next_expected_time or DEFAULT_EXPECTED_TIME).strftime("%H:%M")
-                plazo = f"{cuando} {hora}"
-                return f"{plazo} · {contacto.result}" if contacto.result else plazo
-            return contacto.result or contacto.summary()
+                partes.append(f"{etiqueta_dia(contacto.next_expected_date, self._hoy)} {hora}")
+            if contacto.result:
+                partes.append(contacto.result)
+            if not partes:
+                partes.append(contacto.summary())
+            marca = MARCA_CANAL.get(contacto.channel, "")
+            return f"{marca} {' · '.join(partes)}".strip()
         if self.work.expected_date is not None:
-            return f"Debía {self.expected_label}"
+            # "Debía" solo cuando el plazo ya vencio. Un trabajo que vence
+            # mañana no "debia" nada: leerlo en pasado hace pensar que hay un
+            # problema donde no lo hay.
+            return f"{'Debía' if self.overdue else 'Vence'} {self.expected_relative}"
         return ""
 
     @property
@@ -187,6 +254,18 @@ class BoardRow:
         fecha = self.work.expected_date.strftime("%d-%m")
         hora = (self.work.expected_time or DEFAULT_EXPECTED_TIME).strftime("%H:%M")
         return f"{fecha} {hora}"
+
+    @property
+    def expected_relative(self) -> str:
+        """El mismo plazo en dias relativos, para leerlo dentro de la grilla.
+
+        El detalle conserva `expected_label` con la fecha absoluta: ahi la
+        operadora esta verificando un dato, no barriendo una lista.
+        """
+        if self.work.expected_date is None:
+            return ""
+        hora = (self.work.expected_time or DEFAULT_EXPECTED_TIME).strftime("%H:%M")
+        return f"{etiqueta_dia(self.work.expected_date, self._hoy)} {hora}"
 
     @property
     def last_news(self) -> str:
@@ -304,37 +383,43 @@ class TrackingService:
             1 for w in works if w.status is TrackingStatus.RECEIVED_FROM_LABORATORY)
         por_recibir_encomienda = sum(
             1 for w in works if w.status is TrackingStatus.SENT_TO_PILAR)
+        # Cada alerta lleva el grupo que la origino: al pulsarla, Seguimiento
+        # abre exactamente esos trabajos y no una vista parecida que la
+        # operadora tenga que volver a filtrar a mano.
         alertas = []
         if atrasados:
             alertas.append({
                 "clave": "atrasados", "cantidad": atrasados, "filtro": "Atrasados",
+                # El atraso cruza etapas: no es un grupo, es una condicion.
+                "grupo": None,
                 "texto": f"{atrasados} atrasado{'' if atrasados == 1 else 's'}"
                          " — contactar laboratorios"})
         if por_recibir_consulta:
             alertas.append({
                 "clave": "por_recibir", "cantidad": por_recibir_consulta,
-                "filtro": "Por recibir",
+                "filtro": "Por recibir", "grupo": "por_recibir",
                 "texto": f"{por_recibir_consulta} por recibir desde Pilar"})
         if por_enviar_lab:
             alertas.append({
                 "clave": "por_enviar_lab", "cantidad": por_enviar_lab,
-                "filtro": "Recibidos en Asunción",
+                "filtro": "Recibidos en Asunción", "grupo": "para_laboratorio",
                 "texto": f"{por_enviar_lab} pendiente{'' if por_enviar_lab == 1 else 's'}"
                          " de enviar a laboratorio"})
         if por_encomendar:
             alertas.append({
                 "clave": "por_encomendar", "cantidad": por_encomendar,
-                "filtro": "Listos p/ Pilar",
+                "filtro": "Listos p/ Pilar", "grupo": "para_pilar",
                 "texto": f"{por_encomendar} listo{'' if por_encomendar == 1 else 's'}"
                          " para enviar a Pilar"})
         if por_recibir_encomienda:
             alertas.append({
                 "clave": "por_recibir_encomienda", "cantidad": por_recibir_encomienda,
-                "filtro": "En tránsito",
+                "filtro": "En tránsito", "grupo": "por_recibir_pilar",
                 "texto": f"{por_recibir_encomienda} encomienda(s) por recibir en "
                          f"{objetivo.title()}"})
         return {
             "branch": objetivo, "total": len(works), "alertas": alertas,
+            "principal": alertas[0] if alertas else None,
             "atrasados": atrasados, "en_laboratorio": en_lab,
         }
 
@@ -510,6 +595,35 @@ class TrackingService:
             result=note or "No llegó en el envío")
         return guardado
 
+    def mark_batch_not_arrived(
+        self, work_ids: Sequence[str], *, responsible: str, note: str = "",
+    ) -> list:
+        """La operadora chequea el lote entero y marca de una vez lo que falta.
+
+        Recibir es masivo desde RC24; marcar lo que no llego tenia que serlo
+        tambien, o la discrepancia sale mas cara de registrar que el caso
+        normal y termina sin registrarse.
+        """
+        if not work_ids:
+            raise InvalidCashDayError("marcá al menos un trabajo como NO LLEGÓ")
+        return [
+            self.mark_not_arrived(work_id, responsible=responsible, note=note)
+            for work_id in work_ids
+        ]
+
+    def search_receivable_orders(
+        self, term: str, *, branch: str | None = None, limit: int = 25,
+    ) -> Sequence:
+        """Pedidos ya cargados que todavia no entraron al circuito.
+
+        Es la busqueda que sostiene NO ESTABA EN LISTA: el fisico que aparecio
+        casi siempre corresponde a un pedido existente, asi que primero se
+        busca por sobre o cliente y se reutiliza lo cargado. Volver a escribir
+        cliente y receta seria duplicar un dato que ya existe.
+        """
+        return self.repository.search_untracked_orders(
+            str(term or "").strip(), branch=branch or None, limit=limit)
+
     def add_unlisted_reception(
         self, order_id: str, *, responsible: str, shipment_id: str | None = None,
         note: str = "",
@@ -533,21 +647,50 @@ class TrackingService:
             note=note or "Recibido sin figurar en la lista")
 
     def reception_reconciliation(self, shipment_id: str) -> dict:
-        """Declarados / Recibidos / No llegó / Extra, en una linea."""
-        trabajos = [
+        """Declarados / Recibidos / No llegó / Extra de un lote."""
+        return reception_reconciliation([
             w for w in self.repository.list_tracked_works() if w.shipment_id == shipment_id
-        ]
-        extra = sum(1 for w in trabajos if w.reception_issue is ReceptionIssue.NOT_IN_LIST)
-        no_llego = sum(1 for w in trabajos if w.reception_issue is ReceptionIssue.NOT_ARRIVED)
-        # `recibidos` cuenta solo entre los declarados: si sumara los extra,
-        # los numeros no cerrarian contra el total que Pilar envio.
-        recibidos = sum(
-            1 for w in trabajos
-            if w.status is not TrackingStatus.SENT_FROM_PILAR
-            and w.reception_issue is None
-        )
-        return {"declarados": len(trabajos) - extra, "recibidos": recibidos,
-                "no_llego": no_llego, "extra": extra}
+        ])
+
+    def current_reception(self, branch: str | None = None) -> dict:
+        """La recepcion que la operadora tiene entre manos, si hay alguna.
+
+        Se elige el lote mas reciente que todavia tiene algo sin resolver: o
+        falta recibir, o quedo un NO LLEGÓ pendiente. Cuando no queda nada
+        abierto no hay recepcion en curso y la barra no tiene por que ocupar
+        lugar en la pantalla.
+        """
+        objetivo = normalizar_sucursal(branch) if branch else None
+        por_lote: dict[str, list[TrackedWork]] = {}
+        for work in self.repository.list_tracked_works():
+            if work.shipment_id:
+                por_lote.setdefault(work.shipment_id, []).append(work)
+        abiertos = []
+        for shipment_id, trabajos in por_lote.items():
+            pendiente = any(
+                w.status is TrackingStatus.SENT_FROM_PILAR for w in trabajos)
+            if not pendiente:
+                continue
+            envio = self.repository.get_pilar_shipment(shipment_id)
+            if envio is None:
+                continue
+            if objetivo and normalizar_sucursal(envio.destination_branch) != objetivo:
+                continue
+            abiertos.append((envio, trabajos))
+        if not abiertos:
+            return {"shipment": None, "works": (), "line": "", "pendientes": 0,
+                    **reception_reconciliation(())}
+        envio, trabajos = max(abiertos, key=lambda par: (par[0].shipped_on, par[0].created_at))
+        conciliacion = reception_reconciliation(trabajos)
+        return {
+            "shipment": envio, "works": tuple(trabajos),
+            "line": reconciliation_line(conciliacion),
+            "pendientes": sum(
+                1 for w in trabajos
+                if w.status is TrackingStatus.SENT_FROM_PILAR
+                and w.reception_issue is None),
+            **conciliacion,
+        }
 
     def work_detail(self, work_id: str, *, now: datetime | None = None) -> dict:
         """Ficha completa del trabajo: identidad, plazo, contacto e historial."""
@@ -556,9 +699,10 @@ class TrackingService:
             self.repository.get_laboratory(work.laboratory_id)
             if work.laboratory_id else None
         )
+        momento = now or datetime.now(BUSINESS_TIMEZONE)
         fila = BoardRow(
             work=work, laboratory=laboratorio,
-            overdue=work.is_overdue(now or datetime.now(BUSINESS_TIMEZONE)),
+            overdue=work.is_overdue(momento), now=momento,
         )
         return {
             "envelope": fila.envelope,
@@ -718,7 +862,8 @@ class TrackingService:
         self, *, consultation_date: date | str | None = None, status: str | None = None,
         laboratory_id: str | None = None, only_overdue: bool = False,
         origin_branch: str | None = None, responsible_branch: str | None = None,
-        scope: str = SCOPE_ACTIVOS, now: datetime | None = None,
+        scope: str = SCOPE_ACTIVOS, group: str | None = None,
+        now: datetime | None = None,
     ) -> dict:
         """Todo lo que la pantalla necesita, resuelto en una sola consulta.
 
@@ -744,22 +889,34 @@ class TrackingService:
         filas = [
             BoardRow(
                 work=work, laboratory=catalogo.get(work.laboratory_id),
-                overdue=work.is_overdue(momento),
+                overdue=work.is_overdue(momento), now=momento,
             )
             for work in works
         ]
         if only_overdue:
             filas = [fila for fila in filas if fila.overdue]
-        # Las excepciones primero: atrasado, luego lo que vence antes.
+        if group:
+            filas = [fila for fila in filas if fila.group == group]
+        # Las excepciones primero: atrasado, luego lo que vence antes. El orden
+        # de las filas sigue siendo el de urgencia y no el del circuito: la
+        # agrupacion por etapa es una decision de presentacion, y hacerla aca
+        # enterraria un atrasado debajo de dos etapas anteriores.
         filas.sort(key=lambda fila: (
             0 if fila.overdue else 1,
             fila.work.deadline or datetime.max.replace(tzinfo=BUSINESS_TIMEZONE),
             fila.work.envelope,
         ))
+        conteo_grupos = {clave: 0 for clave, _t, _e in GRUPOS_SEGUIMIENTO}
+        for fila in filas:
+            conteo_grupos[fila.group] += 1
+        conciliacion = reception_reconciliation(works)
         return {
             "rows": filas,
+            "groups": conteo_grupos,
             "summary": operational_summary(works, momento),
             "reception": reception_progress(works),
+            "reconciliation": conciliacion,
+            "reconciliation_line": reconciliation_line(conciliacion),
             "overdue_groups": group_overdue_by_laboratory(works, catalogo, momento),
             "alert": overdue_alert(works, momento),
         }

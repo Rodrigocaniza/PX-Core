@@ -45,6 +45,7 @@ from modulos.caja_diaria.domain.models import (
 )
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.tracking import NextAction, TrackingStatus
+from modulos.caja_diaria.application.tracking_service import GRUPOS_SEGUIMIENTO
 from modulos.caja_diaria.ui.controller import friendly_error
 from modulos.caja_diaria.ui.privacy import FinancialPrivacy
 
@@ -849,6 +850,22 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         barra_superior, text="BC Caja Diaria   │   Óptica Central",
         text_color="#FFFFFF", font=ctk.CTkFont(size=(18 if perfil["nombre"] == "full-hd" else 14), weight="bold"),
     ).pack(side="left", padx=(0, 12))
+
+    # RC25: la alerta del circuito, en la franja que la operadora tiene siempre
+    # delante. Antes habia que entrar a Seguimiento para enterarse de que habia
+    # 15 trabajos esperando, es decir, habia que sospecharlo primero; ahora lo
+    # dice la propia pantalla y el clic lleva exactamente a esos trabajos.
+    # Va aca y no en la cabecera de Caja porque ahi competia por el ancho con
+    # los seis importes y terminaba recortandolos.
+    aviso_seguimiento = ctk.CTkButton(
+        barra_superior, text="", height=(26 if perfil["nombre"] == "full-hd" else 22),
+        fg_color="#FDECEC", text_color="#A32626", hover_color="#FBDADA",
+        corner_radius=6, anchor="w",
+        font=ctk.CTkFont(size=(13 if perfil["nombre"] == "full-hd" else 11),
+                         weight="bold"),
+        command=lambda: ir_a_pendientes_sucursal(),
+    )
+
     privacidad = FinancialPrivacy(timeout_seconds=300)
     estado_admin = {"session": None, "window": None}
     navegacion = ctk.CTkFrame(
@@ -1169,7 +1186,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     campos_manual["caja_inicial"].bind("<Key>", lambda _event: "break")
 
     aviso_entregas = ctk.CTkButton(
-        cabecera, text="Trabajos a entregar: 0", width=150, height=max(27, perfil["campo_alto"]),
+        cabecera, text="Trabajos a entregar: 0", width=150,
+        height=max(27, perfil["campo_alto"]),
         font=ctk.CTkFont(size=fuente_chrome_cabecera, weight="bold"),
         fg_color="#FFF3CD", text_color="#7A4B00", border_width=1,
         border_color="#E6B85C", hover_color="#FFE5A3",
@@ -3204,25 +3222,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         botones_estado_pedido[estado] = boton
     grilla_pedidos.bind("<<TreeviewSelect>>", actualizar_botones_pedido, add="+")
     actualizar_botones_pedido()
-    def refrescar_avisos():
-        hoy, atrasados = controller.order_counts()
-        pendientes = hoy + atrasados
-        aviso_entregas.configure(
-            text=f"⚠ Trabajos {pendientes}",
-            fg_color="#FFE5A3" if pendientes else "#F7FAFF",
-            text_color="#7A4B00" if pendientes else COLOR_TEXTO_SUAVE,
-        )
-
-    refrescar_avisos()
-
-    # ---- Seguimiento RC19: Pilar -> Asuncion -> laboratorio -> Pilar ----
-    # Vista operativa, no panel de metricas: arriba las excepciones, en la
-    # grilla el laboratorio con su linea y su WhatsApp ya resueltos.
-    seguimiento = ctk.CTkFrame(tab_seguimiento, fg_color="transparent")
-    seguimiento.pack(fill="both", expand=True, padx=10, pady=8)
-
     # La sucursal sale del vinculo persistente de esta caja, no de la cajera ni
     # del combo de unidad del formulario. Si nadie la asigno, no se adivina.
+    # Se resuelve aca, antes que los avisos, porque tanto la cabecera de Caja
+    # como la pestaña de Seguimiento preguntan en que local estan.
     def caja_instalada():
         try:
             return str(controller.admin.setting("branch").get("cashbox", "")).strip()
@@ -3238,6 +3241,65 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         controller.tracking.branch_of_register(contexto_sucursal["caja"])
         if contexto_sucursal["caja"] else None
     )
+    #: Alerta que la cabecera esta mostrando ahora, para que el clic sepa a que
+    #: grupo llevar. Se rellena en cada refresco.
+    aviso_principal = {}
+
+    def refrescar_avisos():
+        hoy, atrasados = controller.order_counts()
+        pendientes = hoy + atrasados
+        aviso_entregas.configure(
+            text=f"⚠ Trabajos {pendientes}",
+            fg_color="#FFE5A3" if pendientes else "#F7FAFF",
+            text_color="#7A4B00" if pendientes else COLOR_TEXTO_SUAVE,
+        )
+        refrescar_aviso_seguimiento()
+
+    def refrescar_aviso_seguimiento():
+        """`⚠ 15 por recibir desde Pilar — clic para ver`, o nada.
+
+        Se muestra la alerta mas urgente de esta sucursal, una sola: dos o tres
+        avisos compitiendo en la cabecera vuelven a obligar a decidir cual
+        mirar, que es justo lo que la alerta viene a evitar.
+        """
+        sucursal = contexto_sucursal["sucursal"]
+        if not sucursal:
+            aviso_seguimiento.pack_forget()
+            return
+        try:
+            pendientes = controller.tracking.pending_actions_for_branch(sucursal)
+        except Exception:
+            # La cabecera de Caja no se cae porque el circuito falle.
+            aviso_seguimiento.pack_forget()
+            return
+        principal = pendientes.get("principal")
+        if not principal:
+            aviso_seguimiento.pack_forget()
+            return
+        aviso_principal.update(principal)
+        critico = principal["clave"] == "atrasados"
+        aviso_seguimiento.configure(
+            text=f"⚠ {principal['texto']} — clic para ver",
+            fg_color="#FDECEC" if critico else "#FFF3CD",
+            text_color="#A32626" if critico else "#7A4B00",
+            border_color="#E5A3A3" if critico else "#E6B85C",
+            hover_color="#FBDADA" if critico else "#FFE5A3")
+        aviso_seguimiento.pack(side="left", padx=(4, 12))
+
+    def ir_a_pendientes_sucursal():
+        """Abre Seguimiento ya filtrado en los trabajos que originaron el aviso."""
+        contexto_alerta["filtro"] = aviso_principal.get("filtro") or "Atrasados"
+        contexto_alerta["grupo"] = aviso_principal.get("grupo")
+        seleccionar_pestaña("Seguimiento")
+        ir_a_atrasados()
+
+    refrescar_avisos()
+
+    # ---- Seguimiento RC19: Pilar -> Asuncion -> laboratorio -> Pilar ----
+    # Vista operativa, no panel de metricas: arriba las excepciones, en la
+    # grilla el laboratorio con su linea y su WhatsApp ya resueltos.
+    seguimiento = ctk.CTkFrame(tab_seguimiento, fg_color="transparent")
+    seguimiento.pack(fill="both", expand=True, padx=10, pady=8)
 
     alerta_seguimiento = ctk.CTkLabel(
         seguimiento, text="", height=30, corner_radius=6, anchor="w",
@@ -3296,10 +3358,17 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("Recibidos en Asunción", "RECIBIDO_EN_ASUNCION"),
         ("Completados", "COMPLETADOS"), ("Todos", "TODOS"),
     )
+    # RC25: de nueve filtros a tres. Los que faltan no desaparecieron: eran
+    # etapas, y las etapas ahora se leen como secciones dentro de la propia
+    # lista. Lo que queda aca es el alcance, que es otro eje: que tan atras
+    # mirar. La operadora no elige etapa, ve todas las suyas de una vez.
+    FILTROS_VISIBLES = ("Activos", "Completados", "Todos")
     botones_seguimiento = {}
     for nombre_filtro, _valor in FILTROS_SEGUIMIENTO:
+        if nombre_filtro not in FILTROS_VISIBLES:
+            continue
         boton_seg = ctk.CTkButton(
-            barra_seguimiento, text=nombre_filtro, width=112, height=30,
+            barra_seguimiento, text=nombre_filtro, width=100, height=30,
             fg_color="transparent", hover_color="#EAF3FF", text_color=color_suave,
             border_width=1, border_color=color_borde_suave,
             font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
@@ -3349,6 +3418,35 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
         command=lambda: abrir_nuevo_envio_pilar(),
     ).pack(side="right", padx=(6, 0))
+
+    # RC25: la recepcion del lote, en una sola linea y con sus dos
+    # discrepancias a mano. Aparece solo mientras hay un lote sin terminar de
+    # recibir: cuando la recepcion cerro, deja de ocupar pantalla. Recibir no
+    # tiene boton propio, porque ya es la "Acción siguiente" de un trabajo
+    # ENVIADO DESDE PILAR; aca van las dos salidas que no son el caso normal.
+    barra_recepcion = ctk.CTkFrame(seguimiento, fg_color="#FFF9EC", corner_radius=6)
+    etiqueta_conciliacion = ctk.CTkLabel(
+        barra_recepcion, text="", anchor="w", text_color="#7A4B00",
+        font=ctk.CTkFont(size=perfil["fuente_label"] + 1, weight="bold"),
+    )
+    etiqueta_conciliacion.pack(side="left", padx=(10, 14), pady=6)
+
+    boton_no_llego = ctk.CTkButton(
+        barra_recepcion, text="No llegó", width=120, height=30,
+        fg_color="#FFFFFF", text_color="#A32626", border_width=1,
+        border_color="#E5A3A3", hover_color="#FDECEC",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=lambda: marcar_no_llego(),
+    )
+    boton_no_llego.pack(side="left", padx=(0, 6), pady=6)
+
+    ctk.CTkButton(
+        barra_recepcion, text="+ No estaba en lista", width=180, height=30,
+        fg_color="#FFFFFF", text_color=color_azul, border_width=1,
+        border_color=color_borde_suave, hover_color="#EAF3FF",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=lambda: abrir_no_estaba_en_lista(),
+    ).pack(side="left", pady=6)
 
     marco_seguimiento = ctk.CTkFrame(seguimiento, fg_color="#FFFFFF", corner_radius=6)
     marco_seguimiento.pack(fill="both", expand=True)
@@ -3448,9 +3546,20 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     acciones_seguimiento = ctk.CTkFrame(seguimiento, fg_color="transparent")
     acciones_seguimiento.pack(fill="x", pady=(6, 0))
 
-    estado_seguimiento = {"filas": {}, "widgets": {}, "seleccion": None,
-                          "marcados": set()}
-    contexto_alerta = {"filtro": "Atrasados"}
+    estado_seguimiento = {"filas": {}, "widgets": {}, "secciones": [],
+                          "seleccion": None, "marcados": set()}
+    # `foco` es el grupo al que la operadora entro desde una alerta o desde un
+    # encabezado. None significa la vista normal: todos sus grupos a la vez.
+    contexto_alerta = {"filtro": "Atrasados", "grupo": None}
+    contexto_grupo = {"foco": None}
+    # Lote cuya recepcion esta abierta: es al que se cuelga un fisico que
+    # aparecio sin figurar en la lista.
+    estado_recepcion = {"shipment": None}
+
+    def enfocar_grupo(clave):
+        """Abre exactamente un grupo, o vuelve a la vista completa."""
+        contexto_grupo["foco"] = None if contexto_grupo["foco"] == clave else clave
+        refrescar_seguimiento()
 
     def alternar_marca(work_id):
         marcados = estado_seguimiento["marcados"]
@@ -3515,7 +3624,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         tablero = controller.tracking.board(
             status=estado, only_overdue=solo_atrasados,
             laboratory_id=laboratory_id, scope=alcance,
-            responsible_branch=local,
+            responsible_branch=local, group=contexto_grupo["foco"],
         )
         if not sucursal:
             etiqueta_sucursal.configure(
@@ -3533,10 +3642,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                       else "Ver todas las sucursales"))
         for widgets in estado_seguimiento["widgets"].values():
             widgets["fila"].destroy()
+        for seccion in estado_seguimiento["secciones"]:
+            seccion.destroy()
         estado_seguimiento["widgets"].clear()
         estado_seguimiento["filas"].clear()
-        for indice, fila in enumerate(tablero["rows"]):
-            fondo = "#FFF5F5" if fila.overdue else ("#FFFFFF" if indice % 2 else "#FAFCFE")
+        estado_seguimiento["secciones"].clear()
+        def dibujar_fila(fila, indice, posicion):
+            fondo = "#FFF5F5" if fila.overdue else ("#FFFFFF" if posicion % 2 else "#FAFCFE")
             marco_fila = ctk.CTkFrame(
                 lista_seguimiento, fg_color=fondo, corner_radius=0,
                 height=perfil["fuente"] + 22)
@@ -3596,6 +3708,44 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             estado_seguimiento["filas"][identificador] = fila
             estado_seguimiento["widgets"][identificador] = {
                 "fila": marco_fila, "fondo": fondo, "fondo_activo": "#DCEBFA"}
+
+        # RC25: la lista se recorre como el circuito. Cada grupo abre con su
+        # encabezado y su cantidad, de modo que la operadora ve de una vez que
+        # etapas tienen trabajo esperandola sin cambiar de pantalla ni elegir
+        # un filtro. Dentro de cada grupo mandan las excepciones, que es el
+        # orden en que el tablero ya devolvio las filas.
+        por_grupo = {clave: [] for clave, _t, _e in GRUPOS_SEGUIMIENTO}
+        for fila in tablero["rows"]:
+            por_grupo[fila.group].append(fila)
+        indice = 0
+        for clave_grupo, titulo_grupo, _etapa in GRUPOS_SEGUIMIENTO:
+            filas_grupo = por_grupo[clave_grupo]
+            if not filas_grupo:
+                continue
+            enfocado = contexto_grupo["foco"] == clave_grupo
+            cabecera_grupo = ctk.CTkFrame(
+                lista_seguimiento, fg_color="#EEF4FB" if enfocado else "#F7FAFF",
+                corner_radius=4, height=perfil["fuente"] + 14)
+            cabecera_grupo.grid(
+                row=indice, column=0, sticky="ew", pady=(6 if indice else 0, 2))
+            cabecera_grupo.grid_propagate(False)
+            ctk.CTkLabel(
+                cabecera_grupo,
+                text=f"  {titulo_grupo}  ·  {len(filas_grupo)}"
+                     + ("     (viendo solo este grupo — clic para ver todo)"
+                        if enfocado else ""),
+                anchor="w", text_color=color_azul if enfocado else color_texto,
+                font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
+            ).pack(side="left", padx=6, pady=2)
+            for widget in (cabecera_grupo, *cabecera_grupo.winfo_children()):
+                widget.configure(cursor="hand2")
+                widget.bind("<Button-1>",
+                            lambda _e, g=clave_grupo: enfocar_grupo(g), add="+")
+            estado_seguimiento["secciones"].append(cabecera_grupo)
+            indice += 1
+            for posicion, fila in enumerate(filas_grupo):
+                dibujar_fila(fila, indice, posicion)
+                indice += 1
         estado_seguimiento["marcados"] &= set(estado_seguimiento["filas"])
         if estado_seguimiento["seleccion"] not in estado_seguimiento["filas"]:
             estado_seguimiento["seleccion"] = None
@@ -3605,11 +3755,27 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             valor.configure(text=str(cantidad))
             if clave == "atrasados":
                 tarjeta.configure(fg_color="#FDECEC" if cantidad else "#FFFFFF")
-        recepcion = tablero["reception"]
-        recepcion_seguimiento.configure(
-            text="Enviados: {enviados}    Recibidos: {recibidos}    "
-                 "Falta recibir: {falta_recibir}".format(**recepcion)
-        )
+        # La conciliacion se muestra mientras la recepcion sigue abierta. Es
+        # una linea, no un tablero: `Declarados 15 · Recibidos 14 · No llegó 1
+        # · Extra 1` alcanza para saber si el lote cerro.
+        recepcion_actual = controller.tracking.current_reception(sucursal)
+        estado_recepcion["shipment"] = (
+            recepcion_actual["shipment"].id if recepcion_actual["shipment"] else None)
+        if recepcion_actual["shipment"] is not None:
+            etiqueta_conciliacion.configure(text=recepcion_actual["line"])
+            barra_recepcion.pack(fill="x", pady=(0, 6), before=marco_seguimiento)
+            # Una sola cuenta de recepcion a la vez. El resumen de arriba mide
+            # lo que hay en pantalla y la conciliacion mide el lote declarado:
+            # juntos daban dos totales distintos para la misma palabra.
+            recepcion_seguimiento.pack_forget()
+        else:
+            barra_recepcion.pack_forget()
+            recepcion = tablero["reception"]
+            recepcion_seguimiento.configure(
+                text="Enviados: {enviados}    Recibidos: {recibidos}    "
+                     "Falta recibir: {falta_recibir}".format(**recepcion)
+            )
+            recepcion_seguimiento.pack(side="right", padx=8)
         # Las alertas son de este local: se calculan por proxima accion
         # pendiente de su sucursal, no por existencia global del trabajo.
         pendientes = (
@@ -3619,6 +3785,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         if pendientes and pendientes["alertas"]:
             principal = pendientes["alertas"][0]
             contexto_alerta["filtro"] = principal["filtro"]
+            contexto_alerta["grupo"] = principal["grupo"]
             resto = len(pendientes["alertas"]) - 1
             texto = f"  ⚠  {principal['texto']}"
             if resto:
@@ -3630,6 +3797,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             alerta_seguimiento.pack(fill="x", pady=(0, 6), before=resumen_seguimiento)
         elif tablero["alert"] and contexto_sucursal["todas"]:
             contexto_alerta["filtro"] = "Atrasados"
+            contexto_alerta["grupo"] = None
             alerta_seguimiento.configure(
                 text="  ⚠  " + tablero["alert"] + "   ·   clic para ver solo estos",
                 fg_color="#FDECEC", text_color="#A32626")
@@ -3653,7 +3821,153 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             panel_atrasados.pack(fill="x", pady=(6, 0), before=acciones_seguimiento)
         else:
             panel_atrasados.pack_forget()
+        # La cabecera de Caja y esta pestaña leen la misma fuente y se refrescan
+        # juntas: no pueden quedar diciendo cosas distintas.
+        refrescar_aviso_seguimiento()
         actualizar_acciones_seguimiento()
+
+    def marcar_no_llego():
+        """Lo que figuraba en el envio y no aparecio, marcado en bloque.
+
+        No avanza de etapa: queda ligado al lote como NO LLEGÓ y bloquea su
+        propio avance hasta que aparezca o se corrija.
+        """
+        ids = seleccion_actual()
+        if not ids:
+            messagebox.showwarning(
+                "No llegó", "Marcá los trabajos que no aparecieron en el envío.",
+                parent=ventana)
+            return
+        if not messagebox.askyesno(
+                "No llegó",
+                f"¿Marcar {len(ids)} trabajo(s) como NO LLEGÓ?\n\n"
+                "Quedan ligados al envío y no avanzan hasta resolverse.",
+                parent=ventana):
+            return
+        try:
+            controller.tracking.mark_batch_not_arrived(
+                ids, responsible=responsable_actual())
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        refrescar_seguimiento()
+
+    def abrir_no_estaba_en_lista():
+        """El fisico que aparecio sin figurar: se busca el pedido y se reutiliza.
+
+        Primero se busca por Sobre o cliente entre los pedidos ya cargados. Si
+        el pedido existe —y casi siempre existe— no se vuelve a escribir
+        cliente ni receta: se cuelga ese mismo pedido al lote.
+        """
+        dialogo = ctk.CTkToplevel(ventana)
+        dialogo.title("Recibir un trabajo que no estaba en la lista")
+        dialogo.geometry("760x520")
+        dialogo.transient(ventana)
+        dialogo.grab_set()
+
+        ctk.CTkLabel(
+            dialogo, text="Buscá el trabajo por Sobre o por cliente",
+            text_color=color_texto,
+            font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold"),
+        ).pack(anchor="w", padx=14, pady=(12, 2))
+        ctk.CTkLabel(
+            dialogo, text="El pedido ya está cargado: no hace falta volver a "
+                          "escribir cliente ni receta.",
+            text_color=color_suave, font=ctk.CTkFont(size=perfil["fuente_label"]),
+        ).pack(anchor="w", padx=14, pady=(0, 8))
+
+        fila_busqueda = ctk.CTkFrame(dialogo, fg_color="transparent")
+        fila_busqueda.pack(fill="x", padx=14)
+        campo_busqueda = ctk.CTkEntry(
+            fila_busqueda, height=32, placeholder_text="Sobre o cliente")
+        campo_busqueda.pack(side="left", fill="x", expand=True)
+
+        lista = ctk.CTkScrollableFrame(dialogo, fg_color="#FFFFFF")
+        lista.pack(fill="both", expand=True, padx=14, pady=(8, 6))
+        elegido = {"order_id": None}
+        estado_busqueda = ctk.CTkLabel(
+            dialogo, text="", anchor="w", text_color=color_suave,
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"))
+        estado_busqueda.pack(anchor="w", padx=14)
+
+        def elegir(order_id, etiqueta):
+            elegido["order_id"] = order_id
+            estado_busqueda.configure(
+                text=f"Seleccionado: {etiqueta}", text_color=color_verde)
+
+        def buscar(_event=None):
+            for hijo in lista.winfo_children():
+                hijo.destroy()
+            elegido["order_id"] = None
+            termino = campo_busqueda.get().strip()
+            if not termino:
+                estado_busqueda.configure(
+                    text="Escribí un sobre o un cliente para buscar.",
+                    text_color=color_suave)
+                return
+            try:
+                candidatos = controller.tracking.search_receivable_orders(termino)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            if not candidatos:
+                estado_busqueda.configure(
+                    text="Ningún pedido pendiente coincide. "
+                         "Puede que ya esté en el circuito.",
+                    text_color="#B45309")
+                return
+            estado_busqueda.configure(
+                text=f"{len(candidatos)} pedido(s). Elegí el que llegó.",
+                text_color=color_suave)
+            for pedido in candidatos:
+                etiqueta = (f"{pedido.envelope or '—'}   ·   {pedido.customer_name}"
+                            f"   ·   {pedido.branch}")
+                ctk.CTkButton(
+                    lista, text=etiqueta, anchor="w", height=30,
+                    fg_color="transparent", text_color=color_texto,
+                    hover_color="#EAF3FF",
+                    font=ctk.CTkFont(size=perfil["fuente"]),
+                    command=lambda o=pedido.id, e=etiqueta: elegir(o, e),
+                ).pack(fill="x", pady=1)
+
+        ctk.CTkButton(
+            fila_busqueda, text="Buscar", width=110, height=32,
+            fg_color=color_azul, hover_color="#0F5FC7",
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+            command=buscar,
+        ).pack(side="left", padx=(6, 0))
+        campo_busqueda.bind("<Return>", buscar, add="+")
+
+        def confirmar():
+            if not elegido["order_id"]:
+                messagebox.showwarning(
+                    "Elegí el trabajo", "Buscá y seleccioná el pedido que llegó.",
+                    parent=dialogo)
+                return
+            try:
+                controller.tracking.add_unlisted_reception(
+                    elegido["order_id"], responsible=responsable_actual(),
+                    shipment_id=estado_recepcion["shipment"])
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            dialogo.destroy()
+            refrescar_seguimiento()
+
+        acciones = ctk.CTkFrame(dialogo, fg_color="transparent")
+        acciones.pack(fill="x", padx=14, pady=12, side="bottom")
+        ctk.CTkButton(
+            acciones, text="Recibir este trabajo", width=200, height=34,
+            fg_color=color_verde, hover_color="#128A57",
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+            command=confirmar,
+        ).pack(side="left")
+        ctk.CTkButton(
+            acciones, text="Cancelar", width=120, height=34, fg_color="#52657D",
+            command=dialogo.destroy,
+        ).pack(side="right")
+        campo_busqueda.focus_set()
+        return dialogo
 
     def accion_seguimiento(operacion):
         fila = trabajo_seleccionado()
@@ -3945,8 +4259,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         boton_novedad.configure(state="normal" if hay else "disabled")
 
     def ir_a_atrasados(_event=None):
-        """Abre exactamente los trabajos que originaron la alerta."""
-        refrescar_seguimiento(contexto_alerta.get("filtro") or "Atrasados")
+        """Abre exactamente los trabajos que originaron la alerta.
+
+        El grupo viaja con la alerta, asi que el filtro se aplica solo: la
+        operadora no tiene que volver a tocar Atrasados ni buscar a mano.
+        """
+        grupo = contexto_alerta.get("grupo")
+        contexto_grupo["foco"] = grupo
+        # Un atraso cruza etapas: no es un grupo, se abre por su filtro.
+        refrescar_seguimiento(
+            "Activos" if grupo else (contexto_alerta.get("filtro") or "Atrasados"))
 
     alerta_seguimiento.configure(cursor="hand2")
     alerta_seguimiento.bind("<Button-1>", ir_a_atrasados, add="+")
