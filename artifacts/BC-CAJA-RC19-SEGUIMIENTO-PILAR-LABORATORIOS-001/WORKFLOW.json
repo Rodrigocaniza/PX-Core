@@ -1,0 +1,31 @@
+{
+  "mission": "BC-CAJA-RC19-SEGUIMIENTO-PILAR-LABORATORIOS-001",
+  "base_commit": "fdac03a9aff95d74f8131ec5cc1010a7e1f9cecb",
+  "branch": "feature/bc-caja-rc19-seguimiento-pilar-laboratorios-001",
+  "current_state": "CLOSED",
+  "continuous_session": "ACTIVE",
+  "auto_resume": "ACTIVE",
+  "safe_closure": "COMPLETE",
+  "mission_lease": {"state": "RELEASED", "holder": null},
+  "history": [
+    {"event": "CANONICAL_STATE_VERIFIED", "head": "fdac03a", "rc18": "CLOSED", "worktree": "clean", "remote": "0/0"},
+    {"event": "EXISTING_MODEL_MAPPED", "reuse": ["orders", "cash_entries", "app_settings"], "gap": "laboratory era texto libre sin telefono"},
+    {"event": "DESIGN_DECISION", "topic": "ATRASADO", "choice": "condicion derivada, no estado almacenado"},
+    {"event": "DESIGN_DECISION", "topic": "CONFIRMADO_PARA_MANANA", "choice": "plazo nuevo registrado como novedad de contacto"},
+    {"event": "DESIGN_DECISION", "topic": "identidad", "choice": "enlace opcional a order_id/cash_entry_id con indice unico"},
+    {"event": "SLICE_S19_1_PASS", "scope": "dominio y transiciones", "targeted": 33},
+    {"event": "SLICE_S19_2_PASS", "scope": "migracion 016 y persistencia", "targeted": 13},
+    {"event": "SLICE_S19_3_PASS", "scope": "servicio de aplicacion", "targeted": 25},
+    {"event": "SLICE_S19_4_PASS", "scope": "vista operativa Seguimiento"},
+    {"event": "GUI_DEFECT_FOUND", "detail": "columna Estado truncaba CONFIRMADO_PARA_MANANA", "fixed": true},
+    {"event": "SCHEMA_ASSERTIONS_EXTENDED", "count": 6, "from": "015", "to": "016"},
+    {"event": "SLICE_S19_5_PASS", "scope": "regresion canonica", "full": 293, "failed": 0},
+    {"event": "VISUAL_SMOKE_PASSED", "resolutions": ["1920x1080", "1366x768"], "rows": 15, "overdue": 3, "emails": 0, "new_closures": 0},
+    {"event": "RC18_NON_REGRESSION_PASSED"},
+    {"event": "VALIDATION_MATRIX_COVERED", "required": 15, "covered": 15},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "FUNCTIONAL_COMMIT_PASSED", "commit": "6b96c80", "staging": "rutas explicitas", "comunicaciones_excluido": true, "main_no_tocada": true},
+    {"event": "MISSION_LEASE_RELEASED"},
+    {"event": "CLOSED", "installation": false}
+  ]
+}
