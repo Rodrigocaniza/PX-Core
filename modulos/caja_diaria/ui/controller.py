@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from ..application.services import CashDayService
+from ..application.tracking_service import TrackingService
 from ..domain.errors import (
     CashDayAlreadyExistsError,
     CashDayClosedError,
@@ -28,11 +29,13 @@ class ImportSummary:
 
 class CashDayUIController:
     def __init__(self, service: CashDayService, backup_service=None, movements_exporter=None,
-                 admin_operations=None) -> None:
+                 admin_operations=None, tracking_service=None) -> None:
         self.service = service
         self.backup_service = backup_service
         self.movements_exporter = movements_exporter
         self.admin = admin_operations
+        # RC19: el seguimiento comparte el repositorio local de Caja.
+        self.tracking = tracking_service or TrackingService(service.repository)
         self.last_backup_path: Path | None = None
         self.last_warning: str | None = None
 

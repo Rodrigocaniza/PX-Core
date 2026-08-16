@@ -45,8 +45,8 @@ class RC13AdminCountsEmailTests(unittest.TestCase):
             journal = connection.execute("PRAGMA journal_mode").fetchone()[0]
             synchronous = connection.execute("PRAGMA synchronous").fetchone()[0]
             integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
-        self.assertEqual(versions[-1], "015")
-        self.assertEqual(len(versions), 15)
+        self.assertEqual(versions[-1], "016")
+        self.assertEqual(len(versions), 16)
         self.assertTrue({"admin_users", "admin_audit_log", "cash_count_snapshots", "mail_outbox"} <= tables)
         self.assertEqual(journal.lower(), "wal")
         self.assertEqual(synchronous, 2)

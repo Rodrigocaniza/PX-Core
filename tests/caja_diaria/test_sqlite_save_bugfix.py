@@ -1,4 +1,4 @@
-import sqlite3
+﻿import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -21,7 +21,7 @@ class SQLiteSaveBugfixTests(unittest.TestCase):
             "fecha": "12-08-2026", "unidad": "PC", "caja_inicial": "1.190.000",
             "descripcion": name, "cliente_documento": "1234567",
             "cliente_telefono": "+595 981 123456", "sobre": "123",
-            "arm_org": "Armazón", "cod": "456", "armazon": "1.500.000",
+            "arm_org": "ArmazÃ³n", "cod": "456", "armazon": "1.500.000",
             "cristal": "250.000", "laboratorio": "LAB", "receta_dr": "Dr Test",
             "total": "1.750.000", "efectivo": "1.000.000", "tarjeta_cheque": "",
             "transferencia": "", "saldo": "750.000", "notas": "",
@@ -33,10 +33,10 @@ class SQLiteSaveBugfixTests(unittest.TestCase):
     def test_historical_database_can_save_current_sale_after_migrations(self):
         controller = build_cash_day_controller(self.database)
         try:
-            _, historical = controller.add_manual_entry(self.values("Venta histórica"))
+            _, historical = controller.add_manual_entry(self.values("Venta histÃ³rica"))
             self.assertIsNotNone(controller.service.repository.get_order_for_entry(historical.id))
             # Reproduce el caso real: otra venta en la misma jornada, cuando la
-            # primera cabecera ya está referenciada por orders.cash_entry_id.
+            # primera cabecera ya estÃ¡ referenciada por orders.cash_entry_id.
             day, current = controller.add_manual_entry(self.values("Venta actual"))
             self.assertEqual(len(day.entries), 2)
             self.assertEqual(len(current.items), 1)
@@ -54,7 +54,7 @@ class SQLiteSaveBugfixTests(unittest.TestCase):
                 self.assertEqual(
                     [row[0] for row in connection.execute(
                         "SELECT version FROM schema_migrations ORDER BY version"
-                )], ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013", "014", "015"]
+                )], ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013", "014", "015", "016"]
                 )
             finally:
                 connection.close()

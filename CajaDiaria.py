@@ -42,6 +42,8 @@ from modulos.caja_diaria.config import resolve_data_paths
 from modulos.caja_diaria.domain.models import (
     BUSINESS_TIMEZONE, SaleItem, client_balance_from_classification,
 )
+from modulos.caja_diaria.domain.errors import InvalidCashDayError
+from modulos.caja_diaria.domain.tracking import TrackingStatus
 from modulos.caja_diaria.ui.controller import friendly_error
 from modulos.caja_diaria.ui.privacy import FinancialPrivacy
 
@@ -839,6 +841,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     tab_importar = pestañas.add("Importar Excel")
     tab_manual = pestañas.add("Cargar manual")
     tab_pedidos = pestañas.add("Pedidos")
+    tab_seguimiento = pestañas.add("Seguimiento")
     tab_arqueo = pestañas.add("Arqueo")
     tab_historial = pestañas.add("Historial")
     pestañas._segmented_button.grid_forget()
@@ -858,6 +861,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     for nombre, etiqueta_nav in (
         ("Cargar manual", "▣  Caja diaria"),
         ("Pedidos", "📦  Pedidos"),
+        ("Seguimiento", "🚚  Seguimiento"),
         ("Arqueo", "▤  Arqueo"),
         ("Importar Excel", "▣  Importar Excel"),
         ("Historial", "Historial"),
@@ -3208,6 +3212,332 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         )
 
     refrescar_avisos()
+
+    # ---- Seguimiento RC19: Pilar -> Asuncion -> laboratorio -> Pilar ----
+    # Vista operativa, no panel de metricas: arriba las excepciones, en la
+    # grilla el laboratorio con su linea y su WhatsApp ya resueltos.
+    seguimiento = ctk.CTkFrame(tab_seguimiento, fg_color="transparent")
+    seguimiento.pack(fill="both", expand=True, padx=10, pady=8)
+
+    alerta_seguimiento = ctk.CTkLabel(
+        seguimiento, text="", height=30, corner_radius=6, anchor="w",
+        fg_color="#FDECEC", text_color="#A32626",
+        font=ctk.CTkFont(size=perfil["fuente_label"] + 2, weight="bold"),
+    )
+
+    resumen_seguimiento = ctk.CTkFrame(seguimiento, fg_color="transparent")
+    resumen_seguimiento.pack(fill="x", pady=(0, 6))
+    INDICADORES_SEGUIMIENTO = (
+        ("atrasados", "Atrasados", "#B42318"),
+        ("por_recibir_en_asuncion", "Por recibir", "#B45309"),
+        ("en_laboratorio", "En laboratorio", "#0F5FB9"),
+        ("confirmados_para_manana", "Confirmados", "#6B5B95"),
+        ("listos_para_enviar_a_pilar", "Listos p/ Pilar", color_verde),
+        ("en_transito_a_pilar", "En tránsito", "#52657D"),
+    )
+    etiquetas_seguimiento = {}
+    for clave, titulo, color in INDICADORES_SEGUIMIENTO:
+        critico = clave == "atrasados"
+        tarjeta = ctk.CTkFrame(
+            resumen_seguimiento, fg_color="#FFFFFF" if critico else "#F1F5FA",
+            corner_radius=6,
+        )
+        tarjeta.pack(side="left", padx=(0, 6))
+        ctk.CTkLabel(
+            tarjeta, text=titulo, text_color=color_suave,
+            height=perfil["fuente_label"] + 6,
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        ).pack(padx=8, pady=(2, 0))
+        valor = ctk.CTkLabel(
+            tarjeta, text="0", text_color=color,
+            height=(perfil["fuente_kpi"] if critico else perfil["fuente"]) + 8,
+            font=ctk.CTkFont(
+                size=perfil["fuente_kpi"] if critico else perfil["fuente"], weight="bold",
+            ),
+        )
+        valor.pack(padx=8, pady=(0, 3))
+        etiquetas_seguimiento[clave] = (tarjeta, valor)
+
+    recepcion_seguimiento = ctk.CTkLabel(
+        resumen_seguimiento, text="", text_color=color_texto, anchor="e",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+    )
+    recepcion_seguimiento.pack(side="right", padx=8)
+
+    barra_seguimiento = ctk.CTkFrame(seguimiento, fg_color="transparent")
+    barra_seguimiento.pack(fill="x", pady=(0, 6))
+    filtro_seguimiento = ctk.StringVar(value="Todos")
+    FILTROS_SEGUIMIENTO = (
+        ("Todos", None), ("Atrasados", "OVERDUE"),
+        ("Por recibir", "ENVIADO_DESDE_PILAR"), ("En laboratorio", "EN_LABORATORIO"),
+        ("Listos p/ Pilar", "RECIBIDO_DEL_LABORATORIO"), ("En tránsito", "ENVIADO_A_PILAR"),
+    )
+    botones_seguimiento = {}
+    for nombre_filtro, _valor in FILTROS_SEGUIMIENTO:
+        boton_seg = ctk.CTkButton(
+            barra_seguimiento, text=nombre_filtro, width=112, height=30,
+            fg_color="transparent", hover_color="#EAF3FF", text_color=color_suave,
+            border_width=1, border_color=color_borde_suave,
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+            command=lambda valor=nombre_filtro: refrescar_seguimiento(valor),
+        )
+        boton_seg.pack(side="left", padx=2)
+        botones_seguimiento[nombre_filtro] = boton_seg
+
+    combo_lab_filtro = ctk.CTkComboBox(
+        barra_seguimiento, values=["Todos los laboratorios"], width=190, height=30,
+        command=lambda _valor: refrescar_seguimiento(),
+    )
+    combo_lab_filtro.set("Todos los laboratorios")
+    combo_lab_filtro.pack(side="right", padx=(6, 0))
+
+    marco_seguimiento = ctk.CTkFrame(seguimiento, fg_color="#FFFFFF", corner_radius=6)
+    marco_seguimiento.pack(fill="both", expand=True)
+    marco_seguimiento.grid_rowconfigure(0, weight=1)
+    marco_seguimiento.grid_columnconfigure(0, weight=1)
+    # Ancho de Estado dimensionado al literal mas largo del circuito
+    # (CONFIRMADO_PARA_MAÑANA): truncarlo obligaria a adivinar la etapa.
+    COLUMNAS_SEGUIMIENTO = (
+        ("sobre", "Sobre", 85, "center", False),
+        ("cliente", "Cliente", 200, "w", False),
+        ("estado", "Estado", 245, "center", False),
+        ("laboratorio", "Laboratorio", 155, "w", False),
+        ("esperado", "Esperado", 105, "center", False),
+        ("linea", "Línea", 120, "center", False),
+        ("whatsapp", "WhatsApp", 120, "center", False),
+        ("novedad", "Última novedad", 330, "w", True),
+    )
+    grilla_seguimiento = ttk.Treeview(
+        marco_seguimiento, columns=[clave for clave, *_ in COLUMNAS_SEGUIMIENTO],
+        show="headings", style="Caja.Treeview",
+    )
+    for clave, titulo, ancho, anclaje, expandible in COLUMNAS_SEGUIMIENTO:
+        grilla_seguimiento.heading(clave, text=titulo, anchor=anclaje)
+        grilla_seguimiento.column(
+            clave, width=ancho, minwidth=ancho, anchor=anclaje, stretch=expandible,
+        )
+    grilla_seguimiento.tag_configure("atrasado", background="#FDECEC", foreground="#A32626")
+    grilla_seguimiento.tag_configure("confirmado", background="#F3EFFA")
+    scroll_seguimiento = ttk.Scrollbar(
+        marco_seguimiento, orient="vertical", command=grilla_seguimiento.yview,
+    )
+    grilla_seguimiento.configure(yscrollcommand=scroll_seguimiento.set)
+    grilla_seguimiento.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
+    scroll_seguimiento.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
+
+    panel_atrasados = ctk.CTkFrame(seguimiento, fg_color="#FFF7F7", corner_radius=6)
+    etiqueta_atrasados = ctk.CTkLabel(
+        panel_atrasados, text="", anchor="w", justify="left", text_color="#A32626",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+    )
+    etiqueta_atrasados.pack(fill="x", padx=10, pady=6)
+
+    acciones_seguimiento = ctk.CTkFrame(seguimiento, fg_color="transparent")
+    acciones_seguimiento.pack(fill="x", pady=(6, 0))
+
+    estado_seguimiento = {"filas": {}}
+
+    def trabajo_seleccionado():
+        seleccion = grilla_seguimiento.selection()
+        return estado_seguimiento["filas"].get(seleccion[0]) if seleccion else None
+
+    def responsable_actual():
+        return os.environ.get("BC_CAJA_RESPONSABLE") or os.environ.get("USERNAME") or "Operadora"
+
+    def refrescar_seguimiento(nombre=None):
+        if nombre:
+            filtro_seguimiento.set(nombre)
+        activo = filtro_seguimiento.get()
+        for etiqueta, boton_filtro in botones_seguimiento.items():
+            seleccionado = etiqueta == activo
+            boton_filtro.configure(
+                fg_color="#EAF3FF" if seleccionado else "transparent",
+                text_color=color_azul if seleccionado else color_suave,
+            )
+        catalogo = controller.tracking.list_laboratories()
+        combo_lab_filtro.configure(
+            values=["Todos los laboratorios"] + [lab.name for lab in catalogo]
+        )
+        elegido = combo_lab_filtro.get()
+        laboratory_id = next(
+            (lab.id for lab in catalogo if lab.name == elegido), None,
+        )
+        valor_filtro = dict(FILTROS_SEGUIMIENTO).get(activo)
+        tablero = controller.tracking.board(
+            status=valor_filtro if valor_filtro != "OVERDUE" else None,
+            only_overdue=valor_filtro == "OVERDUE",
+            laboratory_id=laboratory_id,
+        )
+        for item in grilla_seguimiento.get_children():
+            grilla_seguimiento.delete(item)
+        estado_seguimiento["filas"].clear()
+        for fila in tablero["rows"]:
+            etiquetas_fila = ()
+            if fila.overdue:
+                etiquetas_fila = ("atrasado",)
+            elif fila.work.confirmed_for_next_day:
+                etiquetas_fila = ("confirmado",)
+            grilla_seguimiento.insert(
+                "", "end", iid=fila.work.id, tags=etiquetas_fila,
+                values=(
+                    fila.envelope, fila.customer_name, fila.status_label,
+                    fila.laboratory_name, fila.expected_label, fila.phone_line,
+                    fila.whatsapp, fila.last_news,
+                ),
+            )
+            estado_seguimiento["filas"][fila.work.id] = fila
+        for clave, _titulo, _color in INDICADORES_SEGUIMIENTO:
+            tarjeta, valor = etiquetas_seguimiento[clave]
+            cantidad = tablero["summary"][clave]
+            valor.configure(text=str(cantidad))
+            if clave == "atrasados":
+                tarjeta.configure(fg_color="#FDECEC" if cantidad else "#FFFFFF")
+        recepcion = tablero["reception"]
+        recepcion_seguimiento.configure(
+            text="Enviados: {enviados}    Recibidos: {recibidos}    "
+                 "Falta recibir: {falta_recibir}".format(**recepcion)
+        )
+        if tablero["alert"]:
+            alerta_seguimiento.configure(text="  ⚠  " + tablero["alert"])
+            alerta_seguimiento.pack(fill="x", pady=(0, 6), before=resumen_seguimiento)
+        else:
+            alerta_seguimiento.pack_forget()
+        grupos = tablero["overdue_groups"]
+        if grupos:
+            etiqueta_atrasados.configure(text="     ".join(
+                "{name} — {count} atrasado{plural}   ☎ {phone_line}   ✆ {whatsapp}".format(
+                    plural="" if grupo["count"] == 1 else "s", **grupo,
+                )
+                for grupo in grupos
+            ))
+            panel_atrasados.pack(fill="x", pady=(6, 0), before=acciones_seguimiento)
+        else:
+            panel_atrasados.pack_forget()
+        actualizar_acciones_seguimiento()
+
+    def accion_seguimiento(operacion):
+        fila = trabajo_seleccionado()
+        if fila is None:
+            messagebox.showwarning(
+                "Seleccioná un trabajo", "Elegí una fila.", parent=ventana,
+            )
+            return
+        try:
+            operacion(fila)
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        refrescar_seguimiento()
+
+    def enviar_a_laboratorio(fila):
+        catalogo = controller.tracking.list_laboratories(only_active=True)
+        if not catalogo:
+            raise InvalidCashDayError(
+                "Cargá al menos un laboratorio antes de enviar trabajos."
+            )
+        nombres = ", ".join(lab.name for lab in catalogo)
+        elegido = simpledialog.askstring(
+            "Enviar a laboratorio", f"Laboratorio ({nombres}):", parent=ventana,
+        )
+        laboratorio = next(
+            (lab for lab in catalogo
+             if lab.name.casefold() == str(elegido or "").strip().casefold()), None,
+        )
+        if laboratorio is None:
+            return
+        fecha = simpledialog.askstring(
+            "Fecha esperada", "Fecha esperada (dd-mm-aaaa):", parent=ventana,
+            initialvalue=date.today().strftime("%d-%m-%Y"),
+        )
+        if not str(fecha or "").strip():
+            return
+        hora = simpledialog.askstring(
+            "Hora esperada", "Hora esperada (HH:MM):", parent=ventana,
+            initialvalue=controller.tracking.default_expected_time().strftime("%H:%M"),
+        )
+        controller.tracking.send_to_laboratory(
+            fila.work.id, laboratorio.id, expected_date=fecha, expected_time=hora or None,
+            responsible=responsable_actual(),
+        )
+
+    def registrar_novedad(fila):
+        resultado = simpledialog.askstring(
+            "Registrar novedad", "Respuesta del laboratorio:", parent=ventana,
+        )
+        if resultado is None:
+            return
+        nueva_fecha = simpledialog.askstring(
+            "Confirmado para mañana",
+            "Nueva fecha esperada (dd-mm-aaaa). Vacío si no hay compromiso:",
+            parent=ventana,
+        )
+        nueva_hora = None
+        if str(nueva_fecha or "").strip():
+            nueva_hora = simpledialog.askstring(
+                "Confirmado para mañana", "Nueva hora esperada (HH:MM):", parent=ventana,
+                initialvalue=controller.tracking.default_expected_time().strftime("%H:%M"),
+            )
+        controller.tracking.register_contact(
+            fila.work.id, operator=responsable_actual(), result=resultado,
+            next_expected_date=nueva_fecha or None, next_expected_time=nueva_hora or None,
+        )
+
+    ACCIONES_SEGUIMIENTO = (
+        ("recibir_asuncion", "Recibir en Asunción", color_verde,
+         TrackingStatus.SENT_FROM_PILAR,
+         lambda fila: controller.tracking.receive_in_asuncion(
+             fila.work.id, responsible=responsable_actual())),
+        ("enviar_lab", "Enviar a laboratorio", color_azul,
+         TrackingStatus.RECEIVED_IN_ASUNCION, enviar_a_laboratorio),
+        ("recibir_lab", "Recibir del laboratorio", color_verde,
+         TrackingStatus.IN_LABORATORY,
+         lambda fila: controller.tracking.receive_from_laboratory(
+             fila.work.id, responsible=responsable_actual())),
+        ("enviar_pilar", "Enviar a Pilar", "#6D3AC1",
+         TrackingStatus.RECEIVED_FROM_LABORATORY,
+         lambda fila: controller.tracking.send_batch_to_pilar(
+             [fila.work.id], responsible=responsable_actual())),
+        ("recibir_pilar", "Recibir en Pilar", color_verde,
+         TrackingStatus.SENT_TO_PILAR,
+         lambda fila: controller.tracking.receive_in_pilar(
+             fila.work.id, responsible=responsable_actual())),
+        ("cerrar", "Cerrar trabajo", "#52657D",
+         TrackingStatus.RECEIVED_IN_PILAR,
+         lambda fila: controller.tracking.close_work(
+             fila.work.id, responsible=responsable_actual())),
+    )
+    botones_accion_seguimiento = {}
+    for clave, texto, color, _requiere, operacion in ACCIONES_SEGUIMIENTO:
+        boton_accion = ctk.CTkButton(
+            acciones_seguimiento, text=texto, width=160, height=32, fg_color=color,
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+            command=lambda ejecutar=operacion: accion_seguimiento(ejecutar),
+        )
+        boton_accion.pack(side="left", padx=3)
+        botones_accion_seguimiento[clave] = boton_accion
+
+    boton_novedad = ctk.CTkButton(
+        acciones_seguimiento, text="Registrar novedad", width=160, height=32,
+        fg_color="#B45309",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=lambda: accion_seguimiento(registrar_novedad),
+    )
+    boton_novedad.pack(side="right", padx=3)
+
+    def actualizar_acciones_seguimiento(_event=None):
+        fila = trabajo_seleccionado()
+        for clave, _texto, _color, requiere, _operacion in ACCIONES_SEGUIMIENTO:
+            habilitado = fila is not None and fila.work.status is requiere
+            botones_accion_seguimiento[clave].configure(
+                state="normal" if habilitado else "disabled",
+            )
+        boton_novedad.configure(
+            state="normal" if fila is not None and fila.work.status
+            is TrackingStatus.IN_LABORATORY else "disabled",
+        )
+
+    grilla_seguimiento.bind("<<TreeviewSelect>>", actualizar_acciones_seguimiento, add="+")
+    refrescar_seguimiento()
 
     if not controller.admin.has_admin() and not os.environ.get("BC_CAJA_AUTOMATED"):
         ventana.after(450, lambda: abrir_acceso_administrador(configuracion_inicial=True))

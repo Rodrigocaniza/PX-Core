@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import sqlite3
 import tempfile
@@ -27,7 +27,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
         try:
             self.assertEqual(
                 connection.execute("SELECT version FROM schema_migrations ORDER BY version").fetchall(),
-                [("001",), ("002",), ("003",), ("004",), ("005",), ("006",), ("007",), ("008",), ("009",), ("010",), ("011",), ("012",), ("013",), ("014",), ("015",)],
+                [("001",), ("002",), ("003",), ("004",), ("005",), ("006",), ("007",), ("008",), ("009",), ("010",), ("011",), ("012",), ("013",), ("014",), ("015",), ("016",)],
             )
             tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         finally:
@@ -59,14 +59,14 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
 
     def test_save_is_transactional_when_an_entry_violates_database_constraints(self):
         day = CashDay.open(date="2026-08-02", unit="PC", opening_cash=0)
-        day.add_entry(CashEntry(description="VÁLIDA", total=100))
+        day.add_entry(CashEntry(description="VÃLIDA", total=100))
         self.repository.save(day)
-        invalid = replace(day.entries[0], id="otra", cash_day_id="día-inexistente")
+        invalid = replace(day.entries[0], id="otra", cash_day_id="dÃ­a-inexistente")
         day.entries.append(invalid)
         with self.assertRaises(sqlite3.IntegrityError):
             self.repository.save(day)
         loaded = self.repository.get(day.id)
-        self.assertEqual([entry.description for entry in loaded.entries], ["VÁLIDA"])
+        self.assertEqual([entry.description for entry in loaded.entries], ["VÃLIDA"])
 
     def test_closed_snapshot_and_history_queries_round_trip(self):
         first = CashDay.open(date="2026-08-01", unit="PC", opening_cash=100000)
@@ -164,7 +164,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
                 ).fetchall()
             finally:
                 check.close()
-            self.assertEqual(versions, [("001",), ("002",), ("003",), ("004",), ("005",), ("006",), ("007",), ("008",), ("009",), ("010",), ("011",), ("012",), ("013",), ("014",), ("015",)])
+            self.assertEqual(versions, [("001",), ("002",), ("003",), ("004",), ("005",), ("006",), ("007",), ("008",), ("009",), ("010",), ("011",), ("012",), ("013",), ("014",), ("015",), ("016",)])
         finally:
             migrated.close()
 

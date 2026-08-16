@@ -24,6 +24,12 @@ from ..domain.models import (
     OrderStatus,
     SaleItem,
 )
+from ..domain.tracking import (
+    ContactRecord,
+    Laboratory,
+    TrackedWork,
+    TrackingTransition,
+)
 
 
 MIGRATIONS_DIR = Path(__file__).with_name("migrations")
@@ -685,3 +691,189 @@ class SQLiteCashDayRepository:
                 (order_id,),
             ).fetchall()
         return [dict(row) for row in rows]
+
+    # -- RC19: seguimiento Pilar / laboratorios ---------------------------
+
+    def save_laboratory(self, laboratory: Laboratory) -> Laboratory:
+        with self._connection() as connection:
+            connection.execute(
+                """INSERT INTO laboratories(
+                    id,name,phone_line,whatsapp,active,created_at,updated_at
+                ) VALUES (?,?,?,?,?,?,?)
+                ON CONFLICT(id) DO UPDATE SET
+                    name=excluded.name, phone_line=excluded.phone_line,
+                    whatsapp=excluded.whatsapp, active=excluded.active,
+                    updated_at=excluded.updated_at""",
+                (
+                    laboratory.id, laboratory.name, laboratory.phone_line,
+                    laboratory.whatsapp, int(laboratory.active),
+                    _iso(laboratory.created_at), _iso(laboratory.updated_at),
+                ),
+            )
+            connection.commit()
+        return laboratory
+
+    def list_laboratories(self, *, only_active: bool = False) -> Sequence[Laboratory]:
+        consulta = "SELECT * FROM laboratories"
+        if only_active:
+            consulta += " WHERE active = 1"
+        consulta += " ORDER BY name COLLATE NOCASE"
+        with self._connection() as connection:
+            rows = connection.execute(consulta).fetchall()
+        return [self._hydrate_laboratory(row) for row in rows]
+
+    def get_laboratory(self, laboratory_id: str) -> Laboratory | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM laboratories WHERE id = ?", (laboratory_id,)
+            ).fetchone()
+        return self._hydrate_laboratory(row) if row else None
+
+    @staticmethod
+    def _hydrate_laboratory(row: sqlite3.Row) -> Laboratory:
+        return Laboratory(
+            id=row["id"], name=row["name"], phone_line=row["phone_line"],
+            whatsapp=row["whatsapp"], active=bool(row["active"]),
+            created_at=_datetime(row["created_at"]),
+            updated_at=_datetime(row["updated_at"]),
+        )
+
+    def save_tracked_work(self, work: TrackedWork) -> TrackedWork:
+        """Guarda el trabajo y reescribe su traza en una sola transaccion.
+
+        Las transiciones y contactos son append-only en el dominio, asi que
+        reescribirlos por posicion conserva la historia sin duplicarla.
+        """
+        with self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    """INSERT INTO tracked_works(
+                        id,envelope,customer_name,status,origin_branch,laboratory_id,
+                        expected_date,expected_time,confirmed_for_next_day,order_id,
+                        cash_entry_id,consultation_date,observations,created_by,
+                        created_at,updated_at
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        envelope=excluded.envelope, customer_name=excluded.customer_name,
+                        status=excluded.status, origin_branch=excluded.origin_branch,
+                        laboratory_id=excluded.laboratory_id,
+                        expected_date=excluded.expected_date,
+                        expected_time=excluded.expected_time,
+                        confirmed_for_next_day=excluded.confirmed_for_next_day,
+                        order_id=excluded.order_id, cash_entry_id=excluded.cash_entry_id,
+                        consultation_date=excluded.consultation_date,
+                        observations=excluded.observations,
+                        updated_at=excluded.updated_at""",
+                    (
+                        work.id, work.envelope, work.customer_name, work.status.value,
+                        work.origin_branch, work.laboratory_id, _iso(work.expected_date),
+                        work.expected_time.strftime("%H:%M") if work.expected_time else None,
+                        int(work.confirmed_for_next_day), work.order_id, work.cash_entry_id,
+                        _iso(work.consultation_date), work.observations, work.created_by,
+                        _iso(work.created_at), _iso(work.updated_at),
+                    ),
+                )
+                for sequence, transition in enumerate(work.transitions, start=1):
+                    connection.execute(
+                        """INSERT INTO tracked_work_transitions(
+                            id,work_id,sequence,from_status,to_status,responsible,note,recorded_at
+                        ) VALUES (?,?,?,?,?,?,?,?)
+                        ON CONFLICT(work_id, sequence) DO NOTHING""",
+                        (
+                            transition.id, work.id, sequence,
+                            transition.from_status.value if transition.from_status else None,
+                            transition.to_status.value, transition.responsible,
+                            transition.note, _iso(transition.recorded_at),
+                        ),
+                    )
+                for sequence, contact in enumerate(work.contacts, start=1):
+                    connection.execute(
+                        """INSERT INTO tracked_work_contacts(
+                            id,work_id,sequence,operator,channel,result,
+                            next_expected_date,next_expected_time,recorded_at
+                        ) VALUES (?,?,?,?,?,?,?,?,?)
+                        ON CONFLICT(work_id, sequence) DO NOTHING""",
+                        (
+                            contact.id, work.id, sequence, contact.operator,
+                            contact.channel.value, contact.result,
+                            _iso(contact.next_expected_date),
+                            contact.next_expected_time.strftime("%H:%M")
+                            if contact.next_expected_time else None,
+                            _iso(contact.recorded_at),
+                        ),
+                    )
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        return work
+
+    def get_tracked_work(self, work_id: str) -> TrackedWork | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM tracked_works WHERE id = ?", (work_id,)
+            ).fetchone()
+            if row is None:
+                return None
+            return self._hydrate_tracked_work(connection, row)
+
+    def list_tracked_works(
+        self, *, consultation_date: date | None = None, status: str | None = None,
+        laboratory_id: str | None = None,
+    ) -> Sequence[TrackedWork]:
+        consulta = "SELECT * FROM tracked_works"
+        condiciones, parametros = [], []
+        if consultation_date is not None:
+            condiciones.append("consultation_date = ?")
+            parametros.append(_iso(consultation_date))
+        if status:
+            condiciones.append("status = ?")
+            parametros.append(status)
+        if laboratory_id:
+            condiciones.append("laboratory_id = ?")
+            parametros.append(laboratory_id)
+        if condiciones:
+            consulta += " WHERE " + " AND ".join(condiciones)
+        consulta += " ORDER BY COALESCE(expected_date, '9999-12-31'), envelope, created_at"
+        with self._connection() as connection:
+            rows = connection.execute(consulta, tuple(parametros)).fetchall()
+            return [self._hydrate_tracked_work(connection, row) for row in rows]
+
+    def _hydrate_tracked_work(
+        self, connection: sqlite3.Connection, row: sqlite3.Row,
+    ) -> TrackedWork:
+        transiciones = connection.execute(
+            """SELECT * FROM tracked_work_transitions
+            WHERE work_id = ? ORDER BY sequence""", (row["id"],),
+        ).fetchall()
+        contactos = connection.execute(
+            """SELECT * FROM tracked_work_contacts
+            WHERE work_id = ? ORDER BY sequence""", (row["id"],),
+        ).fetchall()
+        return TrackedWork(
+            id=row["id"], envelope=row["envelope"], customer_name=row["customer_name"],
+            status=row["status"], origin_branch=row["origin_branch"],
+            laboratory_id=row["laboratory_id"], expected_date=row["expected_date"],
+            expected_time=row["expected_time"],
+            confirmed_for_next_day=bool(row["confirmed_for_next_day"]),
+            order_id=row["order_id"], cash_entry_id=row["cash_entry_id"],
+            consultation_date=row["consultation_date"], observations=row["observations"],
+            created_by=row["created_by"], created_at=_datetime(row["created_at"]),
+            updated_at=_datetime(row["updated_at"]),
+            transitions=tuple(
+                TrackingTransition(
+                    id=item["id"], from_status=item["from_status"],
+                    to_status=item["to_status"], responsible=item["responsible"],
+                    note=item["note"], recorded_at=_datetime(item["recorded_at"]),
+                ) for item in transiciones
+            ),
+            contacts=tuple(
+                ContactRecord(
+                    id=item["id"], operator=item["operator"], channel=item["channel"],
+                    result=item["result"], next_expected_date=item["next_expected_date"],
+                    next_expected_time=item["next_expected_time"],
+                    recorded_at=_datetime(item["recorded_at"]),
+                ) for item in contactos
+            ),
+        )
