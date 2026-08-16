@@ -23,7 +23,9 @@ reglas de BC Caja. No contiene credenciales nuevas ni datos de clientes.
 
 Base exacta: `eb6d082de4004d166379ffaae2b8f106fac10df1`.
 
-Revisión independiente real ejecutada en dos generaciones. La generación 1 fue invalidada por dos
-FAIL de revisores independientes —pérdida silenciosa de comisión por período corrupto, y ruta a
-`REVERTIDA` desde una liquidación pagada que habilitaba doble pago—. Ambos bloqueantes fueron
-corregidos y cubiertos por pruebas. Detalle en `INDEPENDENCE.md`.
+Este snapshot es la **generación 3 y está pendiente de revisión independiente**. Las generaciones
+1 y 2 fueron revisadas por runners independientes y ambas resultaron invalidadas: pérdida
+silenciosa de comisión por período corrupto, ruta a `REVERTIDA` desde una liquidación pagada que
+habilitaba doble pago, y comisión liquidada sobre una base congelada cuando la corrección de
+origen llegaba en estado `REVISADA`. Los tres bloqueantes financieros fueron corregidos y
+cubiertos por pruebas. Detalle y verdicts en `INDEPENDENCE.md`, `generation-1/` y `generation-2/`.

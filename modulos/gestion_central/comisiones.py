@@ -30,6 +30,8 @@ BASIS_POINTS = 10_000
 FROZEN_STATES = frozenset({"PAGADA"})
 RECALCULABLE_STATES = frozenset({"ELEGIBLE", "CALCULADA"})
 OPEN_STATES = frozenset({"ELEGIBLE", "CALCULADA", "REVISADA", "APROBADA"})
+# Ya pasaron por revisión humana: una corrección de origen no puede recalcularlos en silencio.
+REVIEWED_STATES = frozenset({"REVISADA", "APROBADA", "PAGADA"})
 
 ENTRY_EXPORT_FIELDS = (
     "entry_id", "period", "branch", "saleswoman", "sale_kind", "status",
@@ -285,16 +287,26 @@ class CommissionService:
             if balance == 0:
                 self._promote_to_eligible(con, row["id"], cancelled, actor.username)
             return
-        if entry["status"] in FROZEN_STATES or entry["status"] == "APROBADA":
+        if _was_paid(entry) or entry["status"] in REVIEWED_STATES:
+            # Nada revisado, aprobado o pagado se recalcula solo: exige corrección manual.
             self._set_status(con, entry, "OBSERVADA", actor.username, "SOURCE_UPDATED_AFTER_CLOSE", details,
-                             observation="Origen corregido tras aprobación o pago: requiere corrección manual.")
+                             observation="Origen corregido tras la revisión, aprobación o pago: "
+                                         "requiere corrección manual.")
             return
+        # Antes de la revisión sí se recalcula, pero la base completa: nunca sólo el total.
+        pending = entry["status"] == "PENDIENTE_SALDO"
+        discount = 0 if pending else (agreement_discount(sale.total_amount) if sale.kind == "CONVENIO" else 0)
+        base = 0 if pending else commissionable_base(sale.kind, sale.total_amount)
+        target = "ELEGIBLE" if entry["status"] == "CALCULADA" else entry["status"]
         con.execute(
-            "UPDATE commission_entries SET saleswoman=?,sale_kind=?,gross_amount=?,updated_at=? WHERE id=?",
-            (sale.saleswoman, sale.kind, sale.total_amount, _now(), entry["id"]),
+            "UPDATE commission_entries SET saleswoman=?,sale_kind=?,gross_amount=?,agreement_discount=?,"
+            "commissionable_base=?,rate_bp=NULL,commission_amount=NULL,policy_status=?,status=?,updated_at=?"
+            " WHERE id=?",
+            (sale.saleswoman, sale.kind, sale.total_amount, discount, base, POLICY_ABSENT, target,
+             _now(), entry["id"]),
         )
-        self._history(con, entry["id"], row["id"], entry["status"], entry["status"], actor.username,
-                      "SOURCE_UPDATED", details)
+        self._history(con, entry["id"], row["id"], entry["status"], target, actor.username,
+                      "SOURCE_UPDATED", {**details, "commissionable_base": base, "agreement_discount": discount})
         if balance == 0 and entry["status"] == "PENDIENTE_SALDO":
             self._promote_to_eligible(con, row["id"], cancelled, actor.username)
         elif balance > 0 and entry["status"] != "PENDIENTE_SALDO":

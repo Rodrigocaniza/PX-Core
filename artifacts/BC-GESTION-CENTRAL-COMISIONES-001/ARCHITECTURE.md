@@ -40,8 +40,25 @@ PENDIENTE_SALDO ──cancelación total──▶ ELEGIBLE ──recálculo─�
 ```
 
 - `OBSERVADA` se alcanza desde `ELEGIBLE`, `CALCULADA`, `REVISADA`, `APROBADA` y `PAGADA`, siempre con motivo.
-- `REVERTIDA` se alcanza desde los estados abiertos y desde `OBSERVADA`, siempre con motivo.
+- `REVERTIDA` se alcanza con motivo desde los estados abiertos y desde `OBSERVADA` vía `revert()`, y además desde `PENDIENTE_SALDO` vía `void_sale()` y `_revert_commission_effect()`.
 - `mark_paid` sólo acepta origen `APROBADA`: no se paga sin revisión ni aprobación previas.
+
+### Invariante de la corrección de origen
+
+Una corrección de origen (`register_sale` sobre una venta ya registrada, camino que
+`sync_review_sales` recorre en cada sincronización) **nunca recalcula en silencio algo que ya pasó
+por revisión humana**. `REVIEWED_STATES = {REVISADA, APROBADA, PAGADA}` y cualquier entrada con
+`paid_at` van a `OBSERVADA`; el resto recalcula **la base completa** —total, descuento de convenio
+y base comisionable— y vuelve a `ELEGIBLE` si estaba `CALCULADA`, limpiando porcentaje y comisión
+para que el recálculo los recomponga.
+
+Esto cierra el escenario en que una liquidación `REVISADA` conservaba base y descuento del total
+anterior y avanzaba a `APROBADA → PAGADA` pagando sobre una base congelada, en cualquiera de los
+dos sentidos, y omitiendo el 5% del convenio cuando el tipo de venta cambiaba. Añadido en la
+generación 3 tras el FAIL de QA independiente de la generación 2; cubierto por
+`test_source_correction_after_review_never_pays_a_stale_base`,
+`test_source_correction_before_review_recomputes_the_whole_base` y
+`test_source_correction_cannot_reattribute_already_paid_commission`.
 
 ### Invariante del dinero ya pagado
 

@@ -1,11 +1,12 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G2",
+  "current_state": "REVIEW_PENDING_G3",
   "mission_lease": "HELD",
-  "generation": 2,
+  "generation": 3,
   "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "NOT_EXECUTED",
+  "generation_3_review": "NOT_YET_EXECUTED",
   "generations": [
     {
       "generation": 1,
@@ -19,35 +20,57 @@
         {"runner": "AUDITOR-IND-COMISIONES-001", "role": "AUDITOR", "verdict": "FAIL", "timestamp_utc": "2026-08-15T23:34:18Z", "blockers": ["A1", "A2", "A3"]}
       ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-1/"
+    },
+    {
+      "generation": 2,
+      "snapshot_commit": "5ba11bdbdbaaa826f16510fb07d08ffdbce17097",
+      "snapshot_tree": "a03e20ed29ea0d583e89259013775f1de26b668c",
+      "status": "INVALIDATED",
+      "tests": 284,
+      "verdicts": [
+        {"runner": "LIBRARIAN-IND-COMISIONES-002", "role": "LIBRARIAN", "verdict": "FAIL", "timestamp_utc": "2026-08-15T23:58:30Z", "blockers": ["B1", "B2", "B3"]},
+        {"runner": "QA-IND-COMISIONES-002", "role": "QA", "verdict": "FAIL", "timestamp_utc": "2026-08-16T00:01:35Z", "blockers": ["STALE_BASE_ON_REVIEWED_SOURCE_CORRECTION"]},
+        {"runner": "AUDITOR-IND-COMISIONES-002", "role": "AUDITOR", "verdict": "FAIL", "timestamp_utc": "2026-08-16T00:02:53Z", "blockers": ["B1", "B2"]}
+      ],
+      "confirmed_closed_from_generation_1": ["Q1", "A1", "A2"],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-2/"
     }
   ],
   "history": [
     {"event": "CANONICAL_BASE_VERIFIED", "base": "eb6d082de4004d166379ffaae2b8f106fac10df1", "remote": "0 ahead / 0 behind"},
-    {"event": "NEW_WORKTREE_CREATED", "worktree": ".worktrees/gc-comisiones-001", "to": "DOCUMENTATION"},
-    {"event": "APPROVED_ECONOMIC_RULES_MAPPED", "rules": 9, "to": "IMPLEMENTATION"},
-    {"event": "DOMAIN_TEST_FAILED_AGREEMENT_REASON_LOST_AFTER_CALCULATION", "to": "REMEDIATION"},
-    {"event": "VISUAL_REVIEW_FAILED_UNFORMATTED_KPI_AND_TRUNCATED_MAIN_TABLE", "to": "REMEDIATION"},
-    {"event": "LAYOUT_RECALIBRATED_AND_REGRESSION_GUARD_ADDED", "to": "VALIDATION"},
-    {"event": "GENERATION_1_PUBLISHED", "commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773", "tests": 280, "to": "HUMAN_GATE_PENDING"},
-    {"event": "INDEPENDENT_REVIEW_AUTHORIZED_BY_OWNER", "runners": 3, "to": "REVIEW_G1"},
-    {"event": "SNAPSHOT_FROZEN_G1", "commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773", "tree": "d296c6384885176399dceeeda103a4acb397e43d"},
-    {"event": "LIBRARIAN_INDEPENDENT_PASS", "runner": "LIBRARIAN-IND-COMISIONES-001"},
-    {"event": "QA_INDEPENDENT_FAIL", "runner": "QA-IND-COMISIONES-001", "blocker": "Q1_MONTH_DOES_NOT_VALIDATE_DATE_SILENT_COMMISSION_LOSS"},
-    {"event": "AUDITOR_INDEPENDENT_FAIL", "runner": "AUDITOR-IND-COMISIONES-001", "blocker": "A1_PAID_SETTLEMENT_REACHES_REVERTED_ENABLING_DOUBLE_PAYMENT"},
-    {"event": "GENERATION_1_INVALIDATED", "evidence_preserved": "generation-1/", "to": "REMEDIATION"},
-    {"event": "MISSION_LEASE_KEPT_HELD", "reason": "correccion acotada a dos bloqueantes dentro de la misma sesion continua; liberar y readquirir habria abierto ventana de concurrencia sin beneficio"},
-    {"event": "BLOCKER_Q1_FIXED", "fix": "date.fromisoformat en _month y validacion en sync_review_sales con contador invalid_date", "tests_added": 2},
-    {"event": "BLOCKER_A1_A2_FIXED", "fix": "invariante _was_paid aplicado en revert, _revert_commission_effect y void_sale", "tests_added": 2},
-    {"event": "BLOCKER_A3_FIXED", "fix": "ARCHITECTURE.md documenta el invariante real y sus guardas; afirmacion falsa preservada con errata en generation-1/"},
+    {"event": "NEW_WORKTREE_CREATED", "worktree": ".worktrees/gc-comisiones-001"},
+    {"event": "APPROVED_ECONOMIC_RULES_MAPPED", "rules": 9},
+    {"event": "GENERATION_1_PUBLISHED", "commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773", "tests": 280},
+    {"event": "INDEPENDENT_REVIEW_AUTHORIZED_BY_OWNER", "runners": 3},
+    {"event": "SNAPSHOT_FROZEN_G1", "commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773"},
+    {"event": "QA_INDEPENDENT_FAIL_G1", "blocker": "Q1_MONTH_DOES_NOT_VALIDATE_DATE_SILENT_COMMISSION_LOSS"},
+    {"event": "AUDITOR_INDEPENDENT_FAIL_G1", "blocker": "A1_PAID_SETTLEMENT_REACHES_REVERTED_ENABLING_DOUBLE_PAYMENT"},
+    {"event": "GENERATION_1_INVALIDATED", "evidence_preserved": "generation-1/"},
+    {"event": "MISSION_LEASE_KEPT_HELD", "reason": "correcciones acotadas a bloqueantes dentro de la misma sesion continua; liberar y readquirir habria abierto ventana de concurrencia sin beneficio"},
+    {"event": "BLOCKER_Q1_FIXED", "fix": "date.fromisoformat en _month y contador invalid_date en sync_review_sales"},
+    {"event": "BLOCKER_A1_A2_FIXED", "fix": "invariante _was_paid en revert, _revert_commission_effect y void_sale"},
+    {"event": "GENERATION_2_PUBLISHED", "commit": "5ba11bdbdbaaa826f16510fb07d08ffdbce17097", "tests": 284},
+    {"event": "SNAPSHOT_FROZEN_G2", "commit": "5ba11bdbdbaaa826f16510fb07d08ffdbce17097"},
+    {"event": "G1_BLOCKERS_CONFIRMED_CLOSED_BY_ALL_THREE_G2_REVIEWERS", "blockers": ["Q1", "A1", "A2"]},
+    {"event": "QA_INDEPENDENT_FAIL_G2", "blocker": "STALE_BASE_PAID_WHEN_SOURCE_CORRECTION_ARRIVES_IN_REVISADA", "note": "defecto preexistente de la generacion 1 no detectado por su QA"},
+    {"event": "LIBRARIAN_INDEPENDENT_FAIL_G2", "blockers": ["NONEXISTENT_GENERATION_2_PATH", "FALSE_CLAIM_OF_COMPLETED_G2_REVIEW", "STALE_ARTIFACT_CONSISTENCY_INSIDE_ZIP"]},
+    {"event": "AUDITOR_INDEPENDENT_FAIL_G2", "blockers": ["STALE_ARTIFACT_CONSISTENCY_INSIDE_ZIP", "FALSE_CLAIM_OF_COMPLETED_G2_REVIEW"], "paid_invariant": "VERIFIED_BY_EXECUTION_12_ROUTES", "double_payment_possible": false},
+    {"event": "GENERATION_2_INVALIDATED", "evidence_preserved": "generation-2/"},
+    {"event": "BLOCKER_STALE_BASE_FIXED", "fix": "REVIEWED_STATES a OBSERVADA y recalculo completo de la base antes de la revision", "tests_added": 3},
+    {"event": "AUDITOR_O1_CLOSED_BY_SAME_GUARD", "note": "correccion de origen ya no reatribuye comision pagada"},
+    {"event": "DOCUMENTATION_BLOCKERS_FIXED", "fix": "ningun documento describe una revision no ocurrida; ARTIFACT_CONSISTENCY.md se escribe antes de empaquetar y ahora esta cubierto por el manifest"},
     {"event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD", "method": "escenarios exactos de cada revisor re-ejecutados contra el codigo corregido"},
-    {"event": "GENERATION_2_VALIDATED", "tests": 284, "baseline": 251, "to": "REVIEW_G2"}
+    {"event": "GENERATION_3_VALIDATED", "tests": 287, "baseline": 251}
   ],
   "non_blocking_findings_recorded": [
-    "QA-obs1: cobros genuinos identicos deduplicados por clave de idempotencia con referencia opcional",
-    "QA-obs2: liquidaciones OBSERVADA suman a los KPIs monetarios",
-    "QA-obs3: ventas mixtas (convenio parcial) mal clasificadas en sync_review_sales",
-    "AUD-obs: assert float( es mas debil que la propiedad declarada",
-    "LIB-obs4: defecto preexistente ajeno a la mision, test duplicado en test_ui_interactions.py"
+    "QA1-obs1: cobros genuinos identicos deduplicados por clave de idempotencia con referencia opcional",
+    "QA2-obs1: fechas ISO en formato basico o de semana desalineadas del filtro mensual",
+    "QA2-obs3 y AUD2-O2: paid_amount se calcula por estado y no por paid_at",
+    "QA1-obs2 y QA2-obs4: liquidaciones OBSERVADA suman a los KPIs monetarios",
+    "QA1-obs3: ventas mixtas (convenio parcial) mal clasificadas en sync_review_sales",
+    "AUD2-O3: el test de append-only prueba el rollback de SQLite, no la propiedad",
+    "AUD1-obs: assert float( es mas debil que la propiedad declarada",
+    "LIB1-obs4: defecto preexistente ajeno a la mision, test duplicado en test_ui_interactions.py"
   ],
   "pending_configuration": {
     "item": "porcentaje de comision",

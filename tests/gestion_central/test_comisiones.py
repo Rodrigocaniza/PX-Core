@@ -326,6 +326,64 @@ def test_state_contract_and_append_only_history(service):
     assert len(service.history(SOL, entry_id)) == len(history)
 
 
+def test_source_correction_after_review_never_pays_a_stale_base(service):
+    """Bloqueante QA generación 2: REVISADA caía al UPDATE sin recalcular la base."""
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.set_policy(SOL, "GENERAL", 300)
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    service.review(SOL, entry_id)
+    service.register_sale(SOL, agreement(total_amount=900_000))
+    entry = active(service, sale_id)
+    # No puede quedar aprobable ni pagable con una base que ya no corresponde al total.
+    assert entry["status"] == "OBSERVADA"
+    with pytest.raises(ValueError, match="transición inválida"):
+        service.approve(SOL, entry_id, "Sol")
+    with pytest.raises(ValueError, match="transición inválida"):
+        service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-X")
+
+
+def test_source_correction_before_review_recomputes_the_whole_base(service):
+    """La corrección previa a la revisión recalcula base y descuento, no sólo el total."""
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.set_policy(SOL, "GENERAL", 300)
+    service.recalculate(SOL)
+    assert active(service, sale_id)["commissionable_base"] == 475_000
+    service.register_sale(SOL, agreement(total_amount=900_000))
+    entry = active(service, sale_id)
+    assert entry["status"] == "ELEGIBLE"
+    assert entry["gross_amount"] == 900_000
+    assert entry["agreement_discount"] == 45_000 and entry["commissionable_base"] == 855_000
+    assert entry["rate_bp"] is None and entry["commission_amount"] is None
+    service.recalculate(SOL)
+    entry = active(service, sale_id)
+    assert entry["commission_amount"] == 25_650
+    # Cambio de tipo: el 5% del convenio debe aplicarse, nunca quedar en cero.
+    other, _ = service.register_sale(SOL, common(source_sale_id="mixta", initial_paid=400_000))
+    service.recalculate(SOL)
+    assert active(service, other)["agreement_discount"] == 0
+    service.register_sale(SOL, common(source_sale_id="mixta", kind="CONVENIO", initial_paid=400_000))
+    service.recalculate(SOL)
+    changed = active(service, other)
+    assert changed["sale_kind"] == "CONVENIO" and changed["agreement_discount"] == 20_000
+    assert changed["commissionable_base"] == 380_000
+
+
+def test_source_correction_cannot_reattribute_already_paid_commission(service):
+    """Observación O1 del Auditor generación 2, cerrada por la misma guarda."""
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    service.review(SOL, entry_id)
+    service.approve(SOL, entry_id, "Sol")
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-Y")
+    service.observe(SOL, entry_id, "revisión posterior")
+    service.register_sale(SOL, agreement(saleswoman="Otra Vendedora", total_amount=900_000))
+    entry = active(service, sale_id)
+    assert entry["saleswoman"] == "Vendedora Dos" and entry["gross_amount"] == 500_000
+    assert entry["status"] == "OBSERVADA" and entry["paid_at"] == "2099-05-05"
+
+
 def test_source_correction_after_approval_becomes_observed(service):
     sale_id, _ = service.register_sale(SOL, agreement())
     service.recalculate(SOL)
