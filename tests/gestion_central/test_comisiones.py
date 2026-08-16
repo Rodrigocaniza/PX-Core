@@ -336,6 +336,77 @@ def test_review_sync_reports_invalid_dates_instead_of_losing_them(service):
     assert len(service.list_entries(SOL)) == 1
 
 
+def settled(service, sale_id):
+    """Liquidado neto según el libro append-only."""
+    return sum(int(p["amount"]) * (-1 if p["kind"] == "REVERSA" else 1)
+               for p in service.payments(SOL, sale_id))
+
+
+def test_resync_with_a_later_payment_settles_the_sale(service):
+    """Bloqueante QA generación 4: la corrección de origen ignoraba el cobro declarado."""
+    class FakeReview:
+        cash = 100_000
+
+        @classmethod
+        def list_sales(cls, _actor):
+            return [{"branch": "Óptica Asunción", "identity": "r1",
+                     "payload": {"date": "2099-04-08", "saleswoman": "Vendedora Uno", "total": 400_000,
+                                 "cash": cls.cash, "card_transfer": 0, "agreement": 0, "envelope": "S-11"}}]
+
+    assert service.sync_review_sales(SOL, FakeReview())["registered"] == 1
+    sale_id = service.list_entries(SOL)[0]["sale_id"]
+    assert active(service, sale_id)["status"] == "PENDIENTE_SALDO"
+    FakeReview.cash = 400_000
+    assert service.sync_review_sales(SOL, FakeReview())["registered"] == 1
+    entry = active(service, sale_id)
+    assert entry["status"] == "ELEGIBLE" and entry["period"] == "2099-04"
+    assert entry["balance_amount"] == 0 and entry["paid_amount"] == 400_000
+    assert settled(service, sale_id) == 400_000, "lo cobrado debe estar respaldado por el libro"
+
+
+def test_paid_amount_is_always_backed_by_the_ledger(service):
+    """Bloqueante Auditor generación 4: `paid_amount` no puede quedar negativo ni sin respaldo."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    assert settled(service, sale_id) == 400_000
+    # Corrección a convenio con total menor: el libro manda y no admite cobrar más que el total.
+    with pytest.raises(ValueError, match="menor a lo ya cobrado"):
+        service.register_sale(SOL, common(kind="CONVENIO", total_amount=100_000, initial_paid=0))
+    service.register_sale(SOL, common(kind="CONVENIO", total_amount=400_000, initial_paid=0))
+    row = active(service, sale_id)
+    assert row["paid_amount"] == settled(service, sale_id) == 400_000
+    assert row["balance_amount"] == 0
+    with pytest.raises(ValueError, match="convenio"):
+        service.revert_payment(SOL, service.payments(SOL, sale_id)[0]["id"], "intento")
+    assert active(service, sale_id)["paid_amount"] >= 0
+
+
+def test_convenio_settlement_is_recorded_in_the_ledger(service):
+    sale_id, _ = service.register_sale(SOL, agreement())
+    ledger = service.payments(SOL, sale_id)
+    assert [p["kind"] for p in ledger] == ["CONVENIO"]
+    assert ledger[0]["amount"] == 500_000
+    assert active(service, sale_id)["paid_amount"] == settled(service, sale_id) == 500_000
+
+
+def test_retrying_the_cancelling_payment_is_discarded_not_rejected(service):
+    """Bloqueante Auditor generación 4: el reintento explotaba por saldo en vez de descartarse."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=0))
+    first = service.register_payment(SOL, sale_id, 400_000, "2099-04-28", "R-1", idempotency_key="sync-final")
+    assert first[1] and active(service, sale_id)["status"] == "ELEGIBLE"
+    retry = service.register_payment(SOL, sale_id, 400_000, "2099-04-28", "R-1", idempotency_key="sync-final")
+    assert retry == (None, False), "el reintento debe descartarse limpiamente, no lanzar por saldo"
+    assert active(service, sale_id)["balance_amount"] == 0
+    assert settled(service, sale_id) == 400_000
+
+
+def test_reverting_a_payment_on_a_voided_sale_is_rejected(service):
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=0))
+    payment_id, _ = service.register_payment(SOL, sale_id, 400_000, "2099-04-28", "R-2")
+    service.void_sale(SOL, sale_id, "anulada por el local")
+    with pytest.raises(ValueError, match="venta anulada"):
+        service.revert_payment(SOL, payment_id, "intento")
+
+
 def test_state_contract_and_append_only_history(service):
     assert COMMISSION_STATES == ("PENDIENTE_SALDO", "ELEGIBLE", "CALCULADA", "REVISADA",
                                  "APROBADA", "PAGADA", "OBSERVADA", "REVERTIDA")

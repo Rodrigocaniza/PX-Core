@@ -243,7 +243,11 @@ class CommissionService:
                      sale.sale_date, sale.total_amount, paid, balance, cancelled, sale.envelope,
                      content_hash, _canonical(payload), now, now),
                 )
-                if sale.kind == "COMUN" and sale.initial_paid:
+                if sale.kind == "CONVENIO":
+                    # El convenio no es un cobro de cliente, pero sí liquida la venta: va al libro.
+                    self._insert_payment(con, sale_id, sale.total_amount, sale.sale_date,
+                                         "CONVENIO", "liquidación por convenio", actor.username)
+                elif sale.initial_paid:
                     self._insert_payment(con, sale_id, sale.initial_paid, sale.sale_date,
                                          "COBRO", "alta", actor.username)
                 stored = con.execute("SELECT * FROM commission_sales WHERE id=?", (sale_id,)).fetchone()
@@ -261,17 +265,29 @@ class CommissionService:
             return row["id"], True
 
     def _apply_source_update(self, con, row, sale, payload, content_hash, actor):
-        """Una corrección de origen nunca modifica en silencio una liquidación cerrada."""
+        """Una corrección de origen nunca modifica en silencio una liquidación cerrada.
+
+        Lo cobrado sale siempre del libro append-only: toda diferencia declarada por el origen
+        se asienta como una fila más, nunca como una asignación suelta de `paid_amount`.
+        """
         if row["voided"]:
             raise ValueError("venta anulada: no admite corrección de origen")
+        settled = self._settled_amount(con, row["id"])
+        if sale.total_amount < settled:
+            raise ValueError("el total corregido es menor a lo ya cobrado")
         if sale.kind == "CONVENIO":
-            paid, balance = sale.total_amount, 0
+            # El convenio liquida la venta completa; la diferencia se asienta en el libro.
+            if sale.total_amount > settled:
+                self._insert_payment(con, row["id"], sale.total_amount - settled, sale.sale_date,
+                                     "CONVENIO", "liquidación por convenio", actor.username)
             cancelled = row["cancelled_date"] or sale.sale_date
-        else:
-            paid = self._settled_amount(con, row["id"])
-            balance = sale.total_amount - paid
-            if balance < 0:
-                raise ValueError("el total corregido es menor a lo ya cobrado")
+        elif sale.initial_paid > settled:
+            # El origen declara más cobrado que el libro: se asienta el cobro faltante.
+            self._insert_payment(con, row["id"], sale.initial_paid - settled, sale.sale_date,
+                                 "COBRO", "conciliación de origen", actor.username)
+        paid = self._settled_amount(con, row["id"])
+        balance = sale.total_amount - paid
+        if sale.kind != "CONVENIO":
             cancelled = (row["cancelled_date"] or sale.sale_date) if balance == 0 else None
         con.execute(
             "UPDATE commission_sales SET saleswoman=?,sale_kind=?,sale_date=?,total_amount=?,paid_amount=?,"
@@ -316,9 +332,12 @@ class CommissionService:
 
     @staticmethod
     def _settled_amount(con, sale_id) -> int:
-        """Cobrado neto según el libro append-only de cobros y reversas."""
+        """Liquidado neto según el libro append-only: cobros y convenios menos reversas.
+
+        Es la única fuente de verdad de `paid_amount`; nada lo asigna por fuera del libro.
+        """
         row = con.execute(
-            "SELECT COALESCE(SUM(CASE WHEN kind='COBRO' THEN amount ELSE -amount END),0)"
+            "SELECT COALESCE(SUM(CASE WHEN kind='REVERSA' THEN -amount ELSE amount END),0)"
             " FROM commission_payments WHERE sale_id=?", (sale_id,)
         ).fetchone()
         return int(row[0])
@@ -359,8 +378,8 @@ class CommissionService:
                 raise ValueError("venta anulada: no admite cobros")
             if sale["sale_kind"] == "CONVENIO":
                 raise ValueError("el convenio no registra saldo cliente")
-            if amount > int(sale["balance_amount"]):
-                raise ValueError("el cobro supera el saldo pendiente")
+            # El reintento se reconoce ANTES de validar importes: si no, el reintento del cobro
+            # que cancela la venta explotaría por saldo en vez de descartarse limpiamente.
             if idempotency_key and con.execute(
                 "SELECT 1 FROM commission_payments p WHERE p.client_key=? AND p.sale_id=? AND p.kind='COBRO'"
                 " AND NOT EXISTS(SELECT 1 FROM commission_payments r WHERE r.reverses_id=p.id)",
@@ -368,9 +387,12 @@ class CommissionService:
             ).fetchone():
                 con.rollback()
                 return None, False
+            if amount > int(sale["balance_amount"]):
+                raise ValueError("el cobro supera el saldo pendiente")
             payment_id = self._insert_payment(con, sale_id, amount, payment_date, "COBRO", reference,
                                               actor.username, client_key=idempotency_key)
-            paid, balance = int(sale["paid_amount"]) + amount, int(sale["balance_amount"]) - amount
+            paid = self._settled_amount(con, sale_id)
+            balance = int(sale["total_amount"]) - paid
             cancelled = payment_date if balance == 0 else None
             con.execute(
                 "UPDATE commission_sales SET paid_amount=?,balance_amount=?,cancelled_date=?,updated_at=? WHERE id=?",
@@ -427,9 +449,14 @@ class CommissionService:
                 raise ValueError("cobro ya revertido")
             sale_id, amount = payment["sale_id"], int(payment["amount"])
             sale = con.execute("SELECT * FROM commission_sales WHERE id=?", (sale_id,)).fetchone()
+            if sale["voided"]:
+                raise ValueError("venta anulada: no admite reversión de cobros")
+            if sale["sale_kind"] == "CONVENIO":
+                raise ValueError("la venta es hoy un convenio: el cobro ya no participa de su liquidación")
             self._insert_payment(con, sale_id, amount, payment["payment_date"], "REVERSA", reason,
                                  actor.username, reverses=payment_id)
-            paid, balance = int(sale["paid_amount"]) - amount, int(sale["balance_amount"]) + amount
+            paid = self._settled_amount(con, sale_id)
+            balance = int(sale["total_amount"]) - paid
             con.execute(
                 "UPDATE commission_sales SET paid_amount=?,balance_amount=?,cancelled_date=NULL,updated_at=? WHERE id=?",
                 (paid, balance, _now(), sale_id),

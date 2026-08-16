@@ -2,7 +2,7 @@
 
 Cadena: Librarian → QA → Auditor, con independencia real en tres subagentes separados por
 generación. Estado de revisión de este snapshot: ver `INDEPENDENCE.md`. Evidencia de las
-generaciones ya revisadas en `generation-1/`, `generation-2/` y `generation-3/`.
+generaciones ya revisadas en `generation-1/` a `generation-4/`.
 
 ## Matriz de revisión
 
@@ -45,7 +45,14 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
    AUD-003 O4).
 9. **Cosméticos de UI** (QA-003): badge de piloto duplicado entre shell y panel, y el signo «×»
    delante de un importe que ya es el producto.
-10. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
+10. **`register_payment` con la misma clave y monto distinto descarta sin traza** (QA-004 obs.).
+    Es error del llamador, pero convendría un asiento de historial en el descarte.
+11. **Los cobros legados quedan con `client_key` NULL tras la migración** (AUD-004 O5) y pierden la
+    idempotencia derivada del contenido que tenían bajo el esquema anterior.
+12. **Ni `register_payment` ni `sync_review_sales` tienen llamador productivo** (QA-004 obs.): la
+    bandeja sólo se puebla hoy con el capturador sintético. Es el cableado que debe resolver el
+    próximo bloque para que el ciclo de cobros sea alcanzable desde el producto.
+13. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
    `tests/gestion_central/test_ui_interactions.py` (commit `bb27034`) define dos veces
    `test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll`; pytest sólo
    recolecta la segunda y un cuerpo de aserciones queda muerto. **Fuera del alcance de esta

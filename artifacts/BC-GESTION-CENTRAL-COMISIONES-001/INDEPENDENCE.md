@@ -7,7 +7,7 @@ conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el prop
 
 ## Estado de este snapshot
 
-**Generación 4. Pendiente de revisión independiente.** Los verdicts de generación 4 no existen
+**Generación 5. Pendiente de revisión independiente.** Los verdicts de generación 5 no existen
 todavía; cuando se emitan quedarán en un directorio propio. Ningún documento de este paquete debe
 leerse como si esa revisión ya hubiera ocurrido.
 
@@ -80,16 +80,51 @@ Corregidos haciendo la idempotencia explícita y del llamador, separando la iden
 cobro (`idempotency_key`) de la clave del llamador (`client_key`), y excluyendo los cobros
 reversados del chequeo de duplicados.
 
+## Generación 4 — snapshot `88a3f74e0d507f20917ef5d650dd92a3e56e8202`
+
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-004` | LIBRARIAN | PASS |
+| `QA-IND-COMISIONES-004` | QA | **FAIL** — dos defectos en la conciliación de origen |
+| `AUDITOR-IND-COMISIONES-004` | AUDITOR | **FAIL** — contrato afirmado no cumplido y `paid_amount` negativo |
+
+Invalidada. Evidencia íntegra en `generation-4/`.
+
+Los tres confirmaron cerrados los cinco bloqueantes anteriores; QA verificó además que el contrato
+nuevo de idempotencia no abrió ninguna vía de doble conteo, y ambos confirmaron que la migración
+aditiva no pierde datos. Los cuatro defectos nuevos tenían **una sola raíz**: `paid_amount` se
+asignaba por fuera del libro append-only.
+
+- **Cobro posterior del origen descartado en silencio.** `_apply_source_update` ignoraba
+  `initial_paid`: una venta ingerida con saldo y cobrada después quedaba atrapada para siempre en
+  `PENDIENTE_SALDO`, informando éxito. Subpago del 100% por la vía de ingesta documentada.
+- **`paid_amount` negativo** por corrección a convenio sin guarda, con el reporte informando como
+  cobrado un dinero ya revertido.
+- **`revert_payment` sin guarda de tipo**, dejando dinero declarado como cobrado sin asiento.
+- **El contrato de idempotencia no cumplía lo que `ARCHITECTURE.md` afirmaba**: el chequeo de saldo
+  precedía al de reintento, y el caso roto era el más frecuente.
+
+Corregidos de raíz en la generación 5: el libro es ahora la única fuente de verdad de
+`paid_amount`, el convenio liquida mediante una fila `CONVENIO` del propio libro, toda diferencia
+declarada por el origen se asienta como una fila más, y el reintento se reconoce antes de validar
+importes.
+
 ## Valor demostrado de la independencia
 
-Cinco defectos financieros reales y dos defectos de veracidad documental fueron detectados por
-revisores independientes después de que la autorrevisión de la ejecución implementadora los
-declarara correctos, y con la regresión completa en verde en las cuatro generaciones. Cuatro de
-ellos habrían movido dinero mal: comisión perdida por período corrupto, doble pago habilitado,
-comisión liquidada sobre una base congelada y comisión nunca generada tras una reversión.
+Nueve defectos financieros reales y dos de veracidad documental fueron detectados por revisores
+independientes después de que la autorrevisión los declarara correctos, y con la regresión completa
+en verde en todas las generaciones. Habrían movido dinero mal: comisión perdida por período
+corrupto, doble pago habilitado, comisión liquidada sobre una base congelada, comisión nunca
+generada tras una reversión, comisión atrapada para siempre tras un cobro posterior, y
+`paid_amount` negativo.
 
-Ninguna suite verde sustituye a una revisión independiente: las cuatro generaciones tenían el 100%
-de sus pruebas en verde en el momento de ser revisadas.
+Ninguna suite verde sustituye a una revisión independiente: **todas** las generaciones revisadas
+tenían el 100% de sus pruebas en verde en el momento de ser revisadas.
+
+El patrón de los hallazgos también es informativo: tras la generación 2, los defectos dejaron de
+aparecer en las reglas económicas —que se mantuvieron correctas— y se concentraron en la
+conciliación entre un origen con forma de snapshot y un libro con forma de eventos. Por eso la
+corrección de la generación 5 es estructural y no otro parche puntual.
 
 Las observaciones no bloqueantes de las tres generaciones quedan registradas sin corregir, según
 el protocolo de corregir únicamente bloqueantes. Ver `HANDOFF.md`.

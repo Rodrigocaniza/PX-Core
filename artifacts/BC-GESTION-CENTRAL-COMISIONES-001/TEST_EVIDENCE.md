@@ -1,11 +1,40 @@
 # Evidencia de pruebas
 
-## Generación 4 (vigente)
+## Generación 5 (vigente)
 
-- Dominio de comisiones: **34/34 PASS**.
+- Dominio de comisiones: **39/39 PASS**.
 - Interacción Tk y Full HD: **4/4 PASS**.
-- Regresión completa: **289/289 PASS** en 24.87 s.
-- Línea base heredada: 251 pruebas; esta misión suma 38 sin romper ninguna existente.
+- Regresión completa: **294/294 PASS** en 25.72 s.
+- Línea base heredada: 251 pruebas; esta misión suma 43 sin romper ninguna existente.
+
+## FAIL de revisores independientes (generación 4) y su corrección
+
+11. **Cobro posterior del origen descartado en silencio — bloqueante del QA independiente.**
+    `_apply_source_update` ignoraba `sale.initial_paid`: una venta ingerida con saldo y cobrada
+    después quedaba atrapada para siempre en `PENDIENTE_SALDO`, con `sync_review_sales` informando
+    éxito y sin error, observación ni asiento. Subpago del 100% por la vía de ingesta documentada.
+
+12. **`paid_amount` negativo y sin respaldo — bloqueante del Auditor independiente.** La rama
+    CONVENIO fijaba `paid = total_amount` sin consultar el libro; combinado con una reversión
+    posterior producía `paid_amount = -300.000` y un KPI informando como cobrado dinero ya
+    revertido.
+
+13. **`revert_payment` sin guarda de tipo — bloqueante del QA independiente.** Dejaba `paid_amount`
+    sin correspondencia con el libro y cerraba la única puerta hacia `ELEGIBLE`.
+
+14. **El contrato de idempotencia no cumplía lo afirmado — bloqueante del Auditor independiente.**
+    El chequeo de saldo precedía al de reintento, de modo que reintentar el cobro que cancela la
+    venta fallaba por saldo en vez de descartarse. La prueba citada no podía alcanzar el caso.
+
+    Los cuatro tenían una sola raíz y se corrigieron de raíz: **el libro append-only es ahora la
+    única fuente de verdad de `paid_amount`**. El convenio liquida mediante una fila `CONVENIO`,
+    toda diferencia declarada por el origen se asienta como una fila más, `revert_payment` recalcula
+    desde el libro y rechaza ventas anuladas o convertidas en convenio, y el reintento se reconoce
+    antes de validar importes. Cubierto por `test_resync_with_a_later_payment_settles_the_sale`,
+    `test_paid_amount_is_always_backed_by_the_ledger`,
+    `test_convenio_settlement_is_recorded_in_the_ledger`,
+    `test_retrying_the_cancelling_payment_is_discarded_not_rejected` y
+    `test_reverting_a_payment_on_a_voided_sale_is_rejected`.
 
 ## FAIL de revisores independientes (generación 3) y su corrección
 
@@ -82,6 +111,8 @@ muertos tras la corrección.
 
 ## Generaciones históricas invalidadas
 
+- Generación 4: 289/289 PASS. Cifra correcta, pero ninguna prueba cubría el re-sync con un cobro
+  modificado ni el reintento del cobro que cancela la venta.
 - Generación 3: 287/287 PASS. Cifra correcta, pero la suite afirmaba como idempotencia deseada
   justamente el comportamiento defectuoso del libro de cobros.
 - Generación 2: 284/284 PASS. Cifra correcta, pero la suite no cubría la corrección de origen en
@@ -89,7 +120,7 @@ muertos tras la corrección.
 - Generación 1: 280/280 PASS. Cifra correcta, pero la suite no cubría ninguno de los dos
   bloqueantes de esa generación.
 
-Las cuatro cifras eran ciertas y las cuatro suites estaban verdes en el momento de ser revisadas.
+Todas las cifras eran ciertas y todas las suites revisadas estaban verdes al ser revisadas.
 Ninguna regresión verde sustituye a una revisión independiente.
 
 ## Cambio de contrato en una prueba existente

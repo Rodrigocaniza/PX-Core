@@ -1,12 +1,15 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G4",
+  "current_state": "REVIEW_PENDING_G5",
   "mission_lease": "HELD",
-  "generation": 4,
-  "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
+  "generation": 5,
+  "autochain": [
+    "LIBRARIAN",
+    "QA",
+    "AUDITOR"
+  ],
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "NOT_EXECUTED",
-  "generation_4_review": "NOT_YET_EXECUTED",
   "generations": [
     {
       "generation": 1,
@@ -15,9 +18,32 @@
       "status": "INVALIDATED",
       "tests": 280,
       "verdicts": [
-        {"runner": "LIBRARIAN-IND-COMISIONES-001", "role": "LIBRARIAN", "verdict": "PASS", "timestamp_utc": "2026-08-15T23:33:25Z"},
-        {"runner": "QA-IND-COMISIONES-001", "role": "QA", "verdict": "FAIL", "timestamp_utc": "2026-08-15T23:41:08Z", "blockers": ["Q1"]},
-        {"runner": "AUDITOR-IND-COMISIONES-001", "role": "AUDITOR", "verdict": "FAIL", "timestamp_utc": "2026-08-15T23:34:18Z", "blockers": ["A1", "A2", "A3"]}
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-001",
+          "role": "LIBRARIAN",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-15T23:33:25Z"
+        },
+        {
+          "runner": "QA-IND-COMISIONES-001",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-15T23:41:08Z",
+          "blockers": [
+            "Q1"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-001",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-15T23:34:18Z",
+          "blockers": [
+            "A1",
+            "A2",
+            "A3"
+          ]
+        }
       ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-1/"
     },
@@ -28,11 +54,42 @@
       "status": "INVALIDATED",
       "tests": 284,
       "verdicts": [
-        {"runner": "LIBRARIAN-IND-COMISIONES-002", "role": "LIBRARIAN", "verdict": "FAIL", "timestamp_utc": "2026-08-15T23:58:30Z", "blockers": ["B1", "B2", "B3"]},
-        {"runner": "QA-IND-COMISIONES-002", "role": "QA", "verdict": "FAIL", "timestamp_utc": "2026-08-16T00:01:35Z", "blockers": ["STALE_BASE_ON_REVIEWED_SOURCE_CORRECTION"]},
-        {"runner": "AUDITOR-IND-COMISIONES-002", "role": "AUDITOR", "verdict": "FAIL", "timestamp_utc": "2026-08-16T00:02:53Z", "blockers": ["B1", "B2"]}
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-002",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-15T23:58:30Z",
+          "blockers": [
+            "B1",
+            "B2",
+            "B3"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISIONES-002",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T00:01:35Z",
+          "blockers": [
+            "STALE_BASE_ON_REVIEWED_SOURCE_CORRECTION"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-002",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T00:02:53Z",
+          "blockers": [
+            "B1",
+            "B2"
+          ]
+        }
       ],
-      "confirmed_closed_from_previous": ["Q1", "A1", "A2"],
+      "confirmed_closed_from_previous": [
+        "Q1",
+        "A1",
+        "A2"
+      ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-2/"
     },
     {
@@ -42,31 +99,186 @@
       "status": "INVALIDATED",
       "tests": 287,
       "verdicts": [
-        {"runner": "LIBRARIAN-IND-COMISIONES-003", "role": "LIBRARIAN", "verdict": "PASS", "timestamp_utc": "2026-08-16T00:17:15Z"},
-        {"runner": "QA-IND-COMISIONES-003", "role": "QA", "verdict": "FAIL", "timestamp_utc": "2026-08-16T00:22:08Z", "blockers": ["REVERTED_PAYMENT_CANNOT_BE_REREGISTERED", "IDENTICAL_GENUINE_PAYMENTS_COLLAPSED"]},
-        {"runner": "AUDITOR-IND-COMISIONES-003", "role": "AUDITOR", "verdict": "PASS", "timestamp_utc": "2026-08-16T00:20:19Z"}
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-003",
+          "role": "LIBRARIAN",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T00:17:15Z"
+        },
+        {
+          "runner": "QA-IND-COMISIONES-003",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T00:22:08Z",
+          "blockers": [
+            "REVERTED_PAYMENT_CANNOT_BE_REREGISTERED",
+            "IDENTICAL_GENUINE_PAYMENTS_COLLAPSED"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-003",
+          "role": "AUDITOR",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T00:20:19Z"
+        }
       ],
-      "confirmed_closed_from_previous": ["Q1", "A1", "A2", "STALE_BASE", "B1", "B2", "B3"],
+      "confirmed_closed_from_previous": [
+        "Q1",
+        "A1",
+        "A2",
+        "STALE_BASE",
+        "B1",
+        "B2",
+        "B3"
+      ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-3/"
+    },
+    {
+      "generation": 4,
+      "snapshot_commit": "88a3f74e0d507f20917ef5d650dd92a3e56e8202",
+      "snapshot_tree": "f58a3b7196ae8645360cfe5faa70a9656df50819",
+      "status": "INVALIDATED",
+      "tests": 289,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-004",
+          "role": "LIBRARIAN",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T00:32:00Z"
+        },
+        {
+          "runner": "QA-IND-COMISIONES-004",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T00:40:29Z",
+          "blockers": [
+            "RESYNC_DISCARDS_LATER_PAYMENT",
+            "REVERT_PAYMENT_WITHOUT_KIND_GUARD"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-004",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T00:42:13Z",
+          "blockers": [
+            "IDEMPOTENCY_CONTRACT_NOT_HONOURED",
+            "NEGATIVE_PAID_AMOUNT"
+          ]
+        }
+      ],
+      "confirmed_closed_from_previous": [
+        "Q1",
+        "A1",
+        "A2",
+        "STALE_BASE",
+        "B1",
+        "B2",
+        "B3",
+        "REVERTED_PAYMENT_REREGISTRATION",
+        "IDENTICAL_GENUINE_PAYMENTS"
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-4/"
     }
   ],
   "history": [
-    {"event": "CANONICAL_BASE_VERIFIED", "base": "eb6d082de4004d166379ffaae2b8f106fac10df1", "remote": "0 ahead / 0 behind"},
-    {"event": "NEW_WORKTREE_CREATED", "worktree": ".worktrees/gc-comisiones-001"},
-    {"event": "APPROVED_ECONOMIC_RULES_MAPPED", "rules": 9},
-    {"event": "INDEPENDENT_REVIEW_AUTHORIZED_BY_OWNER", "runners": 3},
-    {"event": "GENERATION_1_PUBLISHED_AND_REVIEWED", "verdicts": "PASS/FAIL/FAIL", "outcome": "INVALIDATED"},
-    {"event": "BLOCKER_Q1_FIXED", "fix": "date.fromisoformat en _month y contador invalid_date en sync_review_sales"},
-    {"event": "BLOCKER_A1_A2_FIXED", "fix": "invariante _was_paid en revert, _revert_commission_effect y void_sale"},
-    {"event": "GENERATION_2_PUBLISHED_AND_REVIEWED", "verdicts": "FAIL/FAIL/FAIL", "outcome": "INVALIDATED"},
-    {"event": "BLOCKER_STALE_BASE_FIXED", "fix": "REVIEWED_STATES a OBSERVADA y recalculo completo de la base antes de la revision", "tests_added": 3},
-    {"event": "DOCUMENTATION_BLOCKERS_FIXED", "fix": "ningun documento describe una revision no ocurrida; ARTIFACT_CONSISTENCY.md cubierto por el manifest y ZIP construido despues de los documentos"},
-    {"event": "GENERATION_3_PUBLISHED_AND_REVIEWED", "verdicts": "PASS/FAIL/PASS", "outcome": "INVALIDATED"},
-    {"event": "PAYMENT_LEDGER_BLOCKERS_FIXED", "fix": "idempotencia explicita del llamador via idempotency_key, client_key separado de la identidad interna, y cobros reversados excluidos del chequeo de duplicados", "tests_added": 3, "schema": "migracion aditiva idempotente de commission_payments.client_key"},
-    {"event": "TEST_CONTRACT_CORRECTED", "note": "test_duplicate_payment_key_is_idempotent afirmaba como garantia el propio defecto; reemplazado por test_explicit_idempotency_key_protects_integration_retries"},
-    {"event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD", "method": "escenarios exactos de cada revisor re-ejecutados contra el codigo corregido"},
-    {"event": "GENERATION_4_PUBLISHED", "tests": 289, "baseline": 251, "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"},
-    {"event": "MISSION_LEASE_KEPT_HELD", "reason": "correcciones acotadas a bloqueantes dentro de la misma sesion continua; liberar y readquirir habria abierto ventana de concurrencia sin beneficio"}
+    {
+      "event": "CANONICAL_BASE_VERIFIED",
+      "base": "eb6d082de4004d166379ffaae2b8f106fac10df1",
+      "remote": "0 ahead / 0 behind"
+    },
+    {
+      "event": "NEW_WORKTREE_CREATED",
+      "worktree": ".worktrees/gc-comisiones-001"
+    },
+    {
+      "event": "APPROVED_ECONOMIC_RULES_MAPPED",
+      "rules": 9
+    },
+    {
+      "event": "INDEPENDENT_REVIEW_AUTHORIZED_BY_OWNER",
+      "runners": 3
+    },
+    {
+      "event": "GENERATION_1_PUBLISHED_AND_REVIEWED",
+      "verdicts": "PASS/FAIL/FAIL",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "BLOCKER_Q1_FIXED",
+      "fix": "date.fromisoformat en _month y contador invalid_date en sync_review_sales"
+    },
+    {
+      "event": "BLOCKER_A1_A2_FIXED",
+      "fix": "invariante _was_paid en revert, _revert_commission_effect y void_sale"
+    },
+    {
+      "event": "GENERATION_2_PUBLISHED_AND_REVIEWED",
+      "verdicts": "FAIL/FAIL/FAIL",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "BLOCKER_STALE_BASE_FIXED",
+      "fix": "REVIEWED_STATES a OBSERVADA y recalculo completo de la base antes de la revision",
+      "tests_added": 3
+    },
+    {
+      "event": "DOCUMENTATION_BLOCKERS_FIXED",
+      "fix": "ningun documento describe una revision no ocurrida; ARTIFACT_CONSISTENCY.md cubierto por el manifest y ZIP construido despues de los documentos"
+    },
+    {
+      "event": "GENERATION_3_PUBLISHED_AND_REVIEWED",
+      "verdicts": "PASS/FAIL/PASS",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "PAYMENT_LEDGER_BLOCKERS_FIXED",
+      "fix": "idempotencia explicita del llamador via idempotency_key, client_key separado de la identidad interna, y cobros reversados excluidos del chequeo de duplicados",
+      "tests_added": 3,
+      "schema": "migracion aditiva idempotente de commission_payments.client_key"
+    },
+    {
+      "event": "TEST_CONTRACT_CORRECTED",
+      "note": "test_duplicate_payment_key_is_idempotent afirmaba como garantia el propio defecto; reemplazado por test_explicit_idempotency_key_protects_integration_retries"
+    },
+    {
+      "event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD",
+      "method": "escenarios exactos de cada revisor re-ejecutados contra el codigo corregido"
+    },
+    {
+      "event": "GENERATION_4_PUBLISHED",
+      "tests": 289,
+      "baseline": 251,
+      "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
+    },
+    {
+      "event": "MISSION_LEASE_KEPT_HELD",
+      "reason": "correcciones acotadas a bloqueantes dentro de la misma sesion continua; liberar y readquirir habria abierto ventana de concurrencia sin beneficio"
+    },
+    {
+      "event": "GENERATION_4_PUBLISHED_AND_REVIEWED",
+      "verdicts": "PASS/FAIL/FAIL",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "ROOT_CAUSE_IDENTIFIED",
+      "note": "los cuatro bloqueantes de la generacion 4 compartian una sola raiz: paid_amount se asignaba por fuera del libro append-only"
+    },
+    {
+      "event": "PAYMENT_LEDGER_MADE_SINGLE_SOURCE_OF_TRUTH",
+      "fix": "paid_amount siempre es _settled_amount; el convenio liquida con una fila CONVENIO; toda diferencia declarada por el origen se asienta en el libro; revert_payment recalcula desde el libro y rechaza ventas anuladas o convertidas en convenio; el reintento se reconoce antes de validar importes",
+      "tests_added": 5
+    },
+    {
+      "event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD",
+      "method": "escenarios exactos de cada revisor re-ejecutados contra el codigo corregido"
+    },
+    {
+      "event": "GENERATION_5_PUBLISHED",
+      "tests": 294,
+      "baseline": 251,
+      "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
+    }
   ],
   "non_blocking_findings_recorded": [
     "QA2-obs1 y QA3-obs: fechas ISO en formato basico o de semana desalineadas del filtro mensual",
@@ -78,11 +290,15 @@
     "AUD2-O3: el test de append-only prueba el rollback de SQLite, no la propiedad",
     "AUD1-obs y AUD3-O4: assert float( es mas debil que la propiedad declarada",
     "QA3: cosmeticos de UI, badge de piloto duplicado y signo por delante del producto",
-    "LIB1-obs4: defecto preexistente ajeno a la mision, test duplicado en test_ui_interactions.py"
+    "LIB1-obs4: defecto preexistente ajeno a la mision, test duplicado en test_ui_interactions.py",
+    "QA4-obs: register_payment con misma clave y monto distinto descarta sin traza en el historial",
+    "AUD4-O5: los cobros legados quedan con client_key NULL tras la migracion y pierden la idempotencia derivada del contenido",
+    "QA4-obs: register_payment y sync_review_sales no tienen llamador productivo; la bandeja solo se puebla con el capturador sintetico"
   ],
   "pending_configuration": {
     "item": "porcentaje de comision",
     "status": "SINTETICA_PENDIENTE_APROBACION",
     "note": "La base comisionable se calcula y se muestra siempre; el porcentaje no se afirma como regla productiva."
-  }
+  },
+  "generation_5_review": "NOT_YET_EXECUTED"
 }

@@ -11,8 +11,8 @@
 
 | Tabla | Rol |
 |---|---|
-| `commission_sales` | Venta con identidad estable `UNIQUE(branch, source_sale_id)`; total, cobrado, saldo, fecha de cancelación, anulación |
-| `commission_payments` | Libro append-only de cobros y reversas, con `idempotency_key` única |
+| `commission_sales` | Venta con identidad estable `UNIQUE(branch, source_sale_id)`; total, liquidado, saldo, fecha de cancelación, anulación |
+| `commission_payments` | Libro append-only de cobros (`COBRO`), liquidaciones de convenio (`CONVENIO`) y reversas (`REVERSA`); `idempotency_key` es la identidad interna única y `client_key` la clave opcional del llamador |
 | `commission_entries` | Liquidación por venta y período, con base, descuento, porcentaje y estado |
 | `commission_entry_history` | Historial append-only de transiciones |
 | `commission_policies` | Configuración sintética de porcentaje, pendiente de aprobación |
@@ -81,11 +81,34 @@ A1, A2 y A3 en `generation-1/VERDICT_AUDITOR.md`) y está cubierto por
 `test_paid_settlement_can_never_reach_reverted_even_through_observed` y
 `test_voiding_a_paid_sale_observes_instead_of_reverting`.
 
+### El libro de cobros es la única fuente de verdad
+
+`paid_amount` **nunca se asigna por fuera del libro**: siempre es `_settled_amount()`, es decir la
+suma de `COBRO` y `CONVENIO` menos `REVERSA`. Toda diferencia declarada por el origen se asienta
+como una fila más del libro append-only:
+
+- Un convenio liquida la venta completa mediante una fila `CONVENIO`, no por asignación directa.
+- Si una corrección de origen declara más cobrado que el libro, se asienta el cobro faltante.
+- Si el total corregido es menor a lo ya liquidado, la corrección se rechaza.
+- `revert_payment` recalcula desde el libro y rechaza ventas anuladas o ya convertidas en convenio.
+
+Esto cierra estructuralmente toda la familia de defectos en que `paid_amount` divergía del libro:
+cobro posterior del origen descartado en silencio (venta atrapada en `PENDIENTE_SALDO` para
+siempre), `paid_amount` negativo, y dinero declarado como cobrado sin ningún asiento que lo
+respalde. Añadido en la generación 5 tras los FAIL de QA y Auditor independientes de la
+generación 4; cubierto por `test_resync_with_a_later_payment_settles_the_sale`,
+`test_paid_amount_is_always_backed_by_the_ledger`,
+`test_convenio_settlement_is_recorded_in_the_ledger` y
+`test_reverting_a_payment_on_a_voided_sale_is_rejected`.
+
 ### Contrato de idempotencia de los cobros
 
 La idempotencia de `register_payment` es **explícita y del llamador**, no inferida del contenido:
 
-- Con `idempotency_key`, el reintento de una integración se descarta con `(None, False)`.
+- Con `idempotency_key`, el reintento se descarta con `(None, False)`. El reconocimiento del
+  reintento ocurre **antes** de validar importes, de modo que reintentar el cobro que cancela la
+  venta se descarta limpiamente en vez de fallar por saldo insuficiente. Cubierto por
+  `test_retrying_the_cancelling_payment_is_discarded_not_rejected`.
 - Sin clave, **cada llamada es un cobro real distinto**: dos cobros genuinos del mismo monto, el
   mismo día y con la misma referencia son dos cobros, no un duplicado.
 - Un cobro ya revertido **deja de bloquear su clave**: la reversa deshace el hecho que la clave
