@@ -272,6 +272,10 @@ class CommissionService:
         """
         if row["voided"]:
             raise ValueError("venta anulada: no admite corrección de origen")
+        if row["sale_kind"] == "CONVENIO" and sale.kind != "CONVENIO":
+            # Deja de ser convenio: la liquidación por convenio ya no sostiene la venta y se
+            # revierte en el libro. El saldo vuelve a ser el total menos los cobros reales.
+            self._reverse_agreement_settlement(con, row["id"], actor.username)
         settled = self._settled_amount(con, row["id"])
         if sale.total_amount < settled:
             raise ValueError("el total corregido es menor a lo ya cobrado")
@@ -329,6 +333,20 @@ class CommissionService:
             refreshed = con.execute("SELECT * FROM commission_sales WHERE id=?", (row["id"],)).fetchone()
             self._revert_commission_effect(con, refreshed, actor.username, "SOURCE_UPDATED_REOPENED_BALANCE",
                                            {**details, "reason": "corrección de origen reabrió el saldo"})
+
+    def _reverse_agreement_settlement(self, con, sale_id, actor):
+        """Revierte en el libro las liquidaciones por convenio que siguen vigentes."""
+        pending = con.execute(
+            "SELECT p.id,p.amount,p.payment_date FROM commission_payments p"
+            " WHERE p.sale_id=? AND p.kind='CONVENIO'"
+            " AND NOT EXISTS(SELECT 1 FROM commission_payments r WHERE r.reverses_id=p.id)",
+            (sale_id,),
+        ).fetchall()
+        for agreement in pending:
+            self._insert_payment(con, sale_id, int(agreement["amount"]), agreement["payment_date"],
+                                 "REVERSA", "convenio revertido por corrección de origen", actor,
+                                 reverses=agreement["id"])
+        return len(pending)
 
     @staticmethod
     def _settled_amount(con, sale_id) -> int:
@@ -747,6 +765,8 @@ class CommissionService:
                 "SELECT count(*) count, COALESCE(SUM(p.amount),0) total FROM commission_payments p"
                 " JOIN commission_sales s ON s.id=p.sale_id"
                 " WHERE p.kind='COBRO' AND substr(p.payment_date,1,7)=? AND s.balance_amount>0 AND s.voided=0"
+                # Un cobro revertido no es dinero en caja: nunca se informa como cobrado.
+                " AND NOT EXISTS(SELECT 1 FROM commission_payments r WHERE r.reverses_id=p.id)"
                 + (" AND s.branch=?" if branch else "") + (" AND s.saleswoman=?" if saleswoman else ""),
                 [period] + [value for value in (branch, saleswoman) if value],
             ).fetchone()

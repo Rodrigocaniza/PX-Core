@@ -1,11 +1,38 @@
 # Evidencia de pruebas
 
-## Generación 5 (vigente)
+## Generación 6 (vigente)
 
-- Dominio de comisiones: **39/39 PASS**.
+- Dominio de comisiones: **42/42 PASS**.
 - Interacción Tk y Full HD: **4/4 PASS**.
-- Regresión completa: **294/294 PASS** en 25.72 s.
-- Línea base heredada: 251 pruebas; esta misión suma 43 sin romper ninguna existente.
+- Regresión completa: **297/297 PASS** en 26.35 s.
+- Línea base heredada: 251 pruebas; esta misión suma 46 sin romper ninguna existente.
+
+## FAIL de revisores independientes (generación 5) y su corrección
+
+15. **La fila `CONVENIO` sobrevivía a la conversión de la venta a común — bloqueante de QA y del
+    Auditor, encontrado por ambos de forma independiente.** Es un defecto **introducido por la
+    propia corrección estructural de la generación 5**. Una venta convertida de convenio a común
+    quedaba con `paid_amount` completo y saldo 0 pese a que el cliente nunca pagó nada: llegaba a
+    `PAGADA` con comisión sobre cero cobros reales, el asiento era irreversible
+    (`revert_payment` filtra `kind='COBRO'`) y el cobro real posterior se rechazaba por «supera el
+    saldo pendiente», dejando la venta permanentemente incobrable. Tras una reversa rutinaria el
+    residuo producía además 400.000 Gs. de subfacturación.
+
+16. **El KPI «Cobros parciales» informaba dinero ya revertido — bloqueante de QA.** La consulta
+    excluía las filas `CONVENIO` pero no los cobros con `REVERSA`: una seña revertida seguía
+    contando como cobrada en la cifra de portada.
+
+17. **`HANDOFF.md` declaraba abierto un hallazgo ya cerrado — bloqueante del Librarian.** El ítem 5
+    afirmaba que `revert_payment()` no rechazaba ventas anuladas cuando el código sí lo hacía,
+    contradiciendo a `ARCHITECTURE.md` y a `TEST_EVIDENCE.md`.
+
+    Corregidos sin inventar ninguna regla: `_reverse_agreement_settlement` revierte en el libro la
+    liquidación por convenio cuando la venta deja de serlo —que es exactamente lo que
+    `COMMISSION_RULES.md` ya documentaba—, el KPI excluye los cobros revertidos, y el hallazgo
+    obsoleto se quitó del backlog. Cubierto por
+    `test_downgrading_an_agreement_to_a_common_sale_reopens_the_balance`,
+    `test_a_downgraded_agreement_keeps_only_real_payments` y
+    `test_reverted_payments_are_never_reported_as_collected`.
 
 ## FAIL de revisores independientes (generación 4) y su corrección
 
@@ -111,6 +138,8 @@ muertos tras la corrección.
 
 ## Generaciones históricas invalidadas
 
+- Generación 5: 294/294 PASS. Cifra correcta, pero ninguna prueba cubría el descenso
+  CONVENIO→COMÚN, que era justamente lo que la propia corrección había roto.
 - Generación 4: 289/289 PASS. Cifra correcta, pero ninguna prueba cubría el re-sync con un cobro
   modificado ni el reintento del cobro que cancela la venta.
 - Generación 3: 287/287 PASS. Cifra correcta, pero la suite afirmaba como idempotencia deseada

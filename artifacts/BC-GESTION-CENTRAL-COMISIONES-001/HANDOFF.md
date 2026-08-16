@@ -2,7 +2,7 @@
 
 Cadena: Librarian → QA → Auditor, con independencia real en tres subagentes separados por
 generación. Estado de revisión de este snapshot: ver `INDEPENDENCE.md`. Evidencia de las
-generaciones ya revisadas en `generation-1/` a `generation-4/`.
+generaciones ya revisadas en `generation-1/` a `generation-5/`.
 
 ## Matriz de revisión
 
@@ -33,26 +33,24 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
 4. **`OBSERVADA` no tiene salida de corrección** (QA-003 obs.). El propio código manda liquidaciones
    a `OBSERVADA` con el texto «requiere corrección manual», pero no existe hoy ninguna vía de
    corrección manual ni en la API ni en la UI. Es el complemento natural del hallazgo 3.
-5. **`revert_payment()` no rechaza una venta anulada** (AUD-003 O2). Reabre el saldo y borra
-   `cancelled_date`, dejando el registro contradictorio. No mueve dinero.
-6. **Ventas mixtas (convenio parcial) mal clasificadas** en `sync_review_sales` (QA-001 obs. 3).
+5. **Ventas mixtas (convenio parcial) mal clasificadas** en `sync_review_sales` (QA-001 obs. 3).
    El error es conservador —nunca paga de más— y las reglas aprobadas no definen la venta mixta.
    Requiere decisión de negocio antes de tocar código.
-7. **`test_state_contract_and_append_only_history` no prueba append-only** (AUD-002 O3). Ejecuta
+6. **`test_state_contract_and_append_only_history` no prueba append-only** (AUD-002 O3). Ejecuta
    `DELETE` + `rollback()`, que demuestra que el rollback de SQLite funciona. La propiedad real se
    cumple, pero la suite no la protege ante regresiones.
-8. **`assert "float(" not in source` es más débil que la propiedad declarada** (AUD-001 obs.,
+7. **`assert "float(" not in source` es más débil que la propiedad declarada** (AUD-001 obs.,
    AUD-003 O4).
-9. **Cosméticos de UI** (QA-003): badge de piloto duplicado entre shell y panel, y el signo «×»
+8. **Cosméticos de UI** (QA-003): badge de piloto duplicado entre shell y panel, y el signo «×»
    delante de un importe que ya es el producto.
-10. **`register_payment` con la misma clave y monto distinto descarta sin traza** (QA-004 obs.).
+9. **`register_payment` con la misma clave y monto distinto descarta sin traza** (QA-004 obs.).
     Es error del llamador, pero convendría un asiento de historial en el descarte.
-11. **Los cobros legados quedan con `client_key` NULL tras la migración** (AUD-004 O5) y pierden la
+10. **Los cobros legados quedan con `client_key` NULL tras la migración** (AUD-004 O5) y pierden la
     idempotencia derivada del contenido que tenían bajo el esquema anterior.
-12. **Ni `register_payment` ni `sync_review_sales` tienen llamador productivo** (QA-004 obs.): la
+11. **Ni `register_payment` ni `sync_review_sales` tienen llamador productivo** (QA-004 obs.): la
     bandeja sólo se puebla hoy con el capturador sintético. Es el cableado que debe resolver el
     próximo bloque para que el ciclo de cobros sea alcanzable desde el producto.
-13. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
+12. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
    `tests/gestion_central/test_ui_interactions.py` (commit `bb27034`) define dos veces
    `test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll`; pytest sólo
    recolecta la segunda y un cuerpo de aserciones queda muerto. **Fuera del alcance de esta
@@ -61,5 +59,5 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
 ## Siguiente bloque recomendado
 
 Definir canónicamente el porcentaje de comisión (general, por local o por vendedora) y convertir
-`commission_policies` en regla productiva aprobada. Junto con eso, resolver los hallazgos 1 a 4,
+`commission_policies` en regla productiva aprobada. Junto con eso, resolver los hallazgos 1 a 4 y el 11,
 que son los que afectan lo que Sol ve o lo que puede corregir.

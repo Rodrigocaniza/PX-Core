@@ -7,7 +7,7 @@ conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el prop
 
 ## Estado de este snapshot
 
-**Generación 5. Pendiente de revisión independiente.** Los verdicts de generación 5 no existen
+**Generación 6. Pendiente de revisión independiente.** Los verdicts de generación 6 no existen
 todavía; cuando se emitan quedarán en un directorio propio. Ningún documento de este paquete debe
 leerse como si esa revisión ya hubiera ocurrido.
 
@@ -109,11 +109,37 @@ Corregidos de raíz en la generación 5: el libro es ahora la única fuente de v
 declarada por el origen se asienta como una fila más, y el reintento se reconoce antes de validar
 importes.
 
+## Generación 5 — snapshot `0f735f714aab454f714a9af45beb7bda13c301cc`
+
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-005` | LIBRARIAN | **FAIL** — hallazgo declarado abierto que el snapshot ya cerraba |
+| `QA-IND-COMISIONES-005` | QA | **FAIL** — tres defectos con una raíz |
+| `AUDITOR-IND-COMISIONES-005` | AUDITOR | **FAIL** — comisión sin cobro y documento contradicho |
+
+Invalidada. Evidencia íntegra en `generation-5/`.
+
+Los tres confirmaron cerrados los **nueve** bloqueantes financieros anteriores, y QA verificó el
+invariante del libro en 360 puntos de control sin un solo desvío. Pero la corrección estructural de
+la generación 5 **introdujo un defecto propio**: la fila `CONVENIO` del libro sobrevivía a la
+conversión de la venta a común. QA y Auditor lo encontraron de forma independiente.
+
+- Una venta convertida de convenio a común quedaba liquidada con dinero jamás cobrado, y podía
+  llegar a `PAGADA` con comisión sobre cero cobros reales. El asiento era irreversible y el cobro
+  real posterior se rechazaba: la venta quedaba permanentemente incobrable.
+- Tras una reversa rutinaria, el residuo producía 400.000 Gs. de subfacturación al cliente.
+- El KPI de portada «Cobros parciales» informaba como cobrado dinero ya revertido.
+
+Corregidos en la generación 6 sin inventar ninguna regla: cuando la venta deja de ser convenio, la
+liquidación por convenio **se revierte en el libro**, que es exactamente lo que `COMMISSION_RULES.md`
+ya documentaba; y el KPI excluye los cobros revertidos.
+
 ## Valor demostrado de la independencia
 
-Nueve defectos financieros reales y dos de veracidad documental fueron detectados por revisores
+Doce defectos financieros reales y cuatro de veracidad documental fueron detectados por revisores
 independientes después de que la autorrevisión los declarara correctos, y con la regresión completa
-en verde en todas las generaciones. Habrían movido dinero mal: comisión perdida por período
+en verde en todas las generaciones. Tres de ellos fueron **introducidos por una corrección
+anterior**, lo que es en sí mismo un argumento a favor de revisar cada generación desde cero. Habrían movido dinero mal: comisión perdida por período
 corrupto, doble pago habilitado, comisión liquidada sobre una base congelada, comisión nunca
 generada tras una reversión, comisión atrapada para siempre tras un cobro posterior, y
 `paid_amount` negativo.

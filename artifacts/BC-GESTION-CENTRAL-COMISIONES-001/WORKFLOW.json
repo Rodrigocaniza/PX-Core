@@ -1,8 +1,8 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G5",
+  "current_state": "REVIEW_PENDING_G6",
   "mission_lease": "HELD",
-  "generation": 5,
+  "generation": 6,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -179,6 +179,49 @@
         "IDENTICAL_GENUINE_PAYMENTS"
       ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-4/"
+    },
+    {
+      "generation": 5,
+      "snapshot_commit": "0f735f714aab454f714a9af45beb7bda13c301cc",
+      "snapshot_tree": "76f475e975a9768a474a0d00e06d1ac3a69bc66e",
+      "status": "INVALIDATED",
+      "tests": 294,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-005",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T00:58:17Z",
+          "blockers": [
+            "STALE_OPEN_FINDING_IN_HANDOFF"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISIONES-005",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T00:58:08Z",
+          "blockers": [
+            "AGREEMENT_ROW_SURVIVES_DOWNGRADE",
+            "UNDERBILLING_AFTER_REVERSAL",
+            "KPI_REPORTS_REVERTED_MONEY"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-005",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T01:01:39Z",
+          "blockers": [
+            "COMMISSION_WITHOUT_ANY_CLIENT_PAYMENT",
+            "COMMISSION_RULES_CONTRADICTS_CODE"
+          ]
+        }
+      ],
+      "confirmed_closed_from_previous": [
+        "los nueve bloqueantes financieros historicos"
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-5/"
     }
   ],
   "history": [
@@ -278,6 +321,39 @@
       "tests": 294,
       "baseline": 251,
       "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
+    },
+    {
+      "event": "GENERATION_5_PUBLISHED_AND_REVIEWED",
+      "verdicts": "FAIL/FAIL/FAIL",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "DEFECT_INTRODUCED_BY_OWN_FIX",
+      "note": "la fila CONVENIO del libro, introducida por la correccion estructural de la generacion 5, sobrevivia a la conversion de la venta a COMUN"
+    },
+    {
+      "event": "AGREEMENT_DOWNGRADE_FIXED",
+      "fix": "_reverse_agreement_settlement revierte en el libro la liquidacion por convenio cuando la venta deja de serlo; el saldo se reabre por el total menos los cobros reales",
+      "tests_added": 2
+    },
+    {
+      "event": "PARTIAL_PAYMENT_KPI_FIXED",
+      "fix": "el KPI de cobros excluye los cobros que tienen REVERSA",
+      "tests_added": 1
+    },
+    {
+      "event": "STALE_OPEN_FINDING_REMOVED",
+      "fix": "HANDOFF.md ya no declara abierto el hallazgo de revert_payment sobre ventas anuladas, cerrado en la generacion 5"
+    },
+    {
+      "event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD",
+      "method": "escenarios exactos de cada revisor re-ejecutados contra el codigo corregido"
+    },
+    {
+      "event": "GENERATION_6_PUBLISHED",
+      "tests": 297,
+      "baseline": 251,
+      "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -285,7 +361,6 @@
     "QA2-obs3 y AUD2-O2: paid_amount se calcula por estado y no por paid_at",
     "QA1-obs2 y QA2-obs4: liquidaciones OBSERVADA suman a los KPIs monetarios",
     "QA3-obs: OBSERVADA no tiene salida de correccion manual en API ni UI",
-    "AUD3-O2: revert_payment no rechaza una venta anulada",
     "QA1-obs3: ventas mixtas (convenio parcial) mal clasificadas en sync_review_sales",
     "AUD2-O3: el test de append-only prueba el rollback de SQLite, no la propiedad",
     "AUD1-obs y AUD3-O4: assert float( es mas debil que la propiedad declarada",
@@ -293,12 +368,15 @@
     "LIB1-obs4: defecto preexistente ajeno a la mision, test duplicado en test_ui_interactions.py",
     "QA4-obs: register_payment con misma clave y monto distinto descarta sin traza en el historial",
     "AUD4-O5: los cobros legados quedan con client_key NULL tras la migracion y pierden la idempotencia derivada del contenido",
-    "QA4-obs: register_payment y sync_review_sales no tienen llamador productivo; la bandeja solo se puebla con el capturador sintetico"
+    "QA4-obs: register_payment y sync_review_sales no tienen llamador productivo; la bandeja solo se puebla con el capturador sintetico",
+    "LIB5-obs: numeracion descendente y bullets de gates mal ubicados en TEST_EVIDENCE.md",
+    "QA5-obs: _apply_source_update rechaza corregir a la baja el total de un convenio",
+    "AUD5-obs: una correccion de origen que declara menos cobrado se ignora en silencio; el libro nunca se reduce"
   ],
   "pending_configuration": {
     "item": "porcentaje de comision",
     "status": "SINTETICA_PENDIENTE_APROBACION",
     "note": "La base comisionable se calcula y se muestra siempre; el porcentaje no se afirma como regla productiva."
   },
-  "generation_5_review": "NOT_YET_EXECUTED"
+  "generation_6_review": "NOT_YET_EXECUTED"
 }

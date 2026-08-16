@@ -407,6 +407,44 @@ def test_reverting_a_payment_on_a_voided_sale_is_rejected(service):
         service.revert_payment(SOL, payment_id, "intento")
 
 
+def test_downgrading_an_agreement_to_a_common_sale_reopens_the_balance(service):
+    """Bloqueante QA y Auditor generación 5: la fila CONVENIO sobrevivía a la conversión."""
+    sale_id, _ = service.register_sale(SOL, agreement())
+    assert active(service, sale_id)["balance_amount"] == 0
+    service.register_sale(SOL, agreement(kind="COMUN", initial_paid=0))
+    entry = active(service, sale_id)
+    assert entry["status"] == "PENDIENTE_SALDO", "sin convenio la venta no está liquidada"
+    assert entry["balance_amount"] == 500_000 and entry["paid_amount"] == 0
+    assert settled(service, sale_id) == 0, "el libro no puede sostener dinero nunca cobrado"
+    assert service.report(SOL, "2099-04")["kpi"]["commissionable_base"] == 0
+    # El cobro real posterior vuelve a ser posible y liquida la venta de verdad.
+    service.register_payment(SOL, sale_id, 500_000, "2099-05-04", "recibo-real")
+    entry = active(service, sale_id)
+    assert entry["status"] == "ELEGIBLE" and entry["period"] == "2099-05"
+    assert entry["commissionable_base"] == 0 or entry["balance_amount"] == 0
+
+
+def test_a_downgraded_agreement_keeps_only_real_payments(service):
+    """Tras revertir el convenio, sólo los cobros reales sostienen el saldo."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=600_000, total_amount=1_000_000))
+    service.register_sale(SOL, common(kind="CONVENIO", total_amount=1_000_000, initial_paid=0))
+    assert active(service, sale_id)["balance_amount"] == 0
+    service.register_sale(SOL, common(total_amount=1_000_000, initial_paid=600_000))
+    entry = active(service, sale_id)
+    assert entry["paid_amount"] == 600_000 and entry["balance_amount"] == 400_000
+    assert settled(service, sale_id) == 600_000
+
+
+def test_reverted_payments_are_never_reported_as_collected(service):
+    """Bloqueante QA generación 5: el KPI de cobros informaba dinero ya revertido."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=0))
+    payment_id, _ = service.register_payment(SOL, sale_id, 300_000, "2099-04-20", "seña")
+    assert service.report(SOL, "2099-04")["kpi"]["partial_payments_amount"] == 300_000
+    service.revert_payment(SOL, payment_id, "cheque rechazado")
+    kpi = service.report(SOL, "2099-04")["kpi"]
+    assert kpi["partial_payments_amount"] == 0 and kpi["partial_payments_count"] == 0
+
+
 def test_state_contract_and_append_only_history(service):
     assert COMMISSION_STATES == ("PENDIENTE_SALDO", "ELEGIBLE", "CALCULADA", "REVISADA",
                                  "APROBADA", "PAGADA", "OBSERVADA", "REVERTIDA")
