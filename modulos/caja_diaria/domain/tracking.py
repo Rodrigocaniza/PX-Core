@@ -94,15 +94,18 @@ ETIQUETA_ACCION = {
     NextAction.NONE: "Sin acción pendiente",
 }
 
-#: Etapa a la que lleva cada accion. `None` cuando la accion no transiciona.
+#: Etapa a la que lleva cada accion. `None` solo para las que de verdad no
+#: transicionan. `RESOLVER_RECEPCION` si transiciona: resolver que un trabajo
+#: no habia llegado es, precisamente, recibirlo cuando aparece.
 TRANSICION_DE_ACCION = {
     NextAction.RECEIVE_IN_ASUNCION: TrackingStatus.RECEIVED_IN_ASUNCION,
     NextAction.SEND_TO_LABORATORY: TrackingStatus.IN_LABORATORY,
     NextAction.RECEIVE_FROM_LABORATORY: TrackingStatus.RECEIVED_FROM_LABORATORY,
     NextAction.SEND_TO_PILAR: TrackingStatus.SENT_TO_PILAR,
     NextAction.RECEIVE_IN_PILAR: TrackingStatus.RECEIVED_IN_PILAR,
+    NextAction.RESOLVE_RECEPTION: TrackingStatus.RECEIVED_IN_ASUNCION,
+    # Contactar es informacion: registra la novedad y no mueve la etapa.
     NextAction.CONTACT_LABORATORY: None,
-    NextAction.RESOLVE_RECEPTION: None,
     NextAction.NONE: None,
 }
 
@@ -111,27 +114,52 @@ def next_action(
     status: TrackingStatus | str, *, overdue: bool = False,
     reception_issue: ReceptionIssue | str | None = None,
 ) -> NextAction:
-    """Que corresponde hacer ahora. Fuente unica para dominio, servicio y UI.
+    """La proxima transicion **fisica**. Fuente unica para dominio, servicio y UI.
 
     Ninguna otra capa decide esto: la barra de acciones, las alertas y las
     operaciones masivas preguntan aca, de modo que no puedan discrepar.
+
+    El atraso **no** cambia esta respuesta, y por eso `overdue` se acepta pero
+    no decide. Cuando lo decidia, un trabajo vencido en laboratorio dejaba de
+    ofrecer "recibir" y solo ofrecia "contactar"; como contactar no transiciona,
+    el trabajo quedaba trabado: la operadora podia registrar llamadas para
+    siempre sin poder recibirlo nunca, y la unica salida era comprometer un
+    plazo futuro que el laboratorio no habia dado.
+
+    Una condicion derivada acompaña a la etapa, no la reemplaza. Lo que
+    conviene hacer *ademas* de avanzar lo responde `complementary_action`.
     """
     etapa = TrackingStatus(status)
     if reception_issue is not None and ReceptionIssue(reception_issue) is ReceptionIssue.NOT_ARRIVED:
-        # Figuraba en el envio pero no aparecio: no avanza hasta resolverse.
+        # Figuraba en el envio y no aparecio. Sigue sin poder saltar al
+        # laboratorio —solo existe la transicion a RECIBIDO EN ASUNCION—, pero
+        # esa transicion es la resolucion y tiene que estar disponible.
         return NextAction.RESOLVE_RECEPTION
     if etapa is TrackingStatus.SENT_FROM_PILAR:
         return NextAction.RECEIVE_IN_ASUNCION
     if etapa is TrackingStatus.RECEIVED_IN_ASUNCION:
         return NextAction.SEND_TO_LABORATORY
     if etapa is TrackingStatus.IN_LABORATORY:
-        return (NextAction.CONTACT_LABORATORY if overdue
-                else NextAction.RECEIVE_FROM_LABORATORY)
+        return NextAction.RECEIVE_FROM_LABORATORY
     if etapa is TrackingStatus.RECEIVED_FROM_LABORATORY:
         return NextAction.SEND_TO_PILAR
     if etapa is TrackingStatus.SENT_TO_PILAR:
         return NextAction.RECEIVE_IN_PILAR
     return NextAction.NONE
+
+
+def complementary_action(
+    status: TrackingStatus | str, *, overdue: bool = False,
+) -> NextAction | None:
+    """Lo que conviene hacer **ademas** de avanzar, o `None`.
+
+    Es opcional por definicion: no bloquea la transicion fisica ni la
+    reemplaza. Hoy solo hay un caso —llamar al laboratorio que se paso del
+    plazo— y sigue siendo util aunque el trabajo ya pueda recibirse.
+    """
+    if TrackingStatus(status) is TrackingStatus.IN_LABORATORY and overdue:
+        return NextAction.CONTACT_LABORATORY
+    return None
 
 
 #: Sucursal de proceso por defecto: donde se reciben los trabajos de la

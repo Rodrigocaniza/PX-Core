@@ -140,14 +140,22 @@ class DiscrepanciaEnPantallaTests(Base):
         marcado = self.tracking.mark_not_arrived(work.id, responsible="Ana")
         self.assertEqual(marcado.shipment_id, lote["shipment"].id)
 
-    def test_no_llego_bloquea_el_avance_hasta_resolver(self):
+    def test_no_llego_bloquea_el_salto_pero_deja_resolver(self):
+        """RC26: bloquear el avance no puede significar dejarlo sin salida."""
         work = self._lote(1)["works"][0]
         self.tracking.mark_not_arrived(work.id, responsible="Ana")
         self.assertEqual(
             self.tracking.next_action_for([work.id])["action"],
             NextAction.RESOLVE_RECEPTION)
+        # No puede saltar al laboratorio mientras la discrepancia siga abierta.
         with self.assertRaises(InvalidCashDayError):
-            self.tracking.apply_next_action([work.id], responsible="Ana")
+            self.tracking.send_to_laboratory(
+                work.id, self.lab.id, expected_date=HOY, responsible="Ana")
+        # Pero la resolucion —recibirlo cuando aparece— si esta disponible.
+        self.tracking.apply_next_action([work.id], responsible="Ana")
+        recuperado = self.repository.get_tracked_work(work.id)
+        self.assertIs(recuperado.status, TrackingStatus.RECEIVED_IN_ASUNCION)
+        self.assertIsNone(recuperado.reception_issue)
 
     def test_marcar_no_llego_es_masivo(self):
         works = self._lote(5)["works"]
@@ -511,7 +519,10 @@ class InterfazAgrupacionTests(unittest.TestCase):
     def test_los_seis_grupos_son_secciones_de_una_lista(self):
         self.assertIn("for clave_grupo, titulo_grupo, _etapa in GRUPOS_SEGUIMIENTO:", FUENTE)
         self.assertIn("cabecera_grupo = ctk.CTkFrame(", FUENTE)
-        self.assertIn('text=f"  {titulo_grupo}  ·  {len(filas_grupo)}"', FUENTE)
+        # RC26 reutiliza el encabezado, asi que el rotulo se arma al repintarlo.
+        self.assertIn('text=f"  {titulo_grupo}  ·  {cantidad}"', FUENTE)
+        self.assertIn("pintar_grupo(clave_grupo, titulo_grupo, len(filas_grupo), indice)",
+                      FUENTE)
 
     def test_no_se_crearon_seis_barras_de_botones_ni_seis_pantallas(self):
         barra = FUENTE[

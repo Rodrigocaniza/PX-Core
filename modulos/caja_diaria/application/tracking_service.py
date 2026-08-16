@@ -22,6 +22,7 @@ from ..domain.tracking import (
     NextAction,
     ReceptionIssue,
     next_action as calcular_next_action,
+    complementary_action as calcular_complementary_action,
     SUCURSAL_PROCESO_POR_DEFECTO,
     etiqueta_dia,
     normalizar_sucursal,
@@ -122,6 +123,9 @@ class BoardRow:
     #: Momento contra el que se leen los dias relativos. Viaja con la fila para
     #: que "Hoy" signifique lo mismo en la grilla que en el calculo del atraso.
     now: datetime | None = None
+    #: Telefono del cliente, resuelto desde el pedido o la venta de origen. La
+    #: operadora tiene que poder llamarlo sin abrir el detalle.
+    customer_phone: str = ""
 
     @property
     def _hoy(self) -> date:
@@ -190,7 +194,7 @@ class BoardRow:
 
     @property
     def next_action(self) -> NextAction:
-        """Que corresponde hacer. Se pregunta a la autoridad del dominio."""
+        """La transicion fisica que corresponde. Autoridad del dominio."""
         return calcular_next_action(
             self.work.status, overdue=self.overdue,
             reception_issue=self.work.reception_issue,
@@ -199,6 +203,16 @@ class BoardRow:
     @property
     def next_action_label(self) -> str:
         return ETIQUETA_ACCION[self.next_action]
+
+    @property
+    def complementary_action(self) -> NextAction | None:
+        """Lo que conviene hacer ademas de avanzar. Nunca reemplaza la etapa."""
+        return calcular_complementary_action(self.work.status, overdue=self.overdue)
+
+    @property
+    def complementary_action_label(self) -> str:
+        accion = self.complementary_action
+        return ETIQUETA_ACCION[accion] if accion is not None else ""
 
     @property
     def observation(self) -> str:
@@ -529,29 +543,46 @@ class TrackingService:
     # -- acciones dirigidas por next_action --------------------------------
 
     def next_action_for(self, work_ids: Sequence[str], *, now: datetime | None = None) -> dict:
-        """Accion comun de una seleccion, o el motivo por el que no la hay."""
+        """Accion comun de una seleccion, o el motivo por el que no la hay.
+
+        Devuelve tambien `complementary`: lo que conviene hacer ademas, cuando
+        toda la seleccion lo comparte. Es informacion para la UI, no una
+        condicion para avanzar.
+        """
         momento = now or datetime.now(BUSINESS_TIMEZONE)
         trabajos = [self._load(work_id) for work_id in work_ids]
         if not trabajos:
-            return {"action": None, "label": "", "count": 0,
+            return {"action": None, "label": "", "count": 0, "complementary": None,
+                    "complementary_label": "",
                     "reason": "Seleccioná al menos un trabajo."}
+        complementarias = {
+            calcular_complementary_action(w.status, overdue=w.is_overdue(momento))
+            for w in trabajos
+        }
+        complementaria = complementarias.pop() if len(complementarias) == 1 else None
+        extra = {
+            "complementary": complementaria,
+            "complementary_label": (
+                ETIQUETA_ACCION[complementaria] if complementaria is not None else ""),
+        }
         acciones = {
             calcular_next_action(w.status, overdue=w.is_overdue(momento),
                                  reception_issue=w.reception_issue)
             for w in trabajos
         }
         if len(acciones) > 1:
-            return {"action": None, "label": "", "count": len(trabajos),
+            return {"action": None, "label": "", "count": len(trabajos), **extra,
                     "reason": "Los trabajos seleccionados están en etapas diferentes."}
         accion = acciones.pop()
         etiqueta = ETIQUETA_ACCION[accion]
         if accion is NextAction.NONE:
-            return {"action": accion, "label": etiqueta, "count": len(trabajos),
+            return {"action": accion, "label": etiqueta, "count": len(trabajos), **extra,
                     "reason": "Estos trabajos ya completaron el circuito."}
         if len(trabajos) > 1:
             verbo, _, resto = etiqueta.partition(" ")
             etiqueta = f"{verbo} {len(trabajos)} {resto}".strip()
-        return {"action": accion, "label": etiqueta, "count": len(trabajos), "reason": ""}
+        return {"action": accion, "label": etiqueta, "count": len(trabajos),
+                **extra, "reason": ""}
 
     def apply_next_action(
         self, work_ids: Sequence[str], *, responsible: str,
@@ -700,13 +731,20 @@ class TrackingService:
             if work.laboratory_id else None
         )
         momento = now or datetime.now(BUSINESS_TIMEZONE)
+        telefonos = self.repository.customer_phones(
+            [work.order_id] if work.order_id else [],
+            [work.cash_entry_id] if work.cash_entry_id else [],
+        )
         fila = BoardRow(
             work=work, laboratory=laboratorio,
             overdue=work.is_overdue(momento), now=momento,
+            customer_phone=(telefonos.get(work.order_id or "")
+                            or telefonos.get(work.cash_entry_id or "") or ""),
         )
         return {
             "envelope": fila.envelope,
             "customer_name": fila.customer_name,
+            "customer_phone": fila.customer_phone,
             "work_type": fila.work_type,
             "status": fila.status_display,
             "physical_status": fila.physical_status,
@@ -886,10 +924,16 @@ class TrackingService:
         elif scope == SCOPE_COMPLETADOS:
             works = [w for w in works if w.status in ESTADOS_COMPLETADOS]
         catalogo = self.laboratory_catalog()
+        telefonos = self.repository.customer_phones(
+            [w.order_id for w in works if w.order_id],
+            [w.cash_entry_id for w in works if w.cash_entry_id],
+        )
         filas = [
             BoardRow(
                 work=work, laboratory=catalogo.get(work.laboratory_id),
                 overdue=work.is_overdue(momento), now=momento,
+                customer_phone=(telefonos.get(work.order_id or "")
+                                or telefonos.get(work.cash_entry_id or "") or ""),
             )
             for work in works
         ]

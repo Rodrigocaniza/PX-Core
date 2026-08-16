@@ -100,8 +100,11 @@ class CircuitoCompletoTests(unittest.TestCase):
             fila = self._fila(work_id)
             self.assertEqual(fila.status_display, "NO LLEGÓ · ENVIADO DESDE PILAR")
             self.assertEqual(fila.next_action, NextAction.RESOLVE_RECEPTION)
+            # RC26: no puede saltar al laboratorio, pero la resolucion existe.
             with self.assertRaises(InvalidCashDayError):
-                tracking.apply_next_action([work_id], responsible="Ana")
+                tracking.send_to_laboratory(
+                    work_id, self.labs["LAB ALFA"].id, expected_date=MANANA,
+                    responsible="Ana")
         self.assertEqual(
             self.repository.get_tracked_work(faltantes[0]).shipment_id,
             lote["shipment"].id)
@@ -149,14 +152,15 @@ class CircuitoCompletoTests(unittest.TestCase):
             for work_id in grupo:
                 self.assertEqual(self._fila(work_id).laboratory_name, nombre)
 
-        # 9. Atrasados: cinco, y el boton principal deja de ofrecer "recibir".
+        # 9. Atrasados: cinco. El boton principal sigue ofreciendo "recibir" y
+        # el atraso se suma como sugerencia de contacto (RC26).
         ahora = momento(HOY, "10:00")
         tablero = tracking.board(responsible_branch="ASUNCION", now=ahora)
         atrasados = [f for f in tablero["rows"] if f.overdue]
         self.assertEqual(len(atrasados), 5)
-        self.assertEqual(
-            tracking.next_action_for(reparto["LAB ALFA"], now=ahora)["action"],
-            NextAction.CONTACT_LABORATORY)
+        resumen_alfa = tracking.next_action_for(reparto["LAB ALFA"], now=ahora)
+        self.assertEqual(resumen_alfa["action"], NextAction.RECEIVE_FROM_LABORATORY)
+        self.assertEqual(resumen_alfa["complementary"], NextAction.CONTACT_LABORATORY)
         principal = tracking.pending_actions_for_branch("ASUNCION", now=ahora)["principal"]
         self.assertEqual(principal["clave"], "atrasados")
         self.assertEqual(principal["cantidad"], 5)
@@ -187,21 +191,24 @@ class CircuitoCompletoTests(unittest.TestCase):
 
         # 12. Los laboratorios devuelven los 13.
         #
-        # Los tres de ALFA que siguen vencidos no ofrecen "recibir" sino
-        # "contactar", y una seleccion que mezcla ambas cosas se rechaza: es la
-        # misma regla que impide dar por recibido lo que todavia no llamaste.
-        pendientes_de_llamada = [
-            w for w in reparto["LAB ALFA"]
-            if self._fila(w, now=ahora).next_action is NextAction.CONTACT_LABORATORY
-        ]
-        self.assertEqual(len(pendientes_de_llamada), 3)
-        with self.assertRaises(InvalidCashDayError):
-            tracking.apply_next_action(listos, responsible="Ana", now=ahora)
-        for work_id in pendientes_de_llamada:
-            tracking.confirm_for_next_day(
-                work_id, operator="Ana", next_expected_date=MANANA,
-                next_expected_time="15:00", result="Lab pide un día más",
-                recorded_at=momento(HOY, "09:40"))
+        # RC26: los tres de ALFA que siguen vencidos ofrecen igual "recibir".
+        # El atraso les sugiere ademas contactar, pero no los traba: antes esa
+        # sugerencia reemplazaba a la transicion y el trabajo quedaba sin
+        # forma de avanzar.
+        vencidos = [w for w in reparto["LAB ALFA"]
+                    if self._fila(w, now=ahora).overdue]
+        self.assertEqual(len(vencidos), 3)
+        for work_id in vencidos:
+            fila = self._fila(work_id, now=ahora)
+            self.assertEqual(fila.next_action, NextAction.RECEIVE_FROM_LABORATORY)
+            self.assertEqual(fila.complementary_action, NextAction.CONTACT_LABORATORY)
+        # Contactar es opcional y no altera la etapa fisica.
+        tracking.register_contact(
+            vencidos[0], operator="Ana", channel="LLAMADA",
+            result="Llamé, no atienden", recorded_at=momento(HOY, "09:40"))
+        self.assertEqual(self._fila(vencidos[0], now=ahora).physical_status,
+                         "EN LABORATORIO")
+        # Y los 13 se reciben en una sola accion, vencidos incluidos.
         tracking.apply_next_action(listos, responsible="Ana", now=ahora)
         self.assertTrue(all(
             self.repository.get_tracked_work(w).status

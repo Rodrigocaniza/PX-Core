@@ -835,6 +835,33 @@ class SQLiteCashDayRepository:
             ).fetchall()
         return [self._hydrate_order(row) for row in rows]
 
+    def customer_phones(
+        self, order_ids: Sequence[str] = (), cash_entry_ids: Sequence[str] = (),
+    ) -> dict[str, str]:
+        """Telefono del cliente, indexado por id de pedido o de venta.
+
+        El seguimiento no guarda telefono propio: el dato ya existe en el
+        pedido o en la venta que originaron el trabajo, y duplicarlo abriria la
+        puerta a que las dos copias digan cosas distintas. Se resuelve en una
+        consulta por lote, no una por fila.
+        """
+        encontrados: dict[str, str] = {}
+        for tabla, ids in (("orders", order_ids), ("cash_entries", cash_entry_ids)):
+            limpios = [str(i) for i in ids if i]
+            if not limpios:
+                continue
+            marcadores = ",".join("?" for _ in limpios)
+            with self._connection() as connection:
+                filas = connection.execute(
+                    f"SELECT id, customer_phone FROM {tabla} WHERE id IN ({marcadores})",
+                    tuple(limpios),
+                ).fetchall()
+            for fila in filas:
+                telefono = str(fila["customer_phone"] or "").strip()
+                if telefono:
+                    encontrados[fila["id"]] = telefono
+        return encontrados
+
     def list_orders_by_ids(self, order_ids: Sequence[str]) -> Sequence[Order]:
         """Pedidos por id exacto, sin filtrar por fecha ni sucursal."""
         if not order_ids:

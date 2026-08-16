@@ -140,8 +140,8 @@ def verificar(root) -> dict:
         str(w.cget("text")) for w in cabeceras[0].winfo_children()
         if isinstance(w, ctk.CTkLabel)
     ]
-    if encabezados != ["", "Sobre", "Cliente", "Tipo de trabajo", "Laboratorio",
-                       "Estado", "Observación"]:
+    if encabezados != ["", "Sobre", "Cliente", "Teléfono", "Tipo de trabajo",
+                       "Laboratorio", "Estado", "Observación"]:
         raise RuntimeError(f"columnas inesperadas: {encabezados}")
     if "Vendedora" in encabezados:
         raise RuntimeError("Vendedora no debe mostrarse en Seguimiento")

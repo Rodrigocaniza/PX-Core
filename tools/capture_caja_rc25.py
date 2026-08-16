@@ -63,6 +63,8 @@ def seed(directory: Path) -> None:
             delivery_date=hoy + timedelta(days=7), branch="PILAR",
             customer_name=f"Cliente TEST {numero:02d}", saleswoman="Nidia (TEST)",
             envelope=f"{prefijo}-{numero:03d}", origin=OrderOrigin.WORKSHOP,
+            # RC26: el telefono ya existe en el pedido; Seguimiento lo muestra.
+            customer_phone=f"0981 {numero:03d} {numero:03d}",
             observations="Armazon + cristales",
             created_at=datetime.combine(ayer, time(14, 0), tzinfo=BUSINESS_TIMEZONE))
         repositorio.save_order(item)
@@ -194,6 +196,12 @@ def verificar(root, capturar_caja=None) -> dict:
     if not all("ENVIADO DESDE PILAR" in f for f in con_no_llego):
         raise RuntimeError("NO LLEGÓ borro la etapa fisica en vez de anteponerse")
 
+    # --- RC26: el telefono se lee en la fila -------------------------------
+    if "Teléfono" not in visibles:
+        raise RuntimeError("la tabla no muestra la columna Teléfono")
+    if not any(t.startswith("0981 ") for t in planos):
+        raise RuntimeError("la columna Teléfono no muestra numeros reales")
+
     # --- Observaciones operativas legibles sin abrir el detalle ------------
     observaciones = [t for t in planos if "Hoy 17:30" in t or "Mañana 15:00" in t]
     if not observaciones:
@@ -238,7 +246,39 @@ def verificar(root, capturar_caja=None) -> dict:
             f"la barra principal tiene {len(principales)} botones: "
             f"{[str(b.cget('text')) for b in principales]}")
 
+    # --- RC26: un atrasado sigue ofreciendo su transicion fisica -----------
+    #
+    # Se marca una fila ATRASADA y se lee la barra: el boton principal tiene
+    # que ofrecer "Recibir del laboratorio" —no quedarse en "Contactar"— y la
+    # sugerencia de contacto tiene que estar a la vista sin bloquear nada.
+    fila_atrasada = next(
+        (f for f in filas
+         if any(str(x.cget("text")).strip() == "ATRASADO"
+                for x in descendants(f) if isinstance(x, ctk.CTkLabel))), None)
+    if fila_atrasada is None:
+        raise RuntimeError("el escenario no dejo ninguna fila atrasada")
+    tilde = next(x for x in descendants(fila_atrasada)
+                 if isinstance(x, ctk.CTkCheckBox))
+    tilde.toggle()
+    root.update_idletasks()
+    root.update()
+    botones_barra = {
+        str(b.cget("text")) for b in descendants(root)
+        if isinstance(b, ctk.CTkButton) and b.winfo_ismapped()
+    }
+    principal_atrasado = next(
+        (t for t in botones_barra if t.startswith("Recibir del laboratorio")), "")
+    if not principal_atrasado:
+        raise RuntimeError(
+            f"un trabajo ATRASADO no ofrece su transicion fisica: {sorted(botones_barra)}")
+    if "Contactar laboratorio" not in botones_barra:
+        raise RuntimeError("no se sugiere contactar al laboratorio atrasado")
+    tilde.toggle()
+    root.update_idletasks()
+    root.update()
+
     return {
+        "atrasado_ofrece": principal_atrasado,
         "alerta": alerta_principal,
         "conciliacion": conciliacion,
         "grupos": secciones,
@@ -278,6 +318,7 @@ def main() -> int:
                 f"filas={metricas['filas']} "
                 f"alerta=\"{metricas['alerta']}\" "
                 f"conciliacion=\"{metricas['conciliacion']}\" "
+                f"atrasado_ofrece=\"{metricas['atrasado_ofrece']}\" "
                 f"grupos={metricas['grupos']} "
                 f"botones={metricas['botones_principales']} "
                 f"emails=0 new_closures=0"

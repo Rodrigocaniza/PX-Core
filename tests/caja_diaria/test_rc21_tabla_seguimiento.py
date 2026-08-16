@@ -37,13 +37,21 @@ def momento(dia: date, hora: str) -> datetime:
 
 class ColumnasTests(unittest.TestCase):
     def test_las_columnas_estan_en_el_orden_pedido(self):
-        """RC24 agrega el selector al inicio y Observación al final."""
+        """RC24 agrega el selector y Observación; RC26 el teléfono."""
         claves = [
             linea.split('("')[1].split('"')[0]
             for linea in TABLA.splitlines() if linea.strip().startswith('("')
         ]
-        self.assertEqual(claves, ["sel", "sobre", "cliente", "tipo",
+        self.assertEqual(claves, ["sel", "sobre", "cliente", "telefono", "tipo",
                                   "laboratorio", "estado", "observacion"])
+
+    def test_el_telefono_va_entre_cliente_y_tipo_de_trabajo(self):
+        claves = [
+            linea.split('("')[1].split('"')[0]
+            for linea in TABLA.splitlines() if linea.strip().startswith('("')
+        ]
+        self.assertEqual(claves[claves.index("cliente") + 1], "telefono")
+        self.assertEqual(claves[claves.index("telefono") + 1], "tipo")
 
     def test_vendedora_ya_no_se_muestra_en_seguimiento(self):
         self.assertNotIn("vendedora", TABLA.lower())
@@ -215,7 +223,11 @@ class PresentacionTests(unittest.TestCase):
     def test_el_estado_se_dibuja_como_chip_dentro_de_la_fila(self):
         self.assertIn("COLORES_ESTADO_SEGUIMIENTO", FUENTE)
         # El chip es hijo de la celda de la fila, no una capa flotante.
-        self.assertIn("celda_estado = ctk.CTkFrame(marco_fila", FUENTE)
+        # RC26 renombra el marco a `marco` al reutilizar las filas; lo que
+        # importa es que la celda siga colgando de la fila.
+        self.assertIn("celda_estado = ctk.CTkFrame(marco", FUENTE)
+        self.assertIn("chip_estado = ctk.CTkLabel(\n                    celda_estado",
+                      FUENTE)
         self.assertNotIn("posicionar_chips_seguimiento", FUENTE)
 
     def test_hay_un_color_por_cada_estado_visible(self):
@@ -253,7 +265,8 @@ class AnchosResponsiveTests(unittest.TestCase):
         self.assertLessEqual(sum(self._anchos()) + 40, 1330)
 
     def test_la_prioridad_de_ancho_respeta_el_orden_pedido(self):
-        sel, sobre, cliente, tipo, laboratorio, estado, observacion = self._anchos()
+        (sel, sobre, cliente, telefono, tipo,
+         laboratorio, estado, observacion) = self._anchos()
         self.assertLess(sel, sobre)
         self.assertLess(sobre, cliente)
         self.assertGreaterEqual(cliente, laboratorio)
@@ -261,6 +274,9 @@ class AnchosResponsiveTests(unittest.TestCase):
         # Estado es la mas ancha: aloja "CONFIRMADO PARA MAÑANA · <etapa>".
         self.assertGreater(estado, cliente)
         self.assertGreater(observacion, laboratorio)
+        # El telefono necesita menos que un nombre y mas que un sobre.
+        self.assertGreater(telefono, sobre)
+        self.assertLess(telefono, cliente)
 
 
 if __name__ == "__main__":

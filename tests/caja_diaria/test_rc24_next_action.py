@@ -14,9 +14,11 @@ from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE, Order, OrderOrigin
 from modulos.caja_diaria.domain.tracking import (
     ETIQUETA_ACCION,
+    TRANSICION_DE_ACCION,
     NextAction,
     ReceptionIssue,
     TrackingStatus,
+    complementary_action,
     next_action,
 )
 from modulos.caja_diaria.infrastructure.sqlite_repository import SQLiteCashDayRepository
@@ -44,16 +46,37 @@ class AutoridadNextActionTests(unittest.TestCase):
                          NextAction.RECEIVE_IN_PILAR)
         self.assertEqual(next_action(TrackingStatus.RECEIVED_IN_PILAR), NextAction.NONE)
 
-    def test_el_atraso_cambia_la_accion_a_contactar(self):
+    def test_el_atraso_no_cambia_la_transicion_fisica(self):
+        """RC26 corrige RC24: el atraso acompaña a la etapa, no la reemplaza.
+
+        Cuando la reemplazaba, un trabajo vencido dejaba de ofrecer "recibir" y
+        solo ofrecia "contactar", que no transiciona: quedaba trabado.
+        """
         self.assertEqual(
             next_action(TrackingStatus.IN_LABORATORY, overdue=True),
-            NextAction.CONTACT_LABORATORY)
+            NextAction.RECEIVE_FROM_LABORATORY)
+        self.assertEqual(
+            next_action(TrackingStatus.IN_LABORATORY, overdue=False),
+            NextAction.RECEIVE_FROM_LABORATORY)
 
-    def test_no_llego_bloquea_el_avance_hasta_resolver(self):
+    def test_contactar_es_complementario_del_atraso(self):
+        self.assertEqual(
+            complementary_action(TrackingStatus.IN_LABORATORY, overdue=True),
+            NextAction.CONTACT_LABORATORY)
+        self.assertIsNone(
+            complementary_action(TrackingStatus.IN_LABORATORY, overdue=False))
+
+    def test_no_llego_dirige_a_resolver_la_recepcion(self):
         self.assertEqual(
             next_action(TrackingStatus.SENT_FROM_PILAR,
                         reception_issue=ReceptionIssue.NOT_ARRIVED),
             NextAction.RESOLVE_RECEPTION)
+
+    def test_resolver_la_recepcion_si_transiciona(self):
+        """Resolver que algo no habia llegado es recibirlo cuando aparece."""
+        self.assertEqual(TRANSICION_DE_ACCION[NextAction.RESOLVE_RECEPTION],
+                         TrackingStatus.RECEIVED_IN_ASUNCION)
+        self.assertIsNone(TRANSICION_DE_ACCION[NextAction.CONTACT_LABORATORY])
 
     def test_toda_accion_tiene_etiqueta_para_el_boton(self):
         for accion in NextAction:
@@ -139,7 +162,7 @@ class SeleccionYAccionTests(Base):
         with self.assertRaises(InvalidCashDayError):
             self.tracking.apply_next_action([w.id for w in works], responsible="Ana")
 
-    def test_contactar_no_es_una_transicion(self):
+    def test_contactar_se_sugiere_sin_reemplazar_la_transicion(self):
         works = self._lote(1)["works"]
         self.tracking.apply_next_action([works[0].id], responsible="Ana")
         self.tracking.send_to_laboratory(
@@ -147,13 +170,16 @@ class SeleccionYAccionTests(Base):
             responsible="Ana")
         ahora = momento(HOY, "10:00")
         resumen = self.tracking.next_action_for([works[0].id], now=ahora)
-        self.assertEqual(resumen["action"], NextAction.CONTACT_LABORATORY)
-        with self.assertRaises(InvalidCashDayError):
-            self.tracking.apply_next_action([works[0].id], responsible="Ana", now=ahora)
+        self.assertEqual(resumen["action"], NextAction.RECEIVE_FROM_LABORATORY)
+        self.assertEqual(resumen["complementary"], NextAction.CONTACT_LABORATORY)
+        # Y la transicion se ejecuta: contactar no es un requisito previo.
+        self.tracking.apply_next_action([works[0].id], responsible="Ana", now=ahora)
+        self.assertIs(self.repository.get_tracked_work(works[0].id).status,
+                      TrackingStatus.RECEIVED_FROM_LABORATORY)
 
 
 class DiscrepanciasTests(Base):
-    def test_no_llego_queda_ligado_al_lote_y_no_avanza(self):
+    def test_no_llego_queda_ligado_al_lote_y_no_salta_al_laboratorio(self):
         lote = self._lote(3)
         work = lote["works"][0]
         marcado = self.tracking.mark_not_arrived(work.id, responsible="Ana")
@@ -162,8 +188,20 @@ class DiscrepanciasTests(Base):
         self.assertEqual(
             self.tracking.next_action_for([work.id])["action"],
             NextAction.RESOLVE_RECEPTION)
+        # Sigue sin poder saltar al laboratorio: la unica transicion valida
+        # desde ENVIADO DESDE PILAR es la recepcion, que es la resolucion.
         with self.assertRaises(InvalidCashDayError):
-            self.tracking.apply_next_action([work.id], responsible="Ana")
+            self.tracking.send_to_laboratory(
+                work.id, self.lab_a.id, expected_date=HOY, responsible="Ana")
+
+    def test_resolver_la_recepcion_recibe_y_limpia_la_discrepancia(self):
+        """RC26: la resolucion tiene que ser ejecutable, no solo anunciada."""
+        work = self._lote(1)["works"][0]
+        self.tracking.mark_not_arrived(work.id, responsible="Ana")
+        self.tracking.apply_next_action([work.id], responsible="Ana")
+        recuperado = self.repository.get_tracked_work(work.id)
+        self.assertIs(recuperado.status, TrackingStatus.RECEIVED_IN_ASUNCION)
+        self.assertIsNone(recuperado.reception_issue)
 
     def test_recibirlo_despues_limpia_la_discrepancia(self):
         work = self._lote(1)["works"][0]

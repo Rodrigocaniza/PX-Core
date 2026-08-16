@@ -3462,14 +3462,19 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     # la vista (el dato sigue en el dominio y en ventas) y el ancho de Estado
     # se dimensiona al caso mas largo, "CONFIRMADO PARA MAÑANA · RECIBIDO DEL
     # LABORATORIO", para no truncar la etapa fisica.
+    # RC26: el telefono entra entre Cliente y Tipo de trabajo. Estaba solo en
+    # el detalle, asi que llamar a un cliente obligaba a abrir su ficha; ahora
+    # se lee en la misma linea. El ancho sale de las demas, no del total: la
+    # tabla tiene que seguir entrando en 1366 sin scroll horizontal.
     COLUMNAS_SEGUIMIENTO = (
         ("sel", "", 34, "center", False),
         ("sobre", "Sobre", 90, "center", False),
-        ("cliente", "Cliente", 190, "w", False),
-        ("tipo", "Tipo de trabajo", 170, "w", False),
+        ("cliente", "Cliente", 170, "w", False),
+        ("telefono", "Teléfono", 110, "w", False),
+        ("tipo", "Tipo de trabajo", 150, "w", False),
         ("laboratorio", "Laboratorio", 150, "w", False),
-        ("estado", "Estado", 300, "w", False),
-        ("observacion", "Observación", 260, "w", True),
+        ("estado", "Estado", 290, "w", False),
+        ("observacion", "Observación", 240, "w", True),
     )
     # Paleta de estados, alineada con RC18: fondo, borde y texto por etapa.
     COLORES_ESTADO_SEGUIMIENTO = {
@@ -3546,7 +3551,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     acciones_seguimiento = ctk.CTkFrame(seguimiento, fg_color="transparent")
     acciones_seguimiento.pack(fill="x", pady=(6, 0))
 
-    estado_seguimiento = {"filas": {}, "widgets": {}, "secciones": [],
+    estado_seguimiento = {"filas": {}, "widgets": {}, "secciones": {},
                           "seleccion": None, "marcados": set()}
     # `foco` es el grupo al que la operadora entro desde una alerta o desde un
     # encabezado. None significa la vista normal: todos sus grupos a la vez.
@@ -3570,13 +3575,32 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         estado_seguimiento["seleccion"] = work_id
         actualizar_acciones_seguimiento()
 
+    def aplicar_marcas_visibles():
+        """Sincroniza los tildes con la seleccion, sin reconstruir la tabla.
+
+        Marcar o desmarcar no cambia que filas hay: solo su tilde. Reconstruir
+        la tabla entera para eso costaba 440 widgets y casi un segundo de
+        pantalla en blanco, que es el parpadeo que se veia al usar
+        `Seleccionar visibles` o `Limpiar selección`.
+        """
+        marcados = estado_seguimiento["marcados"]
+        for identificador, widgets in estado_seguimiento["widgets"].items():
+            marca = widgets.get("marca")
+            if marca is None:
+                continue
+            if identificador in marcados:
+                marca.select()
+            else:
+                marca.deselect()
+        actualizar_acciones_seguimiento()
+
     def seleccionar_visibles():
         estado_seguimiento["marcados"] = set(estado_seguimiento["filas"])
-        refrescar_seguimiento()
+        aplicar_marcas_visibles()
 
     def limpiar_seleccion():
         estado_seguimiento["marcados"].clear()
-        refrescar_seguimiento()
+        aplicar_marcas_visibles()
 
     def trabajo_seleccionado():
         return estado_seguimiento["filas"].get(estado_seguimiento["seleccion"])
@@ -3640,112 +3664,170 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 state="normal",
                 text=("Ver solo mi sucursal" if contexto_sucursal["todas"]
                       else "Ver todas las sucursales"))
-        for widgets in estado_seguimiento["widgets"].values():
-            widgets["fila"].destroy()
-        for seccion in estado_seguimiento["secciones"]:
-            seccion.destroy()
-        estado_seguimiento["widgets"].clear()
-        estado_seguimiento["filas"].clear()
-        estado_seguimiento["secciones"].clear()
-        def dibujar_fila(fila, indice, posicion):
-            fondo = "#FFF5F5" if fila.overdue else ("#FFFFFF" if posicion % 2 else "#FAFCFE")
-            marco_fila = ctk.CTkFrame(
-                lista_seguimiento, fg_color=fondo, corner_radius=0,
-                height=perfil["fuente"] + 22)
-            # Marca de pertenencia: la sonda verifica que cada chip cuelgue de
-            # una fila y no de una capa flotante.
-            marco_fila._bc_fila_seguimiento = True
-            marco_fila.grid(row=indice, column=0, sticky="ew", pady=(0, 1))
-            marco_fila.grid_propagate(False)
-            for columna, (_c, _t, ancho, anclaje, expandible) in enumerate(COLUMNAS_SEGUIMIENTO):
-                marco_fila.grid_columnconfigure(
-                    columna, weight=1 if expandible else 0, minsize=ancho)
-            identificador = fila.work.id
-            marca = ctk.CTkCheckBox(
-                marco_fila, text="", width=22, checkbox_width=18, checkbox_height=18,
-                command=lambda w=identificador: alternar_marca(w))
-            marca.grid(row=0, column=0, padx=(8, 0), pady=4)
-            if identificador in estado_seguimiento["marcados"]:
-                marca.select()
-            for columna, texto in enumerate((
-                fila.envelope, fila.customer_name, fila.work_type, fila.laboratory_name,
-            ), start=1):
-                ctk.CTkLabel(
-                    marco_fila, text=texto, anchor="w",
-                    text_color="#A32626" if fila.overdue else color_texto,
-                    font=ctk.CTkFont(size=perfil["fuente"]),
-                ).grid(row=0, column=columna, sticky="ew", padx=(10, 6), pady=5)
-            # La operadora lee la novedad sin abrir el detalle.
-            ctk.CTkLabel(
-                marco_fila, text=fila.observation, anchor="w", text_color=color_suave,
-                font=ctk.CTkFont(size=perfil["fuente"]),
-            ).grid(row=0, column=6, sticky="ew", padx=(10, 6), pady=5)
-            # El chip vive dentro de la fila: se desplaza y se destruye con ella.
-            celda_estado = ctk.CTkFrame(marco_fila, fg_color="transparent")
-            celda_estado.grid(row=0, column=5, sticky="w", padx=(10, 6), pady=4)
-            if fila.alert:
-                fondo_chip, _b, texto_chip = (
-                    COLOR_CHIP_ATRASADO if fila.overdue else COLOR_CHIP_CONFIRMADO)
-                ctk.CTkLabel(
-                    celda_estado, text=f"  {fila.alert}  ", corner_radius=7,
-                    fg_color=fondo_chip, text_color=texto_chip, height=20,
-                    font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
-                ).pack(side="left", padx=(0, 4))
-            fondo_chip, _b, texto_chip = COLORES_ESTADO_SEGUIMIENTO.get(
-                fila.physical_status, ("#EEF4FB", "#B9CDE5", "#132238"))
-            ctk.CTkLabel(
-                celda_estado, text=f"  {fila.physical_status}  ", corner_radius=7,
-                fg_color=fondo_chip, text_color=texto_chip, height=20,
-                font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
-            ).pack(side="left")
+        # RC26: las filas se reutilizan en vez de reconstruirse.
+        #
+        # Cada fila son ~29 widgets Tk y la tabla entera ronda los 440.
+        # Destruirlos y volver a crearlos en cada refresco costaba ~0,9 s con
+        # la tabla vacia a la vista: eso es lo que se veia como parpadeo, y
+        # ocurria incluso cuando la lista era exactamente la misma de antes.
+        #
+        # Ahora el widget de cada trabajo se crea una sola vez y despues solo
+        # se repinta: se le cambian textos, colores y posicion. Solo se crean
+        # los trabajos que aparecen y solo se destruyen los que dejan de
+        # figurar, que es lo unico que de verdad cambio.
+        lista_seguimiento.grid_remove()
+        try:
+            def crear_fila(identificador):
+                """Esqueleto de una fila. Se construye una vez por trabajo."""
+                marco = ctk.CTkFrame(
+                    lista_seguimiento, corner_radius=0, height=perfil["fuente"] + 22)
+                # Marca de pertenencia: la sonda verifica que cada chip cuelgue
+                # de una fila y no de una capa flotante.
+                marco._bc_fila_seguimiento = True
+                marco.grid_propagate(False)
+                for columna, (_c, _t, ancho, _a, expandible) in enumerate(
+                        COLUMNAS_SEGUIMIENTO):
+                    marco.grid_columnconfigure(
+                        columna, weight=1 if expandible else 0, minsize=ancho)
+                marca = ctk.CTkCheckBox(
+                    marco, text="", width=22, checkbox_width=18, checkbox_height=18,
+                    command=lambda w=identificador: alternar_marca(w))
+                marca.grid(row=0, column=0, padx=(8, 0), pady=4)
+                celdas = []
+                for columna in range(1, 6):
+                    etiqueta = ctk.CTkLabel(
+                        marco, text="", anchor="w",
+                        font=ctk.CTkFont(size=perfil["fuente"]))
+                    etiqueta.grid(row=0, column=columna, sticky="ew",
+                                  padx=(10, 6), pady=5)
+                    celdas.append(etiqueta)
+                # La operadora lee la novedad sin abrir el detalle.
+                observacion = ctk.CTkLabel(
+                    marco, text="", anchor="w", text_color=color_suave,
+                    font=ctk.CTkFont(size=perfil["fuente"]))
+                observacion.grid(row=0, column=7, sticky="ew", padx=(10, 6), pady=5)
+                # El chip vive dentro de la fila: se desplaza y se destruye con ella.
+                celda_estado = ctk.CTkFrame(marco, fg_color="transparent")
+                celda_estado.grid(row=0, column=6, sticky="w", padx=(10, 6), pady=4)
+                fuente_chip = ctk.CTkFont(
+                    size=max(8, perfil["fuente_label"] - 1), weight="bold")
+                chip_alerta = ctk.CTkLabel(
+                    celda_estado, text="", corner_radius=7, height=20, font=fuente_chip)
+                chip_estado = ctk.CTkLabel(
+                    celda_estado, text="", corner_radius=7, height=20, font=fuente_chip)
+                chip_estado.pack(side="left")
+                for widget in (marco, marca, *celdas, observacion, celda_estado,
+                               chip_alerta, chip_estado):
+                    widget.bind("<Button-1>",
+                                lambda _e, w=identificador: seleccionar_fila(w), add="+")
+                    widget.bind("<Double-Button-1>",
+                                lambda _e, w=identificador: (seleccionar_fila(w),
+                                                             abrir_detalle_trabajo()),
+                                add="+")
+                return {"fila": marco, "marca": marca, "celdas": celdas,
+                        "observacion": observacion, "chip_alerta": chip_alerta,
+                        "chip_estado": chip_estado,
+                        "fondo": "#FFFFFF", "fondo_activo": "#DCEBFA"}
 
-            for widget in [marco_fila] + list(marco_fila.winfo_children()) +                     list(celda_estado.winfo_children()):
-                widget.bind("<Button-1>",
-                            lambda _e, w=identificador: seleccionar_fila(w), add="+")
-                widget.bind("<Double-Button-1>",
-                            lambda _e, w=identificador: (seleccionar_fila(w),
-                                                         abrir_detalle_trabajo()), add="+")
-            estado_seguimiento["filas"][identificador] = fila
-            estado_seguimiento["widgets"][identificador] = {
-                "fila": marco_fila, "fondo": fondo, "fondo_activo": "#DCEBFA"}
+            def pintar_fila(fila, indice, posicion):
+                """Deja la fila diciendo lo que corresponde, sin recrearla."""
+                identificador = fila.work.id
+                widgets = estado_seguimiento["widgets"].get(identificador)
+                if widgets is None:
+                    widgets = crear_fila(identificador)
+                    estado_seguimiento["widgets"][identificador] = widgets
+                fondo = "#FFF5F5" if fila.overdue else (
+                    "#FFFFFF" if posicion % 2 else "#FAFCFE")
+                widgets["fondo"] = fondo
+                elegida = estado_seguimiento["seleccion"] == identificador
+                widgets["fila"].configure(
+                    fg_color=widgets["fondo_activo"] if elegida else fondo)
+                widgets["fila"].grid(row=indice, column=0, sticky="ew", pady=(0, 1))
+                if identificador in estado_seguimiento["marcados"]:
+                    widgets["marca"].select()
+                else:
+                    widgets["marca"].deselect()
+                color_fila = "#A32626" if fila.overdue else color_texto
+                for etiqueta, texto in zip(widgets["celdas"], (
+                    fila.envelope, fila.customer_name, fila.customer_phone or "—",
+                    fila.work_type, fila.laboratory_name,
+                )):
+                    etiqueta.configure(text=texto, text_color=color_fila)
+                widgets["observacion"].configure(text=fila.observation)
+                if fila.alert:
+                    fondo_chip, _b, texto_chip = (
+                        COLOR_CHIP_ATRASADO if fila.overdue else COLOR_CHIP_CONFIRMADO)
+                    widgets["chip_alerta"].configure(
+                        text=f"  {fila.alert}  ", fg_color=fondo_chip,
+                        text_color=texto_chip)
+                    widgets["chip_alerta"].pack(
+                        side="left", padx=(0, 4), before=widgets["chip_estado"])
+                else:
+                    widgets["chip_alerta"].pack_forget()
+                fondo_chip, _b, texto_chip = COLORES_ESTADO_SEGUIMIENTO.get(
+                    fila.physical_status, ("#EEF4FB", "#B9CDE5", "#132238"))
+                widgets["chip_estado"].configure(
+                    text=f"  {fila.physical_status}  ", fg_color=fondo_chip,
+                    text_color=texto_chip)
+                estado_seguimiento["filas"][identificador] = fila
 
-        # RC25: la lista se recorre como el circuito. Cada grupo abre con su
-        # encabezado y su cantidad, de modo que la operadora ve de una vez que
-        # etapas tienen trabajo esperandola sin cambiar de pantalla ni elegir
-        # un filtro. Dentro de cada grupo mandan las excepciones, que es el
-        # orden en que el tablero ya devolvio las filas.
-        por_grupo = {clave: [] for clave, _t, _e in GRUPOS_SEGUIMIENTO}
-        for fila in tablero["rows"]:
-            por_grupo[fila.group].append(fila)
-        indice = 0
-        for clave_grupo, titulo_grupo, _etapa in GRUPOS_SEGUIMIENTO:
-            filas_grupo = por_grupo[clave_grupo]
-            if not filas_grupo:
-                continue
-            enfocado = contexto_grupo["foco"] == clave_grupo
-            cabecera_grupo = ctk.CTkFrame(
-                lista_seguimiento, fg_color="#EEF4FB" if enfocado else "#F7FAFF",
-                corner_radius=4, height=perfil["fuente"] + 14)
-            cabecera_grupo.grid(
-                row=indice, column=0, sticky="ew", pady=(6 if indice else 0, 2))
-            cabecera_grupo.grid_propagate(False)
-            ctk.CTkLabel(
-                cabecera_grupo,
-                text=f"  {titulo_grupo}  ·  {len(filas_grupo)}"
-                     + ("     (viendo solo este grupo — clic para ver todo)"
-                        if enfocado else ""),
-                anchor="w", text_color=color_azul if enfocado else color_texto,
-                font=ctk.CTkFont(size=perfil["fuente"], weight="bold"),
-            ).pack(side="left", padx=6, pady=2)
-            for widget in (cabecera_grupo, *cabecera_grupo.winfo_children()):
-                widget.configure(cursor="hand2")
-                widget.bind("<Button-1>",
-                            lambda _e, g=clave_grupo: enfocar_grupo(g), add="+")
-            estado_seguimiento["secciones"].append(cabecera_grupo)
-            indice += 1
-            for posicion, fila in enumerate(filas_grupo):
-                dibujar_fila(fila, indice, posicion)
+            def pintar_grupo(clave_grupo, titulo_grupo, cantidad, indice):
+                """Encabezado de seccion, tambien reutilizado."""
+                cabecera_grupo = estado_seguimiento["secciones"].get(clave_grupo)
+                if cabecera_grupo is None:
+                    cabecera_grupo = ctk.CTkFrame(
+                        lista_seguimiento, corner_radius=4,
+                        height=perfil["fuente"] + 14)
+                    cabecera_grupo.grid_propagate(False)
+                    etiqueta = ctk.CTkLabel(
+                        cabecera_grupo, text="", anchor="w",
+                        font=ctk.CTkFont(size=perfil["fuente"], weight="bold"))
+                    etiqueta.pack(side="left", padx=6, pady=2)
+                    for widget in (cabecera_grupo, etiqueta):
+                        widget.configure(cursor="hand2")
+                        widget.bind("<Button-1>",
+                                    lambda _e, g=clave_grupo: enfocar_grupo(g), add="+")
+                    cabecera_grupo._bc_etiqueta = etiqueta
+                    estado_seguimiento["secciones"][clave_grupo] = cabecera_grupo
+                enfocado = contexto_grupo["foco"] == clave_grupo
+                cabecera_grupo.configure(
+                    fg_color="#EEF4FB" if enfocado else "#F7FAFF")
+                cabecera_grupo._bc_etiqueta.configure(
+                    text=f"  {titulo_grupo}  ·  {cantidad}"
+                         + ("     (viendo solo este grupo — clic para ver todo)"
+                            if enfocado else ""),
+                    text_color=color_azul if enfocado else color_texto)
+                cabecera_grupo.grid(
+                    row=indice, column=0, sticky="ew", pady=(6 if indice else 0, 2))
+
+            # RC25: la lista se recorre como el circuito. Cada grupo abre con su
+            # encabezado y su cantidad, de modo que la operadora ve de una vez que
+            # etapas tienen trabajo esperandola sin cambiar de pantalla ni elegir
+            # un filtro. Dentro de cada grupo mandan las excepciones, que es el
+            # orden en que el tablero ya devolvio las filas.
+            estado_seguimiento["filas"].clear()
+            por_grupo = {clave: [] for clave, _t, _e in GRUPOS_SEGUIMIENTO}
+            for fila in tablero["rows"]:
+                por_grupo[fila.group].append(fila)
+            indice = 0
+            for clave_grupo, titulo_grupo, _etapa in GRUPOS_SEGUIMIENTO:
+                filas_grupo = por_grupo[clave_grupo]
+                if not filas_grupo:
+                    cabecera = estado_seguimiento["secciones"].get(clave_grupo)
+                    if cabecera is not None:
+                        cabecera.grid_remove()
+                    continue
+                pintar_grupo(clave_grupo, titulo_grupo, len(filas_grupo), indice)
                 indice += 1
+                for posicion, fila in enumerate(filas_grupo):
+                    pintar_fila(fila, indice, posicion)
+                    indice += 1
+            # Solo desaparece de la pantalla lo que de verdad dejo de estar.
+            for identificador in set(estado_seguimiento["widgets"]) - set(
+                    estado_seguimiento["filas"]):
+                estado_seguimiento["widgets"].pop(identificador)["fila"].destroy()
+        finally:
+            lista_seguimiento.grid()
         estado_seguimiento["marcados"] &= set(estado_seguimiento["filas"])
         if estado_seguimiento["seleccion"] not in estado_seguimiento["filas"]:
             estado_seguimiento["seleccion"] = None
@@ -4141,15 +4223,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             messagebox.showinfo("Acción siguiente", info["reason"], parent=ventana)
             return
         accion = info["action"]
-        if accion is NextAction.CONTACT_LABORATORY:
-            abrir_novedad(ids)
-            return
-        if accion is NextAction.RESOLVE_RECEPTION:
-            messagebox.showinfo(
-                "Resolver recepción",
-                "Estos trabajos figuran como NO LLEGÓ. Recibilos cuando aparezcan.",
-                parent=ventana)
-            return
         if accion is NextAction.NONE:
             messagebox.showinfo("Acción siguiente", info["reason"], parent=ventana)
             return
@@ -4157,6 +4230,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         if accion is NextAction.SEND_TO_LABORATORY:
             datos = pedir_destino_laboratorio(len(ids))
             if datos is None:
+                return
+        elif accion is NextAction.RESOLVE_RECEPTION:
+            # Resolver la recepcion es recibir lo que no habia llegado. Se
+            # confirma aparte porque cierra una discrepancia, no porque
+            # bloquee: el trabajo nunca deja de poder avanzar.
+            if not messagebox.askyesno(
+                    "Resolver recepción",
+                    f"Estos {len(ids)} trabajo(s) figuran como NO LLEGÓ.\n\n"
+                    "¿Aparecieron y los recibís en Asunción?",
+                    parent=ventana):
                 return
         elif not messagebox.askyesno(
                 "Confirmar", f"¿{info['label']}?", parent=ventana):
@@ -4256,7 +4339,17 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         boton_accion_siguiente.configure(
             text=info["label"] or "Acción siguiente",
             state="normal" if info["action"] not in (None, NextAction.NONE) else "disabled")
-        boton_novedad.configure(state="normal" if hay else "disabled")
+        # La accion complementaria se sugiere en el boton que ya la ejecuta, en
+        # vez de sumar un cuarto boton: sigue siendo Novedad, con el nombre de
+        # lo que conviene hacer. Sugerir no es exigir — el boton principal
+        # queda habilitado igual, porque contactar nunca bloquea el avance.
+        sugerida = info.get("complementary")
+        boton_novedad.configure(
+            state="normal" if hay else "disabled",
+            text=("Contactar laboratorio" if sugerida is NextAction.CONTACT_LABORATORY
+                  else "Novedad"),
+            width=200 if sugerida is NextAction.CONTACT_LABORATORY else 140,
+            fg_color="#B42318" if sugerida is NextAction.CONTACT_LABORATORY else "#B45309")
 
     def ir_a_atrasados(_event=None):
         """Abre exactamente los trabajos que originaron la alerta.
@@ -4314,6 +4407,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ficha.pack(fill="x", padx=14, pady=(10, 4))
         ficha.grid_columnconfigure(1, weight=1)
         for indice, (etiqueta, valor) in enumerate((
+            ("Teléfono del cliente", detalle["customer_phone"] or "—"),
             ("Tipo de trabajo", detalle["work_type"] or "—"),
             ("Laboratorio", detalle["laboratory"]),
             ("Teléfono de línea", detalle["phone_line"] or "—"),
