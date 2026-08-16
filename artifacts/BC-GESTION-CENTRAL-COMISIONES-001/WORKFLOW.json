@@ -1,8 +1,8 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G8",
+  "current_state": "REVIEW_PENDING_G9",
   "mission_lease": "HELD",
-  "generation": 8,
+  "generation": 9,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -297,6 +297,40 @@
         "los catorce bloqueantes financieros historicos"
       ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-7/"
+    },
+    {
+      "generation": 8,
+      "snapshot_commit": "c4f6ee64717ca43becc5986985040ff57d6ee9f2",
+      "snapshot_tree": "6e6bc6a0c66f41ff050e0c256ef3a3493b4eaf6b",
+      "status": "INVALIDATED",
+      "tests": 302,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-008",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T02:04:11Z",
+          "blockers": [
+            "STALE_BACKLOG_ITEM_17_ARCHITECTURE_ALREADY_DOCUMENTS_REVERSE_AGREEMENT_SETTLEMENT"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISIONES-008",
+          "role": "QA",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T02:06:29Z"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-008",
+          "role": "AUDITOR",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T02:04:09Z"
+        }
+      ],
+      "confirmed_closed_from_previous": [
+        "los quince bloqueantes financieros historicos"
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-8/"
     }
   ],
   "history": [
@@ -482,6 +516,33 @@
       "tests": 302,
       "baseline": 251,
       "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
+    },
+    {
+      "event": "GENERATION_8_PUBLISHED_AND_REVIEWED",
+      "verdicts": "FAIL/PASS/PASS",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "FINANCIAL_CORE_CONFIRMED_BY_BOTH_TECHNICAL_REVIEWERS",
+      "note": "QA y Auditor emitieron PASS sobre la generacion 8; QA corrio 1.920 pasos de fuzz con 13 invariantes y el Auditor ataco por ejecucion las tres rutas a REVERTIDA"
+    },
+    {
+      "event": "STALE_BACKLOG_ITEM_REMOVED",
+      "fix": "el item que declaraba sin documentar _reverse_agreement_settlement se retiro, porque la generacion 8 lo documento en ARCHITECTURE.md"
+    },
+    {
+      "event": "BACKLOG_EXTENDED_WITH_REVIEWER_OBSERVATIONS",
+      "fix": "se incorporaron las observaciones no bloqueantes de QA y Auditor de la generacion 8 y se extendio el hallazgo 16 a ARCHITECTURE.md"
+    },
+    {
+      "event": "CODE_COMMENT_MADE_ACCURATE",
+      "fix": "el comentario de la guarda de sync_review_sales ya no afirma un absoluto que admite contraejemplo"
+    },
+    {
+      "event": "GENERATION_9_PUBLISHED",
+      "tests": 302,
+      "baseline": 251,
+      "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -500,8 +561,8 @@
     "13. Una corrección de origen que declara *menos* cobrado se ignora en silencio (AUD-005 obs.):",
     "14. Atribución obsoleta de convenio en el KPI tras el descenso de una liquidación ya pagada",
     "15. Una corrección sobre una liquidación `OBSERVADA` no pagada recalcula su base en silencio",
-    "16. `COMMISSION_RULES.md` generaliza de más (AUD-006 O1): afirma que al convertir un convenio en",
-    "17. `ARCHITECTURE.md` no documenta `_reverse_agreement_settlement` (AUD-006 O7), que es la",
+    "16. `COMMISSION_RULES.md` y `ARCHITECTURE.md` generalizan de más (AUD-006 O1, AUD-008 O3):",
+    "17. La guarda de `sync_review_sales` enumera tipos en vez de garantizar el invariante",
     "18. Aserción casi tautológica en `test_downgrading_an_agreement_to_a_common_sale_reopens_the_balance`",
     "19. Divergencia preexistente ajena a la misión (AUD-004 O5, AUD-006 O8): `main` local está",
     "20. `ARCHITECTURE.md` afirma que `paid_amount` «nunca se asigna por fuera del libro»",
@@ -510,12 +571,16 @@
     "23. Una venta hoy CONVENIO no admite `revert_payment` sobre sus cobros reales previos",
     "24. Una corrección de origen puramente no financiera sobre un convenio dispara igualmente la",
     "25. Una corrección de origen que cambia `sale_date` conserva el `cancelled_date` anterior",
-    "26. Defecto preexistente ajeno a la misión (LIB-001 obs. 4):"
+    "26. `sync_review_sales` no permite conciliar el lote (QA-008 obs. 1 y 2): una fila ya registrada",
+    "27. `CommissionSaleInput` valida obligatoriedad sobre `str(valor)` (QA-008 obs. 3), así que",
+    "28. Los KPI de cobros parciales se calculan sobre el saldo actual (QA-008 obs. 5): cuando una",
+    "29. `test_expenses_and_administration_deliveries_never_enter_the_ledger` promete más que lo que",
+    "30. Defecto preexistente ajeno a la misión (LIB-001 obs. 4):"
   ],
   "pending_configuration": {
     "item": "porcentaje de comision",
     "status": "SINTETICA_PENDIENTE_APROBACION",
     "note": "La base comisionable se calcula y se muestra siempre; el porcentaje no se afirma como regla productiva."
   },
-  "generation_8_review": "NOT_YET_EXECUTED"
+  "generation_9_review": "NOT_YET_EXECUTED"
 }

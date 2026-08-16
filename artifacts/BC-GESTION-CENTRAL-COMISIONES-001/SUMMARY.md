@@ -23,7 +23,8 @@ reglas de BC Caja. No contiene credenciales nuevas ni datos de clientes.
 
 Base exacta: `eb6d082de4004d166379ffaae2b8f106fac10df1`.
 
-Este snapshot es la **generación 8 y está pendiente de revisión independiente**. Las generaciones
-1 a 7 fueron revisadas por runners independientes y las siete resultaron invalidadas: catorce
-bloqueantes financieros reales y ocho de veracidad documental, todos corregidos. Detalle y verdicts
-en `INDEPENDENCE.md` y en los directorios `generation-1/` a `generation-7/`.
+Este snapshot es la **generación 9 y está pendiente de revisión independiente**. Las generaciones
+1 a 8 fueron revisadas por runners independientes. En la generación 8, **QA y Auditor emitieron
+PASS**: los quince bloqueantes financieros acumulados quedaron cerrados y verificados por ejecución
+propia de ambos. El único bloqueante restante fue documental. Detalle y verdicts en
+`INDEPENDENCE.md` y en los directorios `generation-1/` a `generation-8/`.

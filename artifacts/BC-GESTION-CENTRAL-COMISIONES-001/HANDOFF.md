@@ -62,11 +62,15 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
 15. **Una corrección sobre una liquidación `OBSERVADA` no pagada recalcula su base en silencio**
     (QA-006 obs.), a diferencia de `REVISADA`/`APROBADA`/`PAGADA`. Asimetría menor, sin efecto
     sobre dinero.
-16. **`COMMISSION_RULES.md` generaliza de más** (AUD-006 O1): afirma que al convertir un convenio en
-    venta común «no existían cobros que arrastrar», cierto para la venta nacida convenio pero no
-    para el camino COMÚN→CONVENIO→COMÚN, donde el código correctamente conserva los cobros previos.
-17. **`ARCHITECTURE.md` no documenta `_reverse_agreement_settlement`** (AUD-006 O7), que es la
-    corrección central de la generación 6.
+16. **`COMMISSION_RULES.md` y `ARCHITECTURE.md` generalizan de más** (AUD-006 O1, AUD-008 O3):
+    afirman que al convertir un convenio en venta común «no existían cobros que arrastrar» y que la
+    venta «recupera su saldo completo». Cierto para la venta nacida convenio, pero no para el camino
+    COMÚN→CONVENIO→COMÚN, donde el código correctamente conserva los cobros previos.
+17. **La guarda de `sync_review_sales` enumera tipos en vez de garantizar el invariante**
+    (QA-008 obs. 1, AUD-008 O1): un `payload` que no sea diccionario escapa por `AttributeError` y
+    trunca el lote. **No alcanzable**: los dos productores del repositorio construyen `payload`
+    siempre como diccionario y `sync_review_sales` no tiene llamador productivo. Conviene ampliar la
+    guarda o validar el tipo en el borde.
 18. **Aserción casi tautológica** en `test_downgrading_an_agreement_to_a_common_sale_reopens_the_balance`
     (AUD-006 O4): pasaría ante una regresión; la propiedad real la cubren las líneas anteriores.
 19. **Divergencia preexistente ajena a la misión** (AUD-004 O5, AUD-006 O8): `main` local está
@@ -90,7 +94,21 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
     (QA-007 obs.), de modo que la comisión queda atribuida al mes viejo. **No alcanzable por la
     ingesta real**, porque la identidad de `review_sales` incorpora `business_date`; es un defecto
     de contrato de la API de dominio, latente.
-26. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
+26. **`sync_review_sales` no permite conciliar el lote** (QA-008 obs. 1 y 2): una fila ya registrada
+    y sin cambios no incrementa ningún contador, y `rejected` es sólo un número sin traza de qué
+    filas no se ingirieron. Las filas siguen en `review_sales`, pero el operador no puede saber
+    cuáles faltan.
+27. **`CommissionSaleInput` valida obligatoriedad sobre `str(valor)`** (QA-008 obs. 3), así que
+    `None`, `0` o `[]` pasan la validación y el rechazo llega después como error de base. Sin
+    impacto monetario.
+28. **Los KPI de cobros parciales se calculan sobre el saldo actual** (QA-008 obs. 5): cuando una
+    venta con parciales queda cancelada más adelante, esos parciales dejan de figurar en el KPI del
+    mes en que ocurrieron.
+29. **`test_expenses_and_administration_deliveries_never_enter_the_ledger` promete más que lo que
+    prueba** (LIB-008 obs.): son dos `pytest.raises` sobre el constructor, sin construir un gasto ni
+    tocar el libro. Igual observación para la prueba citada por la regla 8, que cubre sólo la mitad
+    `REVERTIDA`.
+30. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
    `tests/gestion_central/test_ui_interactions.py` (commit `bb27034`) define dos veces
    `test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll`; pytest sólo
    recolecta la segunda y un cuerpo de aserciones queda muerto. **Fuera del alcance de esta

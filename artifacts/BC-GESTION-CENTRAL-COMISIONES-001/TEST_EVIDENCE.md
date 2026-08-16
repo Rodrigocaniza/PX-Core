@@ -1,11 +1,25 @@
 # Evidencia de pruebas
 
-## Generación 8 (vigente)
+## Generación 9 (vigente)
 
 - Dominio de comisiones: **47/47 PASS**.
 - Interacción Tk y Full HD: **4/4 PASS**.
-- Regresión completa: **302/302 PASS** en 26.37 s.
+- Regresión completa: **302/302 PASS** en 24.88 s.
 - Línea base heredada: 251 pruebas; esta misión suma 51 sin romper ninguna existente.
+
+## Revisión independiente de la generación 8
+
+**QA y Auditor emitieron PASS.** QA cerró los quince bloqueantes financieros históricos con
+escenarios propios, reprodujo el hueco del parseo sobre el `ReviewService` real y corrió 1.920 pasos
+de fuzz con trece invariantes duros. El Auditor atacó por ejecución las tres únicas rutas a
+`REVERTIDA` con liquidaciones pagadas y confirmó la imposibilidad de doble pago en la API y en el
+motor. **Ninguno encontró un defecto de dinero.**
+
+El único bloqueante fue del Librarian y era documental: el ítem 17 del backlog declaraba que
+`ARCHITECTURE.md` no documentaba `_reverse_agreement_settlement`, cuando el propio commit de la
+generación 8 había añadido esa documentación. Retirado en la generación 9, junto con la
+incorporación al backlog de todas las observaciones de ambos revisores y la corrección del
+comentario del código, que afirmaba un absoluto con contraejemplo conocido.
 
 ## FAIL de revisores independientes (generación 7) y su corrección
 
@@ -179,6 +193,8 @@ muertos tras la corrección.
 
 ## Generaciones históricas invalidadas
 
+- Generación 8: 302/302 PASS, con QA y Auditor en PASS. El único bloqueante fue un ítem de backlog
+  obsoleto, que ninguna prueba puede detectar.
 - Generación 7: 300/300 PASS. Cifra correcta, pero ninguna prueba cubría una fila mal formada
   antes del alta, que es donde quedaba el hueco de la guarda.
 - Generación 6: 297/297 PASS. Cifra correcta, pero ninguna prueba cubría la corrección a la baja

@@ -838,10 +838,10 @@ class CommissionService:
         """Ingesta desde la revisión de ventas. Gastos y entregas nunca ingresan."""
         registered = skipped = invalid_date = rejected = 0
         for row in review_service.list_sales(actor):
-            # Ninguna fila mal formada puede truncar el lote ni desaparecer sin contarse:
-            # la guarda cubre el parseo, la construcción y el alta, no sólo el alta.
-            # `AccessDenied` es `PermissionError` y sigue propagando: un fallo de permisos
-            # debe cortar la sincronización, no degradarse a una fila rechazada.
+            # La guarda cubre el parseo, la construcción y el alta, no sólo el alta: una fila con
+            # datos mal formados se cuenta en `rejected` y no trunca el lote. No pretende atrapar
+            # cualquier fallo: `AccessDenied` es `PermissionError` y sigue propagando, porque un
+            # fallo de permisos debe cortar la sincronización, no degradarse a una fila rechazada.
             try:
                 payload = row["payload"]
                 total = int(payload.get("total") or 0)

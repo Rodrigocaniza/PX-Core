@@ -7,7 +7,7 @@ conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el prop
 
 ## Estado de este snapshot
 
-**Generación 8. Pendiente de revisión independiente.** Los verdicts de generación 8 no existen
+**Generación 9. Pendiente de revisión independiente.** Los verdicts de generación 9 no existen
 todavía; cuando se emitan quedarán en un directorio propio. Ningún documento de este paquete debe
 leerse como si esa revisión ya hubiera ocurrido.
 
@@ -178,6 +178,29 @@ económico quedó verificado de forma exhaustiva por dos revisores independiente
   código ya cerraba, los backlogs de `HANDOFF.md` y `WORKFLOW.json` sin coincidir pese a una
   autocertificación en contrario, una contradicción numérica en el conteo de bloqueantes, y una
   referencia que omitía una generación ya revisada. Todas corregidas.
+
+## Generación 8 — snapshot `c4f6ee64717ca43becc5986985040ff57d6ee9f2`
+
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-008` | LIBRARIAN | **FAIL** — un ítem de backlog que el snapshot ya cerraba |
+| `QA-IND-COMISIONES-008` | QA | **PASS** |
+| `AUDITOR-IND-COMISIONES-008` | AUDITOR | **PASS** |
+
+Invalidada. Evidencia íntegra en `generation-8/`.
+
+**Los dos revisores técnicos emitieron PASS.** QA cerró los quince bloqueantes financieros
+históricos con escenarios propios, reprodujo el hueco del parseo sobre el `ReviewService` real y
+corrió 1.920 pasos de fuzz con trece invariantes duros sin una grieta en el dinero. El Auditor
+atacó por ejecución las tres únicas rutas a `REVERTIDA` con liquidaciones pagadas, verificó la
+imposibilidad de doble pago en la API y en el motor, y confirmó la migración aditiva sobre el
+esquema anterior.
+
+El único bloqueante fue documental: el ítem 17 del backlog declaraba que `ARCHITECTURE.md` no
+documentaba `_reverse_agreement_settlement`, cuando el propio commit de la generación 8 había
+añadido esa documentación. El Auditor lo señaló de forma independiente como observación. Retirado
+en la generación 9, junto con la incorporación al backlog de todas las observaciones de ambos
+revisores.
 
 ## Valor demostrado de la independencia
 
