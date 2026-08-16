@@ -7,8 +7,8 @@ conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el prop
 
 ## Estado de este snapshot
 
-**Generación 3. Pendiente de revisión independiente.** Los verdicts de generación 3 no existen
-todavía; cuando se emitan quedarán en `generation-3/`. Ningún documento de este paquete debe
+**Generación 4. Pendiente de revisión independiente.** Los verdicts de generación 4 no existen
+todavía; cuando se emitan quedarán en un directorio propio. Ningún documento de este paquete debe
 leerse como si esa revisión ya hubiera ocurrido.
 
 ## Generación 1 — snapshot `c24b4f19c66dc685d1679ed266eb887f2dbfe773`
@@ -56,11 +56,40 @@ introdujo regresiones. Los FAIL fueron por defectos distintos:
   el paquete se documenta antes de empaquetarse, el manifest cubre ahora
   `ARTIFACT_CONSISTENCY.md`, y este documento no describe ninguna revisión no ocurrida.
 
+## Generación 3 — snapshot `4c4cf54215fd9e080b5793931524bf1e3e1cda61`
+
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-003` | LIBRARIAN | PASS |
+| `QA-IND-COMISIONES-003` | QA | **FAIL** — dos bloqueantes en el libro de cobros |
+| `AUDITOR-IND-COMISIONES-003` | AUDITOR | PASS |
+
+Invalidada. Evidencia íntegra en `generation-3/`.
+
+Librarian y Auditor confirmaron cerrados los tres bloqueantes financieros anteriores y los dos
+documentales. El Auditor verificó por ejecución 8 rutas del invariante del dinero pagado y la
+imposibilidad de doble pago. El QA encontró dos defectos nuevos en el libro de cobros:
+
+- **Recobro tras reversión rechazado en silencio.** La clave de idempotencia de `register_payment`
+  se derivaba del contenido y el chequeo no excluía los cobros ya reversados. Tras una reversión
+  motivada, volver a cargar el mismo recibo real devolvía `(None, False)` sin excepción ni asiento:
+  la venta quedaba con saldo fantasma y la vendedora nunca cobraba su comisión (subpago del 100%).
+- **Dos cobros parciales legítimos idénticos se colapsaban en uno**, dejando un saldo fantasma.
+
+Corregidos haciendo la idempotencia explícita y del llamador, separando la identidad interna del
+cobro (`idempotency_key`) de la clave del llamador (`client_key`), y excluyendo los cobros
+reversados del chequeo de duplicados.
+
 ## Valor demostrado de la independencia
 
-Tres defectos financieros reales y dos defectos de veracidad documental fueron detectados por
+Cinco defectos financieros reales y dos defectos de veracidad documental fueron detectados por
 revisores independientes después de que la autorrevisión de la ejecución implementadora los
-declarara correctos. Dos de ellos habrían movido dinero mal.
+declarara correctos, y con la regresión completa en verde en las cuatro generaciones. Cuatro de
+ellos habrían movido dinero mal: comisión perdida por período corrupto, doble pago habilitado,
+comisión liquidada sobre una base congelada y comisión nunca generada tras una reversión.
+
+Ninguna suite verde sustituye a una revisión independiente: las cuatro generaciones tenían el 100%
+de sus pruebas en verde en el momento de ser revisadas.
 
 Las observaciones no bloqueantes de las tres generaciones quedan registradas sin corregir, según
 el protocolo de corregir únicamente bloqueantes. Ver `HANDOFF.md`.

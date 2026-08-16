@@ -20,9 +20,9 @@
 ### Integridad a nivel de motor
 
 ```sql
-CREATE UNIQUE INDEX idx_commission_entry_active
+CREATE UNIQUE INDEX IF NOT EXISTS idx_commission_entry_active
   ON commission_entries(sale_id) WHERE status<>'REVERTIDA';
-CREATE UNIQUE INDEX idx_commission_entry_period
+CREATE UNIQUE INDEX IF NOT EXISTS idx_commission_entry_period
   ON commission_entries(sale_id,period) WHERE period IS NOT NULL AND status<>'REVERTIDA';
 ```
 
@@ -80,6 +80,27 @@ El invariante fue añadido en la generación 2 tras el FAIL del auditor independ
 A1, A2 y A3 en `generation-1/VERDICT_AUDITOR.md`) y está cubierto por
 `test_paid_settlement_can_never_reach_reverted_even_through_observed` y
 `test_voiding_a_paid_sale_observes_instead_of_reverting`.
+
+### Contrato de idempotencia de los cobros
+
+La idempotencia de `register_payment` es **explícita y del llamador**, no inferida del contenido:
+
+- Con `idempotency_key`, el reintento de una integración se descarta con `(None, False)`.
+- Sin clave, **cada llamada es un cobro real distinto**: dos cobros genuinos del mismo monto, el
+  mismo día y con la misma referencia son dos cobros, no un duplicado.
+- Un cobro ya revertido **deja de bloquear su clave**: la reversa deshace el hecho que la clave
+  representaba, de modo que el mismo recibo puede volver a cargarse con su fecha real.
+
+La identidad interna (`idempotency_key`) es siempre nueva y la clave del llamador se guarda aparte
+en `client_key`, de modo que el libro append-only nunca colisiona consigo mismo.
+
+Antes, la clave se derivaba del contenido del cobro y el chequeo no excluía los cobros reversados.
+Eso hacía que, tras una reversión motivada, el mismo cobro real se rechazara en silencio: la venta
+quedaba con saldo fantasma y la vendedora nunca cobraba su comisión. Añadido en la generación 4
+tras el FAIL de QA independiente de la generación 3; cubierto por
+`test_a_reverted_payment_can_be_registered_again`,
+`test_two_identical_genuine_payments_are_both_registered` y
+`test_explicit_idempotency_key_protects_integration_retries`.
 
 ### Validación del período
 

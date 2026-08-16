@@ -1,11 +1,33 @@
 # Evidencia de pruebas
 
-## Generación 3 (vigente)
+## Generación 4 (vigente)
 
-- Dominio de comisiones: **32/32 PASS**.
+- Dominio de comisiones: **34/34 PASS**.
 - Interacción Tk y Full HD: **4/4 PASS**.
-- Regresión completa: **287/287 PASS** en 24.69 s.
-- Línea base heredada: 251 pruebas; esta misión suma 36 sin romper ninguna existente.
+- Regresión completa: **289/289 PASS** en 24.87 s.
+- Línea base heredada: 251 pruebas; esta misión suma 38 sin romper ninguna existente.
+
+## FAIL de revisores independientes (generación 3) y su corrección
+
+9. **La comisión de una venta cobrada se perdía tras una reversión — bloqueante del QA
+   independiente de generación 3.** La clave de idempotencia de `register_payment` se derivaba del
+   contenido del cobro y el chequeo de duplicados no excluía los cobros ya reversados. Tras una
+   `revert_payment` motivada, volver a cargar el mismo recibo real devolvía `(None, False)` sin
+   excepción y sin asiento en el historial, indistinguible de un duplicado legítimo: la venta
+   quedaba con saldo fantasma y la vendedora nunca cobraba su comisión. El único workaround era
+   falsear la fecha, que además movía la comisión de período.
+
+10. **Dos cobros parciales legítimos idénticos se colapsaban en uno** (mismo monto, misma fecha,
+    misma referencia opcional), dejando un saldo fantasma que mantenía la liquidación en
+    `PENDIENTE_SALDO` indefinidamente.
+
+    Ambos corregidos con un contrato de idempotencia explícito: `register_payment` acepta un
+    `idempotency_key` del llamador para proteger reintentos de integración; sin clave, cada llamada
+    es un cobro real distinto; y un cobro revertido deja de bloquear su clave. La identidad interna
+    del cobro se separó de la clave del llamador (`client_key`), con migración aditiva idempotente.
+    Cubierto por `test_a_reverted_payment_can_be_registered_again`,
+    `test_two_identical_genuine_payments_are_both_registered` y
+    `test_explicit_idempotency_key_protects_integration_retries`.
 
 ## FAIL de revisores independientes (generación 2) y su corrección
 
@@ -60,13 +82,22 @@ muertos tras la corrección.
 
 ## Generaciones históricas invalidadas
 
+- Generación 3: 287/287 PASS. Cifra correcta, pero la suite afirmaba como idempotencia deseada
+  justamente el comportamiento defectuoso del libro de cobros.
 - Generación 2: 284/284 PASS. Cifra correcta, pero la suite no cubría la corrección de origen en
-  estado `REVISADA`, que es justamente la ventana desprotegida.
+  estado `REVISADA`, que era la ventana desprotegida.
 - Generación 1: 280/280 PASS. Cifra correcta, pero la suite no cubría ninguno de los dos
   bloqueantes de esa generación.
 
-Las tres cifras eran ciertas y las tres suites estaban verdes. Ninguna regresión verde sustituye a
-una revisión independiente.
+Las cuatro cifras eran ciertas y las cuatro suites estaban verdes en el momento de ser revisadas.
+Ninguna regresión verde sustituye a una revisión independiente.
+
+## Cambio de contrato en una prueba existente
+
+`test_duplicate_payment_key_is_idempotent` afirmaba que dos cobros idénticos consecutivos debían
+colapsar en uno. Esa afirmación **era el defecto**, no la garantía. Se reemplazó por
+`test_explicit_idempotency_key_protects_integration_retries`, que verifica la idempotencia real —la
+del reintento con clave explícita— y por las dos pruebas que cubren los cobros genuinos.
 - `compileall`: PASS.
 - `git diff --check`: PASS.
 - Escaneo heurístico de secretos: PASS; las únicas coincidencias están dentro del propio test de prohibición.

@@ -1,12 +1,12 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G3",
+  "current_state": "REVIEW_PENDING_G4",
   "mission_lease": "HELD",
-  "generation": 3,
+  "generation": 4,
   "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "NOT_EXECUTED",
-  "generation_3_review": "NOT_YET_EXECUTED",
+  "generation_4_review": "NOT_YET_EXECUTED",
   "generations": [
     {
       "generation": 1,
@@ -32,44 +32,52 @@
         {"runner": "QA-IND-COMISIONES-002", "role": "QA", "verdict": "FAIL", "timestamp_utc": "2026-08-16T00:01:35Z", "blockers": ["STALE_BASE_ON_REVIEWED_SOURCE_CORRECTION"]},
         {"runner": "AUDITOR-IND-COMISIONES-002", "role": "AUDITOR", "verdict": "FAIL", "timestamp_utc": "2026-08-16T00:02:53Z", "blockers": ["B1", "B2"]}
       ],
-      "confirmed_closed_from_generation_1": ["Q1", "A1", "A2"],
+      "confirmed_closed_from_previous": ["Q1", "A1", "A2"],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-2/"
+    },
+    {
+      "generation": 3,
+      "snapshot_commit": "4c4cf54215fd9e080b5793931524bf1e3e1cda61",
+      "snapshot_tree": "5e5377c89aeaa2862823f461a3c7ae59f4292996",
+      "status": "INVALIDATED",
+      "tests": 287,
+      "verdicts": [
+        {"runner": "LIBRARIAN-IND-COMISIONES-003", "role": "LIBRARIAN", "verdict": "PASS", "timestamp_utc": "2026-08-16T00:17:15Z"},
+        {"runner": "QA-IND-COMISIONES-003", "role": "QA", "verdict": "FAIL", "timestamp_utc": "2026-08-16T00:22:08Z", "blockers": ["REVERTED_PAYMENT_CANNOT_BE_REREGISTERED", "IDENTICAL_GENUINE_PAYMENTS_COLLAPSED"]},
+        {"runner": "AUDITOR-IND-COMISIONES-003", "role": "AUDITOR", "verdict": "PASS", "timestamp_utc": "2026-08-16T00:20:19Z"}
+      ],
+      "confirmed_closed_from_previous": ["Q1", "A1", "A2", "STALE_BASE", "B1", "B2", "B3"],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-3/"
     }
   ],
   "history": [
     {"event": "CANONICAL_BASE_VERIFIED", "base": "eb6d082de4004d166379ffaae2b8f106fac10df1", "remote": "0 ahead / 0 behind"},
     {"event": "NEW_WORKTREE_CREATED", "worktree": ".worktrees/gc-comisiones-001"},
     {"event": "APPROVED_ECONOMIC_RULES_MAPPED", "rules": 9},
-    {"event": "GENERATION_1_PUBLISHED", "commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773", "tests": 280},
     {"event": "INDEPENDENT_REVIEW_AUTHORIZED_BY_OWNER", "runners": 3},
-    {"event": "SNAPSHOT_FROZEN_G1", "commit": "c24b4f19c66dc685d1679ed266eb887f2dbfe773"},
-    {"event": "QA_INDEPENDENT_FAIL_G1", "blocker": "Q1_MONTH_DOES_NOT_VALIDATE_DATE_SILENT_COMMISSION_LOSS"},
-    {"event": "AUDITOR_INDEPENDENT_FAIL_G1", "blocker": "A1_PAID_SETTLEMENT_REACHES_REVERTED_ENABLING_DOUBLE_PAYMENT"},
-    {"event": "GENERATION_1_INVALIDATED", "evidence_preserved": "generation-1/"},
-    {"event": "MISSION_LEASE_KEPT_HELD", "reason": "correcciones acotadas a bloqueantes dentro de la misma sesion continua; liberar y readquirir habria abierto ventana de concurrencia sin beneficio"},
+    {"event": "GENERATION_1_PUBLISHED_AND_REVIEWED", "verdicts": "PASS/FAIL/FAIL", "outcome": "INVALIDATED"},
     {"event": "BLOCKER_Q1_FIXED", "fix": "date.fromisoformat en _month y contador invalid_date en sync_review_sales"},
     {"event": "BLOCKER_A1_A2_FIXED", "fix": "invariante _was_paid en revert, _revert_commission_effect y void_sale"},
-    {"event": "GENERATION_2_PUBLISHED", "commit": "5ba11bdbdbaaa826f16510fb07d08ffdbce17097", "tests": 284},
-    {"event": "SNAPSHOT_FROZEN_G2", "commit": "5ba11bdbdbaaa826f16510fb07d08ffdbce17097"},
-    {"event": "G1_BLOCKERS_CONFIRMED_CLOSED_BY_ALL_THREE_G2_REVIEWERS", "blockers": ["Q1", "A1", "A2"]},
-    {"event": "QA_INDEPENDENT_FAIL_G2", "blocker": "STALE_BASE_PAID_WHEN_SOURCE_CORRECTION_ARRIVES_IN_REVISADA", "note": "defecto preexistente de la generacion 1 no detectado por su QA"},
-    {"event": "LIBRARIAN_INDEPENDENT_FAIL_G2", "blockers": ["NONEXISTENT_GENERATION_2_PATH", "FALSE_CLAIM_OF_COMPLETED_G2_REVIEW", "STALE_ARTIFACT_CONSISTENCY_INSIDE_ZIP"]},
-    {"event": "AUDITOR_INDEPENDENT_FAIL_G2", "blockers": ["STALE_ARTIFACT_CONSISTENCY_INSIDE_ZIP", "FALSE_CLAIM_OF_COMPLETED_G2_REVIEW"], "paid_invariant": "VERIFIED_BY_EXECUTION_12_ROUTES", "double_payment_possible": false},
-    {"event": "GENERATION_2_INVALIDATED", "evidence_preserved": "generation-2/"},
+    {"event": "GENERATION_2_PUBLISHED_AND_REVIEWED", "verdicts": "FAIL/FAIL/FAIL", "outcome": "INVALIDATED"},
     {"event": "BLOCKER_STALE_BASE_FIXED", "fix": "REVIEWED_STATES a OBSERVADA y recalculo completo de la base antes de la revision", "tests_added": 3},
-    {"event": "AUDITOR_O1_CLOSED_BY_SAME_GUARD", "note": "correccion de origen ya no reatribuye comision pagada"},
-    {"event": "DOCUMENTATION_BLOCKERS_FIXED", "fix": "ningun documento describe una revision no ocurrida; ARTIFACT_CONSISTENCY.md se escribe antes de empaquetar y ahora esta cubierto por el manifest"},
+    {"event": "DOCUMENTATION_BLOCKERS_FIXED", "fix": "ningun documento describe una revision no ocurrida; ARTIFACT_CONSISTENCY.md cubierto por el manifest y ZIP construido despues de los documentos"},
+    {"event": "GENERATION_3_PUBLISHED_AND_REVIEWED", "verdicts": "PASS/FAIL/PASS", "outcome": "INVALIDATED"},
+    {"event": "PAYMENT_LEDGER_BLOCKERS_FIXED", "fix": "idempotencia explicita del llamador via idempotency_key, client_key separado de la identidad interna, y cobros reversados excluidos del chequeo de duplicados", "tests_added": 3, "schema": "migracion aditiva idempotente de commission_payments.client_key"},
+    {"event": "TEST_CONTRACT_CORRECTED", "note": "test_duplicate_payment_key_is_idempotent afirmaba como garantia el propio defecto; reemplazado por test_explicit_idempotency_key_protects_integration_retries"},
     {"event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD", "method": "escenarios exactos de cada revisor re-ejecutados contra el codigo corregido"},
-    {"event": "GENERATION_3_VALIDATED", "tests": 287, "baseline": 251}
+    {"event": "GENERATION_4_PUBLISHED", "tests": 289, "baseline": 251, "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"},
+    {"event": "MISSION_LEASE_KEPT_HELD", "reason": "correcciones acotadas a bloqueantes dentro de la misma sesion continua; liberar y readquirir habria abierto ventana de concurrencia sin beneficio"}
   ],
   "non_blocking_findings_recorded": [
-    "QA1-obs1: cobros genuinos identicos deduplicados por clave de idempotencia con referencia opcional",
-    "QA2-obs1: fechas ISO en formato basico o de semana desalineadas del filtro mensual",
+    "QA2-obs1 y QA3-obs: fechas ISO en formato basico o de semana desalineadas del filtro mensual",
     "QA2-obs3 y AUD2-O2: paid_amount se calcula por estado y no por paid_at",
     "QA1-obs2 y QA2-obs4: liquidaciones OBSERVADA suman a los KPIs monetarios",
+    "QA3-obs: OBSERVADA no tiene salida de correccion manual en API ni UI",
+    "AUD3-O2: revert_payment no rechaza una venta anulada",
     "QA1-obs3: ventas mixtas (convenio parcial) mal clasificadas en sync_review_sales",
     "AUD2-O3: el test de append-only prueba el rollback de SQLite, no la propiedad",
-    "AUD1-obs: assert float( es mas debil que la propiedad declarada",
+    "AUD1-obs y AUD3-O4: assert float( es mas debil que la propiedad declarada",
+    "QA3: cosmeticos de UI, badge de piloto duplicado y signo por delante del producto",
     "LIB1-obs4: defecto preexistente ajeno a la mision, test duplicado en test_ui_interactions.py"
   ],
   "pending_configuration": {

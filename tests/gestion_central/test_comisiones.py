@@ -146,14 +146,44 @@ def test_duplicate_registration_is_rejected_and_identity_is_stable(service):
     assert other != sale_id and len(service.list_entries(SOL)) == 2
 
 
-def test_duplicate_payment_key_is_idempotent(service):
+def test_explicit_idempotency_key_protects_integration_retries(service):
     sale_id, _ = service.register_sale(SOL, common())
-    first = service.register_payment(SOL, sale_id, 50_000, "2099-04-15", "recibo-x")
-    second = service.register_payment(SOL, sale_id, 50_000, "2099-04-15", "recibo-x")
+    first = service.register_payment(SOL, sale_id, 50_000, "2099-04-15", "recibo-x", idempotency_key="sync-1")
+    second = service.register_payment(SOL, sale_id, 50_000, "2099-04-15", "recibo-x", idempotency_key="sync-1")
     assert first[1] and second == (None, False)
     assert active(service, sale_id)["balance_amount"] == 150_000
     with pytest.raises(ValueError, match="supera el saldo"):
         service.register_payment(SOL, sale_id, 999_000, "2099-04-16", "recibo-y")
+
+
+def test_two_identical_genuine_payments_are_both_registered(service):
+    """Bloqueante QA generación 3: dos cobros reales iguales no son un duplicado."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=0))
+    first, applied_first = service.register_payment(SOL, sale_id, 200_000, "2099-04-20")
+    second, applied_second = service.register_payment(SOL, sale_id, 200_000, "2099-04-20")
+    assert applied_first and applied_second and first != second
+    entry = active(service, sale_id)
+    assert entry["balance_amount"] == 0 and entry["status"] == "ELEGIBLE"
+    assert entry["period"] == "2099-04"
+    assert len(service.payments(SOL, sale_id)) == 2
+
+
+def test_a_reverted_payment_can_be_registered_again(service):
+    """Bloqueante QA generación 3: una reversa deshace el hecho, no bloquea el recobro."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=0))
+    payment_id, _ = service.register_payment(SOL, sale_id, 400_000, "2099-04-28", "RECIBO-77",
+                                             idempotency_key="recibo-77")
+    assert active(service, sale_id)["period"] == "2099-04"
+    service.revert_payment(SOL, payment_id, "cheque rechazado por el banco")
+    assert active(service, sale_id)["status"] == "PENDIENTE_SALDO"
+    # El mismo recibo real vuelve a cargarse con su fecha real y su misma clave.
+    again, applied = service.register_payment(SOL, sale_id, 400_000, "2099-04-28", "RECIBO-77",
+                                              idempotency_key="recibo-77")
+    assert applied and again is not None
+    entry = active(service, sale_id)
+    assert entry["status"] == "ELEGIBLE" and entry["period"] == "2099-04"
+    assert entry["balance_amount"] == 0
+    assert service.report(SOL, "2099-04")["kpi"]["commissionable_base"] == 400_000
 
 
 def test_recalculation_is_idempotent(service):

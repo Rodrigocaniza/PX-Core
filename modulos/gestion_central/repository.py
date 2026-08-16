@@ -135,7 +135,8 @@ class CentralRepository:
               id TEXT PRIMARY KEY, sale_id TEXT NOT NULL REFERENCES commission_sales(id),
               amount INTEGER NOT NULL, payment_date TEXT NOT NULL, kind TEXT NOT NULL,
               reference TEXT NOT NULL DEFAULT '', reverses_id TEXT,
-              idempotency_key TEXT NOT NULL UNIQUE, actor TEXT NOT NULL, recorded_at TEXT NOT NULL
+              idempotency_key TEXT NOT NULL UNIQUE, client_key TEXT,
+              actor TEXT NOT NULL, recorded_at TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS commission_entries(
               id TEXT PRIMARY KEY, sale_id TEXT NOT NULL REFERENCES commission_sales(id),
@@ -168,7 +169,19 @@ class CentralRepository:
               UNIQUE(scope,scope_value)
             );
             """)
+            self._add_missing_columns(con)
             con.commit()
+
+    @staticmethod
+    def _add_missing_columns(con):
+        """Migración aditiva idempotente para bases de pilotos ya creadas."""
+        additions = (("commission_payments", "client_key", "TEXT"),)
+        for table, column, kind in additions:
+            existing = {row[1] for row in con.execute(f"PRAGMA table_info({table})")}
+            if column not in existing:
+                con.execute(f"ALTER TABLE {table} ADD COLUMN {column} {kind}")
+        con.execute("CREATE INDEX IF NOT EXISTS idx_commission_payments_client_key"
+                    " ON commission_payments(client_key)")
 
     def audit(self, con, actor, action, target, result="SUCCESS", details=None):
         con.execute(

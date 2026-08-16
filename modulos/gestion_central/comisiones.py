@@ -325,19 +325,27 @@ class CommissionService:
 
     # --------------------------------------------------------------- cobros
     @staticmethod
-    def _insert_payment(con, sale_id, amount, payment_date, kind, reference, actor, reverses=None):
-        key = _hash({"sale": sale_id, "amount": amount, "date": payment_date,
-                     "kind": kind, "reference": reference, "reverses": reverses})
-        payment_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"bc-comision-cobro:{key}"))
+    def _insert_payment(con, sale_id, amount, payment_date, kind, reference, actor,
+                        reverses=None, client_key=None):
+        # Cada cobro es un hecho propio del libro append-only: identidad interna siempre nueva.
+        # La clave del llamador, si existe, se guarda aparte y sólo sirve para su idempotencia.
+        payment_id = str(uuid.uuid4())
         con.execute(
             "INSERT INTO commission_payments(id,sale_id,amount,payment_date,kind,reference,reverses_id,"
-            "idempotency_key,actor,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
-            (payment_id, sale_id, amount, payment_date, kind, reference, reverses, key, actor, _now()),
+            "idempotency_key,client_key,actor,recorded_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+            (payment_id, sale_id, amount, payment_date, kind, reference, reverses, payment_id,
+             client_key, actor, _now()),
         )
         return payment_id
 
-    def register_payment(self, actor: Principal, sale_id: str, amount: int, payment_date: str, reference: str = ""):
-        """Cobro parcial o final. Sólo la cancelación total vuelve comisionable la venta."""
+    def register_payment(self, actor: Principal, sale_id: str, amount: int, payment_date: str,
+                         reference: str = "", idempotency_key: str | None = None):
+        """Cobro parcial o final. Sólo la cancelación total vuelve comisionable la venta.
+
+        La idempotencia es explícita y del llamador: `idempotency_key` protege el reintento de
+        una integración. Sin clave, cada llamada es un cobro real distinto. Un cobro ya revertido
+        deja de bloquear su clave, porque una reversa deshace el hecho que la clave representaba.
+        """
         self._write(actor)
         if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
             raise ValueError("el cobro debe ser un entero positivo")
@@ -353,12 +361,15 @@ class CommissionService:
                 raise ValueError("el convenio no registra saldo cliente")
             if amount > int(sale["balance_amount"]):
                 raise ValueError("el cobro supera el saldo pendiente")
-            key = _hash({"sale": sale_id, "amount": amount, "date": payment_date,
-                         "kind": "COBRO", "reference": reference, "reverses": None})
-            if con.execute("SELECT 1 FROM commission_payments WHERE idempotency_key=?", (key,)).fetchone():
+            if idempotency_key and con.execute(
+                "SELECT 1 FROM commission_payments p WHERE p.client_key=? AND p.sale_id=? AND p.kind='COBRO'"
+                " AND NOT EXISTS(SELECT 1 FROM commission_payments r WHERE r.reverses_id=p.id)",
+                (idempotency_key, sale_id),
+            ).fetchone():
                 con.rollback()
                 return None, False
-            payment_id = self._insert_payment(con, sale_id, amount, payment_date, "COBRO", reference, actor.username)
+            payment_id = self._insert_payment(con, sale_id, amount, payment_date, "COBRO", reference,
+                                              actor.username, client_key=idempotency_key)
             paid, balance = int(sale["paid_amount"]) + amount, int(sale["balance_amount"]) - amount
             cancelled = payment_date if balance == 0 else None
             con.execute(

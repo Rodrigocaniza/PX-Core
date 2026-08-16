@@ -21,6 +21,16 @@ Sólo se implementan las reglas ya aprobadas. Nada se infiere ni se inventa.
 - **Venta con saldo**: `PENDIENTE_SALDO`, sin período asignado; visible en el mes de su venta.
 - **Reversión de una cancelación**: la liquidación pasa a `REVERTIDA` conservando su período e historial, y se abre una nueva liquidación `PENDIENTE_SALDO`. Nunca se mueve una comisión de período en silencio.
 
+## Cobros, reversas y convenio
+
+- La idempotencia de un cobro la decide el llamador con `idempotency_key`. Sin clave, cada llamada
+  es un cobro real distinto: dos cobros genuinos idénticos el mismo día son dos cobros.
+- Una reversa deshace el hecho: el mismo cobro puede volver a cargarse con su fecha real, y la
+  comisión vuelve al período que le corresponde.
+- Un convenio nunca registra un cobro de cliente. Por eso, si una corrección de origen convierte un
+  CONVENIO en venta común, el saldo se reabre por completo: no existían cobros que arrastrar. Es
+  coherente con la regla aprobada 6 y queda documentado aquí para que no sorprenda.
+
 ## Redondeo y enteros
 
 Todos los importes son enteros de guaraníes. Los porcentajes se expresan en puntos básicos
