@@ -89,8 +89,18 @@ como una fila más del libro append-only:
 
 - Un convenio liquida la venta completa mediante una fila `CONVENIO`, no por asignación directa.
 - Si una corrección de origen declara más cobrado que el libro, se asienta el cobro faltante.
-- Si el total corregido es menor a lo ya liquidado, la corrección se rechaza.
+- **Toda corrección sobre un convenio re-expresa su liquidación**: `_reverse_agreement_settlement`
+  revierte en el libro la fila `CONVENIO` vigente y, si la venta sigue siendo convenio, se asienta
+  la nueva por el total corregido. Por eso el total de un convenio **sí puede corregirse a la
+  baja**, y por eso una venta que deja de ser convenio recupera su saldo completo. Los cobros
+  reales previos nunca se tocan: la reversión filtra por `kind='CONVENIO'` y excluye lo ya revertido.
+- Si el total corregido es menor a lo ya liquidado **una vez re-expresado el convenio** —es decir,
+  menor a los cobros reales del cliente—, la corrección se rechaza y el libro queda intacto.
 - `revert_payment` recalcula desde el libro y rechaza ventas anuladas o ya convertidas en convenio.
+
+En el alta, `paid_amount` se escribe en el mismo `INSERT` que crea la venta, pero la misma
+transacción asienta la fila del libro por idéntico importe: el invariante de resultado
+`paid_amount == _settled_amount()` se sostiene también ahí.
 
 Esto cierra estructuralmente toda la familia de defectos en que `paid_amount` divergía del libro:
 cobro posterior del origen descartado en silencio (venta atrapada en `PENDIENTE_SALDO` para

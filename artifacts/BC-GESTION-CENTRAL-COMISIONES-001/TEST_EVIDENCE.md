@@ -1,11 +1,33 @@
 # Evidencia de pruebas
 
-## Generación 7 (vigente)
+## Generación 8 (vigente)
 
-- Dominio de comisiones: **45/45 PASS**.
+- Dominio de comisiones: **47/47 PASS**.
 - Interacción Tk y Full HD: **4/4 PASS**.
-- Regresión completa: **300/300 PASS** en 26.90 s.
-- Línea base heredada: 251 pruebas; esta misión suma 49 sin romper ninguna existente.
+- Regresión completa: **302/302 PASS** en 26.37 s.
+- Línea base heredada: 251 pruebas; esta misión suma 51 sin romper ninguna existente.
+
+## FAIL de revisores independientes (generación 7) y su corrección
+
+20. **La guarda del lote de sincronización no cubría el parseo — bloqueante de QA.** El
+    `try` de `sync_review_sales` envolvía sólo el alta, dejando fuera `int(payload["total"])`,
+    el resto del parseo y la construcción de `CommissionSaleInput`. Un `ValueError` nacido ahí
+    seguía propagándose, truncaba el lote y hacía desaparecer en silencio todas las filas
+    posteriores, sin sumar a ningún contador. El revisor lo reprodujo con el `ReviewService` real:
+    una fila con `branch` vacío dejó 1 de 3 ventas aplicables ingeridas y 2 perdidas sin rastro.
+    Corregido envolviendo todo el cuerpo del bucle y capturando también `TypeError` y `KeyError`.
+    `AccessDenied` es `PermissionError` y sigue propagando, de modo que un fallo de permisos corta
+    la sincronización en vez de degradarse a fila rechazada. Cubierto por
+    `test_a_malformed_row_never_truncates_the_sync_batch` y
+    `test_a_permission_failure_still_stops_the_sync`.
+
+21. **Cuatro inconsistencias del paquete — bloqueantes del Librarian.** Un hallazgo declarado
+    abierto que el código ya cerraba (la salida de corrección de `OBSERVADA`, que existe vía
+    `revert()` cuando no hubo pago); los backlogs de `HANDOFF.md` y `WORKFLOW.json` sin coincidir
+    pese a una autocertificación en contrario; una contradicción numérica en el conteo de
+    bloqueantes acumulados; y una referencia que omitía una generación ya revisada. Corregidas: el
+    ítem quedó acotado a la liquidación ya pagada, ambos backlogs comparten hoy exactamente el
+    mismo conjunto de 26 hallazgos, y las cifras y referencias se unificaron.
 
 ## FAIL de revisores independientes (generación 6) y su corrección
 
@@ -157,6 +179,8 @@ muertos tras la corrección.
 
 ## Generaciones históricas invalidadas
 
+- Generación 7: 300/300 PASS. Cifra correcta, pero ninguna prueba cubría una fila mal formada
+  antes del alta, que es donde quedaba el hueco de la guarda.
 - Generación 6: 297/297 PASS. Cifra correcta, pero ninguna prueba cubría la corrección a la baja
   de un convenio ni la resiliencia del lote de sincronización.
 - Generación 5: 294/294 PASS. Cifra correcta, pero ninguna prueba cubría el descenso

@@ -496,6 +496,47 @@ def test_a_rejected_row_never_truncates_the_sync_batch(service):
         "las filas posteriores a una rechazada deben ingerirse igual"
 
 
+def test_a_malformed_row_never_truncates_the_sync_batch(service):
+    """Bloqueante QA generación 7: el parseo y la construcción quedaban fuera de la guarda."""
+    def good(identity, day, total):
+        return {"branch": "L", "identity": identity,
+                "payload": {"date": f"2099-04-{day}", "saleswoman": "Ana", "total": total,
+                            "cash": total, "card_transfer": 0, "agreement": 0, "envelope": identity}}
+
+    malformed = [
+        {"branch": "", "identity": "sin-local",  # local vacío: lo rechaza el dominio
+         "payload": {"date": "2099-04-05", "saleswoman": "Ana", "total": 100_000,
+                     "cash": 100_000, "card_transfer": 0, "agreement": 0, "envelope": "X"}},
+        {"branch": "L", "identity": "total-texto",  # total con separador de miles del origen legacy
+         "payload": {"date": "2099-04-06", "saleswoman": "Ana", "total": "1.000.000",
+                     "cash": 0, "card_transfer": 0, "agreement": 0, "envelope": "Y"}},
+        {"branch": "L", "identity": "sin-payload"},  # fila incompleta del origen
+    ]
+
+    class FakeReview:
+        @staticmethod
+        def list_sales(_actor):
+            return [good("antes", "01", 100_000), *malformed, good("despues", "09", 300_000)]
+
+    result = service.sync_review_sales(SOL, FakeReview())
+    assert result["rejected"] == 3, "cada fila mal formada se cuenta, no aborta el lote"
+    assert result["registered"] == 2
+    assert "despues" in {r["envelope"] for r in service.list_entries(SOL)}
+
+
+def test_a_permission_failure_still_stops_the_sync(service):
+    """Un fallo de permisos no puede degradarse a fila rechazada."""
+    class FakeReview:
+        @staticmethod
+        def list_sales(_actor):
+            return [{"branch": "L", "identity": "x",
+                     "payload": {"date": "2099-04-01", "saleswoman": "Ana", "total": 100_000,
+                                 "cash": 100_000, "card_transfer": 0, "agreement": 0, "envelope": "X"}}]
+
+    with pytest.raises(AccessDenied):
+        service.sync_review_sales(AUDITOR, FakeReview())
+
+
 def test_state_contract_and_append_only_history(service):
     assert COMMISSION_STATES == ("PENDIENTE_SALDO", "ELEGIBLE", "CALCULADA", "REVISADA",
                                  "APROBADA", "PAGADA", "OBSERVADA", "REVERTIDA")

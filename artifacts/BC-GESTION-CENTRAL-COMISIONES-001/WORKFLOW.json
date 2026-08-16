@@ -1,8 +1,8 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G7",
+  "current_state": "REVIEW_PENDING_G8",
   "mission_lease": "HELD",
-  "generation": 7,
+  "generation": 8,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -257,6 +257,46 @@
         "los doce bloqueantes financieros historicos"
       ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-6/"
+    },
+    {
+      "generation": 7,
+      "snapshot_commit": "cfc43718d85fdbb260f0f6d2663eb025991643eb",
+      "snapshot_tree": "0ad165244ed475e3aaa21b4013de7a5386323eb4",
+      "status": "INVALIDATED",
+      "tests": 300,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-007",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T01:42:06Z",
+          "blockers": [
+            "STALE_OPEN_FINDING_OBSERVADA",
+            "BACKLOGS_DO_NOT_MATCH",
+            "BLOCKER_COUNT_CONTRADICTION",
+            "HANDOFF_OMITS_GENERATION_6"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISIONES-007",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T01:46:51Z",
+          "blockers": [
+            "SYNC_TRY_DOES_NOT_COVER_PARSING"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-007",
+          "role": "AUDITOR",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T01:35:44Z"
+        }
+      ],
+      "confirmed_closed_from_previous": [
+        "los catorce bloqueantes financieros historicos"
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-7/"
     }
   ],
   "history": [
@@ -414,36 +454,68 @@
       "tests": 300,
       "baseline": 251,
       "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
+    },
+    {
+      "event": "GENERATION_7_PUBLISHED_AND_REVIEWED",
+      "verdicts": "FAIL/FAIL/PASS",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "SYNC_GUARD_COMPLETED",
+      "fix": "la guarda de sync_review_sales cubre ahora el parseo y la construccion de la fila, no solo el alta; AccessDenied sigue propagando por ser PermissionError",
+      "tests_added": 2
+    },
+    {
+      "event": "BACKLOG_RECONCILED",
+      "fix": "HANDOFF.md y WORKFLOW.json comparten ahora exactamente el mismo conjunto de hallazgos abiertos; el item sobre la salida de OBSERVADA quedo acotado a la liquidacion ya pagada"
+    },
+    {
+      "event": "BLOCKER_COUNT_RECONCILED",
+      "fix": "INDEPENDENCE.md pasa a catorce defectos financieros, coherente con SUMMARY.md y SAFE_CLOSURE_EVIDENCE.md"
+    },
+    {
+      "event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD",
+      "method": "escenarios exactos de cada revisor re-ejecutados contra el codigo corregido"
+    },
+    {
+      "event": "GENERATION_8_PUBLISHED",
+      "tests": 302,
+      "baseline": 251,
+      "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
     }
   ],
   "non_blocking_findings_recorded": [
-    "QA2-obs1 y QA3-obs: fechas ISO en formato basico o de semana desalineadas del filtro mensual",
-    "QA2-obs3 y AUD2-O2: paid_amount se calcula por estado y no por paid_at",
-    "QA1-obs2 y QA2-obs4: liquidaciones OBSERVADA suman a los KPIs monetarios",
-    "QA3-obs: OBSERVADA no tiene salida de correccion manual en API ni UI",
-    "QA1-obs3: ventas mixtas (convenio parcial) mal clasificadas en sync_review_sales",
-    "AUD2-O3: el test de append-only prueba el rollback de SQLite, no la propiedad",
-    "AUD1-obs y AUD3-O4: assert float( es mas debil que la propiedad declarada",
-    "QA3: cosmeticos de UI, badge de piloto duplicado y signo por delante del producto",
-    "LIB1-obs4: defecto preexistente ajeno a la mision, test duplicado en test_ui_interactions.py",
-    "QA4-obs: register_payment con misma clave y monto distinto descarta sin traza en el historial",
-    "AUD4-O5: los cobros legados quedan con client_key NULL tras la migracion y pierden la idempotencia derivada del contenido",
-    "QA4-obs: register_payment y sync_review_sales no tienen llamador productivo; la bandeja solo se puebla con el capturador sintetico",
-    "LIB5-obs: numeracion descendente y bullets de gates mal ubicados en TEST_EVIDENCE.md",
-    "AUD5-obs: una correccion de origen que declara menos cobrado se ignora en silencio; el libro nunca se reduce",
-    "QA6-obs: atribucion obsoleta de convenio en el KPI tras el descenso de una liquidacion ya pagada",
-    "QA6-obs: una correccion sobre OBSERVADA no pagada recalcula su base en silencio, a diferencia de REVISADA/APROBADA/PAGADA",
-    "AUD6-O1: COMMISSION_RULES.md generaliza el reabrir del saldo tambien al camino COMUN-CONVENIO-COMUN, donde si hay cobros previos",
-    "AUD6-O2: HANDOFF.md subestima la salida de correccion de OBSERVADA, que existe via revert cuando no hubo pago",
-    "AUD6-O3: el rotulo PASS de ARTIFACT_CONSISTENCY.md puede confundirse con un verdict de revisor",
-    "AUD6-O4: una asercion casi tautologica en test_downgrading_an_agreement_to_a_common_sale_reopens_the_balance",
-    "AUD6-O7: ARCHITECTURE.md no documenta _reverse_agreement_settlement",
-    "LIB6-obs: HANDOFF.md lista 12 hallazgos y WORKFLOW.json 15; el handoff quedo incompleto"
+    "1. Fechas ISO en formato básico o de semana (QA-002 obs. 1, QA-003 obs.). `date.fromisoformat` acepta",
+    "2. `paid_amount` se calcula por estado y no por `paid_at` (QA-002 obs. 3, AUD-002 O2). Al",
+    "3. Las liquidaciones `OBSERVADA` suman a los KPIs monetarios (QA-001 obs. 2, QA-002 obs. 4).",
+    "4. `OBSERVADA` pagada no tiene salida de corrección (QA-003 obs., acotado por AUD-006 O2 y",
+    "5. Ventas mixtas (convenio parcial) mal clasificadas en `sync_review_sales` (QA-001 obs. 3).",
+    "6. `test_state_contract_and_append_only_history` no prueba append-only (AUD-002 O3). Ejecuta",
+    "7. `assert \"float(\" not in source` es más débil que la propiedad declarada (AUD-001 obs.,",
+    "8. Cosméticos de UI (QA-003): badge de piloto duplicado entre shell y panel, y el signo «×»",
+    "9. `register_payment` con la misma clave y monto distinto descarta sin traza (QA-004 obs.).",
+    "10. Los cobros legados quedan con `client_key` NULL tras la migración (AUD-004 O5) y pierden la",
+    "11. Ni `register_payment` ni `sync_review_sales` tienen llamador productivo (QA-004 obs.): la",
+    "12. Cosméticos de `TEST_EVIDENCE.md` (LIB-005 obs.): numeración descendente por bloques y",
+    "13. Una corrección de origen que declara *menos* cobrado se ignora en silencio (AUD-005 obs.):",
+    "14. Atribución obsoleta de convenio en el KPI tras el descenso de una liquidación ya pagada",
+    "15. Una corrección sobre una liquidación `OBSERVADA` no pagada recalcula su base en silencio",
+    "16. `COMMISSION_RULES.md` generaliza de más (AUD-006 O1): afirma que al convertir un convenio en",
+    "17. `ARCHITECTURE.md` no documenta `_reverse_agreement_settlement` (AUD-006 O7), que es la",
+    "18. Aserción casi tautológica en `test_downgrading_an_agreement_to_a_common_sale_reopens_the_balance`",
+    "19. Divergencia preexistente ajena a la misión (AUD-004 O5, AUD-006 O8): `main` local está",
+    "20. `ARCHITECTURE.md` afirma que `paid_amount` «nunca se asigna por fuera del libro»",
+    "21. La máquina de estados de `ARCHITECTURE.md` reparte las rutas a `REVERTIDA` de forma laxa",
+    "22. Aserción repetida en `test_review_sync_reports_invalid_dates_instead_of_losing_them`",
+    "23. Una venta hoy CONVENIO no admite `revert_payment` sobre sus cobros reales previos",
+    "24. Una corrección de origen puramente no financiera sobre un convenio dispara igualmente la",
+    "25. Una corrección de origen que cambia `sale_date` conserva el `cancelled_date` anterior",
+    "26. Defecto preexistente ajeno a la misión (LIB-001 obs. 4):"
   ],
   "pending_configuration": {
     "item": "porcentaje de comision",
     "status": "SINTETICA_PENDIENTE_APROBACION",
     "note": "La base comisionable se calcula y se muestra siempre; el porcentaje no se afirma como regla productiva."
   },
-  "generation_7_review": "NOT_YET_EXECUTED"
+  "generation_8_review": "NOT_YET_EXECUTED"
 }

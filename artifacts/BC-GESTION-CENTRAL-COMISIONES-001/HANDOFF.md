@@ -2,7 +2,7 @@
 
 Cadena: Librarian → QA → Auditor, con independencia real en tres subagentes separados por
 generación. Estado de revisión de este snapshot: ver `INDEPENDENCE.md`. Evidencia de las
-generaciones ya revisadas en `generation-1/` a `generation-5/`.
+generaciones ya revisadas en `generation-1/` a `generation-7/`.
 
 ## Matriz de revisión
 
@@ -30,9 +30,11 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
 3. **Las liquidaciones `OBSERVADA` suman a los KPIs monetarios** (QA-001 obs. 2, QA-002 obs. 4).
    No hay fuga de dinero, pero «Comisión calculada» sobreestima lo liquidable y el contador
    `observed` que el KPI ya calcula no se muestra en pantalla.
-4. **`OBSERVADA` no tiene salida de corrección** (QA-003 obs.). El propio código manda liquidaciones
-   a `OBSERVADA` con el texto «requiere corrección manual», pero no existe hoy ninguna vía de
-   corrección manual ni en la API ni en la UI. Es el complemento natural del hallazgo 3.
+4. **`OBSERVADA` pagada no tiene salida de corrección** (QA-003 obs., acotado por AUD-006 O2 y
+   AUD-007 O1). Una `OBSERVADA` **no pagada** sí tiene salida: `revert()` la acepta y la UI expone
+   el botón «Revertir», y una corrección de origen recalcula su base en el lugar. Lo que no tiene
+   salida es la `OBSERVADA` que ya movió dinero: `revert()` está correctamente bloqueado por
+   `_reject_paid` y no existe otra vía de corrección. Es el complemento natural del hallazgo 3.
 5. **Ventas mixtas (convenio parcial) mal clasificadas** en `sync_review_sales` (QA-001 obs. 3).
    El error es conservador —nunca paga de más— y las reglas aprobadas no definen la venta mixta.
    Requiere decisión de negocio antes de tocar código.
@@ -69,7 +71,26 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
     (AUD-006 O4): pasaría ante una regresión; la propiedad real la cubren las líneas anteriores.
 19. **Divergencia preexistente ajena a la misión** (AUD-004 O5, AUD-006 O8): `main` local está
     detrás de `origin/main`. No la produjo esta rama.
-20. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
+20. **`ARCHITECTURE.md` afirma que `paid_amount` «nunca se asigna por fuera del libro»**
+    (AUD-006 O6, AUD-007 O2). En el alta el valor se escribe directo en el `INSERT`, aunque la misma
+    transacción asienta la fila del libro por el mismo importe y el invariante **de resultado** se
+    cumple en todos los casos verificados. Imprecisión de mecanismo, no falsedad del invariante.
+21. **La máquina de estados de `ARCHITECTURE.md` reparte las rutas a `REVERTIDA` de forma laxa**
+    (AUD-007 O7): el conjunto de estados de origen es completo, pero la atribución por función es
+    imprecisa.
+22. **Aserción repetida en `test_review_sync_reports_invalid_dates_instead_of_losing_them`**
+    (AUD-007 O5): compara el dict completo y luego una de sus claves.
+23. **Una venta hoy CONVENIO no admite `revert_payment` sobre sus cobros reales previos**
+    (QA-007 obs.). Coherente con la guarda de la generación 4, pero deja sin salida un cobro real
+    mal cargado en una venta convertida a convenio.
+24. **Una corrección de origen puramente no financiera sobre un convenio dispara igualmente la
+    reversión-y-reasiento** (QA-007 obs.): el neto siempre queda exacto y el append-only lo
+    justifica, pero es ruido evitable si se compara el total antes de re-expresar.
+25. **Una corrección de origen que cambia `sale_date` conserva el `cancelled_date` anterior**
+    (QA-007 obs.), de modo que la comisión queda atribuida al mes viejo. **No alcanzable por la
+    ingesta real**, porque la identidad de `review_sales` incorpora `business_date`; es un defecto
+    de contrato de la API de dominio, latente.
+26. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
    `tests/gestion_central/test_ui_interactions.py` (commit `bb27034`) define dos veces
    `test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll`; pytest sólo
    recolecta la segunda y un cuerpo de aserciones queda muerto. **Fuera del alcance de esta

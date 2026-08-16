@@ -7,7 +7,7 @@ conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el prop
 
 ## Estado de este snapshot
 
-**Generación 7. Pendiente de revisión independiente.** Los verdicts de generación 7 no existen
+**Generación 8. Pendiente de revisión independiente.** Los verdicts de generación 8 no existen
 todavía; cuando se emitan quedarán en un directorio propio. Ningún documento de este paquete debe
 leerse como si esa revisión ya hubiera ocurrido.
 
@@ -156,9 +156,32 @@ Corregido en la generación 7: toda corrección sobre un convenio re-expresa su 
 revierte la anterior y se asienta la nueva por el total corregido—, y `sync_review_sales` cuenta la
 fila rechazada en `rejected` y continúa con el resto del lote.
 
+## Generación 7 — snapshot `cfc43718d85fdbb260f0f6d2663eb025991643eb`
+
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-007` | LIBRARIAN | **FAIL** — cuatro inconsistencias del paquete |
+| `QA-IND-COMISIONES-007` | QA | **FAIL** — la guarda del lote no cubría el parseo |
+| `AUDITOR-IND-COMISIONES-007` | AUDITOR | PASS, sin bloqueantes |
+
+Invalidada. Evidencia íntegra en `generation-7/`.
+
+El Auditor dio PASS sin bloqueantes tras 134 comprobaciones adversariales propias, y QA sometió el
+libro a 2.240 pasos de fuzz con trece invariantes duros sin encontrar una grieta: **el núcleo
+económico quedó verificado de forma exhaustiva por dos revisores independientes**.
+
+- **QA** — la corrección de la generación 7 dejó el parseo y la construcción de la fila fuera del
+  `try`, de modo que un `ValueError` nacido ahí seguía truncando el lote y borrando en silencio
+  ventas aplicables. Lo reprodujo con el `ReviewService` real. Corregido cubriendo todo el cuerpo
+  del bucle, sin degradar `AccessDenied`, que debe seguir cortando la sincronización.
+- **Librarian** — cuatro inconsistencias del propio paquete: un hallazgo declarado abierto que el
+  código ya cerraba, los backlogs de `HANDOFF.md` y `WORKFLOW.json` sin coincidir pese a una
+  autocertificación en contrario, una contradicción numérica en el conteo de bloqueantes, y una
+  referencia que omitía una generación ya revisada. Todas corregidas.
+
 ## Valor demostrado de la independencia
 
-Doce defectos financieros reales y cuatro de veracidad documental fueron detectados por revisores
+Catorce defectos financieros reales y ocho de veracidad documental fueron detectados por revisores
 independientes después de que la autorrevisión los declarara correctos, y con la regresión completa
 en verde en todas las generaciones. Tres de ellos fueron **introducidos por una corrección
 anterior**, lo que es en sí mismo un argumento a favor de revisar cada generación desde cero. Habrían movido dinero mal: comisión perdida por período

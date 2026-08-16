@@ -838,32 +838,34 @@ class CommissionService:
         """Ingesta desde la revisión de ventas. Gastos y entregas nunca ingresan."""
         registered = skipped = invalid_date = rejected = 0
         for row in review_service.list_sales(actor):
-            payload = row["payload"]
-            total = int(payload.get("total") or 0)
-            saleswoman = str(payload.get("saleswoman") or "").strip()
-            if total <= 0 or not saleswoman:
-                skipped += 1
-                continue
+            # Ninguna fila mal formada puede truncar el lote ni desaparecer sin contarse:
+            # la guarda cubre el parseo, la construcción y el alta, no sólo el alta.
+            # `AccessDenied` es `PermissionError` y sigue propagando: un fallo de permisos
+            # debe cortar la sincronización, no degradarse a una fila rechazada.
             try:
-                # El período de liquidación depende de esta fecha: no se ingiere si es inválida.
-                _month(payload.get("date", ""))
-            except ValueError:
-                invalid_date += 1
-                continue
-            agreement = int(payload.get("agreement") or 0)
-            settled = int(payload.get("cash") or 0) + int(payload.get("card_transfer") or 0)
-            kind = "CONVENIO" if agreement >= total else "COMUN"
-            paid = total if kind == "CONVENIO" else min(settled, total)
-            sale = CommissionSaleInput(
-                branch=row["branch"], source_sale_id=row["identity"], saleswoman=saleswoman,
-                sale_date=payload["date"], kind=kind, total_amount=total, initial_paid=paid,
-                envelope=payload.get("envelope", ""),
-            )
-            try:
+                payload = row["payload"]
+                total = int(payload.get("total") or 0)
+                saleswoman = str(payload.get("saleswoman") or "").strip()
+                if total <= 0 or not saleswoman:
+                    skipped += 1
+                    continue
+                try:
+                    # El período de liquidación depende de esta fecha: no se ingiere si es inválida.
+                    _month(payload.get("date", ""))
+                except ValueError:
+                    invalid_date += 1
+                    continue
+                agreement = int(payload.get("agreement") or 0)
+                settled = int(payload.get("cash") or 0) + int(payload.get("card_transfer") or 0)
+                kind = "CONVENIO" if agreement >= total else "COMUN"
+                paid = total if kind == "CONVENIO" else min(settled, total)
+                sale = CommissionSaleInput(
+                    branch=row["branch"], source_sale_id=row["identity"], saleswoman=saleswoman,
+                    sale_date=payload["date"], kind=kind, total_amount=total, initial_paid=paid,
+                    envelope=payload.get("envelope", ""),
+                )
                 registered += int(self.register_sale(actor, sale)[1])
-            except ValueError:
-                # Una fila que el dominio rechaza no puede truncar el lote ni desaparecer:
-                # se cuenta y la sincronización sigue con las filas restantes.
+            except (ValueError, TypeError, KeyError):
                 rejected += 1
         return {"registered": registered, "skipped": skipped,
                 "invalid_date": invalid_date, "rejected": rejected}
