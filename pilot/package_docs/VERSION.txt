@@ -1,6 +1,6 @@
-BC Caja 1.0.0-rc.21
-Misión: BC-CAJA-RC21-TABLA-SEGUIMIENTO-LOGISTICA-001
-Integra: RC18 UX ViewSonic 24" · RC19 Seguimiento Pilar-Asunción-Laboratorios · RC20 Alta de lote Pilar + ABM Laboratorios · RC21 Tabla de Seguimiento logística
+BC Caja 1.0.0-rc.22
+Misión: BC-CAJA-RC22-CAJA-SUCURSAL-001
+Integra: RC18 UX ViewSonic 24" · RC19 Seguimiento · RC20 Alta de lote + ABM Laboratorios · RC21 Tabla logística · RC22 Envío por rango corregido, vista por sucursal y alertas por local
 Fecha: 2026-08-16
-Esquema: migraciones 001-017
+Esquema: migraciones 001-018
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)

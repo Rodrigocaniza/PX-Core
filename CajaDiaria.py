@@ -138,7 +138,7 @@ def metricas_resumen_kpi(perfil: dict) -> dict:
 
 #: Ultimo recurso si no se encuentra VERSION.txt. Debe coincidir con
 #: pilot/package_docs/VERSION.txt; hay una prueba que lo verifica.
-VERSION_APLICACION = "1.0.0-rc.21"
+VERSION_APLICACION = "1.0.0-rc.22"
 
 
 def version_aplicacion() -> str:
