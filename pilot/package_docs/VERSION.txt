@@ -1,4 +1,6 @@
-BC Caja 1.0.0-rc.17
-Misión: BC-CAJA-RC17-PLANILLA-CONTINUA-PDF-001
-Fecha: 2026-08-15
+BC Caja 1.0.0-rc.20
+Misión: BC-CAJA-RC18-RC20-INTEGRATION-001
+Integra: RC18 UX ViewSonic 24" · RC19 Seguimiento Pilar-Asunción-Laboratorios · RC20 Alta de lote Pilar + ABM Laboratorios
+Fecha: 2026-08-16
+Esquema: migraciones 001-017
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)

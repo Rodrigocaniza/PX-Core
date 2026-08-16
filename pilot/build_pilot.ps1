@@ -27,13 +27,23 @@ try {
         "pilot/package_docs/VERSION.txt" `
         -Destination $package -Force
 
+    # La version sale de VERSION.txt, no del nombre del script: cablearla
+    # producia paquetes mal etiquetados al cambiar de release.
+    $versionLine = (Get-Content "pilot/package_docs/VERSION.txt" -Encoding utf8)[0]
+    if ($versionLine -notmatch 'BC Caja\s+(?<version>\S+)') {
+        throw "No se pudo determinar la version desde pilot/package_docs/VERSION.txt"
+    }
+    $version = $Matches['version']
+
     $releaseDirectory = Join-Path $repository "releases"
     New-Item -ItemType Directory -Force -Path $releaseDirectory | Out-Null
+    $zipPath = Join-Path $releaseDirectory "BC-CAJA-$version-win64.zip"
     Compress-Archive `
         -Path $package `
-        -DestinationPath (Join-Path $releaseDirectory "BC-CAJA-1.0.0-rc.17-win64.zip") `
+        -DestinationPath $zipPath `
         -CompressionLevel Optimal `
         -Force
+    Write-Output "BC_CAJA_BUILD_OK version=$version zip=$zipPath"
 }
 finally {
     Pop-Location

@@ -1,7 +1,10 @@
-BC Caja 1.0.0-rc.17
+BC Caja 1.0.0-rc.20
 
 1. Descomprima el ZIP completo en una carpeta local.
 2. Ejecute BC-Caja.exe desde la carpeta BC-Caja.
 3. Los datos operativos se guardan fuera del ejecutable, en %LOCALAPPDATA%\BC\Caja.
 
 No copie archivos de Datos ni Respaldos dentro de la carpeta del programa.
+
+Al abrir por primera vez, la base existente se migra de 015 a 017 y se agregan
+las tablas del circuito de seguimiento. No se modifica ninguna tabla previa.
