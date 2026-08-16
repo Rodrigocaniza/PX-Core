@@ -1,0 +1,125 @@
+{
+  "escenario": "BC-CAJA-ESCENARIO-TEST-CIRCUITO-001",
+  "fecha_consulta": "2026-08-15",
+  "creado": "2026-08-16",
+  "cash_day": {
+    "id": "2b889860-35d5-4199-9f90-257052e84ea3",
+    "unit": "PILAR",
+    "date": "2026-08-15",
+    "status": "CLOSED",
+    "entries": 0,
+    "opening_cash": 0
+  },
+  "laboratories": [
+    {
+      "id": "5abe076f-1dff-417d-9004-88e8a72f7943",
+      "name": "LAB PRUEBA ALFA",
+      "phone_line": "021 555 101",
+      "whatsapp": "0981 555 201"
+    },
+    {
+      "id": "1ecb7ba0-aab4-449c-8f64-a663827ede34",
+      "name": "LAB PRUEBA BETA",
+      "phone_line": "021 555 102",
+      "whatsapp": "0982 555 202"
+    },
+    {
+      "id": "3d0e5d35-b662-4b75-a033-9f3dcda0fa9e",
+      "name": "LAB PRUEBA GAMMA",
+      "phone_line": "021 555 103",
+      "whatsapp": "0983 555 203"
+    }
+  ],
+  "orders": [
+    {
+      "id": "94503e62-ca5a-452a-9912-93f3cd1fceb5",
+      "envelope": "TEST-P-001",
+      "customer": "Cliente Prueba 01",
+      "tipo": "Cristal"
+    },
+    {
+      "id": "9b2d7563-3a12-4b31-935a-152376a3d2f1",
+      "envelope": "TEST-P-002",
+      "customer": "Cliente Prueba 02",
+      "tipo": "Armazón + Cristal"
+    },
+    {
+      "id": "1a663fa0-c541-43ad-9fc3-d7c9032fa42c",
+      "envelope": "TEST-P-003",
+      "customer": "Cliente Prueba 03",
+      "tipo": "Sol"
+    },
+    {
+      "id": "9cbe73e7-66fe-499b-8fb3-672bf4feaec9",
+      "envelope": "TEST-P-004",
+      "customer": "Cliente Prueba 04",
+      "tipo": "Armazón"
+    },
+    {
+      "id": "d8e8b5c8-443d-4744-9b4b-d2cd36bae0ab",
+      "envelope": "TEST-P-005",
+      "customer": "Cliente Prueba 05",
+      "tipo": "Cristal"
+    },
+    {
+      "id": "c5e343cb-2bfc-4159-b923-4833f49a2e27",
+      "envelope": "TEST-P-006",
+      "customer": "Cliente Prueba 06",
+      "tipo": "Armazón + Cristal"
+    },
+    {
+      "id": "5b79725d-577e-43c5-b5fc-fbcf6f6e5bda",
+      "envelope": "TEST-P-007",
+      "customer": "Cliente Prueba 07",
+      "tipo": "Sol"
+    },
+    {
+      "id": "642071ad-8892-479d-a6e8-e1ecf7f9eeb0",
+      "envelope": "TEST-P-008",
+      "customer": "Cliente Prueba 08",
+      "tipo": "Armazón"
+    },
+    {
+      "id": "523b1bd2-fb1e-4aab-88d3-1488c476e3ba",
+      "envelope": "TEST-P-009",
+      "customer": "Cliente Prueba 09",
+      "tipo": "Cristal"
+    },
+    {
+      "id": "31cd24eb-7f9f-43bc-a38a-bec75a76318c",
+      "envelope": "TEST-P-010",
+      "customer": "Cliente Prueba 10",
+      "tipo": "Armazón + Cristal"
+    },
+    {
+      "id": "6d802020-6159-44e5-9e86-d19ec75053c4",
+      "envelope": "TEST-P-011",
+      "customer": "Cliente Prueba 11",
+      "tipo": "Sol"
+    },
+    {
+      "id": "44f459ba-0483-4351-a6e6-523f67515b42",
+      "envelope": "TEST-P-012",
+      "customer": "Cliente Prueba 12",
+      "tipo": "Armazón"
+    },
+    {
+      "id": "b8e828f5-6c7e-480a-b4b5-62d023ee23de",
+      "envelope": "TEST-P-013",
+      "customer": "Cliente Prueba 13",
+      "tipo": "Cristal"
+    },
+    {
+      "id": "3c3cf425-0eb0-4fe6-8a91-89b41022798b",
+      "envelope": "TEST-P-014",
+      "customer": "Cliente Prueba 14",
+      "tipo": "Armazón + Cristal"
+    },
+    {
+      "id": "464682f8-a844-40c8-a6b9-9566ea5ca382",
+      "envelope": "TEST-P-015",
+      "customer": "Cliente Prueba 15",
+      "tipo": "Sol"
+    }
+  ]
+}
