@@ -7,7 +7,7 @@ conclusiones**. Ninguno conoció el verdict de los otros antes de emitir el prop
 
 ## Estado de este snapshot
 
-**Generación 6. Pendiente de revisión independiente.** Los verdicts de generación 6 no existen
+**Generación 7. Pendiente de revisión independiente.** Los verdicts de generación 7 no existen
 todavía; cuando se emitan quedarán en un directorio propio. Ningún documento de este paquete debe
 leerse como si esa revisión ya hubiera ocurrido.
 
@@ -134,6 +134,28 @@ Corregidos en la generación 6 sin inventar ninguna regla: cuando la venta deja 
 liquidación por convenio **se revierte en el libro**, que es exactamente lo que `COMMISSION_RULES.md`
 ya documentaba; y el KPI excluye los cobros revertidos.
 
+## Generación 6 — snapshot `aed7bb2e4b370aeaa884008efab31dec16a965b2`
+
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISIONES-006` | LIBRARIAN | PASS |
+| `QA-IND-COMISIONES-006` | QA | **FAIL** — el convenio no podía corregirse a la baja |
+| `AUDITOR-IND-COMISIONES-006` | AUDITOR | PASS |
+
+Invalidada. Evidencia íntegra en `generation-6/`.
+
+Librarian y Auditor dieron PASS: el backlog volvió a ser veraz y los doce bloqueantes financieros
+anteriores quedaron cerrados, con el invariante del libro resistiendo 7.184 controles de QA y 120
+secuencias de fuzz del Auditor sin un solo desvío. El QA encontró un defecto acotado: como la
+liquidación por convenio sólo se revertía cuando la venta *dejaba* de ser convenio, corregir a la
+baja el total de un convenio se rechazaba para siempre con un mensaje que invocaba un cobro
+inexistente, dejando 95.000 Gs. de base sobrevaluada por venta afectada. Agravante: la excepción no
+capturada **truncaba el lote de sincronización** y salteaba en silencio las filas posteriores.
+
+Corregido en la generación 7: toda corrección sobre un convenio re-expresa su liquidación —se
+revierte la anterior y se asienta la nueva por el total corregido—, y `sync_review_sales` cuenta la
+fila rechazada en `rejected` y continúa con el resto del lote.
+
 ## Valor demostrado de la independencia
 
 Doce defectos financieros reales y cuatro de veracidad documental fueron detectados por revisores
@@ -152,5 +174,5 @@ aparecer en las reglas económicas —que se mantuvieron correctas— y se conce
 conciliación entre un origen con forma de snapshot y un libro con forma de eventos. Por eso la
 corrección de la generación 5 es estructural y no otro parche puntual.
 
-Las observaciones no bloqueantes de las tres generaciones quedan registradas sin corregir, según
+Las observaciones no bloqueantes de todas las generaciones revisadas quedan registradas sin corregir, según
 el protocolo de corregir únicamente bloqueantes. Ver `HANDOFF.md`.

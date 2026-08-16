@@ -1,8 +1,8 @@
 {
   "mission": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "current_state": "REVIEW_PENDING_G6",
+  "current_state": "REVIEW_PENDING_G7",
   "mission_lease": "HELD",
-  "generation": 6,
+  "generation": 7,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -222,6 +222,41 @@
         "los nueve bloqueantes financieros historicos"
       ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-5/"
+    },
+    {
+      "generation": 6,
+      "snapshot_commit": "aed7bb2e4b370aeaa884008efab31dec16a965b2",
+      "snapshot_tree": "f4f8aead7692f81cecd3ee9b466263d2745f1823",
+      "status": "INVALIDATED",
+      "tests": 297,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISIONES-006",
+          "role": "LIBRARIAN",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T01:15:16Z"
+        },
+        {
+          "runner": "QA-IND-COMISIONES-006",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T01:24:53Z",
+          "blockers": [
+            "AGREEMENT_TOTAL_CANNOT_BE_LOWERED",
+            "UNCAUGHT_ERROR_TRUNCATES_SYNC_BATCH"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISIONES-006",
+          "role": "AUDITOR",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T01:20:00Z"
+        }
+      ],
+      "confirmed_closed_from_previous": [
+        "los doce bloqueantes financieros historicos"
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/generation-6/"
     }
   ],
   "history": [
@@ -354,6 +389,31 @@
       "tests": 297,
       "baseline": 251,
       "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
+    },
+    {
+      "event": "GENERATION_6_PUBLISHED_AND_REVIEWED",
+      "verdicts": "PASS/FAIL/PASS",
+      "outcome": "INVALIDATED"
+    },
+    {
+      "event": "AGREEMENT_CORRECTION_FIXED",
+      "fix": "toda correccion sobre un convenio re-expresa su liquidacion: se revierte la anterior y se asienta la nueva por el total corregido, de modo que el convenio puede corregirse a la baja",
+      "tests_added": 2
+    },
+    {
+      "event": "SYNC_BATCH_MADE_RESILIENT",
+      "fix": "sync_review_sales captura el rechazo por fila, lo cuenta en rejected y continua con las filas restantes",
+      "tests_added": 1
+    },
+    {
+      "event": "BLOCKERS_REPRODUCED_AND_VERIFIED_DEAD",
+      "method": "escenarios exactos del revisor re-ejecutados contra el codigo corregido"
+    },
+    {
+      "event": "GENERATION_7_PUBLISHED",
+      "tests": 300,
+      "baseline": 251,
+      "note": "regresion propia de la ejecucion implementadora; no implica revision independiente"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -370,13 +430,20 @@
     "AUD4-O5: los cobros legados quedan con client_key NULL tras la migracion y pierden la idempotencia derivada del contenido",
     "QA4-obs: register_payment y sync_review_sales no tienen llamador productivo; la bandeja solo se puebla con el capturador sintetico",
     "LIB5-obs: numeracion descendente y bullets de gates mal ubicados en TEST_EVIDENCE.md",
-    "QA5-obs: _apply_source_update rechaza corregir a la baja el total de un convenio",
-    "AUD5-obs: una correccion de origen que declara menos cobrado se ignora en silencio; el libro nunca se reduce"
+    "AUD5-obs: una correccion de origen que declara menos cobrado se ignora en silencio; el libro nunca se reduce",
+    "QA6-obs: atribucion obsoleta de convenio en el KPI tras el descenso de una liquidacion ya pagada",
+    "QA6-obs: una correccion sobre OBSERVADA no pagada recalcula su base en silencio, a diferencia de REVISADA/APROBADA/PAGADA",
+    "AUD6-O1: COMMISSION_RULES.md generaliza el reabrir del saldo tambien al camino COMUN-CONVENIO-COMUN, donde si hay cobros previos",
+    "AUD6-O2: HANDOFF.md subestima la salida de correccion de OBSERVADA, que existe via revert cuando no hubo pago",
+    "AUD6-O3: el rotulo PASS de ARTIFACT_CONSISTENCY.md puede confundirse con un verdict de revisor",
+    "AUD6-O4: una asercion casi tautologica en test_downgrading_an_agreement_to_a_common_sale_reopens_the_balance",
+    "AUD6-O7: ARCHITECTURE.md no documenta _reverse_agreement_settlement",
+    "LIB6-obs: HANDOFF.md lista 12 hallazgos y WORKFLOW.json 15; el handoff quedo incompleto"
   ],
   "pending_configuration": {
     "item": "porcentaje de comision",
     "status": "SINTETICA_PENDIENTE_APROBACION",
     "note": "La base comisionable se calcula y se muestra siempre; el porcentaje no se afirma como regla productiva."
   },
-  "generation_6_review": "NOT_YET_EXECUTED"
+  "generation_7_review": "NOT_YET_EXECUTED"
 }

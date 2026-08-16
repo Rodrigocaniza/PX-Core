@@ -1,11 +1,30 @@
 # Evidencia de pruebas
 
-## Generación 6 (vigente)
+## Generación 7 (vigente)
 
-- Dominio de comisiones: **42/42 PASS**.
+- Dominio de comisiones: **45/45 PASS**.
 - Interacción Tk y Full HD: **4/4 PASS**.
-- Regresión completa: **297/297 PASS** en 26.35 s.
-- Línea base heredada: 251 pruebas; esta misión suma 46 sin romper ninguna existente.
+- Regresión completa: **300/300 PASS** en 26.90 s.
+- Línea base heredada: 251 pruebas; esta misión suma 49 sin romper ninguna existente.
+
+## FAIL de revisores independientes (generación 6) y su corrección
+
+18. **El total de un convenio no podía corregirse a la baja — bloqueante de QA.** La liquidación
+    por convenio sólo se revertía cuando la venta *dejaba* de ser convenio, así que en una
+    corrección CONVENIO→CONVENIO `settled` seguía valiendo el total viejo y la guarda disparaba con
+    un mensaje que invocaba un cobro inexistente. La venta quedaba clavada en el total anterior,
+    con 95.000 Gs. de base sobrevaluada por venta afectada en el escenario del revisor.
+
+19. **La excepción no capturada truncaba el lote de sincronización — mismo bloqueante.**
+    `sync_review_sales` no capturaba el rechazo por fila, de modo que un total corregido en el
+    origen propagaba el error y salteaba en silencio todas las filas posteriores del lote.
+
+    Corregidos: toda corrección sobre un convenio re-expresa su liquidación —se revierte la
+    anterior y se asienta la nueva por el total corregido, conservando siempre los cobros reales—,
+    y la sincronización cuenta la fila rechazada en `rejected` y continúa. Cubierto por
+    `test_an_agreement_total_can_be_corrected_downwards`,
+    `test_correcting_an_agreement_keeps_the_real_payments` y
+    `test_a_rejected_row_never_truncates_the_sync_batch`.
 
 ## FAIL de revisores independientes (generación 5) y su corrección
 
@@ -138,6 +157,8 @@ muertos tras la corrección.
 
 ## Generaciones históricas invalidadas
 
+- Generación 6: 297/297 PASS. Cifra correcta, pero ninguna prueba cubría la corrección a la baja
+  de un convenio ni la resiliencia del lote de sincronización.
 - Generación 5: 294/294 PASS. Cifra correcta, pero ninguna prueba cubría el descenso
   CONVENIO→COMÚN, que era justamente lo que la propia corrección había roto.
 - Generación 4: 289/289 PASS. Cifra correcta, pero ninguna prueba cubría el re-sync con un cobro

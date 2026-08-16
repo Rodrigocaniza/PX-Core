@@ -272,9 +272,10 @@ class CommissionService:
         """
         if row["voided"]:
             raise ValueError("venta anulada: no admite corrección de origen")
-        if row["sale_kind"] == "CONVENIO" and sale.kind != "CONVENIO":
-            # Deja de ser convenio: la liquidación por convenio ya no sostiene la venta y se
-            # revierte en el libro. El saldo vuelve a ser el total menos los cobros reales.
+        if row["sale_kind"] == "CONVENIO":
+            # Toda corrección sobre un convenio re-expresa su liquidación: se revierte la anterior
+            # y, si sigue siendo convenio, se asienta la nueva por el total corregido. Así el
+            # convenio puede corregirse a la baja, cosa que su propia liquidación previa impedía.
             self._reverse_agreement_settlement(con, row["id"], actor.username)
         settled = self._settled_amount(con, row["id"])
         if sale.total_amount < settled:
@@ -835,7 +836,7 @@ class CommissionService:
     # ------------------------------------------------------------ integración
     def sync_review_sales(self, actor: Principal, review_service):
         """Ingesta desde la revisión de ventas. Gastos y entregas nunca ingresan."""
-        registered = skipped = invalid_date = 0
+        registered = skipped = invalid_date = rejected = 0
         for row in review_service.list_sales(actor):
             payload = row["payload"]
             total = int(payload.get("total") or 0)
@@ -858,5 +859,11 @@ class CommissionService:
                 sale_date=payload["date"], kind=kind, total_amount=total, initial_paid=paid,
                 envelope=payload.get("envelope", ""),
             )
-            registered += int(self.register_sale(actor, sale)[1])
-        return {"registered": registered, "skipped": skipped, "invalid_date": invalid_date}
+            try:
+                registered += int(self.register_sale(actor, sale)[1])
+            except ValueError:
+                # Una fila que el dominio rechaza no puede truncar el lote ni desaparecer:
+                # se cuenta y la sincronización sigue con las filas restantes.
+                rejected += 1
+        return {"registered": registered, "skipped": skipped,
+                "invalid_date": invalid_date, "rejected": rejected}

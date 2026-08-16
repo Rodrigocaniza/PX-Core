@@ -50,7 +50,26 @@ Se corrigieron únicamente los bloqueantes, según el protocolo. Abiertos, orden
 11. **Ni `register_payment` ni `sync_review_sales` tienen llamador productivo** (QA-004 obs.): la
     bandeja sólo se puebla hoy con el capturador sintético. Es el cableado que debe resolver el
     próximo bloque para que el ciclo de cobros sea alcanzable desde el producto.
-12. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
+12. **Cosméticos de `TEST_EVIDENCE.md`** (LIB-005 obs.): numeración descendente por bloques y
+    cuatro bullets de gates ubicados bajo la sección equivocada.
+13. **Una corrección de origen que declara *menos* cobrado se ignora en silencio** (AUD-005 obs.):
+    el libro nunca se reduce. Coherente con append-only y con exigir `revert_payment`, pero no está
+    documentado en `COMMISSION_RULES.md`.
+14. **Atribución obsoleta de convenio en el KPI** tras el descenso de una liquidación ya pagada
+    (QA-006 obs.): la entrada conserva la foto del convenio mientras la venta ya es común.
+15. **Una corrección sobre una liquidación `OBSERVADA` no pagada recalcula su base en silencio**
+    (QA-006 obs.), a diferencia de `REVISADA`/`APROBADA`/`PAGADA`. Asimetría menor, sin efecto
+    sobre dinero.
+16. **`COMMISSION_RULES.md` generaliza de más** (AUD-006 O1): afirma que al convertir un convenio en
+    venta común «no existían cobros que arrastrar», cierto para la venta nacida convenio pero no
+    para el camino COMÚN→CONVENIO→COMÚN, donde el código correctamente conserva los cobros previos.
+17. **`ARCHITECTURE.md` no documenta `_reverse_agreement_settlement`** (AUD-006 O7), que es la
+    corrección central de la generación 6.
+18. **Aserción casi tautológica** en `test_downgrading_an_agreement_to_a_common_sale_reopens_the_balance`
+    (AUD-006 O4): pasaría ante una regresión; la propiedad real la cubren las líneas anteriores.
+19. **Divergencia preexistente ajena a la misión** (AUD-004 O5, AUD-006 O8): `main` local está
+    detrás de `origin/main`. No la produjo esta rama.
+20. **Defecto preexistente ajeno a la misión** (LIB-001 obs. 4):
    `tests/gestion_central/test_ui_interactions.py` (commit `bb27034`) define dos veces
    `test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll`; pytest sólo
    recolecta la segunda y un cuerpo de aserciones queda muerto. **Fuera del alcance de esta

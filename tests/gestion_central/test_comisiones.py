@@ -331,7 +331,7 @@ def test_review_sync_reports_invalid_dates_instead_of_losing_them(service):
             ]
 
     result = service.sync_review_sales(SOL, FakeReview())
-    assert result == {"registered": 1, "skipped": 0, "invalid_date": 1}
+    assert result == {"registered": 1, "skipped": 0, "invalid_date": 1, "rejected": 0}
     assert result["invalid_date"] == 1, "la fila con fecha corrupta debe contarse, no perderse"
     assert len(service.list_entries(SOL)) == 1
 
@@ -443,6 +443,57 @@ def test_reverted_payments_are_never_reported_as_collected(service):
     service.revert_payment(SOL, payment_id, "cheque rechazado")
     kpi = service.report(SOL, "2099-04")["kpi"]
     assert kpi["partial_payments_amount"] == 0 and kpi["partial_payments_count"] == 0
+
+
+def test_an_agreement_total_can_be_corrected_downwards(service):
+    """Bloqueante QA generación 6: su propia liquidación impedía corregir el convenio a la baja."""
+    sale_id, _ = service.register_sale(SOL, agreement(total_amount=1_000_000))
+    service.set_policy(SOL, "GENERAL", 300)
+    service.recalculate(SOL)
+    assert active(service, sale_id)["commissionable_base"] == 950_000
+    service.register_sale(SOL, agreement(total_amount=900_000))
+    service.recalculate(SOL)
+    entry = active(service, sale_id)
+    assert entry["gross_amount"] == 900_000 and entry["agreement_discount"] == 45_000
+    assert entry["commissionable_base"] == 855_000 and entry["balance_amount"] == 0
+    assert settled(service, sale_id) == 900_000
+    assert service.report(SOL, "2099-04")["kpi"]["commissionable_base"] == 855_000
+
+
+def test_correcting_an_agreement_keeps_the_real_payments(service):
+    """Corregir un convenio no puede destruir los cobros reales que ya tenía la venta."""
+    sale_id, _ = service.register_sale(SOL, common(total_amount=1_000_000, initial_paid=600_000))
+    service.register_sale(SOL, common(kind="CONVENIO", total_amount=1_000_000, initial_paid=0))
+    service.register_sale(SOL, common(kind="CONVENIO", total_amount=900_000, initial_paid=0))
+    entry = active(service, sale_id)
+    assert entry["balance_amount"] == 0 and settled(service, sale_id) == 900_000
+    service.register_sale(SOL, common(total_amount=900_000, initial_paid=600_000))
+    entry = active(service, sale_id)
+    assert entry["paid_amount"] == 600_000 and entry["balance_amount"] == 300_000
+
+
+def test_a_rejected_row_never_truncates_the_sync_batch(service):
+    """Bloqueante QA generación 6: la excepción abortaba el lote y salteaba las filas siguientes."""
+    def row(identity, day, total, cash):
+        return {"branch": "L", "identity": identity,
+                "payload": {"date": f"2099-04-{day}", "saleswoman": "Ana", "total": total,
+                            "cash": cash, "card_transfer": 0, "agreement": 0, "envelope": identity}}
+
+    class FakeReview:
+        rows = [row("antes", "01", 100_000, 100_000), row("malo", "02", 1_000_000, 600_000)]
+
+        @classmethod
+        def list_sales(cls, _actor):
+            return cls.rows
+
+    assert service.sync_review_sales(SOL, FakeReview())["registered"] == 2
+    # El origen corrige el total por debajo de lo realmente cobrado: esa fila no puede aplicarse.
+    FakeReview.rows = [row("antes", "01", 100_000, 100_000), row("malo", "02", 500_000, 600_000),
+                       row("despues", "03", 300_000, 300_000)]
+    result = service.sync_review_sales(SOL, FakeReview())
+    assert result["rejected"] == 1, "la fila rechazada debe contarse, no abortar el lote"
+    assert "despues" in {r["envelope"] for r in service.list_entries(SOL)}, \
+        "las filas posteriores a una rechazada deben ingerirse igual"
 
 
 def test_state_contract_and_append_only_history(service):
@@ -629,8 +680,8 @@ def test_review_sales_integration_skips_non_sale_rows(service, tmp_path):
                              "cash": 0, "card_transfer": 0, "agreement": 0, "envelope": ""}},
             ]
 
-    assert service.sync_review_sales(SOL, FakeReview()) == {"registered": 2, "skipped": 1, "invalid_date": 0}
-    assert service.sync_review_sales(SOL, FakeReview()) == {"registered": 0, "skipped": 1, "invalid_date": 0}
+    assert service.sync_review_sales(SOL, FakeReview()) == {"registered": 2, "skipped": 1, "invalid_date": 0, "rejected": 0}
+    assert service.sync_review_sales(SOL, FakeReview()) == {"registered": 0, "skipped": 1, "invalid_date": 0, "rejected": 0}
     service.recalculate(SOL)
     report = service.report(SOL, "2099-04")
     assert report["kpi"]["agreements"] == 1 and report["kpi"]["pending_balance_sales"] == 1
