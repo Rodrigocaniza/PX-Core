@@ -4,6 +4,25 @@ Contrato económico del porcentaje. Las reglas de elegibilidad, estados y conven
 y están en `artifacts/BC-GESTION-CENTRAL-COMISIONES-001/COMMISSION_RULES.md`: aquí sólo se define
 el porcentaje, que era lo único que quedaba pendiente de aprobación.
 
+## Cláusulas superadas del contrato anterior
+
+De `artifacts/BC-GESTION-CENTRAL-COMISIONES-001/COMMISSION_RULES.md` quedan **superadas**, y sólo
+ellas:
+
+- **Regla 5**, «No inventar un porcentaje general de comisión». El porcentaje ya está aprobado.
+  Los estados `SIN_POLITICA_CONFIGURADA` y `SINTETICA_PENDIENTE_APROBACION` que esa regla describe
+  ya no se producen, y la prueba que cita como evidencia
+  (`test_policy_is_synthetic_pending_approval_and_optional`) fue eliminada.
+- **Sección «Configuración pendiente de aprobación»**, que declara que el porcentaje «no es una
+  regla productiva». Hoy lo es.
+- La fórmula de redondeo allí documentada, `(importe * puntos_basicos + 5000) // 10000`. Da el
+  mismo resultado que la implementación actual para enteros no negativos, pero la implementación
+  es `Decimal` con `ROUND_HALF_UP`.
+
+Las reglas 1 a 4 y 6 a 8 de ese documento siguen vigentes sin cambio alguno. El documento anterior
+lleva la anotación correspondiente en su encabezado; su cuerpo se conserva sin retocar como
+evidencia de su misión.
+
 ## Decisión aprobada
 
 | Propiedad | Valor |
@@ -70,8 +89,23 @@ ambos datos justamente para dejar explícito que no alteran el resultado.
 |---|---|
 | `CANONICA_APROBADA` | Calculada con la regla aprobada vigente. |
 | `FUERA_DE_VIGENCIA` | Período anterior a la vigencia: base informada, sin porcentaje. |
-| `POLITICA_HISTORICA_PREVIA` | Importe calculado antes de la aprobación; se conserva por auditoría. |
+| `POLITICA_HISTORICA_PREVIA` | Importe calculado antes de la aprobación. **No es pagable.** |
 | `SIN_POLITICA_APLICADA` | Todavía no recalculada. |
+
+## Sólo se paga la política vigente
+
+`review`, `approve` y `mark_paid` exigen `policy_status = CANONICA_APROBADA`. No alcanza con que
+haya un importe: un importe calculado con una política ya retirada es exactamente lo que no debe
+llegar al pago. Los tres puntos de entrada a la cadena de pago lo rechazan.
+
+Una liquidación con `POLITICA_HISTORICA_PREVIA` que **no** haya movido dinero tiene una salida, y
+no destruye la comisión: `recalculate` la repara. La lleva al 1% oficial con traza completa y la
+devuelve a `CALCULADA` **retirando su revisión y su aprobación** —el importe cambió, así que el aval
+anterior ya no lo respalda—, con el importe reemplazado asentado en el historial como
+`COMMISSION_POLICY_REPAIRED`. Luego se rehace la cadena sobre el importe correcto.
+
+Una que **sí** movió dinero conserva su importe histórico intacto: `recalculate` no la alcanza y su
+nota lo dice. Ese es el único caso en que un importe no oficial permanece, y ya está pagado.
 
 `SINTETICA_PENDIENTE_APROBACION` queda **retirada**. Ningún código la produce; sobrevive únicamente
 como entrada de `RETIRED_POLICY_STATUSES`, que es la lista de lo que la migración elimina.
@@ -82,6 +116,11 @@ Cada liquidación graba, en el momento del cálculo, la política con la que se 
 `policy_code`, `policy_version`, `policy_effective_from`, `policy_scope` y `policy_status`, junto a
 `rate_bp` y `commission_amount`. No se reconstruye después: si la política cambia mañana, la
 liquidación sigue explicando su propio importe con la versión que efectivamente usó.
+
+La traza está completa **exactamente cuando** la política es la aprobada. Una liquidación
+`POLITICA_HISTORICA_PREVIA` tiene las cuatro columnas en `NULL`, y eso no es una omisión: dice con
+precisión que **ninguna política aprobada produjo ese importe**. La migración no las inventa, porque
+no sabe con qué versión se calcularon. Por eso ese importe tampoco es pagable.
 
 Una corrección de origen que invalida el cálculo también borra la traza, porque la que había ya no
 describe el importe que se va a recalcular.

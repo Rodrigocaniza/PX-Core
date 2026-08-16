@@ -1,11 +1,16 @@
 # Evidencia visual
 
-`screenshots/comision-1pct-1920x1080.png` — 1920×1080, RGB, 93.628 bytes.
-SHA-256 `a85af0eb7da012fcd7721cafc505f7d8a6fb9ecc39826e57b112d646d14dfa47`.
+`screenshots/comision-1pct-1920x1080.png` — 1920×1080, RGB, 93.753 bytes.
+SHA-256 `a08910a9e3a08a272aad616ff1cd854f76575068c4bbac99ba0e64471848a2f4`.
 
 Generada por `python tools/capture_gestion_central_comisiones.py <destino>` sobre una base
 temporal con el piloto sintético. El capturador ya no configura porcentaje: la política oficial
 del 1% queda instalada por la migración y el recálculo la aplica sola.
+
+El PNG **no es reproducible byte a byte**: el panel «Historial auditable» muestra el
+`recorded_at` real de cada asiento, así que cada corrida produce un archivo distinto. El hash
+identifica esta captura, no una propiedad estable del código. Todo lo demás de la imagen —cifras,
+rótulos y disposición— sí es determinista y está verificado por las pruebas de interfaz.
 
 ## Lo que la captura demuestra
 

@@ -46,14 +46,20 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
 
 1. **Un solo porcentaje.** Después de migrar, `commission_policies` contiene exactamente una fila,
    de alcance `GENERAL`. No hay ruta de código que escriba otro alcance.
-2. **Traza inseparable del importe.** Si `rate_bp` no es nulo en una liquidación calculada, su
-   `policy_code`, `policy_version` y `policy_effective_from` describen la política que lo produjo.
+2. **La traza está completa exactamente cuando la política es la aprobada.** Con
+   `policy_status = CANONICA_APROBADA`, los cuatro campos de traza son no nulos y describen la
+   política que produjo el importe. Con `POLITICA_HISTORICA_PREVIA` los cuatro son `NULL`, y esa
+   ausencia es la afirmación de que ninguna política aprobada produjo ese importe: la migración no
+   los inventa porque no sabe con qué versión se calcularon. Con `FUERA_DE_VIGENCIA` hay traza de
+   qué política se evaluó pero no hay importe que respaldar.
+   Lo verifica `test_the_trace_is_complete_exactly_when_the_policy_is_the_canonical_one`.
 3. **Idempotencia con traza.** La comparación de `recalculate` incluye los cinco campos de política,
    así que el primer recálculo tras migrar corrige la traza y el siguiente ya no cambia nada.
-4. **Nada sin porcentaje llega al pago.** `review` y `mark_paid` rechazan una liquidación con
-   `rate_bp` o `commission_amount` nulos.
-5. **Un cambio de política no mueve dinero pasado.** `set_general_rate` no recalcula, y las
-   liquidaciones fuera de `ELEGIBLE`/`CALCULADA` no son alcanzables por `recalculate`.
+4. **Sólo la política vigente llega al pago.** `review`, `approve` y `mark_paid` rechazan una
+   liquidación con `rate_bp` o `commission_amount` nulos **y también** una cuyo `policy_status` no
+   sea `CANONICA_APROBADA`. Un importe calculado con una política retirada no es pagable.
+5. **Un cambio de política no mueve dinero pasado.** `set_general_rate` no recalcula, y nada que
+   haya movido dinero es alcanzable por `recalculate`.
 
 ## Límites que se mantienen
 

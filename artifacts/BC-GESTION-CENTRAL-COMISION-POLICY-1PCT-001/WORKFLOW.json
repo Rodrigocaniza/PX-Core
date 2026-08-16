@@ -6,20 +6,20 @@
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
   "current_state": "IMPLEMENTED",
   "mission_lease": "HELD",
-  "generation": 1,
+  "generation": 2,
   "autochain": [
     "LIBRARIAN",
     "QA",
     "AUDITOR"
   ],
-  "independent_runners": "AVAILABLE",
+  "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "PENDING",
   "tests": {
-    "full_regression": 317,
+    "full_regression": 323,
     "baseline": 302,
-    "added": 15,
-    "module_suite": 117,
-    "commissions_suite": 66
+    "added_cases": 21,
+    "module_suite": 123,
+    "commissions_cases": 72
   },
   "decision": {
     "code": "COMISION_GENERAL_1PCT",
@@ -35,20 +35,86 @@
     "currency": "GS"
   },
   "verified_examples": [
-    {"case": "venta comun cancelada", "total": 400000, "discount": 0, "base": 400000, "commission": 4000},
-    {"case": "venta comun con saldo", "total": 400000, "discount": null, "base": 0, "commission": null},
-    {"case": "convenio", "total": 500000, "discount": 25000, "base": 475000, "commission": 4750},
-    {"case": "convenio borde HALF_UP", "total": 333333, "discount": 16667, "base": 316666, "commission": 3167},
-    {"case": "comun borde HALF_UP", "total": 1234567, "discount": 0, "base": 1234567, "commission": 12346}
+    {
+      "case": "venta comun cancelada",
+      "total": 400000,
+      "discount": 0,
+      "base": 400000,
+      "commission": 4000
+    },
+    {
+      "case": "venta comun con saldo",
+      "total": 400000,
+      "discount": null,
+      "base": 0,
+      "commission": null
+    },
+    {
+      "case": "convenio",
+      "total": 500000,
+      "discount": 25000,
+      "base": 475000,
+      "commission": 4750
+    },
+    {
+      "case": "convenio borde HALF_UP",
+      "total": 333333,
+      "discount": 16667,
+      "base": 316666,
+      "commission": 3167
+    },
+    {
+      "case": "comun borde HALF_UP",
+      "total": 1234567,
+      "discount": 0,
+      "base": 1234567,
+      "commission": 12346
+    }
   ],
   "generations": [
     {
       "generation": 1,
+      "snapshot_commit": "578bf8b7205c857f9032581744f1e5818dab99fa",
+      "status": "INVALIDATED",
+      "tests": 317,
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-001",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T03:28:37Z",
+          "blockers": [
+            "L1",
+            "L2",
+            "L3"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-001",
+          "role": "QA",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-16T03:28:35Z"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-001",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-16T03:33:08Z",
+          "blockers": [
+            "A1",
+            "A2"
+          ]
+        }
+      ],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-1/"
+    },
+    {
+      "generation": 2,
       "snapshot_commit": null,
       "status": "PENDING_REVIEW",
-      "tests": 317,
+      "tests": 323,
       "verdicts": [],
-      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-1/"
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-2/"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -57,7 +123,7 @@
     "3. assert float( mas debil que la propiedad declarada, ahora sobre Decimal (heredado 7)",
     "4. COMMISSION_RULES.md y ARCHITECTURE.md generalizan de mas (heredado 16)",
     "5. La vigencia se compara por periodo: una vigencia intramensual no se respeta al dia",
-    "6. Una REVISADA o APROBADA con importe historico no se corrige sola",
+    "6. Una POLITICA_HISTORICA_PREVIA ya pagada no tiene correccion; las no pagadas si las repara recalculate",
     "7. POLICY_STATUSES se define y no se usa como guarda",
     "8. El retiro de politicas por alcance elimina filas, auditadas pero no conservadas",
     "9. set_general_rate no ofrece vista previa del impacto"
@@ -72,5 +138,32 @@
     "BC-Core",
     "BC-Finanzas",
     "main"
+  ],
+  "blockers_closed": [
+    {
+      "id": "L1",
+      "role": "LIBRARIAN",
+      "summary": "HANDOFF declaraba veinte hallazgos heredados; son treinta y siete"
+    },
+    {
+      "id": "L2",
+      "role": "LIBRARIAN",
+      "summary": "COMMISSION_RULES.md del paquete anterior contradecia el canon sin anotacion de superado"
+    },
+    {
+      "id": "L3",
+      "role": "LIBRARIAN",
+      "summary": "MIGRATION.md afirmaba que las siete columnas nuevas llevan DEFAULT; solo tres"
+    },
+    {
+      "id": "A1",
+      "role": "AUDITOR",
+      "summary": "El invariante de traza era falso sobre base migrada; se reformula en su forma verificable y se prueba"
+    },
+    {
+      "id": "A2",
+      "role": "AUDITOR",
+      "summary": "Fuga economica: una liquidacion legada era pagable al porcentaje retirado y el remedio documentado destruia la comision"
+    }
   ]
 }

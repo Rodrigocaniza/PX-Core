@@ -95,10 +95,20 @@ def _reject_paid(entry) -> None:
 
 
 def _require_official_calculation(entry) -> None:
-    """Nadie revisa ni paga una liquidación sin la política oficial ya aplicada."""
+    """Nadie revisa ni paga una liquidación que no lleve la política oficial vigente.
+
+    No alcanza con que haya un importe: un importe calculado con una política ya retirada
+    es exactamente lo que no debe llegar al pago. Se exige el estado `CANONICA_APROBADA`,
+    que sólo escribe `recalculate` al aplicar la regla aprobada.
+    """
     if entry["rate_bp"] is None or entry["commission_amount"] is None:
         raise ValueError(
             "la liquidación no tiene la política oficial aplicada: recalcule antes de continuar"
+        )
+    if entry["policy_status"] != POLICY_CANONICAL:
+        raise ValueError(
+            f"la liquidación no lleva la política oficial vigente ({entry['policy_status']}): "
+            "recalcule antes de continuar"
         )
 
 
@@ -592,7 +602,8 @@ class CommissionService:
         if not responsible:
             raise ValueError("responsable obligatorio")
         return self._transition(actor, entry_id, {"REVISADA"}, "APROBADA", "COMMISSION_APPROVED",
-                                {"responsible": responsible}, approved_by=responsible, approved_at=_now())
+                                {"responsible": responsible}, guard=_require_official_calculation,
+                                approved_by=responsible, approved_at=_now())
 
     def mark_paid(self, actor: Principal, entry_id: str, payment_date: str, reference: str):
         """Sólo se paga lo revisado y aprobado; nunca se salta la aprobación."""
@@ -703,14 +714,20 @@ class CommissionService:
     def recalculate(self, actor: Principal, *, period: str | None = None, branch: str | None = None):
         """Recalcula base y comisión oficial de forma segura e idempotente.
 
-        Sólo alcanza liquidaciones no pagadas y aún no revisadas: `PAGADA`, `APROBADA`,
-        `REVISADA`, `OBSERVADA` y `REVERTIDA` quedan fuera del `WHERE` y no cambian nunca
-        por un recálculo. Repetirlo no duplica ni reaplica nada, porque la comparación
-        incluye la traza de política completa.
+        Alcanza `ELEGIBLE` y `CALCULADA`, más un caso acotado: una `REVISADA` o `APROBADA`
+        cuyo importe venga de una política ya retirada (`POLITICA_HISTORICA_PREVIA`). Esas
+        no pueden quedarse como están —serían pagables al porcentaje retirado— ni pueden
+        conservar su aval: vuelven a `CALCULADA` con la regla aprobada y pierden la revisión
+        y la aprobación, que deben rehacerse sobre el importe correcto.
+
+        Nunca alcanza nada que ya haya movido dinero: `PAGADA`, `OBSERVADA` y `REVERTIDA`
+        quedan fuera, y la reparación exige `paid_at IS NULL`. Repetirlo no duplica ni
+        reaplica nada, porque la comparación incluye la traza de política completa.
         """
         self._write(actor)
-        query = "SELECT * FROM commission_entries WHERE status IN ('ELEGIBLE','CALCULADA')"
-        params: list = []
+        query = ("SELECT * FROM commission_entries WHERE (status IN ('ELEGIBLE','CALCULADA')"
+                 " OR (status IN ('REVISADA','APROBADA') AND policy_status=? AND paid_at IS NULL))")
+        params: list = [POLICY_LEGACY]
         if period:
             query += " AND period=?"
             params.append(period)
@@ -739,17 +756,27 @@ class CommissionService:
                 if current == target:
                     continue
                 changed += 1
+                # Reparar una REVISADA o APROBADA retira también su aval: el importe cambió,
+                # así que la revisión y la aprobación anteriores ya no lo respaldan.
+                repairing = entry["status"] in {"REVISADA", "APROBADA"}
                 con.execute(
                     "UPDATE commission_entries SET status='CALCULADA',gross_amount=?,agreement_discount=?,"
                     "commissionable_base=?,rate_bp=?,commission_amount=?,policy_status=?,policy_code=?,"
-                    "policy_version=?,policy_effective_from=?,policy_scope=?,updated_at=? WHERE id=?",
+                    "policy_version=?,policy_effective_from=?,policy_scope=?,updated_at=?"
+                    + (",reviewed_by=NULL,reviewed_at=NULL,approved_by=NULL,approved_at=NULL" if repairing else "")
+                    + " WHERE id=?",
                     (total, discount, base, decision.rate_bp, commission, decision.status, decision.code,
                      decision.version, decision.effective_from, decision.scope, _now(), entry["id"]),
                 )
+                details = {"commissionable_base": base, "agreement_discount": discount,
+                           "commission_amount": commission, "policy": decision.as_dict()}
+                if repairing:
+                    details["replaced"] = {"rate_bp": entry["rate_bp"],
+                                           "commission_amount": entry["commission_amount"],
+                                           "policy_status": entry["policy_status"]}
                 self._history(con, entry["id"], entry["sale_id"], entry["status"], "CALCULADA", actor.username,
-                              "COMMISSION_RECALCULATED",
-                              {"commissionable_base": base, "agreement_discount": discount,
-                               "commission_amount": commission, "policy": decision.as_dict()})
+                              "COMMISSION_POLICY_REPAIRED" if repairing else "COMMISSION_RECALCULATED",
+                              details)
             con.commit()
         return {"evaluated": evaluated, "changed": changed}
 
@@ -802,7 +829,10 @@ class CommissionService:
         lines.append({"label": "Base comisionable", "amount": int(entry["commissionable_base"]), "sign": "="})
         if entry["rate_bp"] is not None:
             # El signo acompaña al resultado, no al factor: la línea ya es la comisión.
-            lines.append({"label": f"Comisión oficial ({rate_percent_text(int(entry['rate_bp']))} de la base)",
+            # Sólo se llama «oficial» a la que efectivamente lleva la política vigente.
+            official = entry["policy_status"] == POLICY_CANONICAL
+            name = "Comisión oficial" if official else "Comisión con política anterior (no pagable)"
+            lines.append({"label": f"{name} ({rate_percent_text(int(entry['rate_bp']))} de la base)",
                           "amount": int(entry["commission_amount"] or 0), "sign": "="})
         reasons = {
             "PENDIENTE_SALDO": f"Todavía no comisiona: saldo pendiente de {int(entry['balance_amount'])} Gs.",
@@ -852,8 +882,11 @@ class CommissionService:
             return (f"El período es anterior a la vigencia de la política oficial "
                     f"({entry['policy_effective_from']}): se informa sólo la base comisionable.")
         if status == POLICY_LEGACY:
-            return (f"Importe calculado con una política anterior a la regla aprobada "
-                    f"({rate_percent_text(int(rate))}). Se conserva tal cual por auditoría.")
+            note = (f"Importe calculado con una política anterior a la regla aprobada "
+                    f"({rate_percent_text(int(rate))}). No es pagable con este importe.")
+            if entry["paid_at"]:
+                return note + " Ya fue pagado: se conserva tal cual por auditoría."
+            return note + " Recalcule para llevarlo a la comisión oficial vigente."
         return "Todavía sin política aplicada: recalcule para obtener la comisión oficial."
 
     def history(self, actor: Principal, entry_id: str):

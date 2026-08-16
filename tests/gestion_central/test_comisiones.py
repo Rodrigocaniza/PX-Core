@@ -890,6 +890,110 @@ def test_migration_retires_the_synthetic_label_without_touching_money(tmp_path):
     assert recalculated["policy_status"] == POLICY_CANONICAL
 
 
+def legacy_database(tmp_path, status, rate_bp=700, commission=33_250):
+    """Base del piloto anterior: una liquidación con porcentaje ya retirado."""
+    import sqlite3
+
+    database = tmp_path / "legado.sqlite3"
+    service = CommissionService(CentralManagementService(CentralRepository(database)))
+    sale_id, _ = service.register_sale(SOL, agreement())
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    with sqlite3.connect(database) as con:
+        con.execute("UPDATE commission_entries SET status=?,rate_bp=?,commission_amount=?,policy_status=?,"
+                    "policy_code=NULL,policy_version=NULL,policy_effective_from=NULL,policy_scope=NULL,"
+                    "reviewed_by='Sol',reviewed_at='2026-07-01',"
+                    "approved_by=CASE WHEN ?='APROBADA' THEN 'Sol' ELSE NULL END,"
+                    "approved_at=CASE WHEN ?='APROBADA' THEN '2026-07-02' ELSE NULL END WHERE id=?",
+                    (status, rate_bp, commission, RETIRED_POLICY_STATUSES[0], status, status, entry_id))
+        con.commit()
+    return CommissionService(CentralManagementService(CentralRepository(database))), entry_id
+
+
+@pytest.mark.parametrize("status", ["REVISADA", "APROBADA"])
+def test_a_retired_rate_can_never_be_paid_through_the_normal_flow(tmp_path, status):
+    """Bloqueante A2: una liquidación legada era pagable al porcentaje ya retirado."""
+    service, entry_id = legacy_database(tmp_path, status)
+    entry = service.get_entry(SOL, entry_id)
+    assert entry["status"] == status and entry["policy_status"] == POLICY_LEGACY
+    assert entry["commission_amount"] == 33_250  # 7% de 475.000, siete veces lo oficial
+    # El paso siguiente de la cadena de pago se corta en cada punto de entrada posible.
+    if status == "REVISADA":
+        with pytest.raises(ValueError, match="política oficial vigente"):
+            service.approve(SOL, entry_id, "Sol")
+    else:
+        with pytest.raises(ValueError, match="política oficial vigente"):
+            service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-X")
+    assert service.get_entry(SOL, entry_id)["status"] == status
+    # La pantalla no lo llama «oficial» ni lo presenta como pagable.
+    detail = service.breakdown(SOL, entry_id)
+    assert detail["lines"][-1]["label"].startswith("Comisión con política anterior (no pagable)")
+    assert "No es pagable con este importe" in detail["policy_note"]
+    assert "Recalcule" in detail["policy_note"]
+
+
+@pytest.mark.parametrize("status", ["REVISADA", "APROBADA"])
+def test_recalculating_repairs_a_retired_rate_and_withdraws_its_approval(tmp_path, status):
+    """La salida sí existe y no destruye la comisión: vuelve a CALCULADA con el 1%."""
+    service, entry_id = legacy_database(tmp_path, status)
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 1}
+    repaired = service.get_entry(SOL, entry_id)
+    assert repaired["status"] == "CALCULADA" and repaired["commission_amount"] == 4_750
+    assert repaired["rate_bp"] == 100 and repaired["policy_status"] == POLICY_CANONICAL
+    assert repaired["policy_code"] == CANONICAL_CODE and repaired["policy_version"] == 1
+    # El aval anterior cae con el importe que respaldaba: hay que rehacerlo.
+    assert repaired["reviewed_by"] is None and repaired["reviewed_at"] is None
+    assert repaired["approved_by"] is None and repaired["approved_at"] is None
+    event = service.history(SOL, entry_id)[-1]
+    assert event["action"] == "COMMISSION_POLICY_REPAIRED" and event["from_state"] == status
+    assert "33250" in event["details_json"].replace(" ", "")
+    # Idempotente: reparar no se repite.
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 0}
+    # Y ahora sí se puede rehacer la cadena, sobre el importe correcto.
+    service.review(SOL, entry_id)
+    service.approve(SOL, entry_id, "Sol")
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_750
+
+
+def test_a_paid_legacy_settlement_keeps_its_amount_and_is_never_repaired(tmp_path):
+    """Lo que ya movió dinero no se repara: se conserva con su traza vacía por auditoría."""
+    service, entry_id = legacy_database(tmp_path, "APROBADA")
+    import sqlite3
+    with sqlite3.connect(service.repository.database_path) as con:
+        con.execute("UPDATE commission_entries SET status='PAGADA',paid_at='2026-07-10',"
+                    "payment_reference='TRANSF-LEGADA' WHERE id=?", (entry_id,))
+        con.commit()
+    assert service.recalculate(SOL) == {"evaluated": 0, "changed": 0}
+    paid = service.get_entry(SOL, entry_id)
+    assert paid["status"] == "PAGADA" and paid["commission_amount"] == 33_250
+    assert paid["policy_status"] == POLICY_LEGACY and paid["policy_code"] is None
+    assert "Ya fue pagado" in service.breakdown(SOL, entry_id)["policy_note"]
+
+
+def test_the_trace_is_complete_exactly_when_the_policy_is_the_canonical_one(tmp_path):
+    """Invariante B, en su forma verificable: la traza acompaña a la política aprobada."""
+    service, entry_id = legacy_database(tmp_path, "APROBADA")
+    service.register_sale(SOL, common(source_sale_id="nueva", initial_paid=400_000))
+    service.register_sale(SOL, common(source_sale_id="vieja", sale_date="2026-07-10",
+                                      initial_paid=400_000))
+    service.recalculate(SOL)
+    trace = ("policy_code", "policy_version", "policy_effective_from", "policy_scope")
+    seen = set()
+    for entry in service.list_entries(SOL):
+        seen.add(entry["policy_status"])
+        complete = all(entry[name] is not None for name in trace)
+        if entry["policy_status"] == POLICY_CANONICAL:
+            assert complete and entry["rate_bp"] == 100 and entry["commission_amount"] is not None
+        elif entry["policy_status"] == POLICY_OUT_OF_EFFECT:
+            # Hay traza de qué política se evaluó, pero ningún importe que respaldar.
+            assert complete and entry["rate_bp"] is None and entry["commission_amount"] is None
+        else:
+            # Ninguna política aprobada produjo este importe, y la traza vacía lo dice.
+            assert not any(entry[name] is not None for name in trace)
+    assert {POLICY_CANONICAL, POLICY_OUT_OF_EFFECT} <= seen
+
+
 def test_the_retired_label_survives_only_as_the_thing_the_migration_removes():
     """`SINTETICA_PENDIENTE_APROBACION` no se produce en ningún lado; sólo se retira."""
     modules = Path(__file__).resolve().parents[2] / "modulos" / "gestion_central"

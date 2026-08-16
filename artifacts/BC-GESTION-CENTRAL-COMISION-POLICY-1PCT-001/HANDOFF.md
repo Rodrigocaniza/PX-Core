@@ -17,9 +17,10 @@ inmutable. Estado de revisión: `INDEPENDENCE.md`. Evidencia por generación en 
 
 ## Hallazgos no bloqueantes abiertos
 
-Los veinte del handoff de BC-GESTION-CENTRAL-COMISIONES-001 siguen abiertos y sin corregir: esta
-misión no los tocó por estar fuera de su alcance. Se consultan en
-`artifacts/BC-GESTION-CENTRAL-COMISIONES-001/HANDOFF.md`. Cuatro de ellos cambian de estado:
+Los **treinta y siete** del handoff de BC-GESTION-CENTRAL-COMISIONES-001 siguen abiertos y sin
+corregir: esta misión no los tocó por estar fuera de su alcance. Se consultan en
+`artifacts/BC-GESTION-CENTRAL-COMISIONES-001/HANDOFF.md`, y `WORKFLOW.json` de esa misión registra
+los mismos treinta y siete. Cuatro de ellos cambian de estado:
 
 1. **El signo «×» delante de un importe que ya es el producto** (heredado 8, parcial). Cerrado: la
    línea de comisión del desglose ahora usa «=». El badge de piloto duplicado entre shell y panel
@@ -41,9 +42,10 @@ Nuevos, abiertos y **no** corregidos:
    porque la comparación es `período >= effective_from[:7]`. Está documentado en
    `COMMISSION_POLICY_1PCT.md` y es coherente con la granularidad mensual del módulo, pero una
    vigencia intramensual no se respetaría al día.
-6. **Una `REVISADA` o `APROBADA` con importe histórico no se corrige sola.** La migración la deja
-   visible como `POLITICA_HISTORICA_PREVIA` y `recalculate` no la alcanza, por diseño. La salida es
-   manual: observar o revertir y recalcular. No hay acción dedicada en la pantalla.
+6. **Una `POLITICA_HISTORICA_PREVIA` ya pagada no tiene corrección.** `recalculate` no la alcanza
+   —correctamente, porque el dinero salió— y `revert` está bloqueado. Es el mismo callejón que el
+   hallazgo heredado 4 para la `OBSERVADA` pagada, ahora con un importe que además no es el
+   oficial. Las **no** pagadas sí tienen salida: la repara `recalculate`.
 7. **`POLICY_STATUSES` se define y no se usa.** Es documentación ejecutable del conjunto de
    estados, pero ninguna guarda lo valida contra lo que se escribe en `policy_status`.
 8. **El retiro de políticas por alcance es una eliminación de filas.** Queda auditada con su

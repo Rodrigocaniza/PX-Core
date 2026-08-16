@@ -1,5 +1,13 @@
 # Contrato de reglas económicas implementadas
 
+> **Parcialmente superado por BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001.** Las reglas 1 a 4 y 6
+> a 8 siguen vigentes sin cambios. Quedan **superadas** la regla 5 y la sección «Configuración
+> pendiente de aprobación»: el porcentaje ya es canónico —1% general— y la etiqueta
+> `SINTETICA_PENDIENTE_APROBACION` fue retirada. La prueba que la regla 5 cita como evidencia ya no
+> existe. Contrato vigente del porcentaje:
+> `artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/COMMISSION_POLICY_1PCT.md`.
+> El resto de este documento se conserva sin retocar como evidencia de su misión.
+
 Sólo se implementan las reglas ya aprobadas. Nada se infiere ni se inventa.
 
 | # | Regla aprobada | Implementación | Prueba |

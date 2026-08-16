@@ -1,10 +1,17 @@
 # Evidencia de pruebas
 
-Regresión completa: **317/317 PASS** (`python -m pytest -q`, 34,21 s).
-Línea base de la misión anterior: 302. Esta misión suma **15**: 14 de dominio y 1 de interfaz.
+Regresión completa: **323/323 PASS** (`python -m pytest -q`, 28,74 s).
+Línea base de la misión anterior: 302. Esta misión suma **21**: 20 de dominio y 1 de interfaz.
 
-Suite del módulo: `tests/gestion_central/` **117/117 PASS**.
-Comisiones en particular: 51 → **66** pruebas.
+Suite del módulo: `tests/gestion_central/` **123/123 PASS**.
+Los dos archivos de comisiones juntos (`test_comisiones.py` + `test_comisiones_ui_interactions.py`):
+51 → **72** pruebas, 67 y 5 respectivamente.
+
+Todas las cifras anteriores son **casos ejecutados**, que es lo que cuenta pytest. En funciones:
+`test_comisiones.py` pasa de 47 a 65 —se agregan 19 y se elimina
+`test_policy_is_synthetic_pending_approval_and_optional`, que afirmaba lo contrario de la decisión
+aprobada—, y dos de las nuevas están parametrizadas sobre `REVISADA` y `APROBADA`, de donde salen
+los 67 casos. La de interfaz agrega una función y un caso.
 
 ## Validaciones dirigidas exigidas por la misión
 
@@ -22,7 +29,10 @@ Comisiones en particular: 51 → **66** pruebas.
 | Interfaz correcta | `test_the_screen_names_the_official_one_percent_policy` |
 | Export correcto | `test_structured_export_has_stable_contract_and_no_customer_data` |
 
-## Pruebas nuevas de dominio (14)
+| Un porcentaje retirado nunca se paga | `test_a_retired_rate_can_never_be_paid_through_the_normal_flow` |
+| La reparación existe y no destruye la comisión | `test_recalculating_repairs_a_retired_rate_and_withdraws_its_approval` |
+
+## Pruebas nuevas de dominio (19 funciones, 21 casos)
 
 1. `test_the_official_policy_is_the_approved_general_one_percent` — 1%, alcance único `GENERAL`,
    estado `CANONICA_APROBADA`, versión 1, vigencia, redondeo, moneda, y ninguna etiqueta retirada.
@@ -47,8 +57,20 @@ Comisiones en particular: 51 → **66** pruebas.
 12. `test_voiding_and_reverting_keep_the_audit_trail_of_the_policy`.
 13. `test_the_official_commission_survives_reopening_the_database` — reabrir no duplica ni cambia.
 14. `test_migration_retires_the_synthetic_label_without_touching_money`.
+15. `test_a_retired_rate_can_never_be_paid_through_the_normal_flow[REVISADA]` y `[APROBADA]` — el
+    paso siguiente de la cadena de pago se corta en cada punto de entrada posible, y el desglose no
+    llama «oficial» a un porcentaje retirado.
+16. `test_recalculating_repairs_a_retired_rate_and_withdraws_its_approval[REVISADA]` y `[APROBADA]`
+    — 33.250 → 4.750, vuelta a `CALCULADA`, revisión y aprobación retiradas, importe reemplazado en
+    el historial bajo `COMMISSION_POLICY_REPAIRED`, idempotencia, y la cadena rehecha hasta el pago
+    con el importe correcto.
+17. `test_a_paid_legacy_settlement_keeps_its_amount_and_is_never_repaired` — lo que ya movió dinero
+    conserva su importe histórico y `recalculate` no lo alcanza.
+18. `test_the_trace_is_complete_exactly_when_the_policy_is_the_canonical_one` — invariante de traza
+    en su forma verificable, sobre los tres estados de política que conviven en una misma base.
 
-Y `test_the_retired_label_survives_only_as_the_thing_the_migration_removes`, que verifica sobre el
+Y la decimonovena, `test_the_retired_label_survives_only_as_the_thing_the_migration_removes`,
+que verifica sobre el
 fuente que `SINTETICA_PENDIENTE_APROBACION` no aparece en `comisiones.py`, `comisiones_ui.py` ni
 `repository.py`, y que en `comision_policy.py` figura una sola vez, dentro de
 `RETIRED_POLICY_STATUSES`. Reemplaza a `test_policy_is_synthetic_pending_approval_and_optional`,

@@ -7,8 +7,10 @@ dinero**.
 ## Pasos
 
 1. **Columnas aditivas** (`_add_missing_columns`). Siete columnas nuevas sobre dos tablas
-   existentes, todas con `DEFAULT`, más la tabla `commission_policy_versions`. Una base ya
-   migrada las tiene y el paso se saltea.
+   existentes, más la tabla `commission_policy_versions`. Las tres de `commission_policies` son
+   `NOT NULL` con `DEFAULT`; las cuatro de traza en `commission_entries` son anulables y se añaden
+   sin `DEFAULT`, porque una liquidación aún sin recalcular no tiene traza que declarar. Una base
+   ya migrada las tiene y el paso se saltea.
 2. **Retiro de políticas superadas.** Toda fila de `commission_policies` con una etiqueta retirada
    o con alcance distinto de `GENERAL` se asienta en `central_audit` como
    `COMMISSION_POLICY_RETIRED`, con su `rate_bp` y su estado anteriores. Las de alcance
@@ -30,13 +32,27 @@ dinero**.
 |---|---|---|
 | `ELEGIBLE` / `CALCULADA` con 3% sintético | etiqueta → `POLITICA_HISTORICA_PREVIA`, importe intacto | pasa al 1% oficial con traza completa |
 | `ELEGIBLE` / `CALCULADA` sin porcentaje | etiqueta → `SIN_POLITICA_APLICADA` | pasa al 1% oficial |
-| `REVISADA` / `APROBADA` | etiqueta → `POLITICA_HISTORICA_PREVIA`, importe intacto | **no alcanzada**: fuera del `WHERE` |
-| `PAGADA` | etiqueta → `POLITICA_HISTORICA_PREVIA`, importe intacto | **no alcanzada** |
+| `REVISADA` / `APROBADA` con importe histórico | etiqueta → `POLITICA_HISTORICA_PREVIA`, importe intacto | **reparada**: vuelve a `CALCULADA` al 1%, y pierde revisión y aprobación |
+| `PAGADA` | etiqueta → `POLITICA_HISTORICA_PREVIA`, importe intacto | **no alcanzada**: ya movió dinero |
 | `OBSERVADA` / `REVERTIDA` | ídem | **no alcanzada** |
 
-Una `REVISADA` o `APROBADA` con importe histórico queda visible como tal en la pantalla —el
-desglose dice «Importe calculado con una política anterior a la regla aprobada»— y su corrección
-es la vía manual que ya existía: observar o revertir y volver a calcular.
+## El importe histórico nunca es pagable
+
+Entre la migración y el primer recálculo, una `REVISADA` o `APROBADA` legada conserva su importe
+histórico —que puede ser varias veces el oficial—. **No es pagable en ese estado**: `review`,
+`approve` y `mark_paid` exigen `policy_status = CANONICA_APROBADA` y la rechazan. El desglose la
+rotula «Comisión con política anterior (no pagable)» y su nota indica recalcular.
+
+La reparación la hace `recalculate`, que para este caso acotado sí alcanza `REVISADA` y `APROBADA`
+—nunca con `paid_at`—: las lleva al 1% oficial, las devuelve a `CALCULADA` y **retira su revisión y
+su aprobación**, porque el importe que esos avales respaldaban ya no existe. El importe reemplazado
+queda en el historial bajo `COMMISSION_POLICY_REPAIRED`. Después se rehace la cadena sobre el
+importe correcto, sin perder la comisión.
+
+Lo cubren `test_a_retired_rate_can_never_be_paid_through_the_normal_flow`,
+`test_recalculating_repairs_a_retired_rate_and_withdraws_its_approval` y
+`test_a_paid_legacy_settlement_keeps_its_amount_and_is_never_repaired`, los tres parametrizados o
+repetidos sobre `REVISADA` y `APROBADA`.
 
 ## Reversibilidad
 
