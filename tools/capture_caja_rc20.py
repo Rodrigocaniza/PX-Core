@@ -52,16 +52,47 @@ def seed(directory: Path) -> None:
     controller.service.repository.close()
 
 
-def capturar(widget, destino: Path) -> None:
-    """Captura solo el rectangulo del dialogo.
+def capturar(root, dialogo, destino: Path) -> None:
+    """Captura la ventana de BC Caja con el dialogo encima.
 
-    Los dialogos son mas chicos que la pantalla: capturar el escritorio
-    completo dejaria contenido ajeno del equipo dentro de un artifact
-    versionado.
+    Regla de privacidad: en el recorte solo puede haber contenido de la
+    aplicacion. Recortar al rectangulo del dialogo parecia lo mas ajustado,
+    pero en Windows las coordenadas Tk y los pixeles de pantalla difieren por
+    el escalado DPI, y ese desfase dejaba entrar franjas del escritorio y de
+    otras ventanas. Encuadrar la ventana principal es exacto por construccion:
+    todo lo que queda dentro es BC Caja.
+
+    Fail-closed: si el dialogo no esta completamente contenido en la ventana,
+    no se publica la captura.
     """
-    widget.update_idletasks()
-    x, y = widget.winfo_rootx(), widget.winfo_rooty()
-    ImageGrab.grab((x, y, x + widget.winfo_width(), y + widget.winfo_height())).save(destino)
+    # La ventana principal tambien tiene que estar al frente: si queda detras
+    # de otra aplicacion, el recorte de su rectangulo mostraria esa otra
+    # aplicacion en lugar de BC Caja.
+    root.lift()
+    root.attributes("-topmost", True)
+    dialogo.lift()
+    dialogo.attributes("-topmost", True)
+    for _ in range(4):
+        root.update_idletasks()
+        root.update()
+
+    ventana = (
+        root.winfo_rootx(), root.winfo_rooty(),
+        root.winfo_rootx() + root.winfo_width(),
+        root.winfo_rooty() + root.winfo_height(),
+    )
+    caja = (
+        dialogo.winfo_rootx(), dialogo.winfo_rooty(),
+        dialogo.winfo_rootx() + dialogo.winfo_width(),
+        dialogo.winfo_rooty() + dialogo.winfo_height(),
+    )
+    if not (caja[0] >= ventana[0] and caja[1] >= ventana[1]
+            and caja[2] <= ventana[2] and caja[3] <= ventana[3]):
+        raise RuntimeError(
+            f"el dialogo {caja} se sale de la ventana {ventana}: la captura "
+            "incluiria contenido ajeno"
+        )
+    ImageGrab.grab(ventana).save(destino)
 
 
 def dialogo_visible(root):
@@ -242,13 +273,13 @@ def main() -> int:
             root.update()
 
             envio = verificar_envio(root)
-            capturar(envio["dialogo"], salida)
+            capturar(root, envio["dialogo"], salida)
             envio["dialogo"].destroy()
             root.update()
 
             abm = verificar_abm(root)
             capturar(
-                abm["dialogo"],
+                root, abm["dialogo"],
                 salida.with_name(salida.name.replace("envio", "laboratorios")),
             )
             abm["dialogo"].destroy()

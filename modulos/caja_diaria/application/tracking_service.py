@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping, Sequence
 
 from ..domain.errors import InvalidCashDayError
@@ -159,6 +159,15 @@ class TrackingService:
 
     # -- alta de lote desde Pilar ------------------------------------------
 
+    #: La consulta puede terminar un dia y el lote armarse al siguiente, asi
+    #: que la ventana por defecto cubre hoy y los dos dias previos. No cambia
+    #: el criterio: sigue siendo la fecha de creacion del pedido.
+    DEFAULT_CANDIDATE_DAYS = 3
+
+    def default_candidate_range(self, today: date | str | None = None) -> tuple[date, date]:
+        fin = parse_business_date(today or date.today())
+        return fin - timedelta(days=self.DEFAULT_CANDIDATE_DAYS - 1), fin
+
     def shipment_candidates(
         self, *, branch: str = "Pilar", consultation_date: date | str | None = None,
         end_date: date | str | None = None,
@@ -167,7 +176,16 @@ class TrackingService:
 
         No se pide recargar nada: los candidatos son los pedidos existentes de
         la sucursal, y los ya seguidos quedan excluidos en la propia consulta.
+
+        Sin fechas explicitas se usa la ventana por defecto de tres dias, de
+        modo que la consulta del viernes siga visible el sabado sin tocar el
+        selector. Con fechas explicitas manda lo que eligio la operadora.
         """
+        if consultation_date in (None, "") and end_date in (None, ""):
+            return self.repository.list_shipment_candidates(
+                branch=branch, start_date=self.default_candidate_range()[0],
+                end_date=self.default_candidate_range()[1],
+            )
         inicio = parse_business_date(consultation_date or date.today())
         fin = parse_business_date(end_date) if end_date not in (None, "") else inicio
         if fin < inicio:

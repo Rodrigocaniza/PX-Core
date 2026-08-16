@@ -3577,15 +3577,19 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             encabezado, text="Desde", text_color=color_suave,
             font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
         ).pack(side="left", padx=(12, 4))
+        # Ventana por defecto de tres dias: la consulta del viernes sigue
+        # visible el sabado sin que la operadora toque el selector, que queda
+        # editable para cualquier otro rango.
+        desde_defecto, hasta_defecto = controller.tracking.default_candidate_range()
         campo_desde = ctk.CTkEntry(encabezado, width=115, height=30)
-        campo_desde.insert(0, date.today().strftime("%d-%m-%Y"))
+        campo_desde.insert(0, desde_defecto.strftime("%d-%m-%Y"))
         campo_desde.pack(side="left", pady=8)
         ctk.CTkLabel(
             encabezado, text="Hasta", text_color=color_suave,
             font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
         ).pack(side="left", padx=(12, 4))
         campo_hasta = ctk.CTkEntry(encabezado, width=115, height=30)
-        campo_hasta.insert(0, date.today().strftime("%d-%m-%Y"))
+        campo_hasta.insert(0, hasta_defecto.strftime("%d-%m-%Y"))
         campo_hasta.pack(side="left", pady=8)
 
         resumen_envio = ctk.CTkLabel(

@@ -1,0 +1,29 @@
+{
+  "mission": "BC-CAJA-RC18-RC20-INTEGRATION-001",
+  "base_commit": "78839013ed28dc7ba4888565886e8b9d838c3c4e",
+  "branch": "release/bc-caja-rc18-rc20-integration-001",
+  "current_state": "INTEGRATION_CLOSED",
+  "continuous_session": "ACTIVE",
+  "auto_resume": "ACTIVE",
+  "safe_closure": "COMPLETE",
+  "installation": "PENDING_HUMAN_GATE",
+  "mission_lease": {"state": "RELEASED", "holder": null},
+  "history": [
+    {"event": "CANONICAL_GRAPH_VERIFIED", "shape": "lineal", "rc18": "fdac03a", "rc19": "c4e5344", "rc20": "7883901", "exclusive_commits": 6, "behind": 0, "remote": "0/0"},
+    {"event": "INSTALLED_VERSION_IDENTIFIED", "version": "BC Caja 1.0.0-rc.17", "path": "%LOCALAPPDATA%/Programs/BC-Caja-Pilot", "rollbacks": ["rollback-rc16-20260815", "rollback-rc15-20260815"]},
+    {"event": "STRATEGY_DECIDED", "choice": "reutilizar linealidad, sin merge ni cherry-pick", "duplicated_commits": 0, "force_push": false, "closed_branches_rewritten": 0},
+    {"event": "SLICE_INT_1_PASS", "scope": "ventana por defecto de 3 dias", "targeted": 9},
+    {"event": "SLICE_INT_2_PASS", "scope": "regresion canonica", "full": 336, "failed": 0},
+    {"event": "VISUAL_SMOKE_PASSED", "missions": ["RC18", "RC19", "RC20"], "resolutions": ["1920x1080", "1366x768"], "emails": 0, "new_closures": 0},
+    {"event": "MIGRATIONS_VERIFIED", "chain": "001..017", "integrity_check": "ok", "idempotent": true},
+    {"event": "PRODUCTION_DATA_MIGRATION_REHEARSED", "from": "015", "to": "017", "data_preserved": true, "production_file_untouched": true},
+    {"event": "SENSITIVE_AREAS_UNTOUCHED_BY_DIFF", "areas": ["economico", "correo", "cierres", "arqueos", "convenios", "factufacil", "comunicaciones"]},
+    {"event": "CAPTURE_PRIVACY_RULE_APPLIED", "detail": "encuadre en la ventana de la app con contencion verificada; fail-closed"},
+    {"event": "CAPTURE_LEAK_FOUND_AND_FIXED", "detail": "el recorte por rectangulo de dialogo dejaba entrar escritorio por desfase DPI"},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "INTEGRATION_COMMIT_PASSED", "staging": "rutas explicitas", "comunicaciones_excluido": true, "main_no_tocada": true},
+    {"event": "INSTALL_PACKAGE_PREPARED", "installed_now": "1.0.0-rc.17", "rollback_preserved": true},
+    {"event": "MISSION_LEASE_RELEASED"},
+    {"event": "INTEGRATION_CLOSED", "installation_executed": false}
+  ]
+}
