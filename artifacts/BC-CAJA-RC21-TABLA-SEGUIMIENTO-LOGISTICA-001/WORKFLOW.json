@@ -1,0 +1,29 @@
+{
+  "mission": "BC-CAJA-RC21-TABLA-SEGUIMIENTO-LOGISTICA-001",
+  "base_commit": "8b11c78c18e3f4f1e7d350cd1f188f0790b3e0ca",
+  "branch": "feature/bc-caja-rc21-tabla-seguimiento-logistica-001",
+  "current_state": "CLOSED",
+  "continuous_session": "ACTIVE",
+  "auto_resume": "ACTIVE",
+  "safe_closure": "COMPLETE",
+  "installation": "PENDING_HUMAN_GATE",
+  "installed_in_production": "1.0.0-rc.20",
+  "mission_lease": {"state": "RELEASED", "holder": null},
+  "history": [
+    {"event": "CANONICAL_STATE_VERIFIED", "head": "8b11c78", "installed": "1.0.0-rc.20", "worktree": "clean", "remote": "0/0", "leases": 0},
+    {"event": "SLICE_S21_1_PASS", "scope": "rotulos canonicos, estado fisico y alerta separados", "targeted": 31},
+    {"event": "SLICE_S21_2_PASS", "scope": "tabla de cinco columnas con chips"},
+    {"event": "GUI_DEFECT_FOUND", "detail": "el texto del Treeview asomaba junto al chip", "fixed": true},
+    {"event": "CAPTURE_LEAK_FOUND", "detail": "la sonda RC19 recortaba pantalla y a 1366 capturo otra aplicacion", "versioned": false, "fixed": true},
+    {"event": "CAPTURE_MECHANISM_UNIFIED", "detail": "tools/gui_capture.py con PrintWindow; sin ImageGrab en las sondas"},
+    {"event": "REGRESSION_PASS", "full": 370, "failed": 0},
+    {"event": "VISUAL_SMOKE_PASSED", "resolutions": ["1920x1080", "1366x768"], "emails": 0, "new_closures": 0},
+    {"event": "RC18_NON_REGRESSION_PASSED"},
+    {"event": "RC20_NON_REGRESSION_PASSED"},
+    {"event": "VALIDATION_MATRIX_COVERED", "required": 13, "covered": 13},
+    {"event": "RC19_MODEL_PRESERVED", "derived_conditions_persisted": false, "new_migrations": 0},
+    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
+    {"event": "MISSION_LEASE_RELEASED"},
+    {"event": "CLOSED", "installation_executed": false}
+  ]
+}

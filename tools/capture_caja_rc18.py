@@ -14,9 +14,10 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import customtkinter as ctk
-from PIL import ImageGrab
+from gui_capture import capturar_ventana
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bc_caja
 import CajaDiaria
 
@@ -154,9 +155,7 @@ def main() -> int:
 
         def smoke(root):
             metricas = verificar(root)
-            root.attributes("-topmost", True)
-            root.update()
-            ImageGrab.grab((0, 0, ancho, alto)).save(salida)
+            capturar_ventana(root, salida)
             print(
                 f"BC_CAJA_RC18_VISUAL_SMOKE_OK resolution={resolucion} "
                 f"kpi_principal={metricas['principal']} kpi_secundario={metricas['secundario']} "

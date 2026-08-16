@@ -14,9 +14,10 @@ from datetime import date, timedelta
 from pathlib import Path
 
 import customtkinter as ctk
-from PIL import ImageGrab
+from gui_capture import capturar_ventana
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bc_caja
 
 HOY = date.today()
@@ -55,21 +56,11 @@ def seed(directory: Path) -> None:
 def capturar(root, dialogo, destino: Path) -> None:
     """Captura la ventana de BC Caja con el dialogo encima.
 
-    Regla de privacidad: en el recorte solo puede haber contenido de la
-    aplicacion. Recortar al rectangulo del dialogo parecia lo mas ajustado,
-    pero en Windows las coordenadas Tk y los pixeles de pantalla difieren por
-    el escalado DPI, y ese desfase dejaba entrar franjas del escritorio y de
-    otras ventanas. Encuadrar la ventana principal es exacto por construccion:
-    todo lo que queda dentro es BC Caja.
-
-    Fail-closed: si el dialogo no esta completamente contenido en la ventana,
-    no se publica la captura.
+    Delega en `capturar_ventana`, que dibuja la ventana en memoria en vez de
+    leer la pantalla. Se conserva la verificacion de contencion para que el
+    dialogo no quede fuera del encuadre.
     """
-    # La ventana principal tambien tiene que estar al frente: si queda detras
-    # de otra aplicacion, el recorte de su rectangulo mostraria esa otra
-    # aplicacion en lugar de BC Caja.
     root.lift()
-    root.attributes("-topmost", True)
     dialogo.lift()
     dialogo.attributes("-topmost", True)
     for _ in range(4):
@@ -92,7 +83,7 @@ def capturar(root, dialogo, destino: Path) -> None:
             f"el dialogo {caja} se sale de la ventana {ventana}: la captura "
             "incluiria contenido ajeno"
         )
-    ImageGrab.grab(ventana).save(destino)
+    capturar_ventana(root, destino)
 
 
 def dialogo_visible(root):

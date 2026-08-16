@@ -32,6 +32,33 @@ from ..domain.tracking import (
 
 TRACKING_SETTING_KEY = "tracking"
 
+#: Rotulos legibles del circuito. El enum guarda el valor canonico con guiones
+#: bajos; la operadora lee la etapa fisica en castellano.
+ETIQUETAS_ESTADO = {
+    TrackingStatus.SENT_FROM_PILAR: "ENVIADO DESDE PILAR",
+    TrackingStatus.RECEIVED_IN_ASUNCION: "RECIBIDO EN ASUNCIÓN",
+    TrackingStatus.IN_LABORATORY: "EN LABORATORIO",
+    TrackingStatus.RECEIVED_FROM_LABORATORY: "RECIBIDO DEL LABORATORIO",
+    TrackingStatus.SENT_TO_PILAR: "ENVIADO A PILAR",
+    TrackingStatus.RECEIVED_IN_PILAR: "RECIBIDO EN PILAR",
+    TrackingStatus.CLOSED: "CERRADO",
+}
+
+#: Los seis estados que la tabla debe poder mostrar. `CERRADO` queda fuera:
+#: el circuito operativo termina al confirmarse la recepcion en Pilar.
+ESTADOS_VISIBLES = (
+    TrackingStatus.SENT_FROM_PILAR,
+    TrackingStatus.RECEIVED_IN_ASUNCION,
+    TrackingStatus.IN_LABORATORY,
+    TrackingStatus.RECEIVED_FROM_LABORATORY,
+    TrackingStatus.SENT_TO_PILAR,
+    TrackingStatus.RECEIVED_IN_PILAR,
+)
+
+ALERTA_ATRASADO = "ATRASADO"
+ALERTA_CONFIRMADO = "CONFIRMADO PARA MAÑANA"
+SIN_LABORATORIO = "SIN ASIGNAR"
+
 
 @dataclass(frozen=True)
 class BoardRow:
@@ -61,9 +88,39 @@ class BoardRow:
             return "CONFIRMADO_PARA_MAÑANA"
         return self.work.status.value
 
+    # -- presentacion del circuito ----------------------------------------
+
+    @property
+    def physical_status(self) -> str:
+        """Etapa fisica real. Nunca la borra una condicion derivada."""
+        return ETIQUETAS_ESTADO[self.work.status]
+
+    @property
+    def alert(self) -> str:
+        """Condicion derivada que acompaña a la etapa, si la hay."""
+        if self.overdue:
+            return ALERTA_ATRASADO
+        if self.work.confirmed_for_next_day and self.work.status is TrackingStatus.IN_LABORATORY:
+            return ALERTA_CONFIRMADO
+        return ""
+
+    @property
+    def status_display(self) -> str:
+        """`ATRASADO · EN LABORATORIO`: la alerta antepone, no reemplaza."""
+        if self.alert:
+            return f"{self.alert} · {self.physical_status}"
+        return self.physical_status
+
+    @property
+    def work_type(self) -> str:
+        """Tipo de trabajo, tomado de la observacion del pedido de origen."""
+        observacion = (self.work.observations or "").strip()
+        return observacion.splitlines()[0] if observacion else ""
+
     @property
     def laboratory_name(self) -> str:
-        return self.laboratory.name if self.laboratory else ""
+        """`SIN ASIGNAR` mientras el trabajo no salio a ningun laboratorio."""
+        return self.laboratory.name if self.laboratory is not None else SIN_LABORATORIO
 
     @property
     def phone_line(self) -> str:

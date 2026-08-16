@@ -14,9 +14,10 @@ from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
 import customtkinter as ctk
-from PIL import ImageGrab
+from gui_capture import capturar_ventana
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import bc_caja
 import CajaDiaria
 from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE
@@ -47,7 +48,8 @@ def seed(directory: Path) -> None:
 
     lote = tracking.register_pilar_batch(
         [
-            {"envelope": f"S-{numero:03d}", "customer_name": f"Cliente operativo {numero:02d}"}
+            {"envelope": f"S-{numero:03d}", "customer_name": f"Cliente operativo {numero:02d}",
+             "observations": "Armazon + cristales"}
             for numero in range(1, 16)
         ],
         consultation_date=hoy, created_by="Nidia",
@@ -121,7 +123,7 @@ def verificar(root) -> dict:
     grillas = [
         w for w in descendants(root)
         if w.winfo_class() == "Treeview"
-        and {"whatsapp", "novedad"} <= {str(c) for c in w.cget("columns")}
+        and {"tipo", "laboratorio", "estado"} <= {str(c) for c in w.cget("columns")}
     ]
     if not grillas:
         raise RuntimeError("la grilla de seguimiento no existe")
@@ -130,26 +132,31 @@ def verificar(root) -> dict:
     if not filas:
         raise RuntimeError("la grilla de seguimiento esta vacia")
     columnas = [str(columna) for columna in grilla.cget("columns")]
-    for requerida in ("sobre", "cliente", "estado", "laboratorio", "esperado", "novedad"):
-        if requerida not in columnas:
-            raise RuntimeError(f"falta la columna {requerida}")
+    # RC21: la tabla queda en cinco columnas logisticas, sin Vendedora.
+    if columnas != ["sobre", "cliente", "tipo", "laboratorio", "estado"]:
+        raise RuntimeError(f"columnas inesperadas: {columnas}")
+    if any("vendedora" in c for c in columnas):
+        raise RuntimeError("Vendedora no debe mostrarse en Seguimiento")
 
     primera = {clave: str(grilla.set(filas[0], clave)) for clave in columnas}
-    if primera["estado"] != "ATRASADO":
+    if not primera["estado"].startswith("ATRASADO · "):
         raise RuntimeError(f"las excepciones no se ordenan primero: {primera['estado']}")
-    if not primera["linea"] or not primera["whatsapp"]:
-        raise RuntimeError("la fila atrasada no muestra los telefonos del laboratorio")
-    if primera["linea"] == primera["whatsapp"]:
-        raise RuntimeError("linea y WhatsApp no deberian coincidir")
+    # La alerta antepone, pero la etapa fisica real sigue visible.
+    if "EN LABORATORIO" not in primera["estado"]:
+        raise RuntimeError(f"la alerta borro la etapa fisica: {primera['estado']}")
+    if not primera["laboratorio"] or primera["laboratorio"] == "SIN ASIGNAR":
+        raise RuntimeError("la fila atrasada no muestra su laboratorio")
 
     estados = [str(grilla.set(fila, "estado")) for fila in filas]
-    if "CONFIRMADO_PARA_MAÑANA" not in estados:
+    if not any(e.startswith("CONFIRMADO PARA MAÑANA · ") for e in estados):
         raise RuntimeError(f"falta el estado confirmado: {sorted(set(estados))}")
-    novedades = [str(grilla.set(fila, "novedad")) for fila in filas]
-    if not any("Lab confirmo salida 14:30" in texto for texto in novedades):
-        raise RuntimeError("la ultima novedad no llega a la grilla")
+    if not any(str(grilla.set(f, "laboratorio")) == "SIN ASIGNAR" for f in filas):
+        raise RuntimeError("no se muestra SIN ASIGNAR para los trabajos sin laboratorio")
+    tipos = [str(grilla.set(fila, "tipo")) for fila in filas]
+    if not any(tipos):
+        raise RuntimeError("la columna Tipo de trabajo llega vacia")
 
-    atrasados = sum(1 for estado in estados if estado == "ATRASADO")
+    atrasados = sum(1 for estado in estados if estado.startswith("ATRASADO"))
     return {
         "filas": len(filas),
         "atrasados": atrasados,
@@ -176,9 +183,7 @@ def main() -> int:
 
         def smoke(root):
             metricas = verificar(root)
-            root.attributes("-topmost", True)
-            root.update()
-            ImageGrab.grab((0, 0, ancho, alto)).save(salida)
+            capturar_ventana(root, salida)
             print(
                 f"BC_CAJA_RC19_VISUAL_SMOKE_OK resolution={resolucion} "
                 f"filas={metricas['filas']} atrasados={metricas['atrasados']} "

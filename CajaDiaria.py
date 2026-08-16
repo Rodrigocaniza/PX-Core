@@ -3338,17 +3338,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     marco_seguimiento.pack(fill="both", expand=True)
     marco_seguimiento.grid_rowconfigure(0, weight=1)
     marco_seguimiento.grid_columnconfigure(0, weight=1)
-    # Ancho de Estado dimensionado al literal mas largo del circuito
-    # (CONFIRMADO_PARA_MAÑANA): truncarlo obligaria a adivinar la etapa.
+    # RC21: la tabla queda orientada al circuito logistico. Vendedora sale de
+    # la vista (el dato sigue en el dominio y en ventas) y el ancho de Estado
+    # se dimensiona al caso mas largo, "CONFIRMADO PARA MAÑANA · RECIBIDO DEL
+    # LABORATORIO", para no truncar la etapa fisica.
     COLUMNAS_SEGUIMIENTO = (
-        ("sobre", "Sobre", 85, "center", False),
-        ("cliente", "Cliente", 200, "w", False),
-        ("estado", "Estado", 245, "center", False),
-        ("laboratorio", "Laboratorio", 155, "w", False),
-        ("esperado", "Esperado", 105, "center", False),
-        ("linea", "Línea", 120, "center", False),
-        ("whatsapp", "WhatsApp", 120, "center", False),
-        ("novedad", "Última novedad", 330, "w", True),
+        ("sobre", "Sobre", 95, "center", False),
+        ("cliente", "Cliente", 230, "w", False),
+        ("tipo", "Tipo de trabajo", 230, "w", False),
+        ("laboratorio", "Laboratorio", 190, "w", False),
+        ("estado", "Estado", 330, "w", True),
     )
     grilla_seguimiento = ttk.Treeview(
         marco_seguimiento, columns=[clave for clave, *_ in COLUMNAS_SEGUIMIENTO],
@@ -3359,12 +3358,32 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         grilla_seguimiento.column(
             clave, width=ancho, minwidth=ancho, anchor=anclaje, stretch=expandible,
         )
-    grilla_seguimiento.tag_configure("atrasado", background="#FDECEC", foreground="#A32626")
-    grilla_seguimiento.tag_configure("confirmado", background="#F3EFFA")
-    scroll_seguimiento = ttk.Scrollbar(
-        marco_seguimiento, orient="vertical", command=grilla_seguimiento.yview,
-    )
-    grilla_seguimiento.configure(yscrollcommand=scroll_seguimiento.set)
+    # Sin teñir la fila entera: la diferenciacion vive en el chip de Estado.
+    # Solo el atraso deja una marca tenue de fondo, para que salte a la vista.
+    grilla_seguimiento.tag_configure("atrasado", background="#FFF5F5")
+    # Paleta de estados, alineada con RC18: fondo, borde y texto por etapa.
+    COLORES_ESTADO_SEGUIMIENTO = {
+        "ENVIADO DESDE PILAR": ("#FFF3CD", "#E6B85C", "#7A4B00"),
+        "RECIBIDO EN ASUNCIÓN": ("#E7F1FC", "#7DA9D7", "#0F5FB9"),
+        "EN LABORATORIO": ("#EDE9F7", "#A99BD1", "#4B3B87"),
+        "RECIBIDO DEL LABORATORIO": ("#DDF5E8", "#79C99E", "#17633A"),
+        "ENVIADO A PILAR": ("#E4F0FF", "#8FB3D9", "#1E4E8C"),
+        "RECIBIDO EN PILAR": ("#D8F3E4", "#4FB884", "#0F5132"),
+    }
+    COLOR_CHIP_ATRASADO = ("#FDECEC", "#E5A3A3", "#A32626")
+    COLOR_CHIP_CONFIRMADO = ("#F3EFFA", "#B9A7E0", "#5B3FA8")
+    scroll_seguimiento = ttk.Scrollbar(marco_seguimiento, orient="vertical")
+
+    def desplazar_seguimiento(*args):
+        grilla_seguimiento.yview(*args)
+        ventana.after_idle(posicionar_chips_seguimiento)
+
+    def actualizar_scroll_seguimiento(inicio, fin):
+        scroll_seguimiento.set(inicio, fin)
+        ventana.after_idle(posicionar_chips_seguimiento)
+
+    scroll_seguimiento.configure(command=desplazar_seguimiento)
+    grilla_seguimiento.configure(yscrollcommand=actualizar_scroll_seguimiento)
     grilla_seguimiento.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
     scroll_seguimiento.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
 
@@ -3378,7 +3397,57 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     acciones_seguimiento = ctk.CTkFrame(seguimiento, fg_color="transparent")
     acciones_seguimiento.pack(fill="x", pady=(6, 0))
 
-    estado_seguimiento = {"filas": {}}
+    estado_seguimiento = {"filas": {}, "chips": []}
+
+    def posicionar_chips_seguimiento():
+        """Dibuja el estado como chip compacto sobre la celda de Estado.
+
+        Treeview no admite widgets por celda; el mismo recurso ya se usa en
+        Pedidos. El chip permite distinguir la etapa de un vistazo sin teñir
+        la fila entera.
+        """
+        for chip in estado_seguimiento["chips"]:
+            chip.destroy()
+        estado_seguimiento["chips"].clear()
+        for iid in grilla_seguimiento.get_children():
+            caja = grilla_seguimiento.bbox(iid, "estado")
+            if not caja:
+                continue
+            x, y, ancho, alto = caja
+            fila = estado_seguimiento["filas"].get(iid)
+            if fila is None:
+                continue
+            # El contenedor es opaco y cubre la celda entera: si fuera
+            # transparente, el texto del Treeview asomaria al costado del chip.
+            contenedor = ctk.CTkFrame(
+                marco_seguimiento, corner_radius=0,
+                fg_color="#FFF5F5" if fila.overdue else "#FFFFFF",
+                width=max(1, ancho - 8), height=max(18, alto - 2),
+            )
+            contenedor.pack_propagate(False)
+            if fila.alert:
+                fondo, borde, texto = (
+                    COLOR_CHIP_ATRASADO if fila.overdue else COLOR_CHIP_CONFIRMADO
+                )
+                ctk.CTkLabel(
+                    contenedor, text=f"  {fila.alert}  ", corner_radius=7,
+                    fg_color=fondo, text_color=texto,
+                    height=max(18, alto - 6),
+                    font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
+                ).pack(side="left", padx=(0, 4))
+            fondo, borde, texto = COLORES_ESTADO_SEGUIMIENTO.get(
+                fila.physical_status, ("#EEF4FB", "#B9CDE5", "#132238"),
+            )
+            ctk.CTkLabel(
+                contenedor, text=f"  {fila.physical_status}  ", corner_radius=7,
+                fg_color=fondo, text_color=texto, height=max(18, alto - 6),
+                font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
+            ).pack(side="left")
+            contenedor.place(
+                x=grilla_seguimiento.winfo_x() + x + 4,
+                y=grilla_seguimiento.winfo_y() + y + 1,
+            )
+            estado_seguimiento["chips"].append(contenedor)
 
     def trabajo_seleccionado():
         seleccion = grilla_seguimiento.selection()
@@ -3415,17 +3484,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             grilla_seguimiento.delete(item)
         estado_seguimiento["filas"].clear()
         for fila in tablero["rows"]:
-            etiquetas_fila = ()
-            if fila.overdue:
-                etiquetas_fila = ("atrasado",)
-            elif fila.work.confirmed_for_next_day:
-                etiquetas_fila = ("confirmado",)
             grilla_seguimiento.insert(
-                "", "end", iid=fila.work.id, tags=etiquetas_fila,
+                "", "end", iid=fila.work.id,
+                tags=("atrasado",) if fila.overdue else (),
                 values=(
-                    fila.envelope, fila.customer_name, fila.status_label,
-                    fila.laboratory_name, fila.expected_label, fila.phone_line,
-                    fila.whatsapp, fila.last_news,
+                    fila.envelope, fila.customer_name, fila.work_type,
+                    fila.laboratory_name, fila.status_display,
                 ),
             )
             estado_seguimiento["filas"][fila.work.id] = fila
@@ -3457,6 +3521,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         else:
             panel_atrasados.pack_forget()
         actualizar_acciones_seguimiento()
+        ventana.after_idle(posicionar_chips_seguimiento)
 
     def accion_seguimiento(operacion):
         fila = trabajo_seleccionado()
@@ -3932,6 +3997,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         return dialogo
 
     grilla_seguimiento.bind("<<TreeviewSelect>>", actualizar_acciones_seguimiento, add="+")
+    grilla_seguimiento.bind(
+        "<Configure>", lambda _e: ventana.after_idle(posicionar_chips_seguimiento), add="+",
+    )
+    grilla_seguimiento.bind(
+        "<MouseWheel>", lambda _e: ventana.after_idle(posicionar_chips_seguimiento), add="+",
+    )
     refrescar_seguimiento()
 
     if not controller.admin.has_admin() and not os.environ.get("BC_CAJA_AUTOMATED"):
