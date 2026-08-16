@@ -38,11 +38,26 @@ try {
     $releaseDirectory = Join-Path $repository "releases"
     New-Item -ItemType Directory -Force -Path $releaseDirectory | Out-Null
     $zipPath = Join-Path $releaseDirectory "BC-CAJA-$version-win64.zip"
-    Compress-Archive `
-        -Path $package `
-        -DestinationPath $zipPath `
-        -CompressionLevel Optimal `
-        -Force
+    # PyInstaller deja abierto un instante `_internal/base_library.zip` al
+    # terminar y la compresion falla por acceso denegado. Es transitorio: se
+    # reintenta en vez de dar el build por perdido.
+    $intentos = 0
+    while ($true) {
+        $intentos++
+        try {
+            Compress-Archive `
+                -Path $package `
+                -DestinationPath $zipPath `
+                -CompressionLevel Optimal `
+                -Force
+            break
+        }
+        catch {
+            if ($intentos -ge 5) { throw }
+            Write-Output "Empaquetado bloqueado, reintento $intentos de 5..."
+            Start-Sleep -Seconds 6
+        }
+    }
     Write-Output "BC_CAJA_BUILD_OK version=$version zip=$zipPath"
 }
 finally {

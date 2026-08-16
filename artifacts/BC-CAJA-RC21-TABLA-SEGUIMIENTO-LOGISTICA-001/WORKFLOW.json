@@ -2,28 +2,152 @@
   "mission": "BC-CAJA-RC21-TABLA-SEGUIMIENTO-LOGISTICA-001",
   "base_commit": "8b11c78c18e3f4f1e7d350cd1f188f0790b3e0ca",
   "branch": "feature/bc-caja-rc21-tabla-seguimiento-logistica-001",
-  "current_state": "CLOSED",
+  "current_state": "INSTALLED_AND_VALIDATED",
   "continuous_session": "ACTIVE",
   "auto_resume": "ACTIVE",
   "safe_closure": "COMPLETE",
-  "installation": "PENDING_HUMAN_GATE",
-  "installed_in_production": "1.0.0-rc.20",
-  "mission_lease": {"state": "RELEASED", "holder": null},
+  "installation": "COMPLETE",
+  "installed_in_production": "1.0.0-rc.21",
+  "mission_lease": {
+    "state": "RELEASED",
+    "holder": null
+  },
   "history": [
-    {"event": "CANONICAL_STATE_VERIFIED", "head": "8b11c78", "installed": "1.0.0-rc.20", "worktree": "clean", "remote": "0/0", "leases": 0},
-    {"event": "SLICE_S21_1_PASS", "scope": "rotulos canonicos, estado fisico y alerta separados", "targeted": 31},
-    {"event": "SLICE_S21_2_PASS", "scope": "tabla de cinco columnas con chips"},
-    {"event": "GUI_DEFECT_FOUND", "detail": "el texto del Treeview asomaba junto al chip", "fixed": true},
-    {"event": "CAPTURE_LEAK_FOUND", "detail": "la sonda RC19 recortaba pantalla y a 1366 capturo otra aplicacion", "versioned": false, "fixed": true},
-    {"event": "CAPTURE_MECHANISM_UNIFIED", "detail": "tools/gui_capture.py con PrintWindow; sin ImageGrab en las sondas"},
-    {"event": "REGRESSION_PASS", "full": 370, "failed": 0},
-    {"event": "VISUAL_SMOKE_PASSED", "resolutions": ["1920x1080", "1366x768"], "emails": 0, "new_closures": 0},
-    {"event": "RC18_NON_REGRESSION_PASSED"},
-    {"event": "RC20_NON_REGRESSION_PASSED"},
-    {"event": "VALIDATION_MATRIX_COVERED", "required": 13, "covered": 13},
-    {"event": "RC19_MODEL_PRESERVED", "derived_conditions_persisted": false, "new_migrations": 0},
-    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
-    {"event": "MISSION_LEASE_RELEASED"},
-    {"event": "CLOSED", "installation_executed": false}
-  ]
+    {
+      "event": "CANONICAL_STATE_VERIFIED",
+      "head": "8b11c78",
+      "installed": "1.0.0-rc.20",
+      "worktree": "clean",
+      "remote": "0/0",
+      "leases": 0
+    },
+    {
+      "event": "SLICE_S21_1_PASS",
+      "scope": "rotulos canonicos, estado fisico y alerta separados",
+      "targeted": 31
+    },
+    {
+      "event": "SLICE_S21_2_PASS",
+      "scope": "tabla de cinco columnas con chips"
+    },
+    {
+      "event": "GUI_DEFECT_FOUND",
+      "detail": "el texto del Treeview asomaba junto al chip",
+      "fixed": true
+    },
+    {
+      "event": "CAPTURE_LEAK_FOUND",
+      "detail": "la sonda RC19 recortaba pantalla y a 1366 capturo otra aplicacion",
+      "versioned": false,
+      "fixed": true
+    },
+    {
+      "event": "CAPTURE_MECHANISM_UNIFIED",
+      "detail": "tools/gui_capture.py con PrintWindow; sin ImageGrab en las sondas"
+    },
+    {
+      "event": "REGRESSION_PASS",
+      "full": 370,
+      "failed": 0
+    },
+    {
+      "event": "VISUAL_SMOKE_PASSED",
+      "resolutions": [
+        "1920x1080",
+        "1366x768"
+      ],
+      "emails": 0,
+      "new_closures": 0
+    },
+    {
+      "event": "RC18_NON_REGRESSION_PASSED"
+    },
+    {
+      "event": "RC20_NON_REGRESSION_PASSED"
+    },
+    {
+      "event": "VALIDATION_MATRIX_COVERED",
+      "required": 13,
+      "covered": 13
+    },
+    {
+      "event": "RC19_MODEL_PRESERVED",
+      "derived_conditions_persisted": false,
+      "new_migrations": 0
+    },
+    {
+      "event": "ARTIFACT_CONSISTENCY_PASSED"
+    },
+    {
+      "event": "MISSION_LEASE_RELEASED"
+    },
+    {
+      "event": "CLOSED",
+      "installation_executed": false
+    },
+    {
+      "event": "RC20_MANUAL_CHECK_CONFIRMED_BY_HUMAN",
+      "items": [
+        "Nuevo envio desde Pilar",
+        "Laboratorios"
+      ]
+    },
+    {
+      "event": "INSTALL_PRECHECK_PASSED",
+      "head": "5b88ac5",
+      "instances": 0,
+      "integrity_check": "ok",
+      "leases": 0
+    },
+    {
+      "event": "BUILD_RETRY_RECOVERED",
+      "detail": "bloqueo transitorio de base_library.zip; reintento automatico incorporado al script"
+    },
+    {
+      "event": "BUILD_OK",
+      "version": "1.0.0-rc.21",
+      "regression": 370,
+      "failed": 0
+    },
+    {
+      "event": "BACKUP_TAKEN",
+      "data_root": "Caja-RC21-preinstall-20260816b",
+      "files": 33
+    },
+    {
+      "event": "ROLLBACK_PRESERVED",
+      "rc20": "BC-Caja-Pilot.rollback-rc20-20260816b",
+      "rc17": true,
+      "rc16": true,
+      "rc15": true
+    },
+    {
+      "event": "INSTALL_EXECUTED",
+      "version": "1.0.0-rc.21",
+      "scope": "solo carpeta del programa"
+    },
+    {
+      "event": "POSTINSTALL_VALIDATED",
+      "version": "1.0.0-rc.21",
+      "migrations": "001-017",
+      "new_migrations": 0,
+      "integrity_check": "ok",
+      "data_diff": "ninguna",
+      "new_closures": 0,
+      "new_emails": 0,
+      "config_preserved": true
+    },
+    {
+      "event": "POSTINSTALL_LIMIT_DECLARED",
+      "detail": "GUI congelada no conducible; tabla verificada por suite y smoke sobre el commit empaquetado"
+    },
+    {
+      "event": "ROLLBACK_USED",
+      "value": false
+    },
+    {
+      "event": "INSTALLED_AND_VALIDATED"
+    }
+  ],
+  "rollback": "BC-Caja-Pilot.rollback-rc20-20260816b"
 }
