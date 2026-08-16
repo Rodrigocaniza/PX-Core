@@ -19,8 +19,10 @@ from ..domain.tracking import (
     ContactChannel,
     ContactRecord,
     Laboratory,
+    PilarShipment,
     TrackedWork,
     TrackingStatus,
+    shipment_progress,
     group_overdue_by_laboratory,
     operational_summary,
     overdue_alert,
@@ -122,7 +124,114 @@ class TrackingService:
     def laboratory_catalog(self) -> dict[str, Laboratory]:
         return {lab.id: lab for lab in self.repository.list_laboratories()}
 
-    # -- alta desde Pilar --------------------------------------------------
+    def update_laboratory(
+        self, laboratory_id: str, *, name: str | None = None,
+        phone_line: str | None = None, whatsapp: str | None = None,
+        active: bool | None = None,
+    ) -> Laboratory:
+        actual = self.repository.get_laboratory(laboratory_id)
+        if actual is None:
+            raise InvalidCashDayError(f"laboratorio inexistente: {laboratory_id}")
+        return self.repository.save_laboratory(Laboratory(
+            id=actual.id,
+            name=actual.name if name is None else name,
+            phone_line=actual.phone_line if phone_line is None else phone_line,
+            whatsapp=actual.whatsapp if whatsapp is None else whatsapp,
+            active=actual.active if active is None else active,
+            created_at=actual.created_at,
+        ))
+
+    def set_laboratory_active(self, laboratory_id: str, active: bool) -> Laboratory:
+        """Alta y baja logica: nunca se borra fisicamente.
+
+        Un laboratorio con historial debe seguir existiendo para que los
+        trabajos pasados conserven a quien se les envio; desactivarlo solo lo
+        retira de las opciones de envio nuevo.
+        """
+        return self.update_laboratory(laboratory_id, active=active)
+
+    def laboratory_has_history(self, laboratory_id: str) -> bool:
+        return self.repository.laboratory_has_history(laboratory_id)
+
+    def selectable_laboratories(self) -> Sequence[Laboratory]:
+        """Opciones validas para un envio nuevo: solo laboratorios activos."""
+        return self.repository.list_laboratories(only_active=True)
+
+    # -- alta de lote desde Pilar ------------------------------------------
+
+    def shipment_candidates(
+        self, *, branch: str = "Pilar", consultation_date: date | str | None = None,
+        end_date: date | str | None = None,
+    ) -> Sequence:
+        """Trabajos ya cargados en Caja que todavia no salieron en un envio.
+
+        No se pide recargar nada: los candidatos son los pedidos existentes de
+        la sucursal, y los ya seguidos quedan excluidos en la propia consulta.
+        """
+        inicio = parse_business_date(consultation_date or date.today())
+        fin = parse_business_date(end_date) if end_date not in (None, "") else inicio
+        if fin < inicio:
+            inicio, fin = fin, inicio
+        return self.repository.list_shipment_candidates(
+            branch=branch, start_date=inicio, end_date=fin,
+        )
+
+    def create_pilar_shipment(
+        self, order_ids: Sequence[str], *, operator: str,
+        consultation_date: date | str | None = None,
+        shipped_on: date | str | None = None, branch: str = "Pilar", note: str = "",
+    ) -> dict:
+        """Crea el lote y marca sus trabajos ENVIADO_DESDE_PILAR de una vez."""
+        seleccion = [str(order_id) for order_id in order_ids if str(order_id or "").strip()]
+        if not seleccion:
+            raise InvalidCashDayError("seleccioná al menos un trabajo para el envío")
+        ya_enviados = self.repository.list_tracked_works_for_orders(seleccion)
+        if ya_enviados:
+            sobres = ", ".join(sorted(work.envelope for work in ya_enviados))
+            raise InvalidCashDayError(
+                f"estos trabajos ya salieron en un envío anterior: {sobres}"
+            )
+        consulta = parse_business_date(consultation_date or date.today())
+        catalogo = {
+            pedido.id: pedido for pedido in self.repository.list_shipment_candidates(
+                branch=branch, start_date=consulta, end_date=consulta,
+            )
+        }
+        faltantes = [order_id for order_id in seleccion if order_id not in catalogo]
+        if faltantes:
+            raise InvalidCashDayError(
+                f"{len(faltantes)} trabajo(s) ya no están disponibles para envío"
+            )
+        envio = self.repository.save_pilar_shipment(PilarShipment(
+            shipped_on=shipped_on or consulta, operator=operator,
+            consultation_date=consulta, origin_branch=branch, note=note,
+        ))
+        trabajos = []
+        for order_id in seleccion:
+            pedido = catalogo[order_id]
+            trabajos.append(self.repository.save_tracked_work(TrackedWork(
+                envelope=pedido.envelope, customer_name=pedido.customer_name,
+                observations=pedido.observations, order_id=pedido.id,
+                cash_entry_id=pedido.cash_entry_id, shipment_id=envio.id,
+                consultation_date=consulta, created_by=operator,
+                origin_branch=branch,
+            )))
+        return {"shipment": envio, "works": trabajos, "count": len(trabajos)}
+
+    def shipment_detail(self, shipment_id: str) -> dict:
+        envio = self.repository.get_pilar_shipment(shipment_id)
+        if envio is None:
+            raise InvalidCashDayError(f"envío inexistente: {shipment_id}")
+        trabajos = [
+            work for work in self.repository.list_tracked_works()
+            if work.shipment_id == shipment_id
+        ]
+        return {"shipment": envio, "works": trabajos, **shipment_progress(trabajos)}
+
+    def list_shipments(self, *, limit: int = 50) -> Sequence[PilarShipment]:
+        return self.repository.list_pilar_shipments(limit=limit)
+
+    # -- alta directa (sin pedido previo) ----------------------------------
 
     def register_pilar_batch(
         self, works: Iterable[Mapping], *, consultation_date: date | str,

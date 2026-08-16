@@ -114,6 +114,58 @@ class Laboratory:
 
 
 @dataclass(frozen=True)
+class PilarShipment:
+    """Envio agrupado de Pilar a Asuncion.
+
+    El lote existe para cargar y recibir en bloque, no para reemplazar al
+    trabajo: cada `TrackedWork` conserva su id, su traza y su estado propio, y
+    el lote solo deriva su condicion de los trabajos que contiene.
+    """
+
+    shipped_on: date | str
+    operator: str
+    origin_branch: str = "PILAR"
+    destination_branch: str = "ASUNCION"
+    consultation_date: date | str | None = None
+    note: str = ""
+    id: str = field(default_factory=new_id)
+    created_at: datetime = field(default_factory=utc_now)
+
+    def __post_init__(self) -> None:
+        operator = str(self.operator or "").strip()
+        if not operator:
+            raise InvalidCashDayError("el envio requiere operadora")
+        object.__setattr__(self, "operator", operator)
+        object.__setattr__(self, "shipped_on", parse_business_date(self.shipped_on))
+        for attribute in ("origin_branch", "destination_branch"):
+            valor = str(getattr(self, attribute) or "").strip().upper()
+            if not valor:
+                raise InvalidCashDayError(f"{attribute} es obligatorio")
+            object.__setattr__(self, attribute, valor)
+        if self.consultation_date not in (None, ""):
+            object.__setattr__(
+                self, "consultation_date", parse_business_date(self.consultation_date),
+            )
+        else:
+            object.__setattr__(self, "consultation_date", self.shipped_on)
+        object.__setattr__(self, "note", str(self.note or "").strip())
+
+
+def shipment_progress(works: Sequence[TrackedWork]) -> dict:
+    """Condicion del lote derivada de sus trabajos, nunca almacenada."""
+    progreso = reception_progress(works)
+    if not works:
+        estado = "VACIO"
+    elif progreso["falta_recibir"] == 0:
+        estado = "RECIBIDO_COMPLETO"
+    elif progreso["recibidos"] == 0:
+        estado = "ENVIADO"
+    else:
+        estado = "RECEPCION_PARCIAL"
+    return {**progreso, "estado": estado}
+
+
+@dataclass(frozen=True)
 class TrackingTransition:
     """Traza inmutable de un cambio de etapa."""
 
@@ -188,6 +240,7 @@ class TrackedWork:
     confirmed_for_next_day: bool = False
     order_id: str | None = None
     cash_entry_id: str | None = None
+    shipment_id: str | None = None
     consultation_date: date | str | None = None
     observations: str = ""
     created_by: str = ""

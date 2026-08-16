@@ -27,6 +27,7 @@ from ..domain.models import (
 from ..domain.tracking import (
     ContactRecord,
     Laboratory,
+    PilarShipment,
     TrackedWork,
     TrackingTransition,
 )
@@ -738,6 +739,91 @@ class SQLiteCashDayRepository:
             updated_at=_datetime(row["updated_at"]),
         )
 
+    def save_pilar_shipment(self, shipment: PilarShipment) -> PilarShipment:
+        with self._connection() as connection:
+            connection.execute(
+                """INSERT INTO pilar_shipments(
+                    id,shipped_on,consultation_date,origin_branch,destination_branch,
+                    operator,note,created_at
+                ) VALUES (?,?,?,?,?,?,?,?)
+                ON CONFLICT(id) DO UPDATE SET
+                    shipped_on=excluded.shipped_on,
+                    consultation_date=excluded.consultation_date,
+                    operator=excluded.operator, note=excluded.note""",
+                (
+                    shipment.id, _iso(shipment.shipped_on), _iso(shipment.consultation_date),
+                    shipment.origin_branch, shipment.destination_branch,
+                    shipment.operator, shipment.note, _iso(shipment.created_at),
+                ),
+            )
+            connection.commit()
+        return shipment
+
+    def get_pilar_shipment(self, shipment_id: str) -> PilarShipment | None:
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM pilar_shipments WHERE id = ?", (shipment_id,)
+            ).fetchone()
+        return self._hydrate_shipment(row) if row else None
+
+    def list_pilar_shipments(self, *, limit: int = 50) -> Sequence[PilarShipment]:
+        with self._connection() as connection:
+            rows = connection.execute(
+                "SELECT * FROM pilar_shipments ORDER BY shipped_on DESC, created_at DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [self._hydrate_shipment(row) for row in rows]
+
+    @staticmethod
+    def _hydrate_shipment(row: sqlite3.Row) -> PilarShipment:
+        return PilarShipment(
+            id=row["id"], shipped_on=row["shipped_on"],
+            consultation_date=row["consultation_date"],
+            origin_branch=row["origin_branch"], destination_branch=row["destination_branch"],
+            operator=row["operator"], note=row["note"],
+            created_at=_datetime(row["created_at"]),
+        )
+
+    def list_shipment_candidates(
+        self, *, branch: str, start_date: date, end_date: date,
+    ) -> Sequence[Order]:
+        """Pedidos de la sucursal aun no incluidos en ningun envio.
+
+        La elegibilidad se resuelve en SQL contra `tracked_works`: un pedido ya
+        seguido no vuelve a ofrecerse, de modo que no se puede armar dos veces
+        el mismo trabajo aunque se repita la consulta.
+        """
+        with self._connection() as connection:
+            rows = connection.execute(
+                """SELECT o.* FROM orders o
+                LEFT JOIN tracked_works t ON t.order_id = o.id
+                WHERE t.id IS NULL
+                  AND o.branch = ? COLLATE NOCASE
+                  AND date(o.created_at) BETWEEN ? AND ?
+                ORDER BY o.envelope, o.created_at""",
+                (branch, _iso(start_date), _iso(end_date)),
+            ).fetchall()
+        return [self._hydrate_order(row) for row in rows]
+
+    def list_tracked_works_for_orders(self, order_ids: Sequence[str]) -> Sequence[TrackedWork]:
+        if not order_ids:
+            return []
+        marcadores = ",".join("?" for _ in order_ids)
+        with self._connection() as connection:
+            rows = connection.execute(
+                f"SELECT * FROM tracked_works WHERE order_id IN ({marcadores})",
+                tuple(order_ids),
+            ).fetchall()
+            return [self._hydrate_tracked_work(connection, row) for row in rows]
+
+    def laboratory_has_history(self, laboratory_id: str) -> bool:
+        with self._connection() as connection:
+            fila = connection.execute(
+                "SELECT 1 FROM tracked_works WHERE laboratory_id = ? LIMIT 1",
+                (laboratory_id,),
+            ).fetchone()
+        return fila is not None
+
     def save_tracked_work(self, work: TrackedWork) -> TrackedWork:
         """Guarda el trabajo y reescribe su traza en una sola transaccion.
 
@@ -751,9 +837,9 @@ class SQLiteCashDayRepository:
                     """INSERT INTO tracked_works(
                         id,envelope,customer_name,status,origin_branch,laboratory_id,
                         expected_date,expected_time,confirmed_for_next_day,order_id,
-                        cash_entry_id,consultation_date,observations,created_by,
+                        cash_entry_id,shipment_id,consultation_date,observations,created_by,
                         created_at,updated_at
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         envelope=excluded.envelope, customer_name=excluded.customer_name,
                         status=excluded.status, origin_branch=excluded.origin_branch,
@@ -762,6 +848,7 @@ class SQLiteCashDayRepository:
                         expected_time=excluded.expected_time,
                         confirmed_for_next_day=excluded.confirmed_for_next_day,
                         order_id=excluded.order_id, cash_entry_id=excluded.cash_entry_id,
+                        shipment_id=excluded.shipment_id,
                         consultation_date=excluded.consultation_date,
                         observations=excluded.observations,
                         updated_at=excluded.updated_at""",
@@ -770,7 +857,7 @@ class SQLiteCashDayRepository:
                         work.origin_branch, work.laboratory_id, _iso(work.expected_date),
                         work.expected_time.strftime("%H:%M") if work.expected_time else None,
                         int(work.confirmed_for_next_day), work.order_id, work.cash_entry_id,
-                        _iso(work.consultation_date), work.observations, work.created_by,
+                        work.shipment_id, _iso(work.consultation_date), work.observations, work.created_by,
                         _iso(work.created_at), _iso(work.updated_at),
                     ),
                 )
@@ -858,7 +945,7 @@ class SQLiteCashDayRepository:
             expected_time=row["expected_time"],
             confirmed_for_next_day=bool(row["confirmed_for_next_day"]),
             order_id=row["order_id"], cash_entry_id=row["cash_entry_id"],
-            consultation_date=row["consultation_date"], observations=row["observations"],
+            shipment_id=row["shipment_id"], consultation_date=row["consultation_date"], observations=row["observations"],
             created_by=row["created_by"], created_at=_datetime(row["created_at"]),
             updated_at=_datetime(row["updated_at"]),
             transitions=tuple(

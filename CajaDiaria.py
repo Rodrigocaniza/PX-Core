@@ -3291,6 +3291,22 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     combo_lab_filtro.set("Todos los laboratorios")
     combo_lab_filtro.pack(side="right", padx=(6, 0))
 
+    # RC20: los dos accesos que hacen la vista autosuficiente. Son botones, no
+    # formularios permanentes: la pantalla sigue siendo la grilla operativa.
+    ctk.CTkButton(
+        barra_seguimiento, text="Laboratorios", width=130, height=30,
+        fg_color="#FFFFFF", text_color=color_azul, border_width=1,
+        border_color=color_borde_suave, hover_color="#EAF3FF",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=lambda: abrir_abm_laboratorios(),
+    ).pack(side="right", padx=(6, 0))
+    ctk.CTkButton(
+        barra_seguimiento, text="+ Nuevo envío desde Pilar", width=205, height=30,
+        fg_color=color_azul, hover_color="#0F5FC7",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=lambda: abrir_nuevo_envio_pilar(),
+    ).pack(side="right", padx=(6, 0))
+
     marco_seguimiento = ctk.CTkFrame(seguimiento, fg_color="#FFFFFF", corner_radius=6)
     marco_seguimiento.pack(fill="both", expand=True)
     marco_seguimiento.grid_rowconfigure(0, weight=1)
@@ -3535,6 +3551,354 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             state="normal" if fila is not None and fila.work.status
             is TrackingStatus.IN_LABORATORY else "disabled",
         )
+
+    def abrir_nuevo_envio_pilar():
+        """Selector del lote: los trabajos ya existen, aca solo se eligen."""
+        dialogo = ctk.CTkToplevel(ventana)
+        dialogo.title("Nuevo envío desde Pilar")
+        dialogo.geometry("980x620")
+        dialogo.transient(ventana)
+        dialogo.grab_set()
+
+        encabezado = ctk.CTkFrame(dialogo, fg_color=color_panel, corner_radius=0)
+        encabezado.pack(fill="x")
+        ctk.CTkLabel(
+            encabezado, text="Consulta de Pilar", text_color=color_texto,
+            font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold"),
+        ).pack(side="left", padx=12, pady=8)
+        ctk.CTkLabel(
+            encabezado, text="Sucursal", text_color=color_suave,
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        ).pack(side="left", padx=(12, 4))
+        campo_sucursal = ctk.CTkEntry(encabezado, width=110, height=30)
+        campo_sucursal.insert(0, "Pilar")
+        campo_sucursal.pack(side="left", pady=8)
+        ctk.CTkLabel(
+            encabezado, text="Desde", text_color=color_suave,
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        ).pack(side="left", padx=(12, 4))
+        campo_desde = ctk.CTkEntry(encabezado, width=115, height=30)
+        campo_desde.insert(0, date.today().strftime("%d-%m-%Y"))
+        campo_desde.pack(side="left", pady=8)
+        ctk.CTkLabel(
+            encabezado, text="Hasta", text_color=color_suave,
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        ).pack(side="left", padx=(12, 4))
+        campo_hasta = ctk.CTkEntry(encabezado, width=115, height=30)
+        campo_hasta.insert(0, date.today().strftime("%d-%m-%Y"))
+        campo_hasta.pack(side="left", pady=8)
+
+        resumen_envio = ctk.CTkLabel(
+            dialogo, text="", anchor="w", text_color=color_texto,
+            font=ctk.CTkFont(size=perfil["fuente_label"] + 1, weight="bold"),
+        )
+        resumen_envio.pack(fill="x", padx=12, pady=(8, 4))
+
+        marco_candidatos = ctk.CTkFrame(dialogo, fg_color="#FFFFFF", corner_radius=6)
+        marco_candidatos.pack(fill="both", expand=True, padx=12)
+        marco_candidatos.grid_rowconfigure(0, weight=1)
+        marco_candidatos.grid_columnconfigure(0, weight=1)
+        COLUMNAS_CANDIDATO = (
+            ("marca", "✓", 40, "center", False),
+            ("sobre", "Sobre", 90, "center", False),
+            ("cliente", "Cliente", 240, "w", False),
+            ("tipo", "Tipo de trabajo", 200, "w", False),
+            ("entrega", "Entrega", 110, "center", False),
+            ("vendedora", "Vendedora", 130, "center", True),
+        )
+        grilla_candidatos = ttk.Treeview(
+            marco_candidatos, columns=[c for c, *_r in COLUMNAS_CANDIDATO],
+            show="headings", style="Caja.Treeview", selectmode="none",
+        )
+        for clave, titulo, ancho, anclaje, expandible in COLUMNAS_CANDIDATO:
+            grilla_candidatos.heading(clave, text=titulo, anchor=anclaje)
+            grilla_candidatos.column(
+                clave, width=ancho, minwidth=ancho, anchor=anclaje, stretch=expandible,
+            )
+        scroll_candidatos = ttk.Scrollbar(
+            marco_candidatos, orient="vertical", command=grilla_candidatos.yview,
+        )
+        grilla_candidatos.configure(yscrollcommand=scroll_candidatos.set)
+        grilla_candidatos.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
+        scroll_candidatos.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
+
+        estado_envio = {"pedidos": {}, "elegidos": set()}
+
+        def pintar_marca(order_id):
+            grilla_candidatos.set(
+                order_id, "marca", "✓" if order_id in estado_envio["elegidos"] else "",
+            )
+
+        def actualizar_resumen_envio():
+            total = len(estado_envio["pedidos"])
+            elegidos = len(estado_envio["elegidos"])
+            resumen_envio.configure(
+                text=f"{total} trabajos encontrados     ·     {elegidos} seleccionados"
+            )
+            boton_crear.configure(state="normal" if elegidos else "disabled")
+            boton_crear.configure(text=f"Crear envío ({elegidos})" if elegidos else "Crear envío")
+
+        def alternar(evento):
+            fila = grilla_candidatos.identify_row(evento.y)
+            if not fila:
+                return
+            if fila in estado_envio["elegidos"]:
+                estado_envio["elegidos"].discard(fila)
+            else:
+                estado_envio["elegidos"].add(fila)
+            pintar_marca(fila)
+            actualizar_resumen_envio()
+
+        grilla_candidatos.bind("<Button-1>", alternar, add="+")
+
+        def buscar_candidatos():
+            for item in grilla_candidatos.get_children():
+                grilla_candidatos.delete(item)
+            estado_envio["pedidos"].clear()
+            estado_envio["elegidos"].clear()
+            try:
+                candidatos = controller.tracking.shipment_candidates(
+                    branch=campo_sucursal.get().strip() or "Pilar",
+                    consultation_date=campo_desde.get().strip(),
+                    end_date=campo_hasta.get().strip(),
+                )
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            for pedido in candidatos:
+                grilla_candidatos.insert("", "end", iid=pedido.id, values=(
+                    "", pedido.envelope, pedido.customer_name,
+                    pedido.observations.splitlines()[0] if pedido.observations else "",
+                    pedido.delivery_date.strftime("%d-%m-%Y"), pedido.saleswoman,
+                ))
+                estado_envio["pedidos"][pedido.id] = pedido
+            actualizar_resumen_envio()
+
+        def seleccionar_todos():
+            estado_envio["elegidos"] = set(estado_envio["pedidos"])
+            for order_id in estado_envio["pedidos"]:
+                pintar_marca(order_id)
+            actualizar_resumen_envio()
+
+        def quitar_todos():
+            estado_envio["elegidos"].clear()
+            for order_id in estado_envio["pedidos"]:
+                pintar_marca(order_id)
+            actualizar_resumen_envio()
+
+        def crear_envio():
+            elegidos = sorted(estado_envio["elegidos"])
+            if not elegidos:
+                return
+            if not messagebox.askyesno(
+                "Confirmar envío",
+                f"¿Crear el envío desde Pilar con {len(elegidos)} trabajo(s)?",
+                parent=dialogo,
+            ):
+                return
+            try:
+                resultado = controller.tracking.create_pilar_shipment(
+                    elegidos, operator=responsable_actual(),
+                    consultation_date=campo_desde.get().strip(),
+                )
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            messagebox.showinfo(
+                "Envío creado",
+                f"{resultado['count']} trabajo(s) marcados ENVIADO_DESDE_PILAR.",
+                parent=dialogo,
+            )
+            dialogo.destroy()
+            refrescar_seguimiento()
+
+        acciones_envio = ctk.CTkFrame(dialogo, fg_color="transparent")
+        acciones_envio.pack(fill="x", padx=12, pady=10)
+        ctk.CTkButton(
+            acciones_envio, text="Buscar", width=110, height=32, fg_color="#52657D",
+            command=buscar_candidatos,
+        ).pack(side="left", padx=(0, 3))
+        ctk.CTkButton(
+            acciones_envio, text="Seleccionar todos", width=150, height=32,
+            fg_color="#FFFFFF", text_color=color_azul, border_width=1,
+            border_color=color_borde_suave, hover_color="#EAF3FF",
+            command=seleccionar_todos,
+        ).pack(side="left", padx=3)
+        ctk.CTkButton(
+            acciones_envio, text="Quitar selección", width=150, height=32,
+            fg_color="#FFFFFF", text_color=color_suave, border_width=1,
+            border_color=color_borde_suave, hover_color="#EAF3FF",
+            command=quitar_todos,
+        ).pack(side="left", padx=3)
+        ctk.CTkButton(
+            acciones_envio, text="Cancelar", width=110, height=32, fg_color="#52657D",
+            command=dialogo.destroy,
+        ).pack(side="right", padx=(3, 0))
+        boton_crear = ctk.CTkButton(
+            acciones_envio, text="Crear envío", width=170, height=32,
+            fg_color=color_verde, hover_color="#128A57", state="disabled",
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+            command=crear_envio,
+        )
+        boton_crear.pack(side="right", padx=3)
+
+        buscar_candidatos()
+        return dialogo
+
+    def abrir_abm_laboratorios():
+        """ABM compacto. Sin borrado fisico: solo alta, edicion y baja logica."""
+        dialogo = ctk.CTkToplevel(ventana)
+        dialogo.title("Laboratorios")
+        # Ancho dimensionado a la fila del formulario: con 760 el campo
+        # WhatsApp quedaba cortado contra el borde.
+        dialogo.geometry("880x520")
+        dialogo.transient(ventana)
+        dialogo.grab_set()
+
+        marco_labs = ctk.CTkFrame(dialogo, fg_color="#FFFFFF", corner_radius=6)
+        marco_labs.pack(fill="both", expand=True, padx=12, pady=(12, 6))
+        marco_labs.grid_rowconfigure(0, weight=1)
+        marco_labs.grid_columnconfigure(0, weight=1)
+        COLUMNAS_LAB = (
+            ("nombre", "Nombre", 220, "w", True),
+            ("linea", "Teléfono de línea", 165, "center", False),
+            ("whatsapp", "WhatsApp", 165, "center", False),
+            ("estado", "Estado", 110, "center", False),
+        )
+        grilla_labs = ttk.Treeview(
+            marco_labs, columns=[c for c, *_r in COLUMNAS_LAB],
+            show="headings", style="Caja.Treeview",
+        )
+        for clave, titulo, ancho, anclaje, expandible in COLUMNAS_LAB:
+            grilla_labs.heading(clave, text=titulo, anchor=anclaje)
+            grilla_labs.column(
+                clave, width=ancho, minwidth=ancho, anchor=anclaje, stretch=expandible,
+            )
+        grilla_labs.tag_configure("inactivo", foreground="#8A94A6")
+        scroll_labs = ttk.Scrollbar(marco_labs, orient="vertical", command=grilla_labs.yview)
+        grilla_labs.configure(yscrollcommand=scroll_labs.set)
+        grilla_labs.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
+        scroll_labs.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
+
+        formulario_lab = ctk.CTkFrame(dialogo, fg_color=color_panel, corner_radius=6)
+        formulario_lab.pack(fill="x", padx=12, pady=(0, 6))
+        campos_lab = {}
+        for indice, (clave, etiqueta, ancho) in enumerate((
+            ("name", "Nombre", 200), ("phone_line", "Teléfono de línea", 150),
+            ("whatsapp", "WhatsApp", 150),
+        )):
+            ctk.CTkLabel(
+                formulario_lab, text=etiqueta, text_color=color_suave,
+                font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+            ).grid(row=0, column=indice * 2, sticky="w", padx=(10, 4), pady=8)
+            campo = ctk.CTkEntry(formulario_lab, width=ancho, height=30)
+            campo.grid(row=0, column=indice * 2 + 1, padx=(0, 8), pady=8)
+            campos_lab[clave] = campo
+
+        seleccion_lab = {"id": None}
+
+        def limpiar_formulario():
+            seleccion_lab["id"] = None
+            for campo in campos_lab.values():
+                campo.delete(0, "end")
+            boton_guardar_lab.configure(text="Agregar laboratorio")
+            boton_estado_lab.configure(state="disabled", text="Activar / desactivar")
+
+        def refrescar_labs():
+            for item in grilla_labs.get_children():
+                grilla_labs.delete(item)
+            for laboratorio in controller.tracking.list_laboratories():
+                grilla_labs.insert(
+                    "", "end", iid=laboratorio.id,
+                    tags=() if laboratorio.active else ("inactivo",),
+                    values=(
+                        laboratorio.name, laboratorio.phone_line, laboratorio.whatsapp,
+                        "ACTIVO" if laboratorio.active else "INACTIVO",
+                    ),
+                )
+            limpiar_formulario()
+
+        def elegir_lab(_event=None):
+            seleccion = grilla_labs.selection()
+            if not seleccion:
+                return
+            laboratorio = controller.tracking.repository.get_laboratory(seleccion[0])
+            if laboratorio is None:
+                return
+            seleccion_lab["id"] = laboratorio.id
+            for clave, valor in (
+                ("name", laboratorio.name), ("phone_line", laboratorio.phone_line),
+                ("whatsapp", laboratorio.whatsapp),
+            ):
+                campos_lab[clave].delete(0, "end")
+                campos_lab[clave].insert(0, valor)
+            boton_guardar_lab.configure(text="Guardar cambios")
+            boton_estado_lab.configure(
+                state="normal",
+                text="Desactivar" if laboratorio.active else "Activar",
+            )
+
+        def guardar_lab():
+            datos = {clave: campo.get().strip() for clave, campo in campos_lab.items()}
+            try:
+                if seleccion_lab["id"]:
+                    controller.tracking.update_laboratory(seleccion_lab["id"], **datos)
+                else:
+                    controller.tracking.save_laboratory(**datos)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            refrescar_labs()
+            refrescar_seguimiento()
+
+        def alternar_estado_lab():
+            laboratory_id = seleccion_lab["id"]
+            if not laboratory_id:
+                return
+            laboratorio = controller.tracking.repository.get_laboratory(laboratory_id)
+            if laboratorio.active and controller.tracking.laboratory_has_history(laboratory_id):
+                if not messagebox.askyesno(
+                    "Desactivar laboratorio",
+                    f"{laboratorio.name} tiene trabajos asociados.\n\n"
+                    "Se conserva en el historial y deja de ofrecerse para envíos nuevos. "
+                    "¿Continuar?",
+                    parent=dialogo,
+                ):
+                    return
+            try:
+                controller.tracking.set_laboratory_active(laboratory_id, not laboratorio.active)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            refrescar_labs()
+            refrescar_seguimiento()
+
+        acciones_lab = ctk.CTkFrame(dialogo, fg_color="transparent")
+        acciones_lab.pack(fill="x", padx=12, pady=(0, 12))
+        boton_guardar_lab = ctk.CTkButton(
+            acciones_lab, text="Agregar laboratorio", width=180, height=32,
+            fg_color=color_verde, hover_color="#128A57",
+            font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+            command=guardar_lab,
+        )
+        boton_guardar_lab.pack(side="left", padx=(0, 3))
+        boton_estado_lab = ctk.CTkButton(
+            acciones_lab, text="Activar / desactivar", width=170, height=32,
+            fg_color="#B45309", state="disabled", command=alternar_estado_lab,
+        )
+        boton_estado_lab.pack(side="left", padx=3)
+        ctk.CTkButton(
+            acciones_lab, text="Nuevo", width=110, height=32, fg_color="#52657D",
+            command=limpiar_formulario,
+        ).pack(side="left", padx=3)
+        ctk.CTkButton(
+            acciones_lab, text="Cerrar", width=110, height=32, fg_color="#52657D",
+            command=dialogo.destroy,
+        ).pack(side="right")
+
+        grilla_labs.bind("<<TreeviewSelect>>", elegir_lab, add="+")
+        refrescar_labs()
+        return dialogo
 
     grilla_seguimiento.bind("<<TreeviewSelect>>", actualizar_acciones_seguimiento, add="+")
     refrescar_seguimiento()
