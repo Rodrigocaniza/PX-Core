@@ -8,14 +8,19 @@ funciona sin internet, igual que el resto de BC Caja.
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace as dataclass_replace
 from datetime import date, datetime, time, timedelta
 from typing import Iterable, Mapping, Sequence
 
 from ..domain.errors import InvalidCashDayError
-from ..domain.models import BUSINESS_TIMEZONE, parse_business_date
+from ..domain.models import BUSINESS_TIMEZONE, parse_business_date, utc_now
 from ..domain.tracking import (
     DEFAULT_EXPECTED_TIME,
+    ETIQUETA_ACCION,
+    TRANSICION_DE_ACCION,
+    NextAction,
+    ReceptionIssue,
+    next_action as calcular_next_action,
     SUCURSAL_PROCESO_POR_DEFECTO,
     normalizar_sucursal,
     ContactChannel,
@@ -124,6 +129,37 @@ class BoardRow:
     @property
     def responsible_branch(self) -> str | None:
         return self.work.responsible_branch
+
+    @property
+    def next_action(self) -> NextAction:
+        """Que corresponde hacer. Se pregunta a la autoridad del dominio."""
+        return calcular_next_action(
+            self.work.status, overdue=self.overdue,
+            reception_issue=self.work.reception_issue,
+        )
+
+    @property
+    def next_action_label(self) -> str:
+        return ETIQUETA_ACCION[self.next_action]
+
+    @property
+    def observation(self) -> str:
+        """Una sola linea: lo ultimo que se sabe, sin abrir el detalle."""
+        if self.work.reception_issue is ReceptionIssue.NOT_ARRIVED:
+            return "No llegó en el envío"
+        if self.work.reception_issue is ReceptionIssue.NOT_IN_LIST:
+            return "Recibido sin figurar en la lista"
+        contacto = self.work.last_contact
+        if contacto is not None:
+            if contacto.next_expected_date is not None:
+                cuando = contacto.next_expected_date.strftime("%d-%m")
+                hora = (contacto.next_expected_time or DEFAULT_EXPECTED_TIME).strftime("%H:%M")
+                plazo = f"{cuando} {hora}"
+                return f"{plazo} · {contacto.result}" if contacto.result else plazo
+            return contacto.result or contacto.summary()
+        if self.work.expected_date is not None:
+            return f"Debía {self.expected_label}"
+        return ""
 
     @property
     def work_type(self) -> str:
@@ -404,6 +440,114 @@ class TrackingService:
             if work.shipment_id == shipment_id
         ]
         return {"shipment": envio, "works": trabajos, **shipment_progress(trabajos)}
+
+    # -- acciones dirigidas por next_action --------------------------------
+
+    def next_action_for(self, work_ids: Sequence[str], *, now: datetime | None = None) -> dict:
+        """Accion comun de una seleccion, o el motivo por el que no la hay."""
+        momento = now or datetime.now(BUSINESS_TIMEZONE)
+        trabajos = [self._load(work_id) for work_id in work_ids]
+        if not trabajos:
+            return {"action": None, "label": "", "count": 0,
+                    "reason": "Seleccioná al menos un trabajo."}
+        acciones = {
+            calcular_next_action(w.status, overdue=w.is_overdue(momento),
+                                 reception_issue=w.reception_issue)
+            for w in trabajos
+        }
+        if len(acciones) > 1:
+            return {"action": None, "label": "", "count": len(trabajos),
+                    "reason": "Los trabajos seleccionados están en etapas diferentes."}
+        accion = acciones.pop()
+        etiqueta = ETIQUETA_ACCION[accion]
+        if accion is NextAction.NONE:
+            return {"action": accion, "label": etiqueta, "count": len(trabajos),
+                    "reason": "Estos trabajos ya completaron el circuito."}
+        if len(trabajos) > 1:
+            verbo, _, resto = etiqueta.partition(" ")
+            etiqueta = f"{verbo} {len(trabajos)} {resto}".strip()
+        return {"action": accion, "label": etiqueta, "count": len(trabajos), "reason": ""}
+
+    def apply_next_action(
+        self, work_ids: Sequence[str], *, responsible: str,
+        laboratory_id: str | None = None, expected_date=None, expected_time=None,
+        note: str = "", now: datetime | None = None,
+    ) -> list:
+        """Ejecuta la accion comun sobre toda la seleccion."""
+        resumen = self.next_action_for(work_ids, now=now)
+        accion = resumen["action"]
+        if accion is None or TRANSICION_DE_ACCION[accion] is None:
+            raise InvalidCashDayError(
+                resumen["reason"] or "esta acción no aplica a la selección")
+        if accion is NextAction.SEND_TO_LABORATORY:
+            if not laboratory_id:
+                raise InvalidCashDayError("elegí el laboratorio para el envío")
+            return [
+                self.send_to_laboratory(
+                    work_id, laboratory_id, expected_date=expected_date,
+                    expected_time=expected_time, responsible=responsible, note=note)
+                for work_id in work_ids
+            ]
+        destino = TRANSICION_DE_ACCION[accion]
+        return [
+            self._advance(work_id, destino, responsible=responsible, note=note)
+            for work_id in work_ids
+        ]
+
+    # -- discrepancias de recepcion ----------------------------------------
+
+    def mark_not_arrived(self, work_id: str, *, responsible: str, note: str = ""):
+        """Figuraba en el envio y no aparecio: sigue ligado al lote, sin avanzar."""
+        work = self._load(work_id)
+        if work.status is not TrackingStatus.SENT_FROM_PILAR:
+            raise InvalidCashDayError(
+                "solo puede marcarse NO LLEGÓ sobre un trabajo aún no recibido")
+        marcado = dataclass_replace(
+            work, reception_issue=ReceptionIssue.NOT_ARRIVED, updated_at=utc_now())
+        guardado = self.repository.save_tracked_work(marcado)
+        self.register_contact(
+            work_id, operator=responsible, channel=ContactChannel.OTHER,
+            result=note or "No llegó en el envío")
+        return guardado
+
+    def add_unlisted_reception(
+        self, order_id: str, *, responsible: str, shipment_id: str | None = None,
+        note: str = "",
+    ):
+        """Llego un trabajo que no figuraba: se reutiliza el pedido existente."""
+        pedidos = self.repository.list_orders_by_ids([order_id])
+        if not pedidos:
+            raise InvalidCashDayError(f"pedido inexistente: {order_id}")
+        if self.repository.list_tracked_works_for_orders([order_id]):
+            raise InvalidCashDayError("ese trabajo ya está en el circuito")
+        pedido = pedidos[0]
+        work = self.repository.save_tracked_work(TrackedWork(
+            envelope=pedido.envelope, customer_name=pedido.customer_name,
+            observations=pedido.observations, order_id=pedido.id,
+            cash_entry_id=pedido.cash_entry_id, shipment_id=shipment_id,
+            consultation_date=pedido.created_at.date(), created_by=responsible,
+            origin_branch=pedido.branch, reception_issue=ReceptionIssue.NOT_IN_LIST,
+        ))
+        return self.receive_in_asuncion(
+            work.id, responsible=responsible,
+            note=note or "Recibido sin figurar en la lista")
+
+    def reception_reconciliation(self, shipment_id: str) -> dict:
+        """Declarados / Recibidos / No llegó / Extra, en una linea."""
+        trabajos = [
+            w for w in self.repository.list_tracked_works() if w.shipment_id == shipment_id
+        ]
+        extra = sum(1 for w in trabajos if w.reception_issue is ReceptionIssue.NOT_IN_LIST)
+        no_llego = sum(1 for w in trabajos if w.reception_issue is ReceptionIssue.NOT_ARRIVED)
+        # `recibidos` cuenta solo entre los declarados: si sumara los extra,
+        # los numeros no cerrarian contra el total que Pilar envio.
+        recibidos = sum(
+            1 for w in trabajos
+            if w.status is not TrackingStatus.SENT_FROM_PILAR
+            and w.reception_issue is None
+        )
+        return {"declarados": len(trabajos) - extra, "recibidos": recibidos,
+                "no_llego": no_llego, "extra": extra}
 
     def work_detail(self, work_id: str, *, now: datetime | None = None) -> dict:
         """Ficha completa del trabajo: identidad, plazo, contacto e historial."""

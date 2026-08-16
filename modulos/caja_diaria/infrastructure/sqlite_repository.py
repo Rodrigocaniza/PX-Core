@@ -27,6 +27,7 @@ from ..domain.models import (
 from ..domain.tracking import (
     ContactRecord,
     Laboratory,
+    ReceptionIssue,
     PilarShipment,
     TrackedWork,
     TrackingTransition,
@@ -904,15 +905,16 @@ class SQLiteCashDayRepository:
             try:
                 connection.execute(
                     """INSERT INTO tracked_works(
-                        id,envelope,customer_name,status,origin_branch,processing_branch,laboratory_id,
+                        id,envelope,customer_name,status,origin_branch,processing_branch,reception_issue,laboratory_id,
                         expected_date,expected_time,confirmed_for_next_day,order_id,
                         cash_entry_id,shipment_id,consultation_date,observations,created_by,
                         created_at,updated_at
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         envelope=excluded.envelope, customer_name=excluded.customer_name,
                         status=excluded.status, origin_branch=excluded.origin_branch,
                         processing_branch=excluded.processing_branch,
+                        reception_issue=excluded.reception_issue,
                         laboratory_id=excluded.laboratory_id,
                         expected_date=excluded.expected_date,
                         expected_time=excluded.expected_time,
@@ -924,7 +926,9 @@ class SQLiteCashDayRepository:
                         updated_at=excluded.updated_at""",
                     (
                         work.id, work.envelope, work.customer_name, work.status.value,
-                        work.origin_branch, work.processing_branch, work.laboratory_id,
+                        work.origin_branch, work.processing_branch,
+                        work.reception_issue.value if work.reception_issue else None,
+                        work.laboratory_id,
                         _iso(work.expected_date),
                         work.expected_time.strftime("%H:%M") if work.expected_time else None,
                         int(work.confirmed_for_next_day), work.order_id, work.cash_entry_id,
@@ -1013,6 +1017,7 @@ class SQLiteCashDayRepository:
             id=row["id"], envelope=row["envelope"], customer_name=row["customer_name"],
             status=row["status"], origin_branch=row["origin_branch"],
             processing_branch=row["processing_branch"],
+            reception_issue=row["reception_issue"],
             laboratory_id=row["laboratory_id"], expected_date=row["expected_date"],
             expected_time=row["expected_time"],
             confirmed_for_next_day=bool(row["confirmed_for_next_day"]),

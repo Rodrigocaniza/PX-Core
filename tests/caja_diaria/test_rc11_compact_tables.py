@@ -33,9 +33,9 @@ def test_rc11_draft_distribution_and_anchors_are_compact():
     assert 'filas_minimas = 5' in SOURCE
 
 
-def test_rc22_advances_schema_once_to_018():
-    """Cada release avanza el esquema una sola vez; RC22 aporta 018."""
+def test_rc24_advances_schema_once_to_019():
+    """Cada release avanza el esquema una sola vez; RC24 aporta 019."""
     migrations = sorted(Path("modulos/caja_diaria/infrastructure/migrations").glob("*.sql"))
-    assert len(migrations) == 18
-    assert migrations[-2].name == "017_pilar_shipments.sql"
-    assert migrations[-1].name == "018_branch_binding.sql"
+    assert len(migrations) == 19
+    assert migrations[-2].name == "018_branch_binding.sql"
+    assert migrations[-1].name == "019_reception_issues.sql"

@@ -51,6 +51,82 @@ ALLOWED_TRANSITIONS: Mapping[TrackingStatus, tuple[TrackingStatus, ...]] = {
     TrackingStatus.CLOSED: (),
 }
 
+class ReceptionIssue(str, Enum):
+    """Discrepancias reales al recibir un lote.
+
+    No son etapas del circuito: son condiciones que conviven con la etapa y se
+    resuelven recibiendo o corrigiendo. Por eso no entran en `TrackingStatus`.
+    """
+
+    NOT_ARRIVED = "NO_LLEGO"
+    NOT_IN_LIST = "NO_ESTABA_EN_LISTA"
+
+
+class NextAction(str, Enum):
+    """Unica autoridad sobre que corresponde hacer con un trabajo."""
+
+    RECEIVE_IN_ASUNCION = "RECIBIR_EN_ASUNCION"
+    SEND_TO_LABORATORY = "ENVIAR_A_LABORATORIO"
+    CONTACT_LABORATORY = "CONTACTAR_LABORATORIO"
+    RECEIVE_FROM_LABORATORY = "RECIBIR_DEL_LABORATORIO"
+    SEND_TO_PILAR = "ENVIAR_A_PILAR"
+    RECEIVE_IN_PILAR = "RECIBIR_EN_PILAR"
+    RESOLVE_RECEPTION = "RESOLVER_RECEPCION"
+    NONE = "NINGUNA"
+
+
+#: Texto del boton principal para cada accion. La operadora lee que hacer.
+ETIQUETA_ACCION = {
+    NextAction.RECEIVE_IN_ASUNCION: "Recibir en Asunción",
+    NextAction.SEND_TO_LABORATORY: "Enviar a laboratorio",
+    NextAction.CONTACT_LABORATORY: "Contactar laboratorio",
+    NextAction.RECEIVE_FROM_LABORATORY: "Recibir del laboratorio",
+    NextAction.SEND_TO_PILAR: "Enviar a Pilar",
+    NextAction.RECEIVE_IN_PILAR: "Recibir en Pilar",
+    NextAction.RESOLVE_RECEPTION: "Resolver recepción",
+    NextAction.NONE: "Sin acción pendiente",
+}
+
+#: Etapa a la que lleva cada accion. `None` cuando la accion no transiciona.
+TRANSICION_DE_ACCION = {
+    NextAction.RECEIVE_IN_ASUNCION: TrackingStatus.RECEIVED_IN_ASUNCION,
+    NextAction.SEND_TO_LABORATORY: TrackingStatus.IN_LABORATORY,
+    NextAction.RECEIVE_FROM_LABORATORY: TrackingStatus.RECEIVED_FROM_LABORATORY,
+    NextAction.SEND_TO_PILAR: TrackingStatus.SENT_TO_PILAR,
+    NextAction.RECEIVE_IN_PILAR: TrackingStatus.RECEIVED_IN_PILAR,
+    NextAction.CONTACT_LABORATORY: None,
+    NextAction.RESOLVE_RECEPTION: None,
+    NextAction.NONE: None,
+}
+
+
+def next_action(
+    status: TrackingStatus | str, *, overdue: bool = False,
+    reception_issue: ReceptionIssue | str | None = None,
+) -> NextAction:
+    """Que corresponde hacer ahora. Fuente unica para dominio, servicio y UI.
+
+    Ninguna otra capa decide esto: la barra de acciones, las alertas y las
+    operaciones masivas preguntan aca, de modo que no puedan discrepar.
+    """
+    etapa = TrackingStatus(status)
+    if reception_issue is not None and ReceptionIssue(reception_issue) is ReceptionIssue.NOT_ARRIVED:
+        # Figuraba en el envio pero no aparecio: no avanza hasta resolverse.
+        return NextAction.RESOLVE_RECEPTION
+    if etapa is TrackingStatus.SENT_FROM_PILAR:
+        return NextAction.RECEIVE_IN_ASUNCION
+    if etapa is TrackingStatus.RECEIVED_IN_ASUNCION:
+        return NextAction.SEND_TO_LABORATORY
+    if etapa is TrackingStatus.IN_LABORATORY:
+        return (NextAction.CONTACT_LABORATORY if overdue
+                else NextAction.RECEIVE_FROM_LABORATORY)
+    if etapa is TrackingStatus.RECEIVED_FROM_LABORATORY:
+        return NextAction.SEND_TO_PILAR
+    if etapa is TrackingStatus.SENT_TO_PILAR:
+        return NextAction.RECEIVE_IN_PILAR
+    return NextAction.NONE
+
+
 #: Sucursal de proceso por defecto: donde se reciben los trabajos de la
 #: consulta y desde donde se despachan a los laboratorios.
 SUCURSAL_PROCESO_POR_DEFECTO = "ASUNCION"
@@ -277,6 +353,7 @@ class TrackedWork:
     expected_time: time | str | None = None
     confirmed_for_next_day: bool = False
     processing_branch: str = SUCURSAL_PROCESO_POR_DEFECTO
+    reception_issue: ReceptionIssue | str | None = None
     order_id: str | None = None
     cash_entry_id: str | None = None
     shipment_id: str | None = None
@@ -310,6 +387,10 @@ class TrackedWork:
             )
         object.__setattr__(self, "expected_time", parse_expected_time(self.expected_time))
         object.__setattr__(self, "confirmed_for_next_day", bool(self.confirmed_for_next_day))
+        if self.reception_issue not in (None, ""):
+            object.__setattr__(self, "reception_issue", ReceptionIssue(self.reception_issue))
+        else:
+            object.__setattr__(self, "reception_issue", None)
         object.__setattr__(self, "transitions", tuple(self.transitions))
         object.__setattr__(self, "contacts", tuple(self.contacts))
 
@@ -337,6 +418,12 @@ class TrackedWork:
         if moment.tzinfo is None:
             moment = moment.replace(tzinfo=BUSINESS_TIMEZONE)
         return moment >= deadline
+
+    def next_action(self, now: datetime | None = None) -> NextAction:
+        return next_action(
+            self.status, overdue=self.is_overdue(now),
+            reception_issue=self.reception_issue,
+        )
 
     @property
     def responsible_branch(self) -> str | None:
@@ -387,6 +474,12 @@ class TrackedWork:
             "transitions": self.transitions + (transicion,),
             "updated_at": transicion.recorded_at,
         }
+        if (target is TrackingStatus.RECEIVED_IN_ASUNCION
+                and self.reception_issue is ReceptionIssue.NOT_ARRIVED):
+            # Aparecio despues de todo: la discrepancia queda resuelta. En
+            # cambio NO_ESTABA_EN_LISTA persiste, porque documenta que el
+            # trabajo entro fuera del envio declarado.
+            cambios["reception_issue"] = None
         if target is not TrackingStatus.IN_LABORATORY:
             # El plazo pertenece a la estadia en laboratorio: al salir de ella
             # deja de existir y con el desaparece cualquier atraso heredado.
