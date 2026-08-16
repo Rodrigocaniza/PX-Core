@@ -16,6 +16,8 @@ from ..domain.errors import InvalidCashDayError
 from ..domain.models import BUSINESS_TIMEZONE, parse_business_date
 from ..domain.tracking import (
     DEFAULT_EXPECTED_TIME,
+    SUCURSAL_PROCESO_POR_DEFECTO,
+    normalizar_sucursal,
     ContactChannel,
     ContactRecord,
     Laboratory,
@@ -120,6 +122,10 @@ class BoardRow:
         return self.physical_status
 
     @property
+    def responsible_branch(self) -> str | None:
+        return self.work.responsible_branch
+
+    @property
     def work_type(self) -> str:
         """Tipo de trabajo, tomado de la observacion del pedido de origen."""
         observacion = (self.work.observations or "").strip()
@@ -221,6 +227,80 @@ class TrackingService:
     def selectable_laboratories(self) -> Sequence[Laboratory]:
         """Opciones validas para un envio nuevo: solo laboratorios activos."""
         return self.repository.list_laboratories(only_active=True)
+
+    # -- vinculo caja -> sucursal ------------------------------------------
+
+    def branch_of_register(self, cash_register: str) -> str | None:
+        """Sucursal de la caja. None si nadie la asigno: no se adivina."""
+        return self.repository.branch_of_register(cash_register)
+
+    def bind_register_to_branch(
+        self, cash_register: str, branch: str, *, assigned_by: str, reason: str = "",
+    ) -> None:
+        self.repository.bind_register_to_branch(
+            cash_register, branch, assigned_by=assigned_by, reason=reason)
+
+    def list_register_branches(self):
+        return self.repository.list_register_branches()
+
+    def pending_actions_for_branch(
+        self, branch: str, *, now: datetime | None = None,
+    ) -> dict:
+        """Que tiene pendiente este local, y nada mas.
+
+        Se calcula por sucursal responsable de la proxima accion, no por la
+        mera existencia del trabajo: el mismo trabajo alerta en Asuncion
+        mientras esta en laboratorio y en Pilar recien cuando va en camino.
+        """
+        objetivo = normalizar_sucursal(branch)
+        momento = now or datetime.now(BUSINESS_TIMEZONE)
+        works = [
+            w for w in self.list_works()
+            if w.responsible_branch == objetivo and w.status not in ESTADOS_COMPLETADOS
+        ]
+        por_recibir_consulta = sum(
+            1 for w in works if w.status is TrackingStatus.SENT_FROM_PILAR)
+        por_enviar_lab = sum(
+            1 for w in works if w.status is TrackingStatus.RECEIVED_IN_ASUNCION)
+        en_lab = sum(1 for w in works if w.status is TrackingStatus.IN_LABORATORY)
+        atrasados = sum(1 for w in works if w.is_overdue(momento))
+        por_encomendar = sum(
+            1 for w in works if w.status is TrackingStatus.RECEIVED_FROM_LABORATORY)
+        por_recibir_encomienda = sum(
+            1 for w in works if w.status is TrackingStatus.SENT_TO_PILAR)
+        alertas = []
+        if atrasados:
+            alertas.append({
+                "clave": "atrasados", "cantidad": atrasados, "filtro": "Atrasados",
+                "texto": f"{atrasados} atrasado{'' if atrasados == 1 else 's'}"
+                         " — contactar laboratorios"})
+        if por_recibir_consulta:
+            alertas.append({
+                "clave": "por_recibir", "cantidad": por_recibir_consulta,
+                "filtro": "Por recibir",
+                "texto": f"{por_recibir_consulta} por recibir desde Pilar"})
+        if por_enviar_lab:
+            alertas.append({
+                "clave": "por_enviar_lab", "cantidad": por_enviar_lab,
+                "filtro": "Recibidos en Asunción",
+                "texto": f"{por_enviar_lab} pendiente{'' if por_enviar_lab == 1 else 's'}"
+                         " de enviar a laboratorio"})
+        if por_encomendar:
+            alertas.append({
+                "clave": "por_encomendar", "cantidad": por_encomendar,
+                "filtro": "Listos p/ Pilar",
+                "texto": f"{por_encomendar} listo{'' if por_encomendar == 1 else 's'}"
+                         " para enviar a Pilar"})
+        if por_recibir_encomienda:
+            alertas.append({
+                "clave": "por_recibir_encomienda", "cantidad": por_recibir_encomienda,
+                "filtro": "En tránsito",
+                "texto": f"{por_recibir_encomienda} encomienda(s) por recibir en "
+                         f"{objetivo.title()}"})
+        return {
+            "branch": objetivo, "total": len(works), "alertas": alertas,
+            "atrasados": atrasados, "en_laboratorio": en_lab,
+        }
 
     # -- alta de lote desde Pilar ------------------------------------------
 
@@ -493,8 +573,8 @@ class TrackingService:
     def board(
         self, *, consultation_date: date | str | None = None, status: str | None = None,
         laboratory_id: str | None = None, only_overdue: bool = False,
-        origin_branch: str | None = None, scope: str = SCOPE_ACTIVOS,
-        now: datetime | None = None,
+        origin_branch: str | None = None, responsible_branch: str | None = None,
+        scope: str = SCOPE_ACTIVOS, now: datetime | None = None,
     ) -> dict:
         """Todo lo que la pantalla necesita, resuelto en una sola consulta.
 
@@ -507,7 +587,11 @@ class TrackingService:
             consultation_date=consultation_date, status=status, laboratory_id=laboratory_id,
         ))
         if origin_branch:
-            works = [work for work in works if work.origin_branch == origin_branch.strip().upper()]
+            works = [work for work in works if work.origin_branch == normalizar_sucursal(origin_branch)]
+        if responsible_branch:
+            # Vista operativa local: solo lo que este local tiene que resolver.
+            objetivo = normalizar_sucursal(responsible_branch)
+            works = [w for w in works if w.responsible_branch == objetivo]
         if scope == SCOPE_ACTIVOS:
             works = [w for w in works if w.status not in ESTADOS_COMPLETADOS]
         elif scope == SCOPE_COMPLETADOS:

@@ -8,7 +8,7 @@ import sqlite3
 from contextlib import contextmanager
 from datetime import date, datetime
 from pathlib import Path
-from typing import Iterator, Sequence
+from typing import Any, Iterator, Mapping, Sequence
 
 from ..domain.errors import InvalidCashDayError
 
@@ -827,6 +827,64 @@ class SQLiteCashDayRepository:
             ).fetchall()
             return [self._hydrate_tracked_work(connection, row) for row in rows]
 
+    def branch_of_register(self, cash_register: str) -> str | None:
+        """Sucursal ligada a la caja, o None si nadie la asigno todavia."""
+        with self._connection() as connection:
+            fila = connection.execute(
+                "SELECT branch FROM cash_register_branches WHERE cash_register = ?",
+                (str(cash_register or "").strip(),),
+            ).fetchone()
+        return fila["branch"] if fila else None
+
+    def list_register_branches(self) -> Sequence[Mapping[str, Any]]:
+        with self._connection() as connection:
+            return [dict(r) for r in connection.execute(
+                "SELECT * FROM cash_register_branches ORDER BY cash_register")]
+
+    def bind_register_to_branch(
+        self, cash_register: str, branch: str, *, assigned_by: str, reason: str = "",
+    ) -> None:
+        """Asigna o reasigna la sucursal de una caja, dejando traza.
+
+        Reasignar es administrativo y queda auditado: una caja no puede
+        cambiar de sucursal durante la operacion normal.
+        """
+        caja = str(cash_register or "").strip()
+        sucursal = str(branch or "").strip().upper()
+        responsable = str(assigned_by or "").strip()
+        if not caja or not sucursal:
+            raise InvalidCashDayError("caja y sucursal son obligatorias")
+        if not responsable:
+            raise InvalidCashDayError("la asignacion requiere responsable")
+        ahora = datetime.now().astimezone().isoformat()
+        with self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            previa = connection.execute(
+                "SELECT branch FROM cash_register_branches WHERE cash_register = ?", (caja,),
+            ).fetchone()
+            connection.execute(
+                """INSERT INTO cash_register_branches(
+                    cash_register, branch, assigned_by, reason, created_at, updated_at
+                ) VALUES (?,?,?,?,?,?)
+                ON CONFLICT(cash_register) DO UPDATE SET
+                    branch=excluded.branch, assigned_by=excluded.assigned_by,
+                    reason=excluded.reason, updated_at=excluded.updated_at""",
+                (caja, sucursal, responsable, str(reason or "").strip(), ahora, ahora),
+            )
+            connection.execute(
+                """INSERT INTO admin_audit_log(
+                    id, actor, action, target_type, target_id, result, details_json, recorded_at
+                ) VALUES (?,?,?,?,?,?,?,?)""",
+                (
+                    __import__("uuid").uuid4().hex, responsable,
+                    "CASH_REGISTER_BRANCH_BIND", "cash_register", caja, "SUCCESS",
+                    json.dumps({"anterior": previa["branch"] if previa else None,
+                                "nueva": sucursal, "motivo": reason}, ensure_ascii=False),
+                    ahora,
+                ),
+            )
+            connection.commit()
+
     def laboratory_has_history(self, laboratory_id: str) -> bool:
         with self._connection() as connection:
             fila = connection.execute(
@@ -846,14 +904,15 @@ class SQLiteCashDayRepository:
             try:
                 connection.execute(
                     """INSERT INTO tracked_works(
-                        id,envelope,customer_name,status,origin_branch,laboratory_id,
+                        id,envelope,customer_name,status,origin_branch,processing_branch,laboratory_id,
                         expected_date,expected_time,confirmed_for_next_day,order_id,
                         cash_entry_id,shipment_id,consultation_date,observations,created_by,
                         created_at,updated_at
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         envelope=excluded.envelope, customer_name=excluded.customer_name,
                         status=excluded.status, origin_branch=excluded.origin_branch,
+                        processing_branch=excluded.processing_branch,
                         laboratory_id=excluded.laboratory_id,
                         expected_date=excluded.expected_date,
                         expected_time=excluded.expected_time,
@@ -865,7 +924,8 @@ class SQLiteCashDayRepository:
                         updated_at=excluded.updated_at""",
                     (
                         work.id, work.envelope, work.customer_name, work.status.value,
-                        work.origin_branch, work.laboratory_id, _iso(work.expected_date),
+                        work.origin_branch, work.processing_branch, work.laboratory_id,
+                        _iso(work.expected_date),
                         work.expected_time.strftime("%H:%M") if work.expected_time else None,
                         int(work.confirmed_for_next_day), work.order_id, work.cash_entry_id,
                         work.shipment_id, _iso(work.consultation_date), work.observations, work.created_by,
@@ -952,6 +1012,7 @@ class SQLiteCashDayRepository:
         return TrackedWork(
             id=row["id"], envelope=row["envelope"], customer_name=row["customer_name"],
             status=row["status"], origin_branch=row["origin_branch"],
+            processing_branch=row["processing_branch"],
             laboratory_id=row["laboratory_id"], expected_date=row["expected_date"],
             expected_time=row["expected_time"],
             confirmed_for_next_day=bool(row["confirmed_for_next_day"]),

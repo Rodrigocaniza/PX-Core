@@ -51,6 +51,44 @@ ALLOWED_TRANSITIONS: Mapping[TrackingStatus, tuple[TrackingStatus, ...]] = {
     TrackingStatus.CLOSED: (),
 }
 
+#: Sucursal de proceso por defecto: donde se reciben los trabajos de la
+#: consulta y desde donde se despachan a los laboratorios.
+SUCURSAL_PROCESO_POR_DEFECTO = "ASUNCION"
+
+#: Que sucursal tiene la proxima accion en cada etapa. `ORIGEN` es la que
+#: mando el trabajo (Pilar en el caso canonico) y `PROCESO` la que lo recibe y
+#: gestiona con los laboratorios. La responsabilidad se deriva de la etapa, no
+#: de quien cargo el trabajo ni de que cajera esta operando.
+ORIGEN, PROCESO, NADIE = "ORIGEN", "PROCESO", None
+RESPONSABLE_POR_ETAPA: Mapping[TrackingStatus, str | None] = {
+    # Salio de la consulta: le toca recibirlo a la sucursal de proceso.
+    TrackingStatus.SENT_FROM_PILAR: PROCESO,
+    TrackingStatus.RECEIVED_IN_ASUNCION: PROCESO,
+    TrackingStatus.IN_LABORATORY: PROCESO,
+    TrackingStatus.RECEIVED_FROM_LABORATORY: PROCESO,
+    # Va en encomienda de vuelta: le toca recibirlo a la sucursal de origen.
+    TrackingStatus.SENT_TO_PILAR: ORIGEN,
+    # Circuito completo: ya no hay proxima accion.
+    TrackingStatus.RECEIVED_IN_PILAR: NADIE,
+    TrackingStatus.CLOSED: NADIE,
+}
+
+
+def normalizar_sucursal(valor: str | None) -> str:
+    return str(valor or "").strip().upper()
+
+
+def sucursal_responsable(
+    status: TrackingStatus | str, *, origin_branch: str,
+    processing_branch: str = SUCURSAL_PROCESO_POR_DEFECTO,
+) -> str | None:
+    """Sucursal a la que le toca la proxima accion, o None si termino."""
+    rol = RESPONSABLE_POR_ETAPA[TrackingStatus(status)]
+    if rol is NADIE:
+        return None
+    return normalizar_sucursal(origin_branch if rol is ORIGEN else processing_branch)
+
+
 #: Etapas en las que el trabajo esta fisicamente en poder del laboratorio y,
 #: por lo tanto, un plazo vencido significa que hay que llamar.
 LATENESS_APPLIES_TO = (TrackingStatus.IN_LABORATORY,)
@@ -238,6 +276,7 @@ class TrackedWork:
     expected_date: date | str | None = None
     expected_time: time | str | None = None
     confirmed_for_next_day: bool = False
+    processing_branch: str = SUCURSAL_PROCESO_POR_DEFECTO
     order_id: str | None = None
     cash_entry_id: str | None = None
     shipment_id: str | None = None
@@ -258,7 +297,10 @@ class TrackedWork:
         object.__setattr__(self, "envelope", envelope)
         object.__setattr__(self, "customer_name", customer)
         object.__setattr__(self, "status", TrackingStatus(self.status))
-        object.__setattr__(self, "origin_branch", str(self.origin_branch or "").strip().upper())
+        object.__setattr__(self, "origin_branch", normalizar_sucursal(self.origin_branch))
+        object.__setattr__(
+            self, "processing_branch",
+            normalizar_sucursal(self.processing_branch) or SUCURSAL_PROCESO_POR_DEFECTO)
         object.__setattr__(self, "observations", str(self.observations or "").strip())
         object.__setattr__(self, "created_by", str(self.created_by or "").strip())
         for attribute in ("expected_date", "consultation_date"):
@@ -295,6 +337,14 @@ class TrackedWork:
         if moment.tzinfo is None:
             moment = moment.replace(tzinfo=BUSINESS_TIMEZONE)
         return moment >= deadline
+
+    @property
+    def responsible_branch(self) -> str | None:
+        """Sucursal con la proxima accion. None si el circuito termino."""
+        return sucursal_responsable(
+            self.status, origin_branch=self.origin_branch,
+            processing_branch=self.processing_branch,
+        )
 
     @property
     def last_contact(self) -> ContactRecord | None:

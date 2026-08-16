@@ -3246,6 +3246,24 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     seguimiento = ctk.CTkFrame(tab_seguimiento, fg_color="transparent")
     seguimiento.pack(fill="both", expand=True, padx=10, pady=8)
 
+    # La sucursal sale del vinculo persistente de esta caja, no de la cajera ni
+    # del combo de unidad del formulario. Si nadie la asigno, no se adivina.
+    def caja_instalada():
+        try:
+            return str(controller.admin.setting("branch").get("cashbox", "")).strip()
+        except Exception:
+            return ""
+
+    contexto_sucursal = {
+        "caja": caja_instalada(),
+        "sucursal": None,
+        "todas": False,
+    }
+    contexto_sucursal["sucursal"] = (
+        controller.tracking.branch_of_register(contexto_sucursal["caja"])
+        if contexto_sucursal["caja"] else None
+    )
+
     alerta_seguimiento = ctk.CTkLabel(
         seguimiento, text="", height=30, corner_radius=6, anchor="w",
         fg_color="#FDECEC", text_color="#A32626",
@@ -3300,6 +3318,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("Activos", None), ("Atrasados", "OVERDUE"),
         ("Por recibir", "ENVIADO_DESDE_PILAR"), ("En laboratorio", "EN_LABORATORIO"),
         ("Listos p/ Pilar", "RECIBIDO_DEL_LABORATORIO"), ("En tránsito", "ENVIADO_A_PILAR"),
+        ("Recibidos en Asunción", "RECIBIDO_EN_ASUNCION"),
         ("Completados", "COMPLETADOS"), ("Todos", "TODOS"),
     )
     botones_seguimiento = {}
@@ -3313,6 +3332,25 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         )
         boton_seg.pack(side="left", padx=2)
         botones_seguimiento[nombre_filtro] = boton_seg
+
+    etiqueta_sucursal = ctk.CTkLabel(
+        barra_seguimiento, text="", text_color=color_texto,
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+    )
+    etiqueta_sucursal.pack(side="right", padx=(10, 6))
+
+    def alternar_alcance_sucursal():
+        contexto_sucursal["todas"] = not contexto_sucursal["todas"]
+        refrescar_seguimiento()
+
+    boton_alcance_sucursal = ctk.CTkButton(
+        barra_seguimiento, text="Ver todas las sucursales", width=185, height=30,
+        fg_color="#FFFFFF", text_color=color_suave, border_width=1,
+        border_color=color_borde_suave, hover_color="#EAF3FF",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=alternar_alcance_sucursal,
+    )
+    boton_alcance_sucursal.pack(side="right", padx=(6, 0))
 
     combo_lab_filtro = ctk.CTkComboBox(
         barra_seguimiento, values=["Todos los laboratorios"], width=190, height=30,
@@ -3400,6 +3438,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         "En laboratorio": "No hay trabajos en laboratorio.",
         "Listos p/ Pilar": "No hay trabajos listos para enviar a Pilar.",
         "En tránsito": "No hay trabajos en tránsito a Pilar.",
+        "Recibidos en Asunción": "No hay trabajos esperando envío a laboratorio.",
         "Completados": "Todavía no hay trabajos recibidos en Pilar.",
         "Todos": "No hay trabajos registrados en el seguimiento.",
     }
@@ -3419,6 +3458,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     acciones_seguimiento.pack(fill="x", pady=(6, 0))
 
     estado_seguimiento = {"filas": {}, "chips": []}
+    contexto_alerta = {"filtro": "Atrasados"}
 
     def posicionar_chips_seguimiento():
         """Dibuja el estado como chip compacto sobre la celda de Estado.
@@ -3504,10 +3544,27 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             alcance, estado, solo_atrasados = "ACTIVOS", None, True
         else:
             alcance, estado, solo_atrasados = "ACTIVOS", valor_filtro, False
+        sucursal = contexto_sucursal["sucursal"]
+        local = None if (contexto_sucursal["todas"] or not sucursal) else sucursal
         tablero = controller.tracking.board(
             status=estado, only_overdue=solo_atrasados,
             laboratory_id=laboratory_id, scope=alcance,
+            responsible_branch=local,
         )
+        if not sucursal:
+            etiqueta_sucursal.configure(
+                text=f"Caja {contexto_sucursal['caja'] or '—'} sin sucursal asignada",
+                text_color="#B45309")
+            boton_alcance_sucursal.configure(state="disabled")
+        else:
+            etiqueta_sucursal.configure(
+                text=("Todas las sucursales" if contexto_sucursal["todas"]
+                      else f"Sucursal: {sucursal}"),
+                text_color=color_texto)
+            boton_alcance_sucursal.configure(
+                state="normal",
+                text=("Ver solo mi sucursal" if contexto_sucursal["todas"]
+                      else "Ver todas las sucursales"))
         for item in grilla_seguimiento.get_children():
             grilla_seguimiento.delete(item)
         estado_seguimiento["filas"].clear()
@@ -3532,15 +3589,32 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             text="Enviados: {enviados}    Recibidos: {recibidos}    "
                  "Falta recibir: {falta_recibir}".format(**recepcion)
         )
-        if tablero["alert"]:
-            sufijo = "" if activo == "Atrasados" else "   ·   clic para ver solo estos"
-            alerta_seguimiento.configure(text="  ⚠  " + tablero["alert"] + sufijo)
+        # Las alertas son de este local: se calculan por proxima accion
+        # pendiente de su sucursal, no por existencia global del trabajo.
+        pendientes = (
+            controller.tracking.pending_actions_for_branch(sucursal)
+            if sucursal and not contexto_sucursal["todas"] else None
+        )
+        if pendientes and pendientes["alertas"]:
+            principal = pendientes["alertas"][0]
+            contexto_alerta["filtro"] = principal["filtro"]
+            resto = len(pendientes["alertas"]) - 1
+            texto = f"  ⚠  {principal['texto']}"
+            if resto:
+                texto += f"   ·   y {resto} pendiente(s) más en {sucursal}"
+            alerta_seguimiento.configure(
+                text=texto + "   ·   clic para ver estos",
+                fg_color="#FDECEC" if principal["clave"] == "atrasados" else "#FFF7E8",
+                text_color="#A32626" if principal["clave"] == "atrasados" else "#7A4B00")
             alerta_seguimiento.pack(fill="x", pady=(0, 6), before=resumen_seguimiento)
-        elif activo != "Atrasados":
-            alerta_seguimiento.pack_forget()
+        elif tablero["alert"] and contexto_sucursal["todas"]:
+            contexto_alerta["filtro"] = "Atrasados"
+            alerta_seguimiento.configure(
+                text="  ⚠  " + tablero["alert"] + "   ·   clic para ver solo estos",
+                fg_color="#FDECEC", text_color="#A32626")
+            alerta_seguimiento.pack(fill="x", pady=(0, 6), before=resumen_seguimiento)
         else:
-            alerta_seguimiento.configure(text="  Sin trabajos atrasados en este momento.")
-            alerta_seguimiento.pack(fill="x", pady=(0, 6), before=resumen_seguimiento)
+            alerta_seguimiento.pack_forget()
         if not tablero["rows"]:
             vacio_seguimiento.configure(text=MENSAJES_VACIO.get(
                 activo, "No hay trabajos que mostrar con este filtro."))
@@ -3692,7 +3766,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         )
 
     def ir_a_atrasados(_event=None):
-        refrescar_seguimiento("Atrasados")
+        """Abre exactamente los trabajos que originaron la alerta."""
+        refrescar_seguimiento(contexto_alerta.get("filtro") or "Atrasados")
 
     alerta_seguimiento.configure(cursor="hand2")
     alerta_seguimiento.bind("<Button-1>", ir_a_atrasados, add="+")

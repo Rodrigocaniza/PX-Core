@@ -106,7 +106,7 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert connection.execute(
             "SELECT version FROM schema_migrations ORDER BY version"
-        ).fetchall() == [(f"{version:03d}",) for version in range(1, 18)]
+        ).fetchall() == [(f"{version:03d}",) for version in range(1, 19)]
         assert connection.execute(
             "SELECT agreement_amount,balance_text FROM cash_entries WHERE id='sale-anon'"
         ).fetchone() == (0, "999999")
