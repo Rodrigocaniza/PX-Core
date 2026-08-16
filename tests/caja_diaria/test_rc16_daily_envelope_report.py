@@ -15,6 +15,10 @@ from modulos.caja_diaria.domain.models import CashDay, CashEntry, SaleItem
 
 def representative_close():
     day = CashDay.open(date="15-08-2026", unit="PC", opening_cash=500_000, opened_by="Responsable demo")
+    # `opened_at` toma utc_now() por defecto: sin fijarlo, el cierre historico
+    # del 15-08-2026 queda antes de la apertura y el dominio lo rechaza. La
+    # jornada representativa debe ser determinista, no depender de la fecha.
+    day.opened_at = datetime(2026, 8, 15, 8, 0, tzinfo=timezone.utc)
     base = datetime(2026, 8, 15, 12, 0, tzinfo=timezone.utc)
     day.add_entry(CashEntry(
         description="Cliente multi artículo", envelope="S-010", customer_phone="0981 000 010",

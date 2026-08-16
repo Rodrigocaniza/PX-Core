@@ -16,6 +16,9 @@ from modulos.caja_diaria.domain.models import CashDay, CashEntry, SaleItem
 
 def sample():
     day = CashDay.open(date=date(2026, 8, 15), unit="PC", opening_cash=500_000, opened_by="Responsable demo")
+    # Sin fijar la apertura, `opened_at` usa utc_now() y el cierre historico
+    # queda antes de la apertura al regenerar la evidencia en otra fecha.
+    day.opened_at = datetime(2026, 8, 15, 8, 0, tzinfo=timezone.utc)
     base = datetime(2026, 8, 15, 11, 0, tzinfo=timezone.utc)
     for index in range(1, 31):
         items = (SaleItem(description=f"Armazón modelo {index:02d}", code=f"ARM-{index:03d}", frame_price=120_000),)

@@ -21,11 +21,13 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
             '"Estado: ABIERTO"',
             '"Estado: CERRADO"',
             'Guardar venta  —  F9',
-            '("esperado", "Esperado", "#0F5FB9")',
             'pestañas._segmented_button.grid_forget()',
             'boton_cancelar.pack_forget()',
         ):
             self.assertIn(text, source)
+        # RC18 movio la definicion de los KPI a constantes de modulo; el
+        # contrato se verifica sobre ellas en vez de sobre el texto fuente.
+        self.assertIn(("esperado", "Esperado", "#0F5FB9"), CajaDiaria.KPI_PRINCIPALES)
         self.assertNotIn("Resumen para arqueo", source)
 
 

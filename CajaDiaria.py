@@ -99,6 +99,41 @@ def perfil_visual(ancho: int, alto: int, escala_dpi: float = 1.0) -> dict:
     }
 
 
+# RC18: la cabecera muestra seis importes. Los tres primeros gobiernan la
+# decision operativa del dia; los tres restantes son respaldo y se agrupan
+# aparte para bajar el ruido visual. Solo afecta presentacion.
+KPI_PRINCIPALES = (
+    ("ventas", "Venta", "#1672E8"),
+    ("efectivo", "Efectivo", "#18A66A"),
+    ("esperado", "Esperado", "#0F5FB9"),
+)
+KPI_SECUNDARIOS = (
+    ("tarjeta", "Tarj./Transf.", "#52657D"),
+    ("gastos", "Gastos", "#B45309"),
+    ("entregado", "Entregado", "#6B5B95"),
+)
+
+
+def metricas_resumen_kpi(perfil: dict) -> dict:
+    """Tamanos del resumen de caja derivados del perfil visual vigente."""
+    if perfil["nombre"] == "full-hd":
+        # ViewSonic 24" a 1920x1080: el importe principal se lee de pie.
+        return {
+            "fuente_principal": perfil["fuente_kpi"],
+            "fuente_secundaria": max(10, perfil["fuente_kpi"] - 7),
+            "fuente_titulo": perfil["fuente_label"],
+            # Piso; el alto real lo fija el contenido medido del resumen.
+            "cabecera_alto": 52,
+        }
+    # 1366x768 conserva la altura de cabecera ya validada en RC15/RC17.
+    return {
+        "fuente_principal": max(10, perfil["fuente_kpi"] - 3),
+        "fuente_secundaria": max(9, perfil["fuente_kpi"] - 5),
+        "fuente_titulo": perfil["fuente_label"],
+        "cabecera_alto": 42,
+    }
+
+
 def area_trabajo_windows() -> tuple[int, int, int, int] | None:
     """RectÃ¡ngulo Ãºtil primario, excluida la barra de tareas de Windows."""
     if sys.platform != "win32":
@@ -1071,9 +1106,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     cabecera.pack(fill="x", padx=4, pady=(2, 2))
     cabecera.grid_propagate(False)
     cabecera.grid_columnconfigure(8, weight=1)
+    # RC18: el rotulo de seccion y las etiquetas de contexto quedan en un
+    # segundo plano tipografico para que los importes dominen la lectura.
+    fuente_chrome_cabecera = perfil["fuente_label"]
     ctk.CTkLabel(
         cabecera, text="RESUMEN DE CAJA", text_color=COLOR_TEXTO_SUAVE,
-        font=ctk.CTkFont(size=10, weight="bold")
+        font=ctk.CTkFont(size=fuente_chrome_cabecera, weight="bold")
     ).grid(row=0, column=0, sticky="w", padx=(10, 8), pady=4)
 
     controles_cabecera = [
@@ -1082,7 +1120,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("caja_inicial", "Caja inicial", 150),
     ]
     for indice, (clave, etiqueta, ancho) in enumerate(controles_cabecera):
-        ctk.CTkLabel(cabecera, text=etiqueta, text_color=COLOR_TEXTO_SUAVE).grid(
+        ctk.CTkLabel(
+            cabecera, text=etiqueta, text_color=COLOR_TEXTO_SUAVE,
+            font=ctk.CTkFont(size=fuente_chrome_cabecera, weight="bold"),
+        ).grid(
             row=0, column=indice * 2 + 1, sticky="w", padx=(4, 3), pady=4
         )
         if clave == "unidad":
@@ -1097,6 +1138,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     aviso_entregas = ctk.CTkButton(
         cabecera, text="Trabajos a entregar: 0", width=150, height=max(27, perfil["campo_alto"]),
+        font=ctk.CTkFont(size=fuente_chrome_cabecera, weight="bold"),
         fg_color="#FFF3CD", text_color="#7A4B00", border_width=1,
         border_color="#E6B85C", hover_color="#FFE5A3",
         command=lambda: (seleccionar_pestaña("Pedidos"), refrescar_pedidos("Hoy")),
@@ -1371,44 +1413,80 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     estado_operativo = ctk.CTkFrame(cabecera, fg_color="transparent")
     estado_operativo.grid(row=0, column=9, sticky="e", padx=4, pady=4)
 
+    # RC18: los controles de estado acompanan la escala del perfil en vez de
+    # quedar fijos en 20/24 px, que a 24" se leian como texto residual.
+    fuente_estado = perfil["fuente_label"]
+    alto_estado = max(20, perfil["campo_alto"] - 12)
+    alto_boton_estado = max(24, perfil["campo_alto"] - 6)
     estado_caja = ctk.CTkLabel(
-        estado_operativo, text="SIN CONSULTAR", width=120, height=20, corner_radius=5,
+        estado_operativo, text="SIN CONSULTAR", width=120, height=alto_estado,
+        corner_radius=5,
         fg_color=color_panel_alto, text_color=COLOR_TEXTO_SUAVE,
-        font=ctk.CTkFont(size=9, weight="bold"),
+        font=ctk.CTkFont(size=fuente_estado, weight="bold"),
     )
     estado_caja.pack(side="left", padx=(0, 5))
     boton_cerrar_caja = ctk.CTkButton(
-        estado_operativo, text="Cerrar caja", width=92, height=24,
+        estado_operativo, text="Cerrar caja", width=92, height=alto_boton_estado,
+        font=ctk.CTkFont(size=fuente_estado, weight="bold"),
         fg_color="#B42318", hover_color="#8F1C13", state="disabled",
         command=lambda: cerrar_caja(),
     )
     boton_cerrar_caja.pack(side="left")
     boton_arqueo = ctk.CTkButton(
-        estado_operativo, text="Arqueo", width=78, height=24,
+        estado_operativo, text="Arqueo", width=78, height=alto_boton_estado,
+        font=ctk.CTkFont(size=fuente_estado, weight="bold"),
         fg_color="#0F5FB9", hover_color="#0B4D98",
         command=lambda: abrir_modal_arqueo(),
     )
     boton_arqueo.pack(side="left", padx=(5, 0))
+    # RC18: jerarquia visual de KPI. Los importes que gobiernan la operacion
+    # (Venta, Efectivo, Esperado) se leen a distancia en ViewSonic 24"; el resto
+    # se agrupa como informacion secundaria. No cambia ningun calculo.
     resumen_compacto = ctk.CTkFrame(cabecera, fg_color="transparent")
     resumen_compacto.grid(row=0, column=8, sticky="e", padx=2, pady=2)
     etiquetas_kpi = {}
-    for clave, titulo, color in (
-        ("ventas", "Venta", color_azul), ("efectivo", "Efectivo", color_verde),
-        ("tarjeta", "Tarj./Transf.", "#52657D"), ("gastos", "Gastos", "#B45309"),
-        ("entregado", "Entregado", "#6B5B95"), ("esperado", "Esperado", "#0F5FB9"),
-    ):
-        indicador = ctk.CTkFrame(resumen_compacto, fg_color="#F7FAFF", corner_radius=4)
-        indicador.pack(side="left", padx=1)
+    metricas_kpi = metricas_resumen_kpi(perfil)
+    fuente_kpi_principal = metricas_kpi["fuente_principal"]
+    fuente_kpi_secundaria = metricas_kpi["fuente_secundaria"]
+    fuente_kpi_titulo = metricas_kpi["fuente_titulo"]
+
+    def agregar_kpi(padre, clave, titulo, color, principal):
+        indicador = ctk.CTkFrame(
+            padre, fg_color="#FFFFFF" if principal else "#F1F5FA", corner_radius=5,
+        )
+        indicador.pack(side="left", padx=(0, 3 if principal else 2))
+        # CTkLabel pide 28 px de alto por defecto, sin relacion con la fuente:
+        # sin altura explicita la tarjeta ocupaba 59 px en todos los perfiles.
+        tam_titulo = fuente_kpi_titulo if principal else max(8, fuente_kpi_titulo - 1)
+        tam_valor = fuente_kpi_principal if principal else fuente_kpi_secundaria
         ctk.CTkLabel(
             indicador, text=titulo, text_color=color_suave,
-            font=ctk.CTkFont(size=8, weight="bold"),
-        ).pack(padx=4, pady=(1, 0))
+            height=tam_titulo + 6,
+            font=ctk.CTkFont(size=tam_titulo, weight="bold"),
+        ).pack(padx=6 if principal else 4, pady=(1, 0))
         valor = ctk.CTkLabel(
             indicador, text="—", text_color=color,
-            font=ctk.CTkFont(size=10, weight="bold"),
+            height=tam_valor + 8,
+            font=ctk.CTkFont(size=tam_valor, weight="bold"),
         )
-        valor.pack(padx=4, pady=(0, 1))
+        valor.pack(padx=6 if principal else 4, pady=(0, 2 if principal else 1))
         etiquetas_kpi[clave] = valor
+
+    bloque_kpi_principal = ctk.CTkFrame(resumen_compacto, fg_color="transparent")
+    bloque_kpi_principal.pack(side="left")
+    for clave, titulo, color in KPI_PRINCIPALES:
+        agregar_kpi(bloque_kpi_principal, clave, titulo, color, True)
+
+    # height=2 explicito: CTkFrame pide 200 px por defecto y, con fill="y",
+    # ese pedido estiraba la fila de la cabecera y desplazaba los importes.
+    ctk.CTkFrame(resumen_compacto, width=1, height=2, fg_color="#D8E3EF").pack(
+        side="left", fill="y", padx=(3, 4), pady=3,
+    )
+
+    bloque_kpi_secundario = ctk.CTkFrame(resumen_compacto, fg_color="transparent")
+    bloque_kpi_secundario.pack(side="left")
+    for clave, titulo, color in KPI_SECUNDARIOS:
+        agregar_kpi(bloque_kpi_secundario, clave, titulo, color, False)
     def formatear_campo_monetario(clave):
         campo = campos_manual[clave]
         texto = formatear_importe_ui(campo.get())
@@ -2107,8 +2185,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     acciones_primarias.pack(fill="x", padx=4, pady=3)
     boton_abrir = ctk.CTkButton(
         estado_operativo, text="ABRIR / CONSULTAR", command=abrir_o_consultar,
-        width=118, height=21, corner_radius=4, fg_color=color_azul,
-        hover_color="#1D65C5", font=ctk.CTkFont(size=9, weight="bold"),
+        width=118, height=alto_boton_estado, corner_radius=4, fg_color=color_azul,
+        hover_color="#1D65C5", font=ctk.CTkFont(size=fuente_estado, weight="bold"),
     )
     boton_abrir.pack(side="left", padx=(0, 5), before=estado_caja)
 
@@ -2300,7 +2378,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     ancho_total = min(perfil["contenido_ancho"], ancho_logico - 22)
     y_cabecera = 4
     es_full_hd = perfil["nombre"] == "full-hd"
-    alto_cabecera = 52 if es_full_hd else 36
+    alto_cabecera = max(
+        metricas_kpi["cabecera_alto"] if es_full_hd else 36,
+        resumen_compacto.winfo_reqheight() + 8,
+    )
     alto_form = 310 if es_full_hd else 210
     alto_draft = 220 if es_full_hd else 160
     alto_secundario = 40 if es_full_hd else 36
@@ -2347,6 +2428,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         x=8,
         y=y_grilla + alto_grilla + 3,
     )
+    # RC18: la cabecera full-hd crece para alojar los KPI jerarquizados; el
+    # presupuesto vertical restante lo absorbe la grilla, que a 1080p sobra.
+    alto_cabecera_full_hd = metricas_resumen_kpi(perfil_visual(1920, 1080))["cabecera_alto"]
     estado_layout = {"after": None, "metricas": {}}
 
     def aplicar_macro_layout():
@@ -2359,7 +2443,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         x_actual = max(4, (ancho_cliente - ancho_actual) // 2)
         full_hd_actual = ancho_cliente >= 1700 and alto_cliente >= 850
         if full_hd_actual:
-            alto_cab, alto_tot = 52, 0
+            alto_cab, alto_tot = alto_cabecera_full_hd, 0
             form_preferido, form_minimo = 310, 280
             draft_preferido, draft_minimo = 220, 110
             alto_sec, sep = 40, 5
@@ -2369,6 +2453,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             # Baseline RC5 conservado para trazabilidad: draft_preferido, draft_minimo = 182, 145
             draft_preferido, draft_minimo = 195, 175
             alto_sec, sep = 32, 1
+        # RC18: el perfil tipografico proviene de la pantalla y el alto de
+        # cabecera de la ventana. Una ventana reducida en un monitor grande
+        # conserva las tarjetas grandes, asi que la cabecera se ajusta al
+        # contenido real del resumen en vez de a una constante por rama.
+        alto_cab = max(alto_cab, resumen_compacto.winfo_reqheight() + 8)
         margen_inferior = 4
         alto_pie_actual = max(18, pie.winfo_reqheight())
         fila_renderizada = int(estilo.lookup("Caja.Treeview", "rowheight"))

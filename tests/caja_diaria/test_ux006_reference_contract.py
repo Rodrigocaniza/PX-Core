@@ -17,8 +17,6 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             '("Todos", "Ventas", "Salidas", "Pendientes")',
             '"Caja inicial"',
             'resumen_compacto',
-            '"Tarj./Transf."',
-            '"Entregado"',
             'cabecera.configure(width=ancho_actual, height=alto_cab)',
             'formulario.configure(width=ancho_actual, height=alto_form_actual)',
             'formulario.place(x=x_actual, y=y_form_actual)',
@@ -42,6 +40,13 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             'describir_diferencia_arqueo',
         ):
             self.assertIn(text, source)
+        # RC18: los rotulos del resumen viven en constantes de modulo.
+        titulos = [
+            titulo for _c, titulo, _color
+            in CajaDiaria.KPI_PRINCIPALES + CajaDiaria.KPI_SECUNDARIOS
+        ]
+        self.assertIn("Tarj./Transf.", titulos)
+        self.assertIn("Entregado", titulos)
 
     def test_visible_money_format_and_total_rule(self):
         self.assertEqual(CajaDiaria.formatear_importe_ui("1250000"), "1.250.000")
