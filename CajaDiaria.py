@@ -136,6 +136,33 @@ def metricas_resumen_kpi(perfil: dict) -> dict:
     }
 
 
+#: Ultimo recurso si no se encuentra VERSION.txt. Debe coincidir con
+#: pilot/package_docs/VERSION.txt; hay una prueba que lo verifica.
+VERSION_APLICACION = "1.0.0-rc.20"
+
+
+def version_aplicacion() -> str:
+    """Version mostrada en el pie, leida del VERSION.txt que acompaña al programa.
+
+    Estaba cableada y el paquete quedo autoidentificandose con una version
+    vieja tras instalar. Leerla del archivo que el build ya empaqueta hace que
+    programa y paquete no puedan divergir.
+    """
+    candidatos = [
+        Path(getattr(sys, "_MEIPASS", "")).parent / "VERSION.txt",   # junto al .exe
+        Path(sys.executable).parent / "VERSION.txt",
+        Path(__file__).resolve().parent / "pilot" / "package_docs" / "VERSION.txt",
+    ]
+    for ruta in candidatos:
+        try:
+            primera = ruta.read_text(encoding="utf-8").splitlines()[0].strip()
+        except (OSError, IndexError, ValueError):
+            continue
+        if primera.startswith("BC Caja "):
+            return primera[len("BC Caja "):].strip()
+    return VERSION_APLICACION
+
+
 def area_trabajo_windows() -> tuple[int, int, int, int] | None:
     """RectÃ¡ngulo Ãºtil primario, excluida la barra de tareas de Windows."""
     if sys.platform != "win32":
@@ -2358,7 +2385,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     ruta_datos = resolve_data_paths().root
     etiqueta_pie = ctk.CTkLabel(
         pie,
-        text=f"BC Caja 1.0.0-rc.17   ·   Datos: {ruta_datos}",
+        text=f"BC Caja {version_aplicacion()}   ·   Datos: {ruta_datos}",
         anchor="w", text_color=COLOR_TEXTO_SUAVE, font=ctk.CTkFont(size=9),
     )
     etiqueta_pie.pack(side="left", fill="x", expand=True)

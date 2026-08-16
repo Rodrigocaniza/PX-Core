@@ -2,28 +2,182 @@
   "mission": "BC-CAJA-RC18-RC20-INTEGRATION-001",
   "base_commit": "78839013ed28dc7ba4888565886e8b9d838c3c4e",
   "branch": "release/bc-caja-rc18-rc20-integration-001",
-  "current_state": "INTEGRATION_CLOSED",
+  "current_state": "INSTALLED_AND_VALIDATED",
   "continuous_session": "ACTIVE",
   "auto_resume": "ACTIVE",
   "safe_closure": "COMPLETE",
-  "installation": "PENDING_HUMAN_GATE",
-  "mission_lease": {"state": "RELEASED", "holder": null},
+  "installation": "COMPLETE",
+  "mission_lease": {
+    "state": "RELEASED",
+    "holder": null
+  },
   "history": [
-    {"event": "CANONICAL_GRAPH_VERIFIED", "shape": "lineal", "rc18": "fdac03a", "rc19": "c4e5344", "rc20": "7883901", "exclusive_commits": 6, "behind": 0, "remote": "0/0"},
-    {"event": "INSTALLED_VERSION_IDENTIFIED", "version": "BC Caja 1.0.0-rc.17", "path": "%LOCALAPPDATA%/Programs/BC-Caja-Pilot", "rollbacks": ["rollback-rc16-20260815", "rollback-rc15-20260815"]},
-    {"event": "STRATEGY_DECIDED", "choice": "reutilizar linealidad, sin merge ni cherry-pick", "duplicated_commits": 0, "force_push": false, "closed_branches_rewritten": 0},
-    {"event": "SLICE_INT_1_PASS", "scope": "ventana por defecto de 3 dias", "targeted": 9},
-    {"event": "SLICE_INT_2_PASS", "scope": "regresion canonica", "full": 336, "failed": 0},
-    {"event": "VISUAL_SMOKE_PASSED", "missions": ["RC18", "RC19", "RC20"], "resolutions": ["1920x1080", "1366x768"], "emails": 0, "new_closures": 0},
-    {"event": "MIGRATIONS_VERIFIED", "chain": "001..017", "integrity_check": "ok", "idempotent": true},
-    {"event": "PRODUCTION_DATA_MIGRATION_REHEARSED", "from": "015", "to": "017", "data_preserved": true, "production_file_untouched": true},
-    {"event": "SENSITIVE_AREAS_UNTOUCHED_BY_DIFF", "areas": ["economico", "correo", "cierres", "arqueos", "convenios", "factufacil", "comunicaciones"]},
-    {"event": "CAPTURE_PRIVACY_RULE_APPLIED", "detail": "encuadre en la ventana de la app con contencion verificada; fail-closed"},
-    {"event": "CAPTURE_LEAK_FOUND_AND_FIXED", "detail": "el recorte por rectangulo de dialogo dejaba entrar escritorio por desfase DPI"},
-    {"event": "ARTIFACT_CONSISTENCY_PASSED"},
-    {"event": "INTEGRATION_COMMIT_PASSED", "staging": "rutas explicitas", "comunicaciones_excluido": true, "main_no_tocada": true},
-    {"event": "INSTALL_PACKAGE_PREPARED", "installed_now": "1.0.0-rc.17", "rollback_preserved": true},
-    {"event": "MISSION_LEASE_RELEASED"},
-    {"event": "INTEGRATION_CLOSED", "installation_executed": false}
-  ]
+    {
+      "event": "CANONICAL_GRAPH_VERIFIED",
+      "shape": "lineal",
+      "rc18": "fdac03a",
+      "rc19": "c4e5344",
+      "rc20": "7883901",
+      "exclusive_commits": 6,
+      "behind": 0,
+      "remote": "0/0"
+    },
+    {
+      "event": "INSTALLED_VERSION_IDENTIFIED",
+      "version": "BC Caja 1.0.0-rc.17",
+      "path": "%LOCALAPPDATA%/Programs/BC-Caja-Pilot",
+      "rollbacks": [
+        "rollback-rc16-20260815",
+        "rollback-rc15-20260815"
+      ]
+    },
+    {
+      "event": "STRATEGY_DECIDED",
+      "choice": "reutilizar linealidad, sin merge ni cherry-pick",
+      "duplicated_commits": 0,
+      "force_push": false,
+      "closed_branches_rewritten": 0
+    },
+    {
+      "event": "SLICE_INT_1_PASS",
+      "scope": "ventana por defecto de 3 dias",
+      "targeted": 9
+    },
+    {
+      "event": "SLICE_INT_2_PASS",
+      "scope": "regresion canonica",
+      "full": 336,
+      "failed": 0
+    },
+    {
+      "event": "VISUAL_SMOKE_PASSED",
+      "missions": [
+        "RC18",
+        "RC19",
+        "RC20"
+      ],
+      "resolutions": [
+        "1920x1080",
+        "1366x768"
+      ],
+      "emails": 0,
+      "new_closures": 0
+    },
+    {
+      "event": "MIGRATIONS_VERIFIED",
+      "chain": "001..017",
+      "integrity_check": "ok",
+      "idempotent": true
+    },
+    {
+      "event": "PRODUCTION_DATA_MIGRATION_REHEARSED",
+      "from": "015",
+      "to": "017",
+      "data_preserved": true,
+      "production_file_untouched": true
+    },
+    {
+      "event": "SENSITIVE_AREAS_UNTOUCHED_BY_DIFF",
+      "areas": [
+        "economico",
+        "correo",
+        "cierres",
+        "arqueos",
+        "convenios",
+        "factufacil",
+        "comunicaciones"
+      ]
+    },
+    {
+      "event": "CAPTURE_PRIVACY_RULE_APPLIED",
+      "detail": "encuadre en la ventana de la app con contencion verificada; fail-closed"
+    },
+    {
+      "event": "CAPTURE_LEAK_FOUND_AND_FIXED",
+      "detail": "el recorte por rectangulo de dialogo dejaba entrar escritorio por desfase DPI"
+    },
+    {
+      "event": "ARTIFACT_CONSISTENCY_PASSED"
+    },
+    {
+      "event": "INTEGRATION_COMMIT_PASSED",
+      "staging": "rutas explicitas",
+      "comunicaciones_excluido": true,
+      "main_no_tocada": true
+    },
+    {
+      "event": "INSTALL_PACKAGE_PREPARED",
+      "installed_now": "1.0.0-rc.17",
+      "rollback_preserved": true
+    },
+    {
+      "event": "MISSION_LEASE_RELEASED"
+    },
+    {
+      "event": "INTEGRATION_CLOSED",
+      "installation_executed": false
+    },
+    {
+      "event": "INSTALL_PRECHECK_PASSED",
+      "instances": 0,
+      "sha256_match": true,
+      "integrity_check": "ok",
+      "leases": 0
+    },
+    {
+      "event": "BACKUP_TAKEN",
+      "data_root": "Caja-INTEGRATION-preinstall-20260816",
+      "files": 33
+    },
+    {
+      "event": "ROLLBACK_PRESERVED",
+      "rc17": "BC-Caja-Pilot.rollback-rc17-20260816",
+      "rc16": true,
+      "rc15": true,
+      "backups": 27
+    },
+    {
+      "event": "INSTALL_EXECUTED",
+      "version": "1.0.0-rc.20",
+      "scope": "solo carpeta del programa"
+    },
+    {
+      "event": "POSTINSTALL_DEFECT_FOUND",
+      "detail": "pie mostraba 1.0.0-rc.17 por version cableada",
+      "fixed_at_source": true,
+      "production_patched_by_hand": false
+    },
+    {
+      "event": "REBUILD_AND_REINSTALL",
+      "version": "1.0.0-rc.20",
+      "regression": 339,
+      "failed": 0
+    },
+    {
+      "event": "POSTINSTALL_VALIDATED",
+      "version": "1.0.0-rc.20",
+      "migrations": "001-017",
+      "integrity_check": "ok",
+      "data_preserved": true,
+      "new_closures": 0,
+      "new_emails": 0
+    },
+    {
+      "event": "POSTINSTALL_LIMIT_DECLARED",
+      "detail": "GUI del binario congelado no conducible; RC20 no ejercitado interactivamente"
+    },
+    {
+      "event": "CAPTURE_LEAK_CONTAINED",
+      "detail": "captura por region trajo contenido ajeno; eliminada sin indexar, metodo cambiado a PrintWindow"
+    },
+    {
+      "event": "ROLLBACK_USED",
+      "value": false
+    },
+    {
+      "event": "INSTALLED_AND_VALIDATED"
+    }
+  ],
+  "installed_version": "1.0.0-rc.20",
+  "rollback": "BC-Caja-Pilot.rollback-rc17-20260816"
 }

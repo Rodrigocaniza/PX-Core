@@ -108,5 +108,30 @@ class VentanaPorDefectoTests(unittest.TestCase):
         self.assertIn("hasta_defecto.strftime", fuente)
 
 
+class VersionDelPaqueteTests(unittest.TestCase):
+    """El pie mostraba una version cableada y quedaba desfasado tras instalar."""
+
+    def _version_empaquetada(self) -> str:
+        from pathlib import Path
+        primera = Path("pilot/package_docs/VERSION.txt").read_text(
+            encoding="utf-8"
+        ).splitlines()[0].strip()
+        return primera[len("BC Caja "):].strip()
+
+    def test_el_pie_no_cablea_ninguna_version(self):
+        fuente = open("CajaDiaria.py", encoding="utf-8").read()
+        self.assertIn("BC Caja {version_aplicacion()}", fuente)
+        pie = fuente[fuente.index("etiqueta_pie = ctk.CTkLabel"):]
+        self.assertNotIn("1.0.0-rc.", pie[:400])
+
+    def test_la_version_mostrada_coincide_con_la_del_paquete(self):
+        from CajaDiaria import version_aplicacion
+        self.assertEqual(version_aplicacion(), self._version_empaquetada())
+
+    def test_el_valor_de_respaldo_sigue_al_paquete(self):
+        from CajaDiaria import VERSION_APLICACION
+        self.assertEqual(VERSION_APLICACION, self._version_empaquetada())
+
+
 if __name__ == "__main__":
     unittest.main()

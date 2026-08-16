@@ -44,4 +44,11 @@ def test_outflow_does_not_duplicate_the_canonical_responsible():
 
 
 def test_release_version_is_visible_in_footer():
-    assert "BC Caja 1.0.0-rc.17" in SOURCE
+    """La version sigue visible en el pie, ahora tomada del paquete.
+
+    Estaba cableada como literal y quedaba desfasada tras cada instalacion:
+    el paquete decia rc.20 y la aplicacion seguia mostrando rc.17.
+    """
+    assert "BC Caja {version_aplicacion()}" in SOURCE
+    from CajaDiaria import version_aplicacion
+    assert version_aplicacion().startswith("1.0.0-rc.")
