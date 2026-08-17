@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "current_state": "AWAITING_HUMAN_GATE",
+  "current_state": "SAFE_PAUSE",
   "base": "291fe40",
   "history": [
     {
@@ -74,6 +74,15 @@
       "reason": "Sin empaquetar y sin instalar: la RC vigente sigue siendo rc.30. main 291fe40 sin tocar",
       "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
       "gate_generation": 1,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "SAFE_PAUSE",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "SAFE_PAUSE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Cierre de jornada. Worktree limpio y rama sincronizada en 3373c6f, 0 leases vivos, 0 procesos residuales. Produccion sigue en rc.30 con 21 migraciones, integridad ok y montos sin cambios; ningun correo enviado y ninguna migracion nueva aplicada. main 291fe40 sin tocar. El gate, el empaquetado, la instalacion y la promocion quedan sin ejecutar a proposito",
+      "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
       "session_id": "bc-caja-pedidos-operativos-rc30"
     }
   ]

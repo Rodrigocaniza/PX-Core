@@ -1,13 +1,13 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "state": "AWAITING_HUMAN_GATE",
+  "state": "SAFE_PAUSE",
   "repository": "PX-Core",
   "worktree": "pedidos30",
   "branch": "feature/bc-caja-pedidos-operativos-rc30-001",
   "base_commit": "291fe40",
   "baseline": "origin/main = BC Caja 1.0.0-rc.30",
   "blocked_on": "HUMAN_GATE-PEDIDOS-RC30-001",
-  "next_action": "Observar Pedidos con datos reales: agrupación, qué pidió el cliente, laboratorio con teléfono a mano, última novedad, atraso, corrección con lista cerrada y el contraste de las tres acciones. Sin instalar: la RC actual sigue siendo rc.30 y este slice todavía no genera una nueva.",
+  "next_action": "Reanudar por los pasos de next_session, en ese orden.",
   "next_role": "HUMAN",
   "verification": {
     "focused": "13 passed",
@@ -41,5 +41,37 @@
     "FactuFácil",
     "Composturas",
     "DatePicker global"
+  ],
+  "safe_pause": {
+    "verificado": {
+      "worktree": "limpio",
+      "rama_sincronizada": "3373c6f == origin, 0 commits sin pushear",
+      "leases_vivos": 0,
+      "procesos_residuales": 0,
+      "produccion": "BC Caja 1.0.0-rc.30 intacta, 21 migraciones, integrity ok, foreign keys 0",
+      "datos": "12 movimientos, montos (6400000, 2200000, 250000) sin cambios",
+      "migraciones_nuevas_en_produccion": "ninguna",
+      "correo": "deshabilitado, sin destinatario, outbox sin envios",
+      "rollback": "vigente: backup preinstall rc.30 y BC-Caja-Pilot.previous-rc15",
+      "main": "291fe40 sin cambios"
+    },
+    "no_ejecutado_a_proposito": [
+      "HUMAN_GATE-PEDIDOS-RC30-001",
+      "packaging rc.31",
+      "instalacion",
+      "promocion a main",
+      "BC-CAJA-TRABAJOS-OPERATIVOS-V1",
+      "FactuFacil",
+      "Composturas",
+      "DatePicker global"
+    ]
+  },
+  "next_session": [
+    "1. Verificar estado canonico real: origin/main, HEAD de la rama, version instalada, migraciones, worktrees, leases",
+    "2. Verificar BC-Core/Command Center actualizado y si el Headless Executor estandar ya esta disponible de verdad",
+    "3. Recuperar esta mision automaticamente desde este NEXT_ACTION; no reconstruir contexto a mano",
+    "4. Ejecutar HUMAN_GATE-PEDIDOS-RC30-001 (11 puntos, ver HUMAN_GATE.md)",
+    "5. Si PASS: rc.31 con backup, rollback verificado, instalacion transaccional, validacion post-install y promocion a main por flujo protegido",
+    "6. Recien despues iniciar BC-CAJA-TRABAJOS-OPERATIVOS-V1"
   ]
 }
