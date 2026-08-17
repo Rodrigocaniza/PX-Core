@@ -16,7 +16,9 @@ from ..domain.errors import (
     InvalidCashDayError,
     InvalidMoneyError,
 )
-from ..domain.models import CashDay, CashEntry, CashTotals, money, parse_business_date
+from ..domain.models import (
+    CashDay, CashEntry, CashTotals, allowed_order_transitions, money, parse_business_date
+)
 
 
 @dataclass(frozen=True)
@@ -327,6 +329,17 @@ class CashDayUIController:
             len(self.list_orders("Hoy", today=today)),
             len(self.list_orders("Atrasados", today=today)),
         )
+
+    def order_attention_groups(self, today=None):
+        return self.service.order_attention_groups(today=today)
+
+    def latest_order_revisions(self):
+        return self.service.latest_order_revisions()
+
+    @staticmethod
+    def allowed_order_transitions(status: str):
+        """Lista cerrada de destinos válidos; la UI nunca compone estados libres."""
+        return tuple(estado.value for estado in allowed_order_transitions(status))
 
     @staticmethod
     def _require_saleswoman(values: Mapping[str, Any]) -> None:

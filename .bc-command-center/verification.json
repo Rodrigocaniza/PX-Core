@@ -1,249 +1,302 @@
 {
-    "schema_version":  "1.0",
-    "repository":  "caja-multi-item",
-    "missions":  {
-                     "BC-CAJA-V1-PEDIDOS-001":  "bc-caja-pedidos-v1",
-                     "BC-CAJA-MULTI-ITEM-001":  "bc-caja-multi-item",
-                     "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX":  "bc-caja-multi-item",
-                     "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R2":  "bc-caja-multi-item",
-                     "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3":  "bc-caja-multi-item",
-                     "BC-CAJA-PRODUCT-TEST-COMBINED-001":  "bc-caja-multi-item",
-                     "BC-CAJA-CASH-CONTINUITY-001":  "bc-caja-multi-item",
-                     "BC-CAJA-MULTI-ITEM-UX-002":  "bc-caja-multi-item",
-                     "BC-CAJA-UX-CONTROL-003":  "bc-caja-ux-control",
-                     "BC-CAJA-UX-CONTROL-003-R2":  "bc-caja-ux-control",
-                     "BC-CAJA-UX-1080P-001":  "bc-caja-ux-1080p",
-                     "BC-CAJA-SQLITE-SAVE-BUGFIX-001":  "bc-caja-sqlite-save-bugfix",
-                     "BC-CAJA-OPERATOR-UX-001":  "bc-caja-operator-ux",
-                     "BC-CAJA-OPERATOR-FIXES-003":  "bc-caja-operator-fixes"
-                     ,"BC-CAJA-RECOVERY-DRILL-001":  "bc-caja-recovery-drill"
-                     ,"BC-CAJA-UX-OPERATIVA-RC5-001":  "bc-caja-operator-ux"
-                     ,"BC-CAJA-DESCUENTOS-SIN-COSTO-LAYOUT-RC6-001":  "bc-caja-operator-ux"
-                     ,"BC-CAJA-RC7-COMPACT-LAYOUT-CORRECTION-001":  "bc-caja-operator-ux"
-                     ,"BC-CAJA-RC8-SIN-COSTO-Y-AJUSTE-VISUAL-001":  "bc-caja-operator-ux"
-                     ,"BC-CAJA-RC9-PLANTILLA-RECETA-OBSERVACIONES-001":  "bc-caja-operator-ux"
-                     ,"BC-CAJA-OPERATIVE-POLISH-BEFORE-ADMIN-001":  "bc-caja-operator-ux"
-                     ,"BC-CAJA-RC11-TABLAS-COMPACTAS-ALINEADAS-001":  "bc-caja-operator-ux"
-                 },
-    "runners":  {
-                    "bc-caja-pedidos-v1":  {
-                                               "working_directory":  ".",
-                                               "commands":  {
-                                                                "targeted":  [
-                                                                                 "${PYTHON}",
-                                                                                 "-m",
-                                                                                 "pytest",
-                                                                                 "tests/caja_diaria/test_orders_v1.py",
-                                                                                 "tests/caja_diaria/test_financial_privacy.py",
-                                                                                 "-q"
-                                                                             ],
-                                                                "regression":  [
-                                                                                   "${PYTHON}",
-                                                                                   "-m",
-                                                                                   "pytest",
-                                                                                   "tests/caja_diaria",
-                                                                                   "-q"
-                                                                               ],
-                                                                "full":  [
-                                                                             "${PYTHON}",
-                                                                             "-m",
-                                                                             "pytest",
-                                                                             "tests",
-                                                                             "-q"
-                                                                         ]
-                                                            }
-                                           },
-                    "bc-caja-multi-item":  {
-                                               "working_directory":  ".",
-                                               "commands":  {
-                                                                "targeted":  [
-                                                                                 "${PYTHON}",
-                                                                                 "-m",
-                                                                                 "pytest",
-                                                                                 "tests/caja_diaria/test_multi_item_sales.py",
-                                                                                 "tests/caja_diaria/test_orders_v1.py",
-                                                                                 "tests/caja_diaria/test_financial_privacy.py",
-                                                                                 "-q"
-                                                                             ],
-                                                                "regression":  [
-                                                                                   "${PYTHON}",
-                                                                                   "-m",
-                                                                                   "pytest",
-                                                                                   "tests/caja_diaria",
-                                                                                   "-q"
-                                                                               ],
-                                                                "full":  [
-                                                                             "${PYTHON}",
-                                                                             "-m",
-                                                                             "pytest",
-                                                                             "tests",
-                                                                             "-q"
-                                                                         ]
-                                                            }
-                                           },
-                    "bc-caja-ux-control":  {
-                                               "working_directory":  ".",
-                                               "commands":  {
-                                                                "targeted":  [
-                                                                                 "${PYTHON}",
-                                                                                 "-m",
-                                                                                 "pytest",
-                                                                                 "tests/caja_diaria/test_ux_control_privacy.py",
-                                                                                 "tests/caja_diaria/test_ux_control_history.py",
-                                                                                 "tests/caja_diaria/test_ux_control_phone_contrast.py",
-                                                                                 "tests/caja_diaria/test_multi_item_draft_ux.py",
-                                                                                 "tests/caja_diaria/test_sqlite_repository.py",
-                                                                                 "-q"
-                                                                             ],
-                                                                "regression":  [
-                                                                                   "${PYTHON}",
-                                                                                   "-m",
-                                                                                   "pytest",
-                                                                                   "tests/caja_diaria",
-                                                                                   "-q"
-                                                                               ],
-                                                                "full":  [
-                                                                             "${PYTHON}",
-                                                                             "-m",
-                                                                             "pytest",
-                                                                             "tests",
-                                                                             "-q"
-                                                                         ]
-                                                            }
-                                           },
-                    "bc-caja-ux-1080p":  {
-                                             "working_directory":  ".",
-                                             "commands":  {
-                                                              "targeted":  [
-                                                                               "${PYTHON}",
-                                                                               "-m",
-                                                                               "pytest",
-                                                                               "tests/caja_diaria/test_ux_1080p_layout.py",
-                                                                               "tests/caja_diaria/test_ux002_layout_contract.py",
-                                                                               "tests/caja_diaria/test_ux004_visual_contract.py",
-                                                                               "tests/caja_diaria/test_ux006_reference_contract.py",
-                                                                               "tests/caja_diaria/test_multi_item_draft_ux.py",
-                                                                               "tests/caja_diaria/test_financial_privacy.py",
-                                                                               "-q"
-                                                                           ],
-                                                              "regression":  [
-                                                                                 "${PYTHON}",
-                                                                                 "-m",
-                                                                                 "pytest",
-                                                                                 "tests/caja_diaria",
-                                                                                 "-q"
-                                                                             ],
-                                                              "full":  [
-                                                                           "${PYTHON}",
-                                                                           "-m",
-                                                                           "pytest",
-                                                                           "tests",
-                                                                           "-q"
-                                                                       ]
-                                                          }
-                                         },
-                    "bc-caja-operator-ux":  {
-                                                "working_directory":  ".",
-                                                "commands":  {
-                                                                 "targeted":  [
-                                                                                  "${PYTHON}",
-                                                                                  "-m",
-                                                                                  "pytest",
-                                                                                  "tests/caja_diaria/test_operator_ux.py",
-                                                                                  "tests/caja_diaria/test_ux_1080p_layout.py",
-                                                                                  "tests/caja_diaria/test_ux002_layout_contract.py",
-                                                                                  "tests/caja_diaria/test_ux004_visual_contract.py",
-                                                                                  "tests/caja_diaria/test_ux006_reference_contract.py",
-                                                                                  "tests/caja_diaria/test_ux_control_privacy.py",
-                                                                                  "tests/caja_diaria/test_financial_privacy.py",
-                                                                                  "tests/caja_diaria/test_multi_item_draft_ux.py",
-                                                                                  "tests/caja_diaria/test_multi_item_sales.py",
-                                                                                  "tests/caja_diaria/test_sqlite_save_bugfix.py",
-                                                                                  "tests/caja_diaria/test_sqlite_repository.py",
-                                                                                  "tests/caja_diaria/test_orders_v1.py",
-                                                                                  "tests/caja_diaria/test_pilot_entrypoint.py",
-                                                                                  "-q"
-                                                                              ],
-                                                                 "regression":  [
-                                                                                    "${PYTHON}",
-                                                                                    "-m",
-                                                                                    "pytest",
-                                                                                    "tests/caja_diaria",
-                                                                                    "-q"
-                                                                                ],
-                                                                 "full":  [
-                                                                              "${PYTHON}",
-                                                                              "-m",
-                                                                              "pytest",
-                                                                              "tests",
-                                                                              "-q"
-                                                                          ]
-                                                             }
-                                            },
-                    "bc-caja-sqlite-save-bugfix":  {
-                                                       "working_directory":  ".",
-                                                       "commands":  {
-                                                                        "targeted":  [
-                                                                                         "${PYTHON}",
-                                                                                         "-m",
-                                                                                         "pytest",
-                                                                                         "tests/caja_diaria/test_sqlite_save_bugfix.py",
-                                                                                         "tests/caja_diaria/test_sqlite_repository.py",
-                                                                                         "tests/caja_diaria/test_multi_item_sales.py",
-                                                                                         "tests/caja_diaria/test_orders_v1.py",
-                                                                                         "tests/caja_diaria/test_ux_1080p_layout.py",
-                                                                                         "-q"
-                                                                                     ],
-                                                                        "regression":  [
-                                                                                           "${PYTHON}",
-                                                                                           "-m",
-                                                                                           "pytest",
-                                                                                           "tests/caja_diaria",
-                                                                                           "-q"
-                                                                                       ],
-                                                                        "full":  [
-                                                                                     "${PYTHON}",
-                                                                                     "-m",
-                                                                                     "pytest",
-                                                                                     "tests",
-                                                                                     "-q"
-                                                                                 ]
-                                                                    }
-                                                   },
-                    "bc-caja-operator-fixes":  {
-                                                   "working_directory":  ".",
-                                                   "commands":  {
-                                                                    "targeted":  [
-                                                                                     "${PYTHON}",
-                                                                                     "-m",
-                                                                                     "pytest",
-                                                                                     "tests/caja_diaria/test_saved_sale_full_edit.py",
-                                                                                     "tests/caja_diaria/test_operator_fixes_003.py",
-                                                                                     "-q"
-                                                                                 ],
-                                                                    "regression":  [
-                                                                                       "${PYTHON}",
-                                                                                       "-m",
-                                                                                       "pytest",
-                                                                                       "tests/caja_diaria",
-                                                                                       "-q"
-                                                                                   ],
-                                                                    "full":  [
-                                                                                 "${PYTHON}",
-                                                                                 "-m",
-                                                                                 "pytest",
-                                                                                 "tests",
-                                                                                 "-q"
-                                                                             ]
-                                                                }
-                                               }
-                    ,"bc-caja-recovery-drill":  {
-                        "working_directory": ".",
-                        "commands": {
-                            "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_recovery_drill.py", "tests/caja_diaria/test_sqlite_repository.py", "tests/caja_diaria/test_multi_item_sales.py", "tests/caja_diaria/test_movements_integration.py", "-q"],
-                            "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
-                            "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
-                        }
-                    }
-                }
+    "schema_version": "1.0",
+    "repository": "caja-multi-item",
+    "missions": {
+        "BC-CAJA-V1-PEDIDOS-001": "bc-caja-pedidos-v1",
+        "BC-CAJA-MULTI-ITEM-001": "bc-caja-multi-item",
+        "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX": "bc-caja-multi-item",
+        "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R2": "bc-caja-multi-item",
+        "BC-CAJA-MULTI-ITEM-001-PRODUCT-TEST-BUGFIX-R3": "bc-caja-multi-item",
+        "BC-CAJA-PRODUCT-TEST-COMBINED-001": "bc-caja-multi-item",
+        "BC-CAJA-CASH-CONTINUITY-001": "bc-caja-multi-item",
+        "BC-CAJA-MULTI-ITEM-UX-002": "bc-caja-multi-item",
+        "BC-CAJA-UX-CONTROL-003": "bc-caja-ux-control",
+        "BC-CAJA-UX-CONTROL-003-R2": "bc-caja-ux-control",
+        "BC-CAJA-UX-1080P-001": "bc-caja-ux-1080p",
+        "BC-CAJA-SQLITE-SAVE-BUGFIX-001": "bc-caja-sqlite-save-bugfix",
+        "BC-CAJA-OPERATOR-UX-001": "bc-caja-operator-ux",
+        "BC-CAJA-OPERATOR-FIXES-003": "bc-caja-operator-fixes",
+        "BC-CAJA-RECOVERY-DRILL-001": "bc-caja-recovery-drill",
+        "BC-CAJA-UX-OPERATIVA-RC5-001": "bc-caja-operator-ux",
+        "BC-CAJA-DESCUENTOS-SIN-COSTO-LAYOUT-RC6-001": "bc-caja-operator-ux",
+        "BC-CAJA-RC7-COMPACT-LAYOUT-CORRECTION-001": "bc-caja-operator-ux",
+        "BC-CAJA-RC8-SIN-COSTO-Y-AJUSTE-VISUAL-001": "bc-caja-operator-ux",
+        "BC-CAJA-RC9-PLANTILLA-RECETA-OBSERVACIONES-001": "bc-caja-operator-ux",
+        "BC-CAJA-OPERATIVE-POLISH-BEFORE-ADMIN-001": "bc-caja-operator-ux",
+        "BC-CAJA-RC11-TABLAS-COMPACTAS-ALINEADAS-001": "bc-caja-operator-ux",
+        "BC-CAJA-RC12-PEDIDOS-ATENCION-001": "bc-caja-rc12-pedidos-atencion"
+    },
+    "runners": {
+        "bc-caja-pedidos-v1": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_orders_v1.py",
+                    "tests/caja_diaria/test_financial_privacy.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        },
+        "bc-caja-multi-item": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_multi_item_sales.py",
+                    "tests/caja_diaria/test_orders_v1.py",
+                    "tests/caja_diaria/test_financial_privacy.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        },
+        "bc-caja-ux-control": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_ux_control_privacy.py",
+                    "tests/caja_diaria/test_ux_control_history.py",
+                    "tests/caja_diaria/test_ux_control_phone_contrast.py",
+                    "tests/caja_diaria/test_multi_item_draft_ux.py",
+                    "tests/caja_diaria/test_sqlite_repository.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        },
+        "bc-caja-ux-1080p": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_ux_1080p_layout.py",
+                    "tests/caja_diaria/test_ux002_layout_contract.py",
+                    "tests/caja_diaria/test_ux004_visual_contract.py",
+                    "tests/caja_diaria/test_ux006_reference_contract.py",
+                    "tests/caja_diaria/test_multi_item_draft_ux.py",
+                    "tests/caja_diaria/test_financial_privacy.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        },
+        "bc-caja-operator-ux": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_operator_ux.py",
+                    "tests/caja_diaria/test_ux_1080p_layout.py",
+                    "tests/caja_diaria/test_ux002_layout_contract.py",
+                    "tests/caja_diaria/test_ux004_visual_contract.py",
+                    "tests/caja_diaria/test_ux006_reference_contract.py",
+                    "tests/caja_diaria/test_ux_control_privacy.py",
+                    "tests/caja_diaria/test_financial_privacy.py",
+                    "tests/caja_diaria/test_multi_item_draft_ux.py",
+                    "tests/caja_diaria/test_multi_item_sales.py",
+                    "tests/caja_diaria/test_sqlite_save_bugfix.py",
+                    "tests/caja_diaria/test_sqlite_repository.py",
+                    "tests/caja_diaria/test_orders_v1.py",
+                    "tests/caja_diaria/test_pilot_entrypoint.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        },
+        "bc-caja-sqlite-save-bugfix": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_sqlite_save_bugfix.py",
+                    "tests/caja_diaria/test_sqlite_repository.py",
+                    "tests/caja_diaria/test_multi_item_sales.py",
+                    "tests/caja_diaria/test_orders_v1.py",
+                    "tests/caja_diaria/test_ux_1080p_layout.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        },
+        "bc-caja-operator-fixes": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_saved_sale_full_edit.py",
+                    "tests/caja_diaria/test_operator_fixes_003.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        },
+        "bc-caja-recovery-drill": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_recovery_drill.py",
+                    "tests/caja_diaria/test_sqlite_repository.py",
+                    "tests/caja_diaria/test_multi_item_sales.py",
+                    "tests/caja_diaria/test_movements_integration.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        },
+        "bc-caja-rc12-pedidos-atencion": {
+            "working_directory": ".",
+            "commands": {
+                "targeted": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria/test_rc12_pedidos_atencion.py",
+                    "tests/caja_diaria/test_orders_v1.py",
+                    "tests/caja_diaria/test_rc10_operative_polish.py",
+                    "tests/caja_diaria/test_rc5_operational_ux.py",
+                    "tests/caja_diaria/test_operator_fixes_003.py",
+                    "tests/caja_diaria/test_rc11_compact_tables.py",
+                    "-q"
+                ],
+                "regression": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests/caja_diaria",
+                    "-q"
+                ],
+                "full": [
+                    "${PYTHON}",
+                    "-m",
+                    "pytest",
+                    "tests",
+                    "-q"
+                ]
+            }
+        }
+    }
 }

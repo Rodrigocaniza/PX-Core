@@ -1,0 +1,24 @@
+{
+  "mission": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
+  "state": "AWAITING_HUMAN_GATE",
+  "repository": "PX-Core",
+  "worktree": "rc12",
+  "branch": "feature/bc-caja-rc12-pedidos-atencion-001",
+  "base_commit": "098b15094bc24f8ecaab80a57a8febd71b9ce479",
+  "next_action": "Ejecutar HUMAN_GATE-RC12-PEDIDOS-001 en la Óptica (ViewSonic 24\"). Sin ese gate no se empaqueta ni se instala rc.12.",
+  "next_role": "HUMAN",
+  "blocked_on": "HUMAN_GATE-RC12-PEDIDOS-001",
+  "after_gate_pass": [
+    "Empaquetar BC Caja 1.0.0-rc.12 (pilot/build_pilot.ps1)",
+    "Backup previo en %LOCALAPPDATA%\\BC\\Caja\\Backups",
+    "Artifact consistency con zip_sha256 y exe_sha256",
+    "Safe closure y push protegido"
+  ],
+  "deferred_in_this_slice": [
+    "Laboratorio en la grilla de Pedidos: hoy vive en SaleItem, no en Order; requiere join sale_items y es su propio slice",
+    "Apertura de Caja con fecha/hora automáticas y 'Consultar otro día'",
+    "DatePicker/TimePicker compartido DD/MM/YYYY en español",
+    "FactuFácil integrado en BC Caja"
+  ],
+  "next_slice_when_gate_passes": "Apertura de Caja: fecha/hora automáticas, sin selector al abrir, histórico por 'Consultar otro día', 'Caja inicial' destacada"
+}

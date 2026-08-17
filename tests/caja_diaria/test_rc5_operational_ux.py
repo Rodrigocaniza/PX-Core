@@ -5,7 +5,7 @@ SOURCE = Path("CajaDiaria.py").read_text(encoding="utf-8")
 
 def test_rc5_header_alert_and_operational_order():
     assert 'aviso_entregas.grid(row=0, column=7' in SOURCE
-    assert 'text=f"⚠ Trabajos {pendientes}"' in SOURCE
+    assert 'f"⚠ Trabajos {pendientes}"' in SOURCE
     assert SOURCE.index('text="RESUMEN DE CAJA"') < SOURCE.index('aviso_entregas =')
     assert SOURCE.index('"CLIENTE Y COMPROBANTE"') < SOURCE.index('"DETALLE DE VENTA"') < SOURCE.index('"PAGO"')
     assert SOURCE.index('text="OBSERVACIONES"') < SOURCE.index('text="Limpiar todo"')

@@ -1,0 +1,36 @@
+{
+  "mission": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
+  "version": "BC Caja 1.0.0-rc.12 (sin empaquetar)",
+  "base_commit": "098b15094bc24f8ecaab80a57a8febd71b9ce479",
+  "baseline": "BC Caja 1.0.0-rc.11 (098b150)",
+  "packaged": false,
+  "packaging_blocked_by": "HUMAN_GATE-RC12-PEDIDOS-001",
+  "tests": {
+    "passed": 206,
+    "subtests": 4,
+    "new": 18,
+    "baseline": 188
+  },
+  "migrations": 14,
+  "schema_changed": false,
+  "economic_rules_changed": false,
+  "source_files": {
+    ".bc-command-center/verification.json": "6c206c53757fa7459b54e671bc898badfd6e6fb3628b7e79d26bf294ab100001",
+    "CajaDiaria.py": "7016973905e2f750fcef71040f0529397472bca665e3a7070ffe107b28801696",
+    "modulos/caja_diaria/application/ports.py": "b8da9ec7a587d829c482fa0b7aa687e31366a1e56b077d8e00ec42b639c0ea60",
+    "modulos/caja_diaria/application/services.py": "914523e476bcea037b20930649467531d8353b36bf60d90b22fa47b097885f9f",
+    "modulos/caja_diaria/domain/models.py": "bec3663c60d42fb76d9776b46a411e99843689ef9cde3f2b21b011a5aecf0e54",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "030b098dea6a64a3c4ed174c0816a88da157bccec575753314258b48253f5c75",
+    "modulos/caja_diaria/ui/controller.py": "0e0076add1ee9b8a4b00d4a887c214f41e25c4d5e209bd05584518702b2f5d14",
+    "tests/caja_diaria/test_operator_fixes_003.py": "8f4f44b345c2666efa8fd3a805bfcff74178ef8adcb972531700a1b3230248bb",
+    "tests/caja_diaria/test_rc10_operative_polish.py": "da3c51d10ebdbac6d4f092876ba7b01ec493be5c82c33c5de9c09f290f5fb512",
+    "tests/caja_diaria/test_rc12_pedidos_atencion.py": "cb24e4fc2e9340fb811965a525ee41649c08cb61eaa86ca48f23615891d03d1f",
+    "tests/caja_diaria/test_rc5_operational_ux.py": "ece119c54ee40913f47cccfbd0fe73650d92fd76a80b02c6335bca47a4b68b63",
+    "tools/capture_caja_rc12_pedidos.py": "171e5f995b094f9edf895b3bf385d4176d00ec12ca92842e4a1872148e4d5589"
+  },
+  "visual_evidence": {
+    "corregir-estado-1920x1080.png": "4018b5c1eba2d6b764f176a3d1dfee9df0f5e7988115c004379b7a6543bdf100",
+    "pedidos-atencion-1366x768.png": "b82c61b6fdba97c098a08ce31c9bc7497edfa9e3a3f19605610ff7ad7e6bb757",
+    "pedidos-atencion-1920x1080.png": "7ad0711955f09331de580692b6386be16761a98bf35a02e181f26ff24666804d"
+  }
+}

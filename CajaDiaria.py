@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import sys
 import calendar
+import webbrowser
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -36,6 +37,12 @@ from ImportadorExcel import (
 )
 from datos import guardar_datos, leer_datos
 from Movimientos import UNIDADES, formatear_monto
+from modulos.caja_diaria.application.services import (
+    ATTENTION_FILTER,
+    ATTENTION_GROUP_OVERDUE,
+    ATTENTION_GROUP_TODAY,
+    ATTENTION_GROUP_UPCOMING,
+)
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.config import resolve_data_paths
 from modulos.caja_diaria.domain.models import (
@@ -136,6 +143,39 @@ MOVEMENT_COLUMN_SPECS = (
 COLUMNAS_OPERATIVAS = [
     (key, title, width) for key, title, width, _anchor in MOVEMENT_COLUMN_SPECS
 ]
+#: Pedidos prioriza contexto operativo: se van CI/RUC y Origen, entra la última
+#: novedad auditada. El teléfono queda visible porque es la acción real de la chica.
+ORDER_COLUMN_SPECS = (
+    ("entrega", "Entrega", 95, "center"),
+    ("cliente", "Cliente", 230, "w"),
+    ("telefono", "Teléfono", 125, "center"),
+    ("sobre", "Sobre", 70, "center"),
+    ("sucursal", "Sucursal", 95, "center"),
+    ("vendedora", "Vendedora", 110, "center"),
+    ("estado", "Estado", 105, "center"),
+    ("novedad", "Última novedad", 250, "w"),
+)
+ORDER_ROW_PREFIX_GROUP = "grupo::"
+
+
+def enlace_whatsapp(telefono: str, prefijo_pais: str = "595") -> str | None:
+    """URL de WhatsApp para un teléfono paraguayo, o ``None`` si no es utilizable.
+
+    Acepta el formato suelto con que se cargan los teléfonos en Caja
+    (``0981 555 444``, ``+595 981-555444``) sin exigir normalizar el dato guardado.
+    """
+    digitos = "".join(caracter for caracter in str(telefono or "") if caracter.isdigit())
+    if not digitos:
+        return None
+    if digitos.startswith(prefijo_pais):
+        nacional = digitos[len(prefijo_pais):]
+    elif digitos.startswith("0"):
+        nacional = digitos[1:]
+    else:
+        nacional = digitos
+    if len(nacional) < 8 or len(nacional) > 10:
+        return None
+    return f"https://wa.me/{prefijo_pais}{nacional}"
 PRODUCTO_TRABAJO = (
     ("arm_org", "Tipo / Producto", 150), ("cod", "Código", 90),
     ("laboratorio", "Laboratorio", 140),
@@ -988,7 +1028,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         cabecera, text="Trabajos 0", width=132, height=max(27, perfil["campo_alto"]),
         fg_color="#FFF3CD", text_color="#7A4B00", border_width=1,
         border_color="#E6B85C", hover_color="#FFE5A3",
-        command=lambda: (seleccionar_pestaña("Pedidos"), refrescar_pedidos("Hoy")),
+        command=lambda: (seleccionar_pestaña("Pedidos"), refrescar_pedidos(ATTENTION_FILTER)),
     )
     aviso_entregas.grid(row=0, column=7, sticky="w", padx=(2, 6), pady=4)
 
@@ -2663,31 +2703,28 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         hover_color=COLOR_PRIMARIO_HOVER,
     ).pack(side="left", padx=8)
 
-    # ---- Pedidos: alineación, chips accesibles y reversión auditada ----
+    # ---- Pedidos: qué requiere atención ahora ----
     barra_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="transparent")
-    barra_pedidos.pack(fill="x", padx=10, pady=10)
-    filtro_pedidos = ctk.StringVar(value="Hoy")
+    barra_pedidos.pack(fill="x", padx=10, pady=(10, 2))
+    filtro_pedidos = ctk.StringVar(value=ATTENTION_FILTER)
+    resumen_pedidos = ctk.CTkLabel(
+        tab_pedidos, text="", anchor="w", justify="left",
+        text_color="#174A7E", font=ctk.CTkFont(size=12, weight="bold"),
+    )
+    resumen_pedidos.pack(fill="x", padx=12, pady=(0, 4))
     marco_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="#FFFFFF")
     marco_pedidos.pack(fill="both", expand=True, padx=10, pady=(0, 8))
     marco_pedidos.grid_rowconfigure(0, weight=1)
     marco_pedidos.grid_columnconfigure(0, weight=1)
-    columnas_pedido = ("entrega", "cliente", "telefono", "documento", "sobre", "sucursal", "vendedora", "origen", "estado")
+    columnas_pedido = tuple(clave for clave, _t, _a, _an in ORDER_COLUMN_SPECS)
     grilla_pedidos = ttk.Treeview(marco_pedidos, columns=columnas_pedido, show="headings", style="Caja.Treeview")
-    alineacion_pedidos = {
-        "entrega": "center", "cliente": "w", "telefono": "center",
-        "documento": "center", "sobre": "center", "sucursal": "center",
-        "vendedora": "center", "origen": "center", "estado": "center",
-    }
-    for clave, titulo, ancho in (
-        ("entrega", "Entrega", 100), ("cliente", "Cliente", 220),
-        ("telefono", "Teléfono", 125), ("documento", "CI/RUC", 120),
-        ("sobre", "Sobre", 75), ("sucursal", "Sucursal", 100),
-        ("vendedora", "Vendedora", 120), ("origen", "Origen", 90),
-        ("estado", "Estado", 110),
-    ):
-        anchor = alineacion_pedidos[clave]
+    for clave, titulo, ancho, anchor in ORDER_COLUMN_SPECS:
+        estirable = clave == "novedad"
         grilla_pedidos.heading(clave, text=titulo, anchor=anchor)
-        grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor, stretch=False)
+        grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor, stretch=estirable)
+    grilla_pedidos.tag_configure("grupo", background="#E8F1FC", foreground="#174A7E")
+    grilla_pedidos.tag_configure("grupo_atrasado", background="#FDECEC", foreground="#A32626")
+    grilla_pedidos.tag_configure("atrasado", foreground="#A32626")
     scroll_pedidos = ttk.Scrollbar(marco_pedidos, orient="vertical")
     grilla_pedidos.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
     scroll_pedidos.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
@@ -2704,6 +2741,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             chip.destroy()
         chips_pedidos.clear()
         for iid in grilla_pedidos.get_children():
+            if iid.startswith(ORDER_ROW_PREFIX_GROUP):
+                continue
             caja = grilla_pedidos.bbox(iid, "estado")
             if not caja:
                 continue
@@ -2731,98 +2770,281 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     scroll_pedidos.configure(command=desplazar_pedidos)
     grilla_pedidos.configure(yscrollcommand=actualizar_scroll_pedidos)
 
+    def responsable_actual():
+        return os.environ.get("USERNAME") or os.environ.get("USER") or "Sistema"
+
+    def texto_novedad(revision):
+        """Una línea legible con la última corrección auditada del pedido."""
+        if not revision:
+            return ""
+        sello = str(revision.get("recorded_at", ""))[:10]
+        if len(sello) == 10:
+            sello = f"{sello[8:10]}-{sello[5:7]}-{sello[0:4]}"
+        partes = [f"{sello} · {revision.get('new_status', '')}"]
+        responsable = str(revision.get("responsible", "")).strip()
+        if responsable and responsable != "Sistema":
+            partes.append(responsable)
+        motivo = str(revision.get("reason", "")).strip()
+        if motivo:
+            partes.append(motivo)
+        return " · ".join(partes)
+
+    def insertar_fila_pedido(pedido, novedades, atrasado):
+        grilla_pedidos.insert(
+            "", "end", iid=pedido.id,
+            tags=("atrasado",) if atrasado else (),
+            values=(
+                pedido.delivery_date.strftime("%d-%m-%Y"), pedido.customer_name,
+                pedido.customer_phone, pedido.envelope, pedido.branch,
+                pedido.saleswoman, pedido.status.value,
+                texto_novedad(novedades.get(pedido.id)),
+            ),
+        )
+
+    def insertar_encabezado_grupo(nombre, cantidad, atrasado):
+        grilla_pedidos.insert(
+            "", "end", iid=f"{ORDER_ROW_PREFIX_GROUP}{nombre}",
+            tags=("grupo_atrasado",) if atrasado else ("grupo",),
+            values=("", f"▸  {nombre.upper()}  ·  {cantidad}", "", "", "", "", "", ""),
+        )
+
     def refrescar_pedidos(nombre=None):
         if nombre:
             filtro_pedidos.set(nombre)
+        actual = filtro_pedidos.get()
         for item in grilla_pedidos.get_children():
             grilla_pedidos.delete(item)
-        for pedido in controller.list_orders(filtro_pedidos.get()):
-            grilla_pedidos.insert("", "end", iid=pedido.id, values=(
-                pedido.delivery_date.strftime("%d-%m-%Y"), pedido.customer_name,
-                pedido.customer_phone, pedido.customer_document, pedido.envelope, pedido.branch,
-                pedido.saleswoman, pedido.origin.value, pedido.status.value,
-            ))
+        novedades = controller.latest_order_revisions()
+        if actual == ATTENTION_FILTER:
+            grupos = dict(controller.order_attention_groups())
+            atrasados = grupos[ATTENTION_GROUP_OVERDUE]
+            para_hoy = grupos[ATTENTION_GROUP_TODAY]
+            proximos = grupos[ATTENTION_GROUP_UPCOMING]
+            visibles = (
+                ((ATTENTION_GROUP_OVERDUE, atrasados), (ATTENTION_GROUP_TODAY, para_hoy))
+                if (atrasados or para_hoy)
+                # Nada urgente: en lugar de una hoja vacía, mostramos lo que viene.
+                else ((ATTENTION_GROUP_UPCOMING, proximos),)
+            )
+            for nombre_grupo, pedidos in visibles:
+                insertar_encabezado_grupo(
+                    nombre_grupo, len(pedidos), nombre_grupo == ATTENTION_GROUP_OVERDUE
+                )
+                for pedido in pedidos:
+                    insertar_fila_pedido(
+                        pedido, novedades, nombre_grupo == ATTENTION_GROUP_OVERDUE
+                    )
+            if atrasados:
+                resumen = (
+                    f"{len(atrasados)} atrasado(s) y {len(para_hoy)} para hoy. "
+                    "Empezá por los atrasados."
+                )
+            elif para_hoy:
+                resumen = f"Sin atrasados. {len(para_hoy)} entrega(s) para hoy."
+            elif proximos:
+                resumen = f"Nada pendiente para hoy. Próximas entregas: {len(proximos)}."
+            else:
+                resumen = "Nada pendiente: no hay pedidos sin entregar."
+            resumen_pedidos.configure(text=resumen)
+        else:
+            pedidos = list(controller.list_orders(actual))
+            hoy = date.today()
+            for pedido in pedidos:
+                insertar_fila_pedido(
+                    pedido, novedades,
+                    pedido.delivery_date < hoy and pedido.status.value != "ENTREGADO",
+                )
+            resumen_pedidos.configure(text=f"{actual}: {len(pedidos)} pedido(s).")
         actualizar_botones_pedido()
         ventana.after_idle(posicionar_chips_pedidos)
 
-    for nombre in ("Hoy", "Atrasados", "Próximos", "Todos"):
-        ctk.CTkButton(
-            barra_pedidos, text=nombre, width=95,
+    botones_filtro_pedidos = {}
+    for nombre in (ATTENTION_FILTER, ATTENTION_GROUP_UPCOMING, "Todos"):
+        boton_filtro = ctk.CTkButton(
+            barra_pedidos, text=nombre, width=(150 if nombre == ATTENTION_FILTER else 100),
             command=lambda valor=nombre: refrescar_pedidos(valor),
-        ).pack(side="left", padx=3)
+        )
+        boton_filtro.pack(side="left", padx=3)
+        botones_filtro_pedidos[nombre] = boton_filtro
+
+    def resaltar_filtro_pedidos():
+        for nombre, boton_filtro in botones_filtro_pedidos.items():
+            activo = nombre == filtro_pedidos.get()
+            boton_filtro.configure(
+                fg_color=COLOR_PRIMARIO if activo else "#FFFFFF",
+                text_color="#FFFFFF" if activo else color_texto,
+                border_width=0 if activo else 1, border_color=color_borde_suave,
+            )
 
     botones_estado_pedido = {}
 
-    def estado_pedido_seleccionado():
+    def pedido_seleccionado():
+        """Id del pedido realmente seleccionado; los encabezados de grupo no cuentan."""
         seleccion = grilla_pedidos.selection()
-        return str(grilla_pedidos.set(seleccion[0], "estado")) if seleccion else ""
+        if not seleccion or seleccion[0].startswith(ORDER_ROW_PREFIX_GROUP):
+            return ""
+        return seleccion[0]
+
+    def estado_pedido_seleccionado():
+        pedido_id = pedido_seleccionado()
+        return str(grilla_pedidos.set(pedido_id, "estado")) if pedido_id else ""
 
     def actualizar_botones_pedido(_event=None):
         estado = estado_pedido_seleccionado()
-        botones_estado_pedido["PENDIENTE"].configure(state="normal" if estado in {"LISTO", "ENTREGADO"} else "disabled")
         botones_estado_pedido["LISTO"].configure(state="normal" if estado == "PENDIENTE" else "disabled")
         botones_estado_pedido["ENTREGADO"].configure(state="normal" if estado == "LISTO" else "disabled")
+        botones_estado_pedido["CORREGIR"].configure(state="normal" if estado else "disabled")
+        resaltar_filtro_pedidos()
 
-    def cambiar_estado_pedido(estado):
-        seleccion = grilla_pedidos.selection()
-        if not seleccion:
+    def avanzar_estado_pedido(estado):
+        """Camino rápido hacia adelante: no pide motivo, queda igual auditado."""
+        pedido_id = pedido_seleccionado()
+        if not pedido_id:
             messagebox.showwarning("Seleccioná un pedido", "Elegí una fila.", parent=ventana)
             return
-        actual = estado_pedido_seleccionado()
-        if actual == estado:
+        if estado_pedido_seleccionado() == estado:
             return
-        motivo = "Cambio operativo"
-        responsable = os.environ.get("USERNAME") or os.environ.get("USER") or "Sistema"
-        if actual == "ENTREGADO" and estado == "PENDIENTE":
-            if not messagebox.askyesno(
-                "Revertir entrega", "¿Corregir este pedido entregado y devolverlo a PENDIENTE?",
-                parent=ventana,
-            ):
-                return
-            motivo = simpledialog.askstring(
-                "Corrección auditada", "Motivo obligatorio de la corrección:", parent=ventana,
-            )
-            if not str(motivo or "").strip():
-                return
-            if not responsable or responsable == "Sistema":
-                responsable = simpledialog.askstring(
-                    "Corrección auditada", "Usuario responsable:", parent=ventana,
-                )
-            if not str(responsable or "").strip():
-                return
         try:
             controller.update_order_status(
-                seleccion[0], estado, reason=motivo, responsible=responsable,
+                pedido_id, estado, reason="Avance operativo", responsible=responsable_actual(),
             )
             refrescar_pedidos()
             refrescar_avisos()
         except Exception as exc:
             mostrar_error(exc)
 
-    for estado, texto_boton, color in (
-        ("PENDIENTE", "Marcar pendiente", "#D97706"),
-        ("LISTO", "Marcar listo", color_verde),
-        ("ENTREGADO", "Marcar entregado", color_azul),
+    def abrir_correccion_estado():
+        """Corrección auditada: estado de lista cerrada + observación obligatoria."""
+        pedido_id = pedido_seleccionado()
+        if not pedido_id:
+            messagebox.showwarning("Seleccioná un pedido", "Elegí una fila.", parent=ventana)
+            return
+        actual = estado_pedido_seleccionado()
+        destinos = controller.allowed_order_transitions(actual)
+        if not destinos:
+            messagebox.showinfo(
+                "Sin correcciones posibles",
+                f"Un pedido {actual} no admite otro estado.", parent=ventana,
+            )
+            return
+        dialogo = ctk.CTkToplevel(ventana)
+        dialogo.title("Corregir estado del pedido")
+        dialogo.resizable(False, False)
+        cuerpo = ctk.CTkFrame(dialogo, fg_color="#F7FAFF")
+        cuerpo.pack(fill="both", expand=True, padx=12, pady=12)
+        ctk.CTkLabel(
+            cuerpo, text=f"Estado actual: {actual}", anchor="w",
+            font=ctk.CTkFont(size=12, weight="bold"), text_color="#174A7E",
+        ).pack(fill="x", pady=(0, 8))
+        ctk.CTkLabel(cuerpo, text="Nuevo estado", anchor="w").pack(fill="x")
+        selector_estado = ctk.CTkComboBox(
+            cuerpo, values=list(destinos), state="readonly", width=340,
+        )
+        selector_estado.set(destinos[0])
+        selector_estado.pack(fill="x", pady=(2, 8))
+        ctk.CTkLabel(cuerpo, text="Responsable", anchor="w").pack(fill="x")
+        campo_responsable = ctk.CTkEntry(cuerpo, width=340)
+        campo_responsable.insert(0, responsable_actual())
+        campo_responsable.pack(fill="x", pady=(2, 8))
+        ctk.CTkLabel(cuerpo, text="Observación / motivo (obligatorio)", anchor="w").pack(fill="x")
+        campo_observacion = ctk.CTkTextbox(cuerpo, width=340, height=88)
+        campo_observacion.pack(fill="x", pady=(2, 4))
+        aviso_correccion = ctk.CTkLabel(
+            cuerpo, text="", anchor="w", text_color=COLOR_ROJO,
+        )
+        aviso_correccion.pack(fill="x", pady=(0, 6))
+
+        def confirmar_correccion():
+            motivo = campo_observacion.get("1.0", "end").strip()
+            responsable = campo_responsable.get().strip()
+            if not motivo:
+                aviso_correccion.configure(text="La observación es obligatoria.")
+                return
+            if not responsable:
+                aviso_correccion.configure(text="Indicá el responsable de la corrección.")
+                return
+            try:
+                controller.update_order_status(
+                    pedido_id, selector_estado.get(), reason=motivo, responsible=responsable,
+                )
+            except Exception as exc:
+                dialogo.destroy()
+                mostrar_error(exc)
+                return
+            dialogo.destroy()
+            refrescar_pedidos()
+            refrescar_avisos()
+
+        acciones_correccion = ctk.CTkFrame(cuerpo, fg_color="transparent")
+        acciones_correccion.pack(fill="x")
+        ctk.CTkButton(
+            acciones_correccion, text="Cancelar", width=100, command=dialogo.destroy,
+            fg_color="#FFFFFF", text_color=color_texto, border_width=1,
+            border_color=color_borde_suave,
+        ).pack(side="right", padx=(6, 0))
+        ctk.CTkButton(
+            acciones_correccion, text="Guardar corrección", width=160,
+            command=confirmar_correccion, fg_color=COLOR_PRIMARIO,
+            hover_color=COLOR_PRIMARIO_HOVER,
+        ).pack(side="right")
+        dialogo.transient(ventana)
+        dialogo.update_idletasks()
+        dialogo.geometry("+{}+{}".format(
+            ventana.winfo_rootx() + (ventana.winfo_width() - dialogo.winfo_width()) // 2,
+            ventana.winfo_rooty() + (ventana.winfo_height() - dialogo.winfo_height()) // 3,
+        ))
+        dialogo.grab_set()
+        campo_observacion.focus_set()
+
+    for clave, texto_boton, color, accion in (
+        ("CORREGIR", "Corregir estado", "#D97706", abrir_correccion_estado),
+        ("ENTREGADO", "Marcar entregado", color_azul, lambda: avanzar_estado_pedido("ENTREGADO")),
+        ("LISTO", "Marcar listo", color_verde, lambda: avanzar_estado_pedido("LISTO")),
     ):
         boton = ctk.CTkButton(
-            barra_pedidos, text=texto_boton, width=118,
-            command=lambda destino=estado: cambiar_estado_pedido(destino), fg_color=color,
+            barra_pedidos, text=texto_boton, width=140, command=accion, fg_color=color,
         )
         boton.pack(side="right", padx=3)
-        botones_estado_pedido[estado] = boton
+        botones_estado_pedido[clave] = boton
+
+    def abrir_whatsapp_pedido(evento):
+        """Doble clic sobre el teléfono abre WhatsApp; no ocupa un botón visible."""
+        if grilla_pedidos.identify_column(evento.x) != f"#{columnas_pedido.index('telefono') + 1}":
+            return
+        pedido_id = pedido_seleccionado()
+        if not pedido_id:
+            return
+        enlace = enlace_whatsapp(str(grilla_pedidos.set(pedido_id, "telefono")))
+        if not enlace:
+            messagebox.showinfo(
+                "Sin teléfono utilizable",
+                "El pedido no tiene un teléfono válido para WhatsApp.", parent=ventana,
+            )
+            return
+        webbrowser.open(enlace)
+
+    grilla_pedidos.bind("<Double-1>", abrir_whatsapp_pedido, add="+")
     grilla_pedidos.bind("<<TreeviewSelect>>", actualizar_botones_pedido, add="+")
     grilla_pedidos.bind("<Configure>", lambda _e: ventana.after_idle(posicionar_chips_pedidos), add="+")
     actualizar_botones_pedido()
+
     def refrescar_avisos():
-        hoy, atrasados = controller.order_counts()
-        pendientes = hoy + atrasados
+        """El aviso cuenta exactamente lo que abre: la consulta 'Requieren atención'."""
+        grupos = dict(controller.order_attention_groups())
+        atrasados = len(grupos[ATTENTION_GROUP_OVERDUE])
+        pendientes = atrasados + len(grupos[ATTENTION_GROUP_TODAY])
         aviso_entregas.configure(
-            text=f"⚠ Trabajos {pendientes}",
-            fg_color="#FFE5A3" if pendientes else "#F7FAFF",
-            text_color="#7A4B00" if pendientes else COLOR_TEXTO_SUAVE,
+            text=(
+                f"⚠ Trabajos {pendientes} · {atrasados} atrasados" if atrasados
+                else f"⚠ Trabajos {pendientes}" if pendientes
+                else "Trabajos 0"
+            ),
+            fg_color="#F8D7DA" if atrasados else ("#FFE5A3" if pendientes else "#F7FAFF"),
+            text_color="#A32626" if atrasados else ("#7A4B00" if pendientes else COLOR_TEXTO_SUAVE),
         )
 
     refrescar_avisos()
+    refrescar_pedidos()
 
     ventana.after(100, ventana.focus_set)
     return ventana
