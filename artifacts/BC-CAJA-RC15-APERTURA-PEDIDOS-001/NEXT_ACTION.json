@@ -26,8 +26,8 @@
     "focused_apertura": "13 passed",
     "focused_pedidos": "21 passed",
     "adjacent": "31 passed",
-    "visual_automated_1920": "4 capturas fail-closed",
-    "visual_regression_1366": "3 capturas fail-closed",
+    "visual_automated_1920": "5 capturas fail-closed",
+    "visual_regression_1366": "4 capturas fail-closed",
     "packaged_binary_smoke": "arranca y aplica las 15 migraciones sobre base temporal",
     "preflight": "PASS",
     "clone_migration": "PASS sobre copia de la base productiva real",
@@ -35,10 +35,10 @@
   },
   "package": {
     "zip": "releases/BC-CAJA-1.0.0-rc.15-win64.zip",
-    "zip_sha256": "c82f89b9461faf7a6f15bc36a7df46653565d21cdb56271a404f97b796618aef",
-    "exe_sha256": "44bf7225f0edc2befcf57ba37b5faed47ceee62c73b1518c2f611775b316b80d"
+    "zip_sha256": "167b170974483839542355926538bc7395188ca22eb654d51f89a620a328127d",
+    "exe_sha256": "86cc895da7530eadc8852f0523cc6dd2de00346e3a6ba6275b3b13be8ef6d006"
   },
-  "backup": "%LOCALAPPDATA%\\BC\\Caja\\Backups\\bc-caja-pre-1.0.0-rc.15-20260817-161651-884812.sqlite3",
+  "backup": "%LOCALAPPDATA%\\BC\\Caja\\Backups\\bc-caja-preinstall-1.0.0-rc.15-20260817-164711-598414.sqlite3",
   "rollback": "artifacts/BC-CAJA-RC15-APERTURA-PEDIDOS-001/ROLLBACK.md",
   "installed_version_found": "BC Caja 1.0.0-rc.15 (instalada en esta sesion)",
   "not_started_yet": [
