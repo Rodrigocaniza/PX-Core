@@ -1,0 +1,51 @@
+{
+  "mission": "BC-CAJA-SEGUIMIENTO-PILAR-RECOVERY-001",
+  "current_state": "BLOCKED_ON_PRODUCT_DECISION",
+  "history": [
+    {
+      "event": "MISSION_OPENED",
+      "from_state": "NOT_STARTED",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Recuperar Seguimiento / Envios Pilar sobre el BC Caja canonico posterior a rc.15",
+      "gate_id": null,
+      "session_id": "bc-caja-seguimiento-pilar-recovery"
+    },
+    {
+      "event": "CANONICAL_STATE_VERIFIED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "origin/main 65d2df4 = rc.15 y la instalada de esta PC es rc.15: main == instalada, como se esperaba",
+      "gate_id": null,
+      "session_id": "bc-caja-seguimiento-pilar-recovery"
+    },
+    {
+      "event": "IMPLEMENTATION_FOUND",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Seguimiento estaba completo en origin: linea de 38 commits sobre rc.14, tope feature/bc-caja-rc21-tabla-seguimiento-logistica-001 @ 491c363, que en realidad es 1.0.0-rc.27 e integra RC18 a RC29. Nunca se mergeo a main y se desarrollo en otra PC",
+      "gate_id": null,
+      "session_id": "bc-caja-seguimiento-pilar-recovery"
+    },
+    {
+      "event": "RECOVERY_VERIFIED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "616 pruebas + 4 subpruebas en verde sobre el tope. Circuito completo: ENVIADO_DESDE_PILAR a RECIBIDO_EN_PILAR con lista cerrada, NextAction como autoridad, QUEDA A CONFIRMAR como rotulo derivado y atraso que no traba. Faltan 2 archivos de test por la dependencia no declarada fitz",
+      "gate_id": null,
+      "session_id": "bc-caja-seguimiento-pilar-recovery"
+    },
+    {
+      "event": "INTEGRATION_MEASURED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "BLOCKED_ON_PRODUCT_DECISION",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "merge de origin/main sobre la linea: 8 archivos, 17 conflictos, ~400 lineas. Los 10 conflictos de CajaDiaria.py no son mecanicos: son dos disenos distintos de la grilla de Pedidos y resolverlos por union reintroduciria los chips flotantes que rc.23 elimino como defecto. Merge abortado a proposito. Portar solo Apertura hacia la linea cuesta 25 lineas; portar Seguimiento hacia main cuesta 12590",
+      "gate_id": null,
+      "session_id": "bc-caja-seguimiento-pilar-recovery"
+    }
+  ]
+}

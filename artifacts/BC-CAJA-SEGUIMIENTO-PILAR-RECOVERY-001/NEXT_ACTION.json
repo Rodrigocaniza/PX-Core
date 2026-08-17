@@ -1,0 +1,50 @@
+{
+  "mission": "BC-CAJA-SEGUIMIENTO-PILAR-RECOVERY-001",
+  "state": "BLOCKED_ON_PRODUCT_DECISION",
+  "repository": "PX-Core",
+  "worktree": "seguimiento",
+  "branch": "feature/bc-caja-seguimiento-pilar-recovery-001",
+  "head": "491c363",
+  "canonical_trunk": "origin/main 65d2df4 = BC Caja 1.0.0-rc.15",
+  "installed": "BC Caja 1.0.0-rc.15 (esta PC)",
+  "found": {
+    "where": "origin, linea de 38 commits colgada de rc.14 (42b8df2), nunca mergeada a main",
+    "tip": "feature/bc-caja-rc21-tabla-seguimiento-logistica-001 @ 491c363",
+    "real_version": "1.0.0-rc.27, integra RC18 a RC29",
+    "branches": [
+      "feature/bc-caja-rc15-ux-operativa-001",
+      "feature/bc-caja-rc16-control-sobres-pdf-001",
+      "feature/bc-caja-rc17-planilla-continua-pdf-001",
+      "feature/bc-caja-rc18-ux-viewsonic-24-001",
+      "feature/bc-caja-rc19-seguimiento-pilar-laboratorios-001",
+      "feature/bc-caja-rc20-alta-lote-pilar-abm-laboratorios-001",
+      "release/bc-caja-rc18-rc20-integration-001",
+      "feature/bc-caja-rc21-tabla-seguimiento-logistica-001"
+    ],
+    "developed_on": "otra PC: esta maquina venia de rc.11 con 14 migraciones"
+  },
+  "verification_on_recovery": {
+    "tests": "616 passed + 4 subtests sobre el tope de la linea",
+    "no_corren": "test_rc16_daily_envelope_report.py y test_rc17_continuous_daily_report.py importan fitz (PyMuPDF), dependencia no declarada",
+    "pypdf": "faltaba instalado en esta PC, se instalo y los 5 fallos de rc.13 desaparecieron",
+    "migraciones": "016-021 son aditivas sobre la 015 de main, no chocan"
+  },
+  "integration_measured": {
+    "merge_main_en_la_linea": "8 archivos, 17 conflictos, ~400 lineas; CajaDiaria.py 10 conflictos / 279 lineas",
+    "solo_apertura_en_la_linea": "2 conflictos en CajaDiaria.py, 25 lineas",
+    "seguimiento_hacia_main": "12590 inserciones y 6 migraciones"
+  },
+  "blocked_on": "Decision de producto: que grilla de Pedidos queda. La de rc.15 (con gate humano e instalada ayer) o la de rc.23/rc.28 (posterior, sin chips flotantes y con alerta que transporta su filtro).",
+  "recommendation": "Adoptar la linea recuperada como tronco y reaplicar encima solo Apertura automatica y el contraste de acciones. Descartar de rc.15 la reescritura de la grilla de Pedidos. Llevar despues ATRASADOS/PARA HOY, Ultima novedad y el Corregir estado de lista cerrada al diseno de la linea recuperada, como slice propio.",
+  "next_role": "HUMAN",
+  "not_started_yet": [
+    "DatePicker global",
+    "FactuFácil",
+    "Composturas"
+  ],
+  "notes": [
+    "main intacto en 65d2df4, sin force-push, sin merge",
+    "La linea recuperada no se toco: la rama de mision parte de su tope sin modificarlo",
+    "En el worktree seguimiento quedaron 3 archivos sin trackear, residuo de la evaluacion del cherry-pick; son copias de archivos ya versionados en feature/bc-caja-apertura-caja-001"
+  ]
+}
