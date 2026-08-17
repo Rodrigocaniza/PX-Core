@@ -1,7 +1,11 @@
 {
   "mission": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
-  "state": "BLOCKED_ON_PRODUCT_DECISION",
-  "previous_state": "AWAITING_HUMAN_GATE",
+  "state": "SUPERSEDED",
+  "previous_state": "BLOCKED_ON_PRODUCT_DECISION",
+  "decision": "Opción A: portar. La funcionalidad vive ahora en BC-CAJA-PEDIDOS-ATENCION-002 (rama feature/bc-caja-pedidos-atencion-002, commit 57adf2d) sobre origin/main 098a9fb (rc.14).",
+  "superseded_by": "BC-CAJA-PEDIDOS-ATENCION-002",
+  "gate_status": "HUMAN_GATE-RC12-PEDIDOS-001 ANULADO: no se ejecutó, no se heredó como PASS. El gate vigente es HUMAN_GATE-PEDIDOS-002.",
+  "branch_retention": "La rama y el worktree rc12 se conservan como evidencia. No se mergean ni se empaquetan.",
   "repository": "PX-Core",
   "worktree": "rc12",
   "branch": "feature/bc-caja-rc12-pedidos-atencion-001",
@@ -18,8 +22,8 @@
     "merge_tree_vs_main": "CONFLICT en CajaDiaria.py y .bc-command-center/verification.json",
     "leases": "ninguno activo para misiones de Caja"
   },
-  "next_action": "Elegir A (portar como BC-CAJA-PEDIDOS-ATENCION-002 sobre origin/main y emitir un HUMAN_GATE nuevo) o B (archivar). Sin esa decision no se empaqueta ni se instala nada de esta rama.",
-  "next_role": "HUMAN",
+  "next_action": "Ninguna sobre esta rama. Seguir la misión BC-CAJA-PEDIDOS-ATENCION-002.",
+  "next_role": "NONE",
   "not_blocked_by_this": "BC-CAJA-APERTURA-CAJA-001 arranca sobre origin/main y no depende de esta decision",
   "audit": "artifacts/BC-CAJA-RC12-PEDIDOS-ATENCION-001/CANONICAL_STATE_AUDIT.md"
 }
