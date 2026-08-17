@@ -1,24 +1,25 @@
 {
   "mission": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
-  "state": "AWAITING_HUMAN_GATE",
+  "state": "BLOCKED_ON_PRODUCT_DECISION",
+  "previous_state": "AWAITING_HUMAN_GATE",
   "repository": "PX-Core",
   "worktree": "rc12",
   "branch": "feature/bc-caja-rc12-pedidos-atencion-001",
+  "head": "41ee4ce",
+  "pushed": true,
   "base_commit": "098b15094bc24f8ecaab80a57a8febd71b9ce479",
-  "next_action": "Ejecutar HUMAN_GATE-RC12-PEDIDOS-001 en la Óptica (ViewSonic 24\"). Sin ese gate no se empaqueta ni se instala rc.12.",
+  "canonical_trunk": "origin/main 098a9fb (BC Caja rc.14)",
+  "divergence": "main +15 / rama +1 desde el merge-base 098b150 (rc.11)",
+  "blocked_on": "Decision de producto: portar Pedidos-atencion sobre rc.14 (opcion A) o archivar la rama como superada (opcion B)",
+  "why_the_human_gate_was_not_run": "HUMAN_GATE-RC12-PEDIDOS-001 valida una pantalla construida sobre rc.11. La linea canonica instalada es rc.13/rc.14. Un PASS sobre esa base no certificaria lo que corre en la Optica.",
+  "verification_on_resume": {
+    "focused_tests": "36 passed",
+    "manifest_hashes": "15/15 OK",
+    "merge_tree_vs_main": "CONFLICT en CajaDiaria.py y .bc-command-center/verification.json",
+    "leases": "ninguno activo para misiones de Caja"
+  },
+  "next_action": "Elegir A (portar como BC-CAJA-PEDIDOS-ATENCION-002 sobre origin/main y emitir un HUMAN_GATE nuevo) o B (archivar). Sin esa decision no se empaqueta ni se instala nada de esta rama.",
   "next_role": "HUMAN",
-  "blocked_on": "HUMAN_GATE-RC12-PEDIDOS-001",
-  "after_gate_pass": [
-    "Empaquetar BC Caja 1.0.0-rc.12 (pilot/build_pilot.ps1)",
-    "Backup previo en %LOCALAPPDATA%\\BC\\Caja\\Backups",
-    "Artifact consistency con zip_sha256 y exe_sha256",
-    "Safe closure y push protegido"
-  ],
-  "deferred_in_this_slice": [
-    "Laboratorio en la grilla de Pedidos: hoy vive en SaleItem, no en Order; requiere join sale_items y es su propio slice",
-    "Apertura de Caja con fecha/hora automáticas y 'Consultar otro día'",
-    "DatePicker/TimePicker compartido DD/MM/YYYY en español",
-    "FactuFácil integrado en BC Caja"
-  ],
-  "next_slice_when_gate_passes": "Apertura de Caja: fecha/hora automáticas, sin selector al abrir, histórico por 'Consultar otro día', 'Caja inicial' destacada"
+  "not_blocked_by_this": "BC-CAJA-APERTURA-CAJA-001 arranca sobre origin/main y no depende de esta decision",
+  "audit": "artifacts/BC-CAJA-RC12-PEDIDOS-ATENCION-001/CANONICAL_STATE_AUDIT.md"
 }

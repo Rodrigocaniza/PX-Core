@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
-  "current_state": "AWAITING_HUMAN_GATE",
+  "current_state": "BLOCKED_ON_PRODUCT_DECISION",
   "history": [
     {
       "event": "MISSION_OPENED",
@@ -112,6 +112,23 @@
       "manifest_sha256": null,
       "zip_sha256": null,
       "reason": "Empaquetado bloqueado hasta HUMAN_GATE-RC12-PEDIDOS-001",
+      "return_state": null,
+      "verdict_binding_digest": null,
+      "handoff_id": null,
+      "gate_id": "HUMAN_GATE-RC12-PEDIDOS-001",
+      "gate_generation": 1,
+      "workflow_revision_before": null,
+      "attempt_id": null,
+      "session_id": "bc-caja-rc12-pedidos-atencion"
+    },
+    {
+      "event": "CANONICAL_STATE_AUDIT",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "BLOCKED_ON_PRODUCT_DECISION",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "manifest_sha256": null,
+      "zip_sha256": null,
+      "reason": "origin/main (098a9fb) avanzo 15 commits desde el fork 098b150 y publica otra linea de release: rc.12 arqueo, rc.13 admin/email, rc.14 mail ops. El trabajo de Pedidos no esta en main y no integra limpio (conflicto en CajaDiaria.py). HUMAN_GATE-RC12-PEDIDOS-001 queda invalido sobre base rc.11.",
       "return_state": null,
       "verdict_binding_digest": null,
       "handoff_id": null,
