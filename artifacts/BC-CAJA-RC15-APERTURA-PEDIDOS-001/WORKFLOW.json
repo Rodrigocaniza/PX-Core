@@ -1,0 +1,192 @@
+{
+  "mission": "BC-CAJA-RC15-APERTURA-PEDIDOS-001",
+  "current_state": "CLOSED",
+  "integrates": [
+    "BC-CAJA-APERTURA-CAJA-001",
+    "BC-CAJA-PEDIDOS-ATENCION-002"
+  ],
+  "history": [
+    {
+      "event": "MISSION_OPENED",
+      "from_state": "NOT_STARTED",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "RC candidata unica con Apertura + Pedidos, tras PASS de ambos gates humanos en sesion consolidada",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "INTEGRATION_COMPLETED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "VERIFICATION",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Apertura aplicada primero sobre origin/main; Pedidos reaplicado encima. Unico conflicto real: verification.json, resuelto conservando ambas entradas. CajaDiaria.py auto-merge limpio. Sin codigo de rc.11",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "VERIFICATION_PASSED",
+      "from_state": "VERIFICATION",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Focalizados Apertura 13, focalizados Pedidos 21, adyacente 31, regresion completa 253 + 4 subpruebas",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "VISUAL_EVIDENCE_PASSED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "7 capturas fail-closed sobre la RC combinada: 1920x1080 y regresion 1366x768",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "PACKAGED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "BC-CAJA-1.0.0-rc.15-win64.zip con zip_sha256 y exe_sha256; backup previo verificado; rollback documentado; binario probado",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "ARTIFACT_CONSISTENCY_PASSED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "LIBRARIAN",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "13 fuentes y 7 capturas hasheadas, mas zip y exe",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "LIBRARIAN_PASS",
+      "from_state": "LIBRARIAN",
+      "to_state": "QA",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "MANIFEST, SUMMARY, ROLLBACK, INSTALL_GATE y ARTIFACT_CONSISTENCY coherentes; trazabilidad a las dos misiones y a sus veredictos humanos",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "QA_PASS",
+      "from_state": "QA",
+      "to_state": "AUDITOR",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Verificado sobre la RC combinada: fecha/hora automaticas, historico solo lectura, Caja inicial destacada, Pedidos en Requieren atencion, contador coincidente, correccion cerrada al dominio, arqueo/admin/correo intactos, reglas economicas sin cambios",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "AUDITOR_HOLD",
+      "from_state": "AUDITOR",
+      "to_state": "AWAITING_INSTALL_AUTHORIZATION",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Gate autentico adicional que no se pudo consolidar: la version instalada real es rc.11, no rc.14. Instalar rc.15 promoveria tambien rc.12, rc.13 y rc.14, incluida la migracion 015 sin inversa y el administrador con correo de cierre. Excede lo validado por los dos gates humanos",
+      "gate_id": "INSTALL_GATE-RC15-001",
+      "gate_generation": 1,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "PREFLIGHT_PASSED",
+      "from_state": "AWAITING_INSTALL_AUTHORIZATION",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Precheck canonico PASS: instalada rc.11, base integra, 14 migraciones, sin caja de hoy abierta, sin procesos, backup y espacio OK, correo sin configurar",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "CLONE_VALIDATION_PASSED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Migracion rc.11 -> rc.15 sobre clon de la base productiva: 015 aplicada, integridad ok, datos y montos identicos, arqueo, admin, cierre, pedidos e historial verificados, outbox sin enviar correo",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "UX_DEFECT_FIXED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Contraste de acciones en Pedidos: solido cuando esta disponible, gris apagado cuando no, con motivo al pasar el mouse. 5 pruebas nuevas y verificacion de luminancia en la captura",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "REPACKAGED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "rc.15 reconstruido con la correccion UX: nuevo zip_sha256 y exe_sha256",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "INSTALLED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "INSTALLED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Instalacion transaccional rc.11 -> rc.15: zip verificado por hash, backup preinstall, version anterior preservada en previous-rc11, migracion 015 por el flujo soportado, datos y montos identicos, integridad ok",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "POST_INSTALL_VERIFIED",
+      "from_state": "INSTALLED",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Sobre la base productiva: 15 migraciones, integridad ok, 8 pedidos reales, consulta canonica coherente (7 atrasados), admin sin configurar, correo NO configurado, outbox sin envios. exe instalado coincide con el construido",
+      "gate_id": "HUMAN_GATE-RC15-INSTALADA-001",
+      "gate_generation": 1,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "HUMAN_GATE_PASS",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "GATE_PASSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Observacion humana sobre rc.15 instalada y corriendo con datos reales. 11 puntos PASS, incluido el contraste corregido de las acciones de Pedidos. Ver GATE_VERDICT.md",
+      "gate_id": "HUMAN_GATE-RC15-INSTALADA-001",
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "LIBRARIAN_PASS",
+      "from_state": "GATE_PASSED",
+      "to_state": "QA",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "MANIFEST, SUMMARY, PREFLIGHT, ROLLBACK, INSTALL_GATE, HUMAN_GATE, GATE_VERDICT y ARTIFACT_CONSISTENCY coherentes entre si y con el paquete instalado",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "QA_PASS",
+      "from_state": "QA",
+      "to_state": "AUDITOR",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "258 pruebas + 4 subpruebas, 9 capturas fail-closed, preflight, clon productivo y post-install verificados sobre la base real",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "AUDITOR_PASS",
+      "from_state": "AUDITOR",
+      "to_state": "CLOSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "rc.15 instalada y validada. main sin promover: el push a la rama por defecto sigue bloqueado por la politica de permisos y queda como accion explicita",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "MAIN_PROMOTED",
+      "from_state": "CLOSED",
+      "to_state": "CLOSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "origin/main avanzado por fast-forward de 098a9fb a c7d4777. Sin force-push, sin merge commit. main == RC",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    }
+  ]
+}

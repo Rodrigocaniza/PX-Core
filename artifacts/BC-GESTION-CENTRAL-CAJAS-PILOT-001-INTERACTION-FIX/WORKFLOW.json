@@ -1,0 +1,16 @@
+{
+  "mission": "BC-GESTION-CENTRAL-CAJAS-PILOT-001-INTERACTION-FIX",
+  "current_state": "SAFE_CLOSED",
+  "continuous_session": true,
+  "auto_resume": true,
+  "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
+  "history": [
+    {"event": "MISSION_LEASE_ACQUIRED", "from": "REPORTED", "to": "DIAGNOSIS"},
+    {"event": "ROOT_CAUSE_CONFIRMED", "from": "DIAGNOSIS", "to": "IMPLEMENTATION"},
+    {"event": "IMPLEMENTATION_COMPLETED", "from": "IMPLEMENTATION", "to": "LIBRARIAN"},
+    {"event": "LIBRARIAN_PASSED", "from": "LIBRARIAN", "to": "QA"},
+    {"event": "QA_PASSED", "from": "QA", "to": "AUDITOR", "targeted": "12 passed", "regression": "211 passed"},
+    {"event": "AUDITOR_PASSED", "from": "AUDITOR", "to": "SAFE_CLOSED"},
+    {"event": "MISSION_LEASE_RELEASED", "from": "SAFE_CLOSED", "to": "SAFE_CLOSED"}
+  ]
+}

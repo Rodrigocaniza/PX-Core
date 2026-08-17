@@ -1,0 +1,116 @@
+{
+  "mission": "BC-CAJA-RC15-APERTURA-PEDIDOS-001",
+  "version": "BC Caja 1.0.0-rc.15",
+  "base_commit": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.14",
+  "branch": "feature/bc-caja-rc15-apertura-pedidos-001",
+  "worktree": "rc15",
+  "integrates": [
+    {
+      "mission": "BC-CAJA-APERTURA-CAJA-001",
+      "commits": [
+        "0f102667325b18360950f2249db177c105253c42",
+        "37af752"
+      ],
+      "gate": "HUMAN_GATE-APERTURA-CAJA-001 PASS",
+      "applied_first": true
+    },
+    {
+      "mission": "BC-CAJA-PEDIDOS-ATENCION-002",
+      "commits": [
+        "57adf2d",
+        "4d96a93"
+      ],
+      "gate": "HUMAN_GATE-PEDIDOS-002 PASS",
+      "reapplied_on_top": true,
+      "conflicts_resolved": [
+        ".bc-command-center/verification.json"
+      ]
+    }
+  ],
+  "packaged": true,
+  "installed": true,
+  "install_blocked_by": null,
+  "tests": {
+    "passed": 258,
+    "subtests": 4,
+    "baseline": 225,
+    "apertura": 10,
+    "pedidos": 18,
+    "ux_contraste": 5
+  },
+  "migrations": 15,
+  "schema_changed_vs_baseline": false,
+  "schema_changed_vs_installed": true,
+  "economic_rules_changed": false,
+  "package": {
+    "zip": "releases/BC-CAJA-1.0.0-rc.15-win64.zip",
+    "zip_sha256": "167b170974483839542355926538bc7395188ca22eb654d51f89a620a328127d",
+    "zip_bytes": 24149757,
+    "exe": "dist/BC-Caja/BC-Caja.exe",
+    "exe_sha256": "86cc895da7530eadc8852f0523cc6dd2de00346e3a6ba6275b3b13be8ef6d006",
+    "exe_bytes": 6609127,
+    "smoke": "El ejecutable empaquetado arranca y crea su base con las 15 migraciones sobre un directorio de datos temporal"
+  },
+  "backup": {
+    "path": "%LOCALAPPDATA%\\BC\\Caja\\Backups\\bc-caja-pre-1.0.0-rc.15-20260817-161651-884812.sqlite3",
+    "sha256": "3e9a6d405e24a462ef7de2750ddcd2a8356a1f6089ce4eab8bdaa591c7a4854d",
+    "bytes": 180224,
+    "verified_identical_to_source": true
+  },
+  "installed_version_found": "BC Caja 1.0.0-rc.11 en %LOCALAPPDATA%\\Programs\\BC-Caja-Pilot",
+  "source_files": {
+    ".bc-command-center/verification.json": "2f453f63068d1596fb9b8f78a8a094a696683bbcebb3780ab2d0342001912c32",
+    "CajaDiaria.py": "b403f334a3678d40b2bbd6ee12713cab4790d4b91071cb7808441079c3f2934b",
+    "modulos/caja_diaria/domain/models.py": "bec3663c60d42fb76d9776b46a411e99843689ef9cde3f2b21b011a5aecf0e54",
+    "modulos/caja_diaria/application/ports.py": "b8da9ec7a587d829c482fa0b7aa687e31366a1e56b077d8e00ec42b639c0ea60",
+    "modulos/caja_diaria/application/services.py": "23d6430201e131ca828f4e5613efb0f40568647436707dcf027f34f5ac50393c",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "030b098dea6a64a3c4ed174c0816a88da157bccec575753314258b48253f5c75",
+    "modulos/caja_diaria/ui/controller.py": "d8cd0ed3831386029f2af662e4ed5eb781232035d676107cbf4f7a57df81c136",
+    "tests/caja_diaria/test_rc15_apertura_caja.py": "abb4f3929a78baad43f38354b1e33dbc1ca3b578daa99d7aca0112be921d676a",
+    "tests/caja_diaria/test_pedidos_atencion_002.py": "2893fe43d05e9fcebacf48b45ee8307ab147b8b25353dc6d04e083f4f3613f4c",
+    "tools/capture_caja_rc15_apertura.py": "79d678a2c22d4d33edf05f0e41b1f87bc9a50b1162520fa610bb2771f430348b",
+    "tools/capture_caja_pedidos_atencion.py": "bd83e8d6a722a16bb53c8251e866b40e89161450f2605404387aad3f3ea14cef",
+    "pilot/package_docs/VERSION.txt": "f374b026ad06a92c34b349b82155c5fda24064bf0c7888cc07d6a909f90527d8",
+    "pilot/build_pilot.ps1": "a64d67058382e79c5436f01b0c47dbcc26495629b3d79d744e30b0a0014217a9"
+  },
+  "visual_evidence": {
+    "apertura-1920x1080.png": "5b641e14c130506e7c0a91b35abe8bc09c83ee1001c2b67ce0eb76bff46eeef7",
+    "apertura-1366x768.png": "ff814b0665ad550a6efddc583f8f3eba017240434da09c6d0669516326d1ea83",
+    "consulta-otro-dia-1920x1080.png": "2c4d4b442188a75e6d9a7cc8fabc7e371d8bf8a2d264a98d130426fe2deeaa63",
+    "consulta-otro-dia-1366x768.png": "6b3a03249ddebadd58071ae498a0c6e1509cd904b3419c8ef1c122344d11aa53",
+    "pedidos-atencion-1920x1080.png": "c53fdd35551d8eb4e0bc0f2a8bc7faad46c458e957d87b3fa890c327e04fc508",
+    "pedidos-atencion-1366x768.png": "7771bb85766d132ac02f5a16ab59125ff6d76c4e7628d381329292d5796baee6",
+    "acciones-contraste-1920x1080.png": "98cf00450cf41d24b7c4696f26a8da3b445ec8e48768aa7dfd9268389e949c19",
+    "acciones-contraste-1366x768.png": "ee4fe1a6ada134d8489461db5fe2b03de476902c2266498f5e172d9c9e416847",
+    "corregir-estado-1920x1080.png": "39bec6f106e1c4e51b7707333bcf2f88684ae404ad3f77f2e529cfd0c39bbc38"
+  },
+  "ux_fix": {
+    "defect": "Botones habilitados y deshabilitados casi no se distinguian en Pedidos",
+    "fixed_in_rc15": true,
+    "contract": "aplicar_disponibilidad + AvisoDeshabilitado",
+    "verified": "contraste verificado en tiempo de ejecucion por la captura, para cada estado de pedido, a 1920x1080 y 1366x768"
+  },
+  "preflight": {
+    "installed": "1.0.0-rc.11",
+    "db_integrity": "ok",
+    "foreign_keys": "ok",
+    "migrations_before": 14,
+    "caja_de_hoy_abierta": false,
+    "procesos_abiertos": false,
+    "clone_validation": "PASS: rc.11 -> rc.15 sobre copia de la base productiva real"
+  },
+  "install": {
+    "from": "1.0.0-rc.11",
+    "to": "1.0.0-rc.15",
+    "path": "%LOCALAPPDATA%\\\\Programs\\\\BC-Caja-Pilot",
+    "previous_kept": "BC-Caja-Pilot.previous-rc11",
+    "preinstall_backup": "bc-caja-preinstall-1.0.0-rc.15-20260817-164711-598414.sqlite3",
+    "exe_sha256_verificado_en_disco": true,
+    "migraciones": "14 -> 15 (015 aplicada por el flujo soportado)",
+    "datos": "2 dias, 12 movimientos, 8 pedidos, 10 items: identicos antes y despues",
+    "montos": "(6400000, 2200000, 250000) sin cambios",
+    "integridad_post": "integrity_check ok, foreign_key_check 0"
+  },
+  "post_install_gate": "HUMAN_GATE-RC15-INSTALADA-001"
+}

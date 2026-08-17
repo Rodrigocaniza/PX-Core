@@ -91,6 +91,22 @@ class OrderStatus(str, Enum):
     DELIVERED = "ENTREGADO"
 
 
+#: Única fuente de verdad de las transiciones de pedido. La lista cerrada que
+#: ofrece "Corregir estado" se deriva de acá; nunca se acepta un estado libre.
+ORDER_TRANSITIONS: dict[OrderStatus, frozenset[OrderStatus]] = {
+    OrderStatus.PENDING: frozenset({OrderStatus.READY}),
+    OrderStatus.READY: frozenset({OrderStatus.PENDING, OrderStatus.DELIVERED}),
+    OrderStatus.DELIVERED: frozenset({OrderStatus.PENDING}),
+}
+
+
+def allowed_order_transitions(status: OrderStatus | str) -> tuple[OrderStatus, ...]:
+    """Estados destino válidos desde ``status``, en orden estable de presentación."""
+    current = OrderStatus(status)
+    permitidos = ORDER_TRANSITIONS[current]
+    return tuple(estado for estado in OrderStatus if estado in permitidos)
+
+
 def discount_percent(value, *, field_name: str = "descuento") -> int:
     """Porcentaje entero estable; evita cálculos monetarios con float."""
     if value in (None, ""):
@@ -212,12 +228,7 @@ class Order:
 
     def transition_to(self, status: OrderStatus | str) -> "Order":
         target = OrderStatus(status)
-        allowed = {
-            OrderStatus.PENDING: {OrderStatus.READY},
-            OrderStatus.READY: {OrderStatus.PENDING, OrderStatus.DELIVERED},
-            OrderStatus.DELIVERED: {OrderStatus.PENDING},
-        }
-        if target not in allowed[self.status]:
+        if target not in ORDER_TRANSITIONS[self.status]:
             raise InvalidCashDayError(
                 f"transición de pedido inválida: {self.status.value} → {target.value}"
             )

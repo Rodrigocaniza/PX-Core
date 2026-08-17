@@ -1,0 +1,36 @@
+{
+  "mission": "BC-CAJA-PEDIDOS-ATENCION-002",
+  "state": "GATE_PASSED",
+  "repository": "PX-Core",
+  "worktree": "pedidos002",
+  "branch": "feature/bc-caja-pedidos-atencion-002",
+  "base_commit": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.14",
+  "supersedes": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
+  "blocked_on": null,
+  "next_action": "Integrado en la RC combinada BC-CAJA-RC15-APERTURA-PEDIDOS-001. No se instala por separado.",
+  "next_role": "COMMAND_CENTER",
+  "verification": {
+    "tests": "243 passed + 4 subtests (225 baseline + 18 nuevas)",
+    "visual_automated": "3 capturas fail-closed contra rc.14",
+    "visual_human": "PASS (sesion consolidada 2026-08-17, ver GATE_VERDICT.md)",
+    "old_gate": "HUMAN_GATE-RC12-PEDIDOS-001 anulado, no reutilizado como PASS"
+  },
+  "after_gate_pass": [
+    "Empaquetar BC Caja (pilot/build_pilot.ps1) como rc.15",
+    "Backup previo en %LOCALAPPDATA%\\BC\\Caja\\Backups",
+    "Artifact consistency con zip_sha256 y exe_sha256",
+    "Safe closure y push protegido"
+  ],
+  "deferred": [
+    "Laboratorio en la grilla de Pedidos: vive en SaleItem, requiere join contra sale_items, es su propio slice",
+    "DatePicker/TimePicker compartido DD/MM/YYYY en español",
+    "FactuFácil integrado en BC Caja",
+    "Cabecera responsive a 1366x768: los KPIs quedan tapados por los botones de estado (deuda anterior a rc.14)"
+  ],
+  "parallel_missions": {
+    "BC-CAJA-APERTURA-CAJA-001": "AWAITING_HUMAN_GATE en worktree apertura001, rama feature/bc-caja-apertura-caja-001, sin tocar",
+    "BC-CAJA-RC12-PEDIDOS-ATENCION-001": "SUPERSEDED por esta misión; la rama se conserva como evidencia"
+  },
+  "integration_note": "Apertura (0f10266) y Pedidos (esta rama) parten ambas de 098a9fb y tocan CajaDiaria.py en zonas distintas (cabecera vs pestaña Pedidos). Al mergear, la segunda en entrar debe rebasar sobre la primera."
+}

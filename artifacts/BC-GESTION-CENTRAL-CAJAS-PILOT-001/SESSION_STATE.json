@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "mission": "BC-GESTION-CENTRAL-CAJAS-PILOT-001",
+  "continuous_session": true,
+  "auto_resume": true,
+  "current_phase": "SAFE_CLOSURE",
+  "last_completed_phase": "AUDITOR",
+  "resume_from": "No implementation work remains; review or commit the isolated worktree.",
+  "role_state_binding": {
+    "IMPLEMENTATION_ENGINEER": "COMPLETED",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS"
+  },
+  "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
+  "safe_closure": "READY"
+}

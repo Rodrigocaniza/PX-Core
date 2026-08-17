@@ -1,0 +1,99 @@
+{
+  "mission": "BC-CAJA-PEDIDOS-ATENCION-002",
+  "current_state": "GATE_PASSED",
+  "supersedes": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
+  "history": [
+    {
+      "event": "MISSION_OPENED",
+      "from_state": "NOT_STARTED",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Opción A: portar Pedidos al estado canónico real origin/main 098a9fb (rc.14)",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "BASELINE_VERIFIED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "origin/main verificado y suite completa en verde antes de tocar nada: 225 pruebas + 4 subpruebas",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "PORT_COMPLETED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "VERIFICATION",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "3 archivos portados byte a byte (hash verificado contra el MANIFEST viejo); services.py, ui/controller.py y CajaDiaria.py reescritos sobre rc.14. Sin merge ciego, sin código incompatible de rc.11",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "VERIFICATION_PASSED",
+      "from_state": "VERIFICATION",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "243 pruebas + 4 subpruebas (225 baseline + 18 nuevas). Focalizados primero, regresión completa al cierre",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "VISUAL_EVIDENCE_PASSED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "3 capturas fail-closed contra rc.14: grilla 1920x1080 y 1366x768 y diálogo de corrección. Verifica también que Arqueo y Administrador siguen presentes",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "ARTIFACT_CONSISTENCY_PASSED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "LIBRARIAN",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "12 fuentes y 3 capturas hasheadas; sin ZIP ni EXE porque el empaquetado está bloqueado",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "LIBRARIAN_PASS",
+      "from_state": "LIBRARIAN",
+      "to_state": "QA",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "MANIFEST, SUMMARY, HUMAN_GATE, IMPLEMENTATION_PACKET y ARTIFACT_CONSISTENCY coherentes; trazabilidad explícita al slice de origen 41ee4ce sin merge",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "QA_PASS",
+      "from_state": "QA",
+      "to_state": "AUDITOR",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Automático PASS. Visual automatizado PASS contra rc.14, no contra capturas de rc.11. Observación humana: pendiente, no se inventó ni se heredó",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "AUDITOR_PASS",
+      "from_state": "AUDITOR",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Empaquetado e instalación bloqueados hasta HUMAN_GATE-PEDIDOS-002. main intacto, sin force-push, sin tocar la rama de Apertura",
+      "gate_id": "HUMAN_GATE-PEDIDOS-002",
+      "gate_generation": 1,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "HUMAN_GATE_PASS",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "GATE_PASSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Observacion humana real en sesion consolidada con HUMAN_GATE-APERTURA-CAJA-001. 11 puntos PASS, incluido el punto 10 (Arqueo, Administrador y correo de cierre de rc.14 intactos) y la regresion 1366x768. HUMAN_GATE-RC12-PEDIDOS-001 sigue anulado y no se uso. Ver GATE_VERDICT.md",
+      "gate_id": "HUMAN_GATE-PEDIDOS-002",
+      "gate_generation": 1,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    }
+  ]
+}

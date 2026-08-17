@@ -700,6 +700,20 @@ class SQLiteCashDayRepository:
             connection.commit()
         return updated
 
+    def latest_order_revisions(self) -> dict[str, dict]:
+        """Última novedad por pedido, en una sola consulta (evita N+1 en la grilla)."""
+        with self._connection() as connection:
+            rows = connection.execute(
+                """SELECT r.order_id,r.previous_status,r.new_status,r.responsible,
+                          r.reason,r.recorded_at
+                FROM order_status_revisions AS r
+                JOIN (
+                    SELECT order_id, MAX(id) AS id
+                    FROM order_status_revisions GROUP BY order_id
+                ) AS ultima ON ultima.id = r.id"""
+            ).fetchall()
+        return {row["order_id"]: dict(row) for row in rows}
+
     def list_order_status_revisions(self, order_id: str) -> Sequence[dict]:
         with self._connection() as connection:
             rows = connection.execute(

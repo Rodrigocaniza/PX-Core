@@ -1,0 +1,15 @@
+{
+  "mission": "BC-GESTION-CENTRAL-CAJAS-PILOT-001-DETAIL-HORIZONTAL",
+  "current_state": "SAFE_CLOSED",
+  "continuous_session": true,
+  "auto_resume": true,
+  "autochain": ["LIBRARIAN", "QA", "AUDITOR"],
+  "history": [
+    {"event": "MISSION_LEASE_ACQUIRED", "from": "REQUESTED", "to": "IMPLEMENTATION"},
+    {"event": "IMPLEMENTATION_COMPLETED", "from": "IMPLEMENTATION", "to": "LIBRARIAN"},
+    {"event": "LIBRARIAN_PASSED", "from": "LIBRARIAN", "to": "QA"},
+    {"event": "QA_PASSED", "from": "QA", "to": "AUDITOR", "focused": "13 passed", "regression": "212 passed"},
+    {"event": "AUDITOR_PASSED", "from": "AUDITOR", "to": "SAFE_CLOSED"},
+    {"event": "MISSION_LEASE_RELEASED", "from": "SAFE_CLOSED", "to": "SAFE_CLOSED"}
+  ]
+}
