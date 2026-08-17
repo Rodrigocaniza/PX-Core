@@ -41,8 +41,9 @@ def test_rc4_observations_calendar_and_clear_contract():
 
 
 def test_rc4_never_displays_open_status_in_english():
-    assert 'text="Estado: ABIERTO"' in SOURCE
-    # RC29 traslada la traduccion a `estado_dia`, que es ahora la unica que
-    # decide el rotulo. La regla no cambia: nunca se muestra OPEN/CLOSED.
+    # RC29 trasladó la traducción a `estado_dia`, la única que decide el rótulo.
+    # La regla no cambia: nunca se muestra OPEN/CLOSED.
     assert '"ABIERTO" if cash_day.status.value == "OPEN" else "CERRADO"' in SOURCE
     assert "estado_dia(cash_day)" in SOURCE
+    assert '"Estado: OPEN"' not in SOURCE
+    assert '"Estado: CLOSED"' not in SOURCE

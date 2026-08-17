@@ -24,6 +24,7 @@
                      ,"BC-CAJA-RC9-PLANTILLA-RECETA-OBSERVACIONES-001":  "bc-caja-operator-ux"
                      ,"BC-CAJA-OPERATIVE-POLISH-BEFORE-ADMIN-001":  "bc-caja-operator-ux"
                      ,"BC-CAJA-RC11-TABLAS-COMPACTAS-ALINEADAS-001":  "bc-caja-operator-ux"
+                     ,"BC-CAJA-APERTURA-CAJA-001":  "bc-caja-apertura-caja"
                  },
     "runners":  {
                     "bc-caja-pedidos-v1":  {
@@ -241,6 +242,14 @@
                         "working_directory": ".",
                         "commands": {
                             "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_recovery_drill.py", "tests/caja_diaria/test_sqlite_repository.py", "tests/caja_diaria/test_multi_item_sales.py", "tests/caja_diaria/test_movements_integration.py", "-q"],
+                            "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
+                            "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
+                        }
+                    }
+                    ,"bc-caja-apertura-caja":  {
+                        "working_directory": ".",
+                        "commands": {
+                            "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_rc15_apertura_caja.py", "tests/caja_diaria/test_rc4_visual_clean_contract.py", "tests/caja_diaria/test_rc12_cash_count_modal.py", "tests/caja_diaria/test_rc13_admin_counts_email.py", "tests/caja_diaria/test_session_hours.py", "tests/caja_diaria/test_ui_smoke.py", "-q"],
                             "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
                             "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
                         }

@@ -65,7 +65,9 @@ def test_caja_inicial_esta_destacada_en_la_cabecera():
 def test_la_hora_de_apertura_se_muestra_y_no_se_pide():
     assert "def sufijo_hora_apertura(cash_day):" in SOURCE
     assert 'return " · " + cash_day.opened_at.astimezone().strftime("%H:%M")' in SOURCE
-    assert 'text=("Estado: ABIERTO" + sufijo_hora_apertura(cash_day) if abierta' in SOURCE
+    # `estado_dia` (RC29) sigue siendo la única que traduce el estado.
+    assert 'text=f"Estado: {estado_dia(cash_day)}"' in SOURCE
+    assert "+ (sufijo_hora_apertura(cash_day) if abierta else \"\")" in SOURCE
     # La hora nunca se pide: no hay campo ni selector de hora en la apertura.
     assert 'campos_manual["hora"]' not in SOURCE
 
@@ -77,9 +79,12 @@ def test_el_datepicker_compartido_y_factufacil_no_se_tocaron():
 
 
 def test_el_esquema_no_cambia():
+    # El port de Apertura sobre el tronco recuperado no agrega migraciones:
+    # se queda con las 21 que ya trae la línea (001-015 + 016-021 de Seguimiento).
     migrations = sorted(Path("modulos/caja_diaria/infrastructure/migrations").glob("*.sql"))
-    assert len(migrations) == 15
-    assert migrations[-1].name == "015_admin_counts_notifications.sql"
+    assert len(migrations) == 21
+    assert migrations[-1].name == "021_queda_a_confirmar.sql"
+    assert "015_admin_counts_notifications.sql" in [ruta.name for ruta in migrations]
 
 
 def test_la_apertura_registra_hora_automatica_y_la_conserva(tmp_path):
