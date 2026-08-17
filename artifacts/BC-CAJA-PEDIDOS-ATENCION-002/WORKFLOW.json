@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-PEDIDOS-ATENCION-002",
-  "current_state": "AWAITING_HUMAN_GATE",
+  "current_state": "GATE_PASSED",
   "supersedes": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
   "history": [
     {
@@ -81,6 +81,16 @@
       "to_state": "AWAITING_HUMAN_GATE",
       "timestamp": "2026-08-17T00:00:00Z",
       "reason": "Empaquetado e instalación bloqueados hasta HUMAN_GATE-PEDIDOS-002. main intacto, sin force-push, sin tocar la rama de Apertura",
+      "gate_id": "HUMAN_GATE-PEDIDOS-002",
+      "gate_generation": 1,
+      "session_id": "bc-caja-pedidos-atencion-002"
+    },
+    {
+      "event": "HUMAN_GATE_PASS",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "GATE_PASSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Observacion humana real en sesion consolidada con HUMAN_GATE-APERTURA-CAJA-001. 11 puntos PASS, incluido el punto 10 (Arqueo, Administrador y correo de cierre de rc.14 intactos) y la regresion 1366x768. HUMAN_GATE-RC12-PEDIDOS-001 sigue anulado y no se uso. Ver GATE_VERDICT.md",
       "gate_id": "HUMAN_GATE-PEDIDOS-002",
       "gate_generation": 1,
       "session_id": "bc-caja-pedidos-atencion-002"
