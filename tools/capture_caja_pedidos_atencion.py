@@ -95,6 +95,15 @@ def descendientes(widget):
         yield from descendientes(hijo)
 
 
+def buscar_boton(raiz, texto):
+    encontrado = buscar_widget(
+        raiz, lambda w: isinstance(w, ctk.CTkButton) and str(w.cget("text")) == texto
+    )
+    if encontrado is None:
+        raise RuntimeError(f"falta el botón '{texto}'")
+    return encontrado
+
+
 def grilla_de_pedidos(window):
     from tkinter import ttk
 
@@ -157,6 +166,78 @@ def verificar_contrato(window, controller) -> None:
         raise RuntimeError(f"el aviso dice {esperado} y la grilla muestra {len(reales)}")
 
 
+def verificar_contraste_acciones(window) -> None:
+    """La diferencia entre disponible y no disponible tiene que ser evidente."""
+    import CajaDiaria
+
+    acciones = {
+        texto: buscar_boton(window, texto)
+        for texto in ("Marcar listo", "Marcar entregado", "Corregir estado")
+    }
+    esperado_por_estado = {
+        "PENDIENTE": "Marcar listo",
+        "LISTO": "Marcar entregado",
+    }
+
+    def rgb(color):
+        return tuple(int(str(color)[i:i + 2], 16) for i in (1, 3, 5))
+
+    def luminancia(color):
+        r, g, b = (canal / 255 for canal in rgb(color))
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    grilla = grilla_de_pedidos(window)
+    for iid in grilla.get_children():
+        if iid.startswith("grupo::"):
+            continue
+        estado = str(grilla.set(iid, "estado"))
+        grilla.selection_set(iid)
+        grilla.event_generate("<<TreeviewSelect>>")
+        window.update_idletasks()
+        window.update()
+        habilitado_esperado = {
+            "Marcar listo": estado == "PENDIENTE",
+            "Marcar entregado": estado == "LISTO",
+            "Corregir estado": True,
+        }
+        for texto, control in acciones.items():
+            activo = str(control.cget("state")) == "normal"
+            if activo != habilitado_esperado[texto]:
+                raise RuntimeError(
+                    f"'{texto}' con pedido {estado}: state={control.cget('state')}"
+                )
+            fondo = str(control.cget("fg_color"))
+            if activo:
+                if fondo == CajaDiaria.COLOR_ACCION_INACTIVA:
+                    raise RuntimeError(f"'{texto}' disponible pero pintado como apagado")
+                if luminancia(fondo) > 0.45:
+                    raise RuntimeError(f"'{texto}' activo es demasiado claro: {fondo}")
+                if str(control.cget("text_color")) != "#FFFFFF":
+                    raise RuntimeError(f"'{texto}' activo sin texto blanco")
+            else:
+                if fondo != CajaDiaria.COLOR_ACCION_INACTIVA:
+                    raise RuntimeError(f"'{texto}' deshabilitado sin el gris del contrato: {fondo}")
+                if luminancia(fondo) < 0.70:
+                    raise RuntimeError(f"'{texto}' deshabilitado demasiado oscuro: {fondo}")
+                aviso = CajaDiaria.AvisoDeshabilitado._asignados.get(id(control))
+                if aviso is None or not aviso.texto:
+                    raise RuntimeError(f"'{texto}' deshabilitado no explica por qué")
+        # La diferencia entre disponible y no disponible tiene que ser medible.
+        activos = [c for c in acciones.values() if str(c.cget("state")) == "normal"]
+        inactivos = [c for c in acciones.values() if str(c.cget("state")) != "normal"]
+        for a in activos:
+            for i in inactivos:
+                salto = luminancia(str(i.cget("fg_color"))) - luminancia(str(a.cget("fg_color")))
+                if salto < 0.30:
+                    raise RuntimeError(
+                        f"disponible vs no disponible casi no se distinguen: salto {salto:.2f}"
+                    )
+        if estado in esperado_por_estado:
+            siguiente = acciones[esperado_por_estado[estado]]
+            if str(siguiente.cget("state")) != "normal":
+                raise RuntimeError(f"la próxima acción válida de {estado} no está disponible")
+
+
 def verificar_dialogo_correccion(window, controller) -> None:
     dialogo = next(
         (w for w in window.winfo_children()
@@ -185,6 +266,10 @@ def main() -> int:
     parser.add_argument(
         "--dialogo", action="store_true",
         help="captura el diálogo 'Corregir estado' sobre el primer pedido atrasado",
+    )
+    parser.add_argument(
+        "--acciones", action="store_true",
+        help="captura con un pedido seleccionado: acción disponible vs no disponible",
     )
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -222,6 +307,10 @@ def main() -> int:
         # El overlay de chips se posiciona en after_idle: dejar respirar el loop.
         settle()
         verificar_contrato(window, controller)
+        verificar_contraste_acciones(window)
+        if args.acciones:
+            seleccionar_primer_pedido(window)
+            settle()
         if args.dialogo:
             seleccionar_primer_pedido(window)
             settle()
@@ -235,7 +324,7 @@ def main() -> int:
         controller.service.repository.close()
         window.destroy()
         root.destroy()
-    modo = "dialogo" if args.dialogo else "grilla"
+    modo = "dialogo" if args.dialogo else ("acciones" if args.acciones else "grilla")
     print(f"BC_CAJA_PEDIDOS_002_CAPTURE_OK {args.output} {args.width}x{args.height} modo={modo}")
     return 0
 

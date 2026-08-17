@@ -159,6 +159,90 @@ ORDER_COLUMN_SPECS = (
 ORDER_ROW_PREFIX_GROUP = "grupo::"
 
 
+#: Una acción disponible se ve sólida; una no disponible se ve apagada de verdad.
+#: El gris tiene que leerse como "todavía no", no como una variante del blanco.
+COLOR_ACCION_INACTIVA = "#DDE3EB"
+COLOR_ACCION_INACTIVA_TEXTO = "#7C8899"
+COLOR_ACCION_INACTIVA_BORDE = "#BCC7D6"
+
+MOTIVO_ACCION_PEDIDO = {
+    "LISTO": "Elegí un pedido PENDIENTE para marcarlo listo.",
+    "ENTREGADO": "Elegí un pedido LISTO para marcarlo entregado.",
+    "CORREGIR": "Elegí un pedido de la lista para corregir su estado.",
+}
+
+
+class AvisoDeshabilitado:
+    """Explica al pasar el mouse por qué una acción no está disponible.
+
+    Se dibuja dentro de la propia ventana: no abre un Toplevel flotante, así el
+    marco nativo de BC Caja sigue intacto.
+    """
+
+    _asignados: dict[int, "AvisoDeshabilitado"] = {}
+
+    def __init__(self, widget):
+        self.widget = widget
+        self.texto = ""
+        self.etiqueta = None
+        widget.bind("<Enter>", self._mostrar, add="+")
+        widget.bind("<Leave>", self._ocultar, add="+")
+
+    @classmethod
+    def asignar(cls, widget, texto):
+        aviso = cls._asignados.get(id(widget))
+        if aviso is None:
+            aviso = cls._asignados[id(widget)] = cls(widget)
+        aviso.texto = texto or ""
+        if not aviso.texto:
+            aviso._ocultar()
+        return aviso
+
+    def _mostrar(self, _event=None):
+        if not self.texto or self.etiqueta is not None:
+            return
+        # En corridas automatizadas el aviso flotante ensucia las capturas.
+        if os.environ.get("BC_CAJA_AUTOMATED"):
+            return
+        try:
+            raiz = self.widget.winfo_toplevel()
+            self.etiqueta = ctk.CTkLabel(
+                raiz, text=f"  {self.texto}  ", fg_color="#2C3A4B", text_color="#FFFFFF",
+                corner_radius=6, height=26, font=ctk.CTkFont(size=11),
+            )
+            self.etiqueta.place(
+                x=self.widget.winfo_rootx() - raiz.winfo_rootx(),
+                y=self.widget.winfo_rooty() - raiz.winfo_rooty() + self.widget.winfo_height() + 4,
+            )
+            self.etiqueta.lift()
+        except Exception:
+            self._ocultar()
+
+    def _ocultar(self, _event=None):
+        if self.etiqueta is not None:
+            try:
+                self.etiqueta.destroy()
+            except Exception:
+                pass
+            self.etiqueta = None
+
+
+def aplicar_disponibilidad(boton, habilitado, color_activo, motivo=""):
+    """Estado visual explícito: sólido cuando se puede, apagado cuando no."""
+    if habilitado:
+        boton.configure(
+            state="normal", fg_color=color_activo, text_color="#FFFFFF",
+            border_width=0, cursor="hand2",
+        )
+    else:
+        boton.configure(
+            state="disabled", fg_color=COLOR_ACCION_INACTIVA,
+            text_color=COLOR_ACCION_INACTIVA_TEXTO, border_width=1,
+            border_color=COLOR_ACCION_INACTIVA_BORDE, cursor="arrow",
+        )
+    AvisoDeshabilitado.asignar(boton, "" if habilitado else motivo)
+
+
 def enlace_whatsapp(telefono: str, prefijo_pais: str = "595") -> str | None:
     """URL de WhatsApp para un teléfono paraguayo, o ``None`` si no es utilizable.
 
@@ -3334,9 +3418,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     def actualizar_botones_pedido(_event=None):
         estado = estado_pedido_seleccionado()
-        botones_estado_pedido["LISTO"].configure(state="normal" if estado == "PENDIENTE" else "disabled")
-        botones_estado_pedido["ENTREGADO"].configure(state="normal" if estado == "LISTO" else "disabled")
-        botones_estado_pedido["CORREGIR"].configure(state="normal" if estado else "disabled")
+        disponibilidad = {
+            "LISTO": estado == "PENDIENTE",
+            "ENTREGADO": estado == "LISTO",
+            "CORREGIR": bool(estado),
+        }
+        for clave, habilitado in disponibilidad.items():
+            aplicar_disponibilidad(
+                botones_estado_pedido[clave], habilitado,
+                colores_accion_pedido[clave], MOTIVO_ACCION_PEDIDO[clave],
+            )
         resaltar_filtro_pedidos()
 
     def avanzar_estado_pedido(estado):
@@ -3439,16 +3530,19 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         dialogo.grab_set()
         campo_observacion.focus_set()
 
+    colores_accion_pedido = {}
     for clave, texto_boton, color, accion in (
-        ("CORREGIR", "Corregir estado", "#D97706", abrir_correccion_estado),
+        ("CORREGIR", "Corregir estado", "#A85408", abrir_correccion_estado),
         ("ENTREGADO", "Marcar entregado", color_azul, lambda: avanzar_estado_pedido("ENTREGADO")),
-        ("LISTO", "Marcar listo", color_verde, lambda: avanzar_estado_pedido("LISTO")),
+        ("LISTO", "Marcar listo", "#12855A", lambda: avanzar_estado_pedido("LISTO")),
     ):
         boton = ctk.CTkButton(
             barra_pedidos, text=texto_boton, width=140, command=accion, fg_color=color,
+            text_color="#FFFFFF", font=ctk.CTkFont(size=12, weight="bold"),
         )
         boton.pack(side="right", padx=3)
         botones_estado_pedido[clave] = boton
+        colores_accion_pedido[clave] = color
 
     def abrir_whatsapp_pedido(evento):
         """Doble clic sobre el teléfono abre WhatsApp; no ocupa un botón visible."""

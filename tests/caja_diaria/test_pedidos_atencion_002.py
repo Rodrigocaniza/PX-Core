@@ -216,6 +216,59 @@ class PedidosUiContractTests(unittest.TestCase):
         self.assertIn("014_order_status_revisions.sql", [ruta.name for ruta in migraciones])
 
 
+class ActionAvailabilityContrastTests(unittest.TestCase):
+    """rc.15: una acción disponible se ve sólida; una no disponible, apagada."""
+
+    def test_disabled_palette_is_not_a_shade_of_white(self):
+        for color in (CajaDiaria.COLOR_ACCION_INACTIVA,
+                      CajaDiaria.COLOR_ACCION_INACTIVA_TEXTO,
+                      CajaDiaria.COLOR_ACCION_INACTIVA_BORDE):
+            self.assertRegex(color, r"^#[0-9A-Fa-f]{6}$")
+        fondo = CajaDiaria.COLOR_ACCION_INACTIVA
+        canales = [int(fondo[i:i + 2], 16) for i in (1, 3, 5)]
+        # Gris real: ni blanco ni casi blanco.
+        self.assertLess(max(canales), 240, fondo)
+        texto = CajaDiaria.COLOR_ACCION_INACTIVA_TEXTO
+        canales_texto = [int(texto[i:i + 2], 16) for i in (1, 3, 5)]
+        self.assertLess(max(canales_texto), 170, texto)
+
+    def test_availability_switches_fill_text_and_border_together(self):
+        fuente = CajaDiaria.__file__ and SOURCE
+        self.assertIn("def aplicar_disponibilidad(boton, habilitado, color_activo, motivo=\"\"):", fuente)
+        activo = fuente[fuente.index("if habilitado:"):fuente.index("    else:\n        boton.configure(")]
+        self.assertIn('fg_color=color_activo', activo)
+        self.assertIn('text_color="#FFFFFF"', activo)
+        self.assertIn('border_width=0', activo)
+        inactivo = fuente[fuente.index('state="disabled", fg_color=COLOR_ACCION_INACTIVA'):]
+        self.assertIn("COLOR_ACCION_INACTIVA_TEXTO", inactivo[:400])
+        self.assertIn("COLOR_ACCION_INACTIVA_BORDE", inactivo[:400])
+
+    def test_every_order_action_goes_through_the_availability_helper(self):
+        self.assertIn("for clave, habilitado in disponibilidad.items():", SOURCE)
+        self.assertIn("aplicar_disponibilidad(\n                botones_estado_pedido[clave], habilitado,", SOURCE)
+        self.assertNotIn(
+            'botones_estado_pedido["LISTO"].configure(state="normal"', SOURCE
+        )
+
+    def test_each_disabled_action_explains_why(self):
+        self.assertEqual(
+            set(CajaDiaria.MOTIVO_ACCION_PEDIDO), {"LISTO", "ENTREGADO", "CORREGIR"}
+        )
+        for motivo in CajaDiaria.MOTIVO_ACCION_PEDIDO.values():
+            self.assertTrue(motivo.strip().endswith("."), motivo)
+            self.assertIn("Elegí", motivo)
+        self.assertIn("class AvisoDeshabilitado:", SOURCE)
+        self.assertIn('AvisoDeshabilitado.asignar(boton, "" if habilitado else motivo)', SOURCE)
+
+    def test_active_colors_carry_enough_weight_for_white_text(self):
+        # Luminancia relativa baja => el texto blanco encima se lee.
+        for color in ("#A85408", "#12855A"):
+            r, g, b = (int(color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+            luminancia = 0.2126 * r + 0.7152 * g + 0.0722 * b
+            self.assertLess(luminancia, 0.42, color)
+            self.assertIn(color, SOURCE)
+
+
 class WhatsAppLinkTests(unittest.TestCase):
     def test_paraguayan_numbers_are_accepted_in_the_formats_actually_typed(self):
         for texto in ("0981 555 444", "+595 981-555444", "595981555444", "981555444"):

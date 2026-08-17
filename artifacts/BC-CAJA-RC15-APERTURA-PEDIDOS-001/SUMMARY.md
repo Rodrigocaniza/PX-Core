@@ -31,6 +31,17 @@ real `origin/main` `098a9fb` (rc.14).
    `CajaDiaria.py` auto-mergeó limpio: tocan zonas distintas (cabecera vs pestaña Pedidos).
 4. Nada de código de rc.11 entró: el port ya se había reescrito sobre rc.14.
 
+**Corrección UX de rc.15** — las acciones de Pedidos se distinguían demasiado poco entre
+habilitadas y deshabilitadas. Ahora:
+- disponible: color sólido y oscuro con texto blanco (`#12855A` listo, `#A85408` corregir,
+  azul entregado), sin borde;
+- no disponible: gris apagado real `#DDE3EB` con texto `#7C8899` y borde `#BCC7D6`;
+- al pasar el mouse por una acción no disponible, un aviso dice **por qué**
+  («Elegí un pedido PENDIENTE para marcarlo listo.»), dibujado dentro de la ventana para
+  no romper el marco nativo;
+- la captura verifica, pedido por pedido, que el salto de luminancia entre disponible y no
+  disponible sea de al menos 0,30 y que la próxima acción válida esté siempre habilitada.
+
 ## Verificación post-integración
 
 | Nivel | Resultado |
@@ -38,9 +49,11 @@ real `origin/main` `098a9fb` (rc.14).
 | Focalizados Apertura | 13 passed |
 | Focalizados Pedidos | 21 passed |
 | Adyacente (arqueo, admin, correo, sesión, rc.10/rc.11/rc.5, operator fixes) | 31 passed |
-| Regresión completa `tests` | **253 passed + 4 subtests** (225 baseline + 10 + 18) |
-| Visual automatizada 1920×1080 | 4 capturas fail-closed |
-| Regresión visual 1366×768 | 3 capturas fail-closed |
+| Regresión completa `tests` | **258 passed + 4 subtests** (225 baseline + 10 + 18 + 5 de contraste) |
+| Visual automatizada 1920×1080 | 5 capturas fail-closed |
+| Regresión visual 1366×768 | 4 capturas fail-closed |
+| Preflight sobre producción | PASS (`PREFLIGHT.md`) |
+| Migración rc.11 → rc.15 sobre clon de la base real | PASS (`PREFLIGHT.md`) |
 | Binario empaquetado | arranca y aplica las 15 migraciones sobre base temporal |
 
 Lo verificado explícitamente sobre la RC combinada: apertura con fecha/hora actuales,

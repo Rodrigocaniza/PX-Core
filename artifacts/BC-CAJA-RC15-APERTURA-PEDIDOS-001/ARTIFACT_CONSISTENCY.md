@@ -5,15 +5,18 @@ Integra BC-CAJA-APERTURA-CAJA-001 (gate PASS) y BC-CAJA-PEDIDOS-ATENCION-002 (ga
 Conflicto real unico .bc-command-center/verification.json resuelto conservando ambas entradas
 CajaDiaria.py auto-merge limpio: zonas distintas (cabecera vs pestana Pedidos)
 Fuentes verificadas 13 sha256 ok
-Evidencia visual 7 sha256 ok (apertura, consulta, pedidos, dialogo; 1920x1080 y 1366x768)
+Evidencia visual 9 sha256 ok (apertura, consulta, pedidos, contraste de acciones, dialogo; 1920x1080 y 1366x768)
 Evidencia visual fail-closed: las capturas abortan si el contrato no se cumple
-Pruebas 253 + 4 subpruebas (225 baseline + 10 Apertura + 18 Pedidos)
+Pruebas 258 + 4 subpruebas (225 baseline + 10 Apertura + 18 Pedidos + 5 contraste de acciones)
+Correccion UX: acciones disponibles solidas, no disponibles gris apagado con motivo al pasar el mouse
+Contraste verificado en tiempo de ejecucion pedido por pedido: salto de luminancia minimo 0.30
 Focalizados Apertura 13, focalizados Pedidos 21, adyacente 31
 Migraciones 15 latest 015_admin_counts_notifications.sql (sin cambios respecto de rc.14)
-ZIP releases/BC-CAJA-1.0.0-rc.15-win64.zip 24148167 bytes
-zip_sha256 c82f89b9461faf7a6f15bc36a7df46653565d21cdb56271a404f97b796618aef
-EXE dist/BC-Caja/BC-Caja.exe 6606940 bytes
-exe_sha256 44bf7225f0edc2befcf57ba37b5faed47ceee62c73b1518c2f611775b316b80d
+ZIP releases/BC-CAJA-1.0.0-rc.15-win64.zip 24149757 bytes
+zip_sha256 167b170974483839542355926538bc7395188ca22eb654d51f89a620a328127d
+EXE dist/BC-Caja/BC-Caja.exe 6609127 bytes
+exe_sha256 86cc895da7530eadc8852f0523cc6dd2de00346e3a6ba6275b3b13be8ef6d006
+Preflight canonico PASS y clon productivo PASS (rc.11 -> rc.15 sobre copia de la base real)
 Smoke del binario: arranca y aplica las 15 migraciones sobre base temporal
 Backup previo bc-caja-pre-1.0.0-rc.15-20260817-161651-884812.sqlite3 sha256 identico al original
 Rollback documentado y ejecutable ver ROLLBACK.md

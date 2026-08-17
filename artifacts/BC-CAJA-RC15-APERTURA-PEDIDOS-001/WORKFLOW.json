@@ -1,7 +1,10 @@
 {
   "mission": "BC-CAJA-RC15-APERTURA-PEDIDOS-001",
-  "current_state": "AWAITING_INSTALL_AUTHORIZATION",
-  "integrates": ["BC-CAJA-APERTURA-CAJA-001", "BC-CAJA-PEDIDOS-ATENCION-002"],
+  "current_state": "READY_TO_INSTALL",
+  "integrates": [
+    "BC-CAJA-APERTURA-CAJA-001",
+    "BC-CAJA-PEDIDOS-ATENCION-002"
+  ],
   "history": [
     {
       "event": "MISSION_OPENED",
@@ -83,6 +86,42 @@
       "reason": "Gate autentico adicional que no se pudo consolidar: la version instalada real es rc.11, no rc.14. Instalar rc.15 promoveria tambien rc.12, rc.13 y rc.14, incluida la migracion 015 sin inversa y el administrador con correo de cierre. Excede lo validado por los dos gates humanos",
       "gate_id": "INSTALL_GATE-RC15-001",
       "gate_generation": 1,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "PREFLIGHT_PASSED",
+      "from_state": "AWAITING_INSTALL_AUTHORIZATION",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Precheck canonico PASS: instalada rc.11, base integra, 14 migraciones, sin caja de hoy abierta, sin procesos, backup y espacio OK, correo sin configurar",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "CLONE_VALIDATION_PASSED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Migracion rc.11 -> rc.15 sobre clon de la base productiva: 015 aplicada, integridad ok, datos y montos identicos, arqueo, admin, cierre, pedidos e historial verificados, outbox sin enviar correo",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "UX_DEFECT_FIXED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Contraste de acciones en Pedidos: solido cuando esta disponible, gris apagado cuando no, con motivo al pasar el mouse. 5 pruebas nuevas y verificacion de luminancia en la captura",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "REPACKAGED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "rc.15 reconstruido con la correccion UX: nuevo zip_sha256 y exe_sha256",
+      "gate_id": null,
       "session_id": "bc-caja-rc15-apertura-pedidos"
     }
   ]
