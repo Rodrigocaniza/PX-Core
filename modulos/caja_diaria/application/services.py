@@ -13,6 +13,12 @@ from ..domain.models import (
 )
 
 
+#: Grupo canonico de la alerta de la cabecera: lo que hay que entregar y
+#: todavia no se entrego. Lo usan por igual el contador de la alerta y la vista
+#: que abre el clic, de modo que no puedan decir cosas distintas.
+FILTRO_REQUIEREN_ATENCION = "Requieren atención"
+
+
 class CashDayService:
     def __init__(self, repository: CashDayRepository, carry_forward_policy: CarryForwardPolicy | None = None) -> None:
         self.repository = repository
@@ -148,10 +154,27 @@ class CashDayService:
         )
         return self.repository.save_order(order)
 
-    def list_orders(self, *, filter_name: str = "Todos", today: date | str | None = None):
+    def list_orders(
+        self, *, filter_name: str = "Todos", today: date | str | None = None,
+        branch: str | None = None,
+    ):
         reference = parse_business_date(today or date.today())
         orders = list(self.repository.list_orders())
-        if filter_name == "Hoy":
+        if branch:
+            objetivo = str(branch).strip().casefold()
+            orders = [item for item in orders if item.branch.strip().casefold() == objetivo]
+        if filter_name == FILTRO_REQUIEREN_ATENCION:
+            # El grupo que origina la alerta de la cabecera: lo que ya vencio y
+            # lo que vence hoy, sin lo ya entregado. Es una sola consulta para
+            # que el numero de la alerta y lo que abre el clic no puedan
+            # discrepar; antes la alerta sumaba dos grupos y el clic filtraba
+            # solo uno, asi que abria vacio.
+            orders = [
+                item for item in orders
+                if item.delivery_date <= reference
+                and item.status is not OrderStatus.DELIVERED
+            ]
+        elif filter_name == "Hoy":
             orders = [item for item in orders if item.delivery_date == reference]
         elif filter_name == "Atrasados":
             orders = [item for item in orders if item.delivery_date < reference and item.status is not OrderStatus.DELIVERED]

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
-from ..application.services import CashDayService
+from ..application.services import FILTRO_REQUIEREN_ATENCION, CashDayService
 from ..application.tracking_service import TrackingService
 from ..domain.errors import (
     CashDayAlreadyExistsError,
@@ -332,8 +332,9 @@ class CashDayUIController:
     def latest_cash_count(self, cash_day_id: str):
         return self.service.repository.get_latest_cash_count(cash_day_id)
 
-    def list_orders(self, filter_name: str = "Todos", today=None):
-        return self.service.list_orders(filter_name=filter_name, today=today)
+    def list_orders(self, filter_name: str = "Todos", today=None, branch: str | None = None):
+        return self.service.list_orders(
+            filter_name=filter_name, today=today, branch=branch)
 
     def update_order_status(self, order_id: str, status: str, *, reason: str = "", responsible: str = "Sistema"):
         return self.service.update_order_status(order_id, status, reason=reason, responsible=responsible)
@@ -343,6 +344,23 @@ class CashDayUIController:
             len(self.list_orders("Hoy", today=today)),
             len(self.list_orders("Atrasados", today=today)),
         )
+
+    def orders_alert(self, today=None, branch: str | None = None) -> dict:
+        """La alerta de pedidos, con el filtro que la origino.
+
+        Devuelve el mismo `filtro` con el que hay que abrir Pedidos para ver
+        exactamente esos pedidos. La alerta transporta su contexto en vez de
+        dejar que la pantalla lo adivine: antes contaba `Hoy` mas `Atrasados` y
+        el clic filtraba solo `Hoy`, asi que con los vencidos abria vacia.
+        """
+        pedidos = self.list_orders(
+            FILTRO_REQUIEREN_ATENCION, today=today, branch=branch)
+        return {
+            "cantidad": len(pedidos),
+            "filtro": FILTRO_REQUIEREN_ATENCION,
+            "branch": branch or "",
+            "ids": [pedido.id for pedido in pedidos],
+        }
 
     @staticmethod
     def _require_saleswoman(values: Mapping[str, Any]) -> None:

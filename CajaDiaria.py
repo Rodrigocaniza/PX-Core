@@ -49,6 +49,7 @@ from modulos.caja_diaria.application.tracking_service import (
     ETIQUETAS_ESTADO as ETIQUETAS_ESTADO_UI,
     GRUPOS_SEGUIMIENTO,
 )
+from modulos.caja_diaria.application.services import FILTRO_REQUIEREN_ATENCION
 from modulos.caja_diaria.ui.controller import friendly_error
 from modulos.caja_diaria.ui.privacy import FinancialPrivacy
 
@@ -1194,7 +1195,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         font=ctk.CTkFont(size=fuente_chrome_cabecera, weight="bold"),
         fg_color="#FFF3CD", text_color="#7A4B00", border_width=1,
         border_color="#E6B85C", hover_color="#FFE5A3",
-        command=lambda: (seleccionar_pestaña("Pedidos"), refrescar_pedidos("Hoy")),
+        command=lambda: abrir_pedidos_desde_alerta(),
     )
     aviso_entregas.grid(row=0, column=7, sticky="w", padx=(2, 6), pady=4)
 
@@ -3104,7 +3105,25 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     # ---- Pedidos: alineación, chips accesibles y reversión auditada ----
     barra_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="transparent")
     barra_pedidos.pack(fill="x", padx=10, pady=10)
-    filtro_pedidos = ctk.StringVar(value="Hoy")
+    # RC28: Pedidos abre en lo que requiere atencion, no en una hoja en blanco.
+    # Es el mismo grupo que cuenta la alerta de la cabecera.
+    filtro_pedidos = ctk.StringVar(value=FILTRO_REQUIEREN_ATENCION)
+
+    # Contexto compacto: que se esta mostrando y como salir del filtro. Solo
+    # aparece cuando hay filtro; con "Todos" no tiene nada que decir.
+    contexto_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="#EEF4FB", corner_radius=6)
+    etiqueta_contexto_pedidos = ctk.CTkLabel(
+        contexto_pedidos, text="", anchor="w", text_color=color_texto,
+        font=ctk.CTkFont(size=perfil["fuente_label"] + 1, weight="bold"))
+    etiqueta_contexto_pedidos.pack(side="left", padx=(10, 14), pady=6)
+    ctk.CTkButton(
+        contexto_pedidos, text="Ver todos", width=110, height=28,
+        fg_color="#FFFFFF", text_color=color_azul, border_width=1,
+        border_color=color_borde_suave, hover_color="#EAF3FF",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=lambda: refrescar_pedidos("Todos"),
+    ).pack(side="left", pady=6)
+
     marco_pedidos = ctk.CTkFrame(tab_pedidos, fg_color="#FFFFFF")
     marco_pedidos.pack(fill="both", expand=True, padx=10, pady=(0, 8))
     marco_pedidos.grid_rowconfigure(0, weight=1)
@@ -3137,6 +3156,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         anchor = alineacion_pedidos[clave]
         grilla_pedidos.heading(clave, text=titulo, anchor=anchor)
         grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor, stretch=False)
+    vacio_pedidos = ctk.CTkLabel(
+        marco_pedidos, text="", justify="center", text_color=color_suave,
+        font=ctk.CTkFont(size=perfil["fuente_label"] + 1))
+
     scroll_pedidos = ttk.Scrollbar(marco_pedidos, orient="vertical")
     grilla_pedidos.grid(row=0, column=0, sticky="nsew", padx=(5, 0), pady=5)
     scroll_pedidos.grid(row=0, column=1, sticky="ns", padx=(0, 5), pady=5)
@@ -3147,18 +3170,46 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     def refrescar_pedidos(nombre=None):
         if nombre:
             filtro_pedidos.set(nombre)
+        activo = filtro_pedidos.get()
+        # La caja se atiende a si misma: por defecto se muestran los pedidos de
+        # su propia sucursal. `Todos` es la salida explicita a la vista global.
+        caja = contexto_sucursal["caja"] or None
+        sucursal = caja if activo != "Todos" else None
         for item in grilla_pedidos.get_children():
             grilla_pedidos.delete(item)
-        for pedido in controller.list_orders(filtro_pedidos.get()):
+        pedidos = controller.list_orders(activo, branch=sucursal)
+        for pedido in pedidos:
             grilla_pedidos.insert("", "end", iid=pedido.id,
                                   tags=(f"estado_{pedido.status.value}",), values=(
                 pedido.delivery_date.strftime("%d-%m-%Y"), pedido.customer_name,
                 pedido.customer_phone, pedido.customer_document, pedido.envelope, pedido.branch,
                 pedido.saleswoman, pedido.origin.value, pedido.status.value,
             ))
+        # Que se esta mostrando, y de donde. Sin esto, una lista corta se lee
+        # como "no hay nada" cuando en realidad hay un filtro puesto.
+        if activo == "Todos":
+            contexto_pedidos.pack_forget()
+        else:
+            etiqueta_contexto_pedidos.configure(
+                text=f"Mostrando: {activo} ({len(pedidos)})"
+                     + (f"  ·  Caja {sucursal}" if sucursal else ""))
+            contexto_pedidos.pack(fill="x", padx=10, pady=(0, 6), before=marco_pedidos)
+        if not pedidos:
+            vacio_pedidos.configure(text=(
+                "No hay pedidos pendientes."
+                if activo == FILTRO_REQUIEREN_ATENCION else
+                f"No hay pedidos en «{activo}»."))
+            vacio_pedidos.place(relx=0.5, rely=0.42, anchor="center")
+        else:
+            vacio_pedidos.place_forget()
         actualizar_botones_pedido()
 
-    for nombre in ("Hoy", "Atrasados", "Próximos", "Todos"):
+    def abrir_pedidos_desde_alerta():
+        """La alerta lleva su propio filtro: abre exactamente sus pedidos."""
+        seleccionar_pestaña("Pedidos")
+        refrescar_pedidos(aviso_pedidos.get("filtro") or FILTRO_REQUIEREN_ATENCION)
+
+    for nombre in (FILTRO_REQUIEREN_ATENCION, "Hoy", "Atrasados", "Próximos", "Todos"):
         ctk.CTkButton(
             barra_pedidos, text=nombre, width=95,
             command=lambda valor=nombre: refrescar_pedidos(valor),
@@ -3247,10 +3298,17 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     #: Alerta que la cabecera esta mostrando ahora, para que el clic sepa a que
     #: grupo llevar. Se rellena en cada refresco.
     aviso_principal = {}
+    #: Lo mismo para la alerta de Pedidos: cantidad y filtro que la origino.
+    aviso_pedidos = {}
 
     def refrescar_avisos():
-        hoy, atrasados = controller.order_counts()
-        pendientes = hoy + atrasados
+        # RC28: la alerta y la vista que abre el clic salen de la misma
+        # consulta. Antes la alerta sumaba `Hoy` mas `Atrasados` y el clic
+        # filtraba solo `Hoy`, asi que con los vencidos abria en blanco y la
+        # operadora tenia que volver a buscar lo que el sistema ya sabia.
+        alerta = controller.orders_alert(branch=contexto_sucursal["caja"] or None)
+        aviso_pedidos.update(alerta)
+        pendientes = alerta["cantidad"]
         aviso_entregas.configure(
             text=f"⚠ Trabajos {pendientes}",
             fg_color="#FFE5A3" if pendientes else "#F7FAFF",
