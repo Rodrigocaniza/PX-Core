@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-RC15-APERTURA-PEDIDOS-001",
-  "current_state": "READY_TO_INSTALL",
+  "current_state": "AWAITING_HUMAN_GATE",
   "integrates": [
     "BC-CAJA-APERTURA-CAJA-001",
     "BC-CAJA-PEDIDOS-ATENCION-002"
@@ -122,6 +122,25 @@
       "timestamp": "2026-08-17T00:00:00Z",
       "reason": "rc.15 reconstruido con la correccion UX: nuevo zip_sha256 y exe_sha256",
       "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "INSTALLED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "INSTALLED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Instalacion transaccional rc.11 -> rc.15: zip verificado por hash, backup preinstall, version anterior preservada en previous-rc11, migracion 015 por el flujo soportado, datos y montos identicos, integridad ok",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "POST_INSTALL_VERIFIED",
+      "from_state": "INSTALLED",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Sobre la base productiva: 15 migraciones, integridad ok, 8 pedidos reales, consulta canonica coherente (7 atrasados), admin sin configurar, correo NO configurado, outbox sin envios. exe instalado coincide con el construido",
+      "gate_id": "HUMAN_GATE-RC15-INSTALADA-001",
+      "gate_generation": 1,
       "session_id": "bc-caja-rc15-apertura-pedidos"
     }
   ]

@@ -29,8 +29,8 @@
     }
   ],
   "packaged": true,
-  "installed": false,
-  "install_blocked_by": "INSTALL_GATE-RC15-001",
+  "installed": true,
+  "install_blocked_by": null,
   "tests": {
     "passed": 258,
     "subtests": 4,
@@ -99,5 +99,18 @@
     "caja_de_hoy_abierta": false,
     "procesos_abiertos": false,
     "clone_validation": "PASS: rc.11 -> rc.15 sobre copia de la base productiva real"
-  }
+  },
+  "install": {
+    "from": "1.0.0-rc.11",
+    "to": "1.0.0-rc.15",
+    "path": "%LOCALAPPDATA%\\\\Programs\\\\BC-Caja-Pilot",
+    "previous_kept": "BC-Caja-Pilot.previous-rc11",
+    "preinstall_backup": "bc-caja-preinstall-1.0.0-rc.15-20260817-164711-598414.sqlite3",
+    "exe_sha256_verificado_en_disco": true,
+    "migraciones": "14 -> 15 (015 aplicada por el flujo soportado)",
+    "datos": "2 dias, 12 movimientos, 8 pedidos, 10 items: identicos antes y despues",
+    "montos": "(6400000, 2200000, 250000) sin cambios",
+    "integridad_post": "integrity_check ok, foreign_key_check 0"
+  },
+  "post_install_gate": "HUMAN_GATE-RC15-INSTALADA-001"
 }

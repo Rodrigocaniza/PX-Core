@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-RC15-APERTURA-PEDIDOS-001",
-  "state": "AWAITING_INSTALL_AUTHORIZATION",
+  "state": "AWAITING_HUMAN_GATE",
   "repository": "PX-Core",
   "worktree": "rc15",
   "branch": "feature/bc-caja-rc15-apertura-pedidos-001",
@@ -9,10 +9,11 @@
   "gates": {
     "HUMAN_GATE-APERTURA-CAJA-001": "PASS",
     "HUMAN_GATE-PEDIDOS-002": "PASS",
-    "INSTALL_GATE-RC15-001": "PENDIENTE"
+    "INSTALL_GATE-RC15-001": "RESUELTO: opcion A, instalar rc.15 completo con preflight exhaustivo",
+    "HUMAN_GATE-RC15-INSTALADA-001": "PENDIENTE"
   },
-  "blocked_on": "INSTALL_GATE-RC15-001",
-  "next_action": "Decidir instalación: A) instalar rc.15 completo asumiendo que rc.12/13/14 entran a producción ahora; B) instalar y validar rc.12/13/14 primero y después rc.15; C) no instalar todavía. Ver INSTALL_GATE.md.",
+  "blocked_on": "HUMAN_GATE-RC15-INSTALADA-001",
+  "next_action": "Observar rc.15 ya instalada (11 puntos, ver HUMAN_GATE.md). Si pasa: artifact consistency final, safe closure y fast-forward de main.",
   "next_role": "HUMAN",
   "pending_action_blocked_by_permissions": {
     "action": "Avanzar origin/main a la RC (fast-forward)",
@@ -21,13 +22,16 @@
     "note": "Es fast-forward: main 098a9fb es ancestro directo de la RC. No requiere force."
   },
   "verification": {
-    "tests": "253 passed + 4 subtests (225 baseline + 10 Apertura + 18 Pedidos)",
+    "tests": "258 passed + 4 subtests (225 baseline + 10 Apertura + 18 Pedidos + 5 contraste)",
     "focused_apertura": "13 passed",
     "focused_pedidos": "21 passed",
     "adjacent": "31 passed",
     "visual_automated_1920": "4 capturas fail-closed",
     "visual_regression_1366": "3 capturas fail-closed",
-    "packaged_binary_smoke": "arranca y aplica las 15 migraciones sobre base temporal"
+    "packaged_binary_smoke": "arranca y aplica las 15 migraciones sobre base temporal",
+    "preflight": "PASS",
+    "clone_migration": "PASS sobre copia de la base productiva real",
+    "post_install": "PASS sobre la base productiva"
   },
   "package": {
     "zip": "releases/BC-CAJA-1.0.0-rc.15-win64.zip",
@@ -36,7 +40,7 @@
   },
   "backup": "%LOCALAPPDATA%\\BC\\Caja\\Backups\\bc-caja-pre-1.0.0-rc.15-20260817-161651-884812.sqlite3",
   "rollback": "artifacts/BC-CAJA-RC15-APERTURA-PEDIDOS-001/ROLLBACK.md",
-  "installed_version_found": "BC Caja 1.0.0-rc.11",
+  "installed_version_found": "BC Caja 1.0.0-rc.15 (instalada en esta sesion)",
   "not_started_yet": [
     "DatePicker global",
     "FactuFácil",
@@ -44,6 +48,13 @@
   ],
   "deferred": [
     "Laboratorio en la grilla de Pedidos: requiere join contra sale_items",
-    "Cabecera responsive a 1366x768: los KPIs quedan tapados por los botones de estado (deuda anterior a rc.14)"
-  ]
+    "Cabecera responsive a 1366x768: los KPIs quedan tapados por los botones de estado (deuda anterior a rc.14)",
+    "Dias 12/08 y 13/08 quedaron OPEN y con rc.15 el historico es solo lectura: ya no se pueden cerrar desde la UI. Decidir si se dejan asi o si hace falta un slice para cerrar un dia viejo con arqueo auditado"
+  ],
+  "installed": {
+    "version": "1.0.0-rc.15",
+    "from": "1.0.0-rc.11",
+    "preinstall_backup": "bc-caja-preinstall-1.0.0-rc.15-20260817-164711-598414.sqlite3",
+    "previous_kept": "BC-Caja-Pilot.previous-rc11"
+  }
 }
