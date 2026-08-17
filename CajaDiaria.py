@@ -144,7 +144,7 @@ def metricas_resumen_kpi(perfil: dict) -> dict:
 
 #: Ultimo recurso si no se encuentra VERSION.txt. Debe coincidir con
 #: pilot/package_docs/VERSION.txt; hay una prueba que lo verifica.
-VERSION_APLICACION = "1.0.0-rc.26"
+VERSION_APLICACION = "1.0.0-rc.27"
 
 
 def version_aplicacion() -> str:
@@ -1783,18 +1783,27 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     scroll_horizontal.grid(row=1, column=0, sticky="ew")
     marco_grilla.grid_rowconfigure(0, weight=1)
     marco_grilla.grid_columnconfigure(0, weight=1)
-    def texto_estado(cash_day):
+    # RC29: las tres partes de la jornada se calculan por separado para que
+    # Historial pueda darles jerarquia visual distinta. `texto_estado` las
+    # compone exactamente como antes, asi que el aviso de cierre no cambia una
+    # coma y ninguna cifra se recalcula en dos lugares.
+    def estado_dia(cash_day):
+        return "ABIERTO" if cash_day.status.value == "OPEN" else "CERRADO"
+
+    def resumen_economico_dia(cash_day):
         totales = cash_day.totals()
-        texto = (
-            f"{'ABIERTO' if cash_day.status.value == 'OPEN' else 'CERRADO'}   ·   "
+        return (
             f"Efectivo actual  {formatear_monto(totales.expected_cash)}    "
             f"Total ventas  {formatear_monto(totales.total)}\n"
             f"Gastos  {formatear_monto(totales.expenses)}    "
             f"Entregado a administración  {formatear_monto(totales.withdrawals)}    "
             f"Efectivo final  {formatear_monto(totales.expected_cash)}"
         )
+
+    def detalle_sesion_dia(cash_day):
+        """Apertura, cierre, duracion y hora extra. Vacio si sigue abierta."""
         if cash_day.closed_at is None or cash_day.session_duration_seconds is None:
-            return texto
+            return ""
         apertura = cash_day.opened_at.astimezone(BUSINESS_TIMEZONE).strftime("%H:%M:%S")
         cierre = cash_day.closed_at.astimezone(BUSINESS_TIMEZONE).strftime("%H:%M:%S")
         horas, resto = divmod(cash_day.session_duration_seconds, 3600)
@@ -1806,9 +1815,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         else:
             extra = "Hora extra: NO"
         return (
-            f"{texto}\n\nApertura real  {apertura}    Cierre real  {cierre}\n"
+            f"Apertura real  {apertura}    Cierre real  {cierre}\n"
             f"Duración  {horas:02d}:{minutos:02d}    {extra}"
         )
+
+    def texto_estado(cash_day):
+        texto = f"{estado_dia(cash_day)}   ·   {resumen_economico_dia(cash_day)}"
+        detalle = detalle_sesion_dia(cash_day)
+        return f"{texto}\n\n{detalle}" if detalle else texto
 
     def tiene_saldo_cliente(entry):
         return entry.client_balance_amount > 0
@@ -3028,23 +3042,61 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         for widget in lista_historial.winfo_children():
             widget.destroy()
         resumen_historial.configure(text=f"{len(cash_days)} jornadas en el período")
+        # RC29: cada jornada es una tarjeta y todo lo del dia cuelga de ella.
+        #
+        # Antes la cabecera y las filas eran hermanas dentro del scroll, y la
+        # unica pista de donde terminaba un dia era el padding. Ahora el bloque
+        # tiene borde propio y separacion entre jornadas, asi que se distingue
+        # sin leer una sola cifra. Nada de esto cambia contenido: mismas
+        # jornadas, mismo orden, mismos numeros.
         for cash_day in cash_days:
-            cabecera = ctk.CTkFrame(lista_historial, fg_color="#DCEBFA")
-            cabecera.pack(fill="x", padx=4, pady=(7, 2))
+            tarjeta = ctk.CTkFrame(
+                lista_historial, fg_color="#FFFFFF", corner_radius=8,
+                border_width=1, border_color=color_borde_suave)
+            # Marca de pertenencia para la sonda visual.
+            tarjeta._bc_jornada_historial = True
+            tarjeta.pack(fill="x", padx=4, pady=(0, 10))
+
+            cabecera = ctk.CTkFrame(tarjeta, fg_color="transparent")
+            cabecera.pack(fill="x", padx=10, pady=(8, 2))
+            # La fecha manda; el estado la acompaña como chip compacto.
             ctk.CTkLabel(
-                cabecera,
-                text=f"{cash_day.business_date.strftime('%d-%m-%Y')} · {texto_estado(cash_day)}",
-                anchor="w", text_color="#174A7E",
-            ).pack(side="left", fill="x", expand=True, padx=6)
+                cabecera, text=cash_day.business_date.strftime("%d-%m-%Y"),
+                anchor="w", text_color=color_texto,
+                font=ctk.CTkFont(size=perfil["fuente"] + 3, weight="bold"),
+            ).pack(side="left")
+            abierto = estado_dia(cash_day) == "ABIERTO"
+            ctk.CTkLabel(
+                cabecera, text=f"  {estado_dia(cash_day)}  ", corner_radius=7,
+                fg_color="#FFF3CD" if abierto else "#DDF5E8",
+                text_color="#7A4B00" if abierto else "#17633A", height=20,
+                font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1), weight="bold"),
+            ).pack(side="left", padx=(10, 0))
             ctk.CTkButton(
-                cabecera, text="Editar caja", width=90,
+                cabecera, text="Editar caja", width=90, height=28,
                 command=lambda d=cash_day: editar_caja(d),
-            ).pack(side="right", padx=4, pady=3)
+            ).pack(side="right")
+
+            ctk.CTkLabel(
+                tarjeta, text=resumen_economico_dia(cash_day), anchor="w",
+                justify="left", text_color=color_texto,
+                font=ctk.CTkFont(size=perfil["fuente"]),
+            ).pack(fill="x", padx=10, pady=(0, 2))
+
+            detalle_sesion = detalle_sesion_dia(cash_day)
+            if detalle_sesion:
+                # Secundario y compacto: acompaña, no abre otro bloque.
+                ctk.CTkLabel(
+                    tarjeta, text=detalle_sesion.replace("\n", "    "), anchor="w",
+                    justify="left", text_color=color_suave,
+                    font=ctk.CTkFont(size=max(8, perfil["fuente_label"] - 1)),
+                ).pack(fill="x", padx=10, pady=(0, 2))
+
             for indice_entry, entry in enumerate(cash_day.entries):
                 es_anulado = entry.status.value == "VOIDED"
                 color_fila = "#FDECEC" if es_anulado else ("#FFFFFF" if indice_entry % 2 == 0 else "#EEF4FB")
-                fila = ctk.CTkFrame(lista_historial, fg_color=color_fila)
-                fila.pack(fill="x", padx=12, pady=3)
+                fila = ctk.CTkFrame(tarjeta, fg_color=color_fila)
+                fila.pack(fill="x", padx=10, pady=1)
                 estado_texto = "ANULADO" if entry.status.value == "VOIDED" else "ACTIVO"
                 detalle = (
                 f"{entry.description} | Total {formatear_monto(entry.total or 0)} | "
@@ -3074,6 +3126,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 fg_color=COLOR_ROJO,
                 command=lambda d=cash_day, e=entry: anular_desde_historial(d, e),
                 ).pack(side="left", padx=2)
+            # Aire al pie de la tarjeta: la ultima fila no toca el borde.
+            ctk.CTkFrame(tarjeta, fg_color="transparent", height=6).pack(fill="x")
 
     def rango_rapido(dias=None, mes=False):
         hoy = date.today()

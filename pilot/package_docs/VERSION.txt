@@ -1,6 +1,6 @@
-BC Caja 1.0.0-rc.26
-Misión: BC-CAJA-RC27-PULIDO-POST-PRUEBA-001
-Integra: RC18 UX · RC19 Seguimiento · RC20 Alta de lote + ABM · RC21 Tabla logística · RC22 Vista por sucursal y alertas por local · RC23 Estado anclado a la fila · RC24 Tres acciones y selección múltiple · RC25 Recepción con discrepancias y alerta de sucursal · RC26 El atraso deja de trabar el circuito, teléfono en la tabla y reuso de filas · RC27 Sucursal automática, queda a confirmar, cierre por excepción y corrección auditada
+BC Caja 1.0.0-rc.27
+Misión: BC-CAJA-RC28-ALERTA-PEDIDOS-001 + BC-CAJA-RC29-HISTORIAL-JORNADAS-001
+Integra: RC18 UX · RC19 Seguimiento · RC20 Alta de lote + ABM · RC21 Tabla logística · RC22 Vista por sucursal y alertas por local · RC23 Estado anclado a la fila · RC24 Tres acciones y selección múltiple · RC25 Recepción con discrepancias y alerta de sucursal · RC26 El atraso deja de trabar el circuito, teléfono y reuso de filas · RC27 Sucursal automática, queda a confirmar y cierre por excepción · RC28 La alerta de Pedidos abre sus pedidos · RC29 Historial agrupado por jornada
 Fecha: 2026-08-16
-Esquema: migraciones 001-021
+Esquema: migraciones 001-021 (sin migración nueva)
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)
