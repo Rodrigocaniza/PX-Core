@@ -1,4 +1,4 @@
-BC Caja 1.0.0-rc.14
-Misión: BC-CAJA-RC14-MAIL-OPS-FIX-001
-Fecha: 2026-08-14
+BC Caja 1.0.0-rc.15
+Misión: BC-CAJA-RC15-APERTURA-PEDIDOS-001
+Fecha: 2026-08-17
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)

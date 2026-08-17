@@ -1,0 +1,77 @@
+{
+  "mission": "BC-CAJA-RC15-APERTURA-PEDIDOS-001",
+  "version": "BC Caja 1.0.0-rc.15",
+  "base_commit": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.14",
+  "branch": "feature/bc-caja-rc15-apertura-pedidos-001",
+  "worktree": "rc15",
+  "integrates": [
+    {
+      "mission": "BC-CAJA-APERTURA-CAJA-001",
+      "commits": ["0f102667325b18360950f2249db177c105253c42", "37af752"],
+      "gate": "HUMAN_GATE-APERTURA-CAJA-001 PASS",
+      "applied_first": true
+    },
+    {
+      "mission": "BC-CAJA-PEDIDOS-ATENCION-002",
+      "commits": ["57adf2d", "4d96a93"],
+      "gate": "HUMAN_GATE-PEDIDOS-002 PASS",
+      "reapplied_on_top": true,
+      "conflicts_resolved": [".bc-command-center/verification.json"]
+    }
+  ],
+  "packaged": true,
+  "installed": false,
+  "install_blocked_by": "INSTALL_GATE-RC15-001",
+  "tests": {
+    "passed": 253,
+    "subtests": 4,
+    "baseline": 225,
+    "apertura": 10,
+    "pedidos": 18
+  },
+  "migrations": 15,
+  "schema_changed_vs_baseline": false,
+  "schema_changed_vs_installed": true,
+  "economic_rules_changed": false,
+  "package": {
+    "zip": "releases/BC-CAJA-1.0.0-rc.15-win64.zip",
+    "zip_sha256": "c82f89b9461faf7a6f15bc36a7df46653565d21cdb56271a404f97b796618aef",
+    "zip_bytes": 24148167,
+    "exe": "dist/BC-Caja/BC-Caja.exe",
+    "exe_sha256": "44bf7225f0edc2befcf57ba37b5faed47ceee62c73b1518c2f611775b316b80d",
+    "exe_bytes": 6606940,
+    "smoke": "El ejecutable empaquetado arranca y crea su base con las 15 migraciones sobre un directorio de datos temporal"
+  },
+  "backup": {
+    "path": "%LOCALAPPDATA%\\BC\\Caja\\Backups\\bc-caja-pre-1.0.0-rc.15-20260817-161651-884812.sqlite3",
+    "sha256": "3e9a6d405e24a462ef7de2750ddcd2a8356a1f6089ce4eab8bdaa591c7a4854d",
+    "bytes": 180224,
+    "verified_identical_to_source": true
+  },
+  "installed_version_found": "BC Caja 1.0.0-rc.11 en %LOCALAPPDATA%\\Programs\\BC-Caja-Pilot",
+  "source_files": {
+    ".bc-command-center/verification.json": "2f453f63068d1596fb9b8f78a8a094a696683bbcebb3780ab2d0342001912c32",
+    "CajaDiaria.py": "0539d8c91e87380c66a2499c2a25a63e5d7cce1b2ce55a69b7ef0a10558c61f2",
+    "modulos/caja_diaria/domain/models.py": "bec3663c60d42fb76d9776b46a411e99843689ef9cde3f2b21b011a5aecf0e54",
+    "modulos/caja_diaria/application/ports.py": "b8da9ec7a587d829c482fa0b7aa687e31366a1e56b077d8e00ec42b639c0ea60",
+    "modulos/caja_diaria/application/services.py": "23d6430201e131ca828f4e5613efb0f40568647436707dcf027f34f5ac50393c",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "030b098dea6a64a3c4ed174c0816a88da157bccec575753314258b48253f5c75",
+    "modulos/caja_diaria/ui/controller.py": "d8cd0ed3831386029f2af662e4ed5eb781232035d676107cbf4f7a57df81c136",
+    "tests/caja_diaria/test_rc15_apertura_caja.py": "abb4f3929a78baad43f38354b1e33dbc1ca3b578daa99d7aca0112be921d676a",
+    "tests/caja_diaria/test_pedidos_atencion_002.py": "15eb5e896d582dd5019918091afbe3ee47525fea345c26713bf210bc11797844",
+    "tools/capture_caja_rc15_apertura.py": "79d678a2c22d4d33edf05f0e41b1f87bc9a50b1162520fa610bb2771f430348b",
+    "tools/capture_caja_pedidos_atencion.py": "dab3424b233bfe57c42ef7c03939feaaf1b2e7637bee6c7e5da1307f36707e58",
+    "pilot/package_docs/VERSION.txt": "f374b026ad06a92c34b349b82155c5fda24064bf0c7888cc07d6a909f90527d8",
+    "pilot/build_pilot.ps1": "a64d67058382e79c5436f01b0c47dbcc26495629b3d79d744e30b0a0014217a9"
+  },
+  "visual_evidence": {
+    "apertura-1920x1080.png": "cffab28d4548fbb5f5a9266784770b2b3af3228e7ae968a04f7c241f3d73c8ba",
+    "apertura-1366x768.png": "6fc8131ba006be145fff7b3377c8bc04ba272dbe1e9d52e764e1b0aa6eef41c7",
+    "consulta-otro-dia-1920x1080.png": "b8059c295e98f0e11da6c2e222e5a2bf8963c5156545f7434497809c431f32c6",
+    "consulta-otro-dia-1366x768.png": "04bdfc3f120350aa8b9bbb3a75d3b34b7e6061e354d817ef84d9b36b0a280df3",
+    "pedidos-atencion-1920x1080.png": "a2fb9471dbc00a7c64a3a05c153196d7836c121f76877e2ca8f6b6cbc49571af",
+    "pedidos-atencion-1366x768.png": "9dad3bdbf37c7a2060d5b360f229b7c70af10ebe6b697987f2bf08599b38e7b9",
+    "corregir-estado-1920x1080.png": "98d0c9c167fe501b03af99bbc8bf08f3de48f7ba67305c2a82c468e26f0c826a"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "mission": "BC-CAJA-RC15-APERTURA-PEDIDOS-001",
+  "state": "AWAITING_INSTALL_AUTHORIZATION",
+  "repository": "PX-Core",
+  "worktree": "rc15",
+  "branch": "feature/bc-caja-rc15-apertura-pedidos-001",
+  "base_commit": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
+  "version": "BC Caja 1.0.0-rc.15",
+  "gates": {
+    "HUMAN_GATE-APERTURA-CAJA-001": "PASS",
+    "HUMAN_GATE-PEDIDOS-002": "PASS",
+    "INSTALL_GATE-RC15-001": "PENDIENTE"
+  },
+  "blocked_on": "INSTALL_GATE-RC15-001",
+  "next_action": "Decidir instalación: A) instalar rc.15 completo asumiendo que rc.12/13/14 entran a producción ahora; B) instalar y validar rc.12/13/14 primero y después rc.15; C) no instalar todavía. Ver INSTALL_GATE.md.",
+  "next_role": "HUMAN",
+  "pending_action_blocked_by_permissions": {
+    "action": "Avanzar origin/main a la RC (fast-forward)",
+    "reason": "El push a la rama por defecto está bloqueado por la política de permisos de esta PC",
+    "command_when_authorized": "git push origin feature/bc-caja-rc15-apertura-pedidos-001:main",
+    "note": "Es fast-forward: main 098a9fb es ancestro directo de la RC. No requiere force."
+  },
+  "verification": {
+    "tests": "253 passed + 4 subtests (225 baseline + 10 Apertura + 18 Pedidos)",
+    "focused_apertura": "13 passed",
+    "focused_pedidos": "21 passed",
+    "adjacent": "31 passed",
+    "visual_automated_1920": "4 capturas fail-closed",
+    "visual_regression_1366": "3 capturas fail-closed",
+    "packaged_binary_smoke": "arranca y aplica las 15 migraciones sobre base temporal"
+  },
+  "package": {
+    "zip": "releases/BC-CAJA-1.0.0-rc.15-win64.zip",
+    "zip_sha256": "c82f89b9461faf7a6f15bc36a7df46653565d21cdb56271a404f97b796618aef",
+    "exe_sha256": "44bf7225f0edc2befcf57ba37b5faed47ceee62c73b1518c2f611775b316b80d"
+  },
+  "backup": "%LOCALAPPDATA%\\BC\\Caja\\Backups\\bc-caja-pre-1.0.0-rc.15-20260817-161651-884812.sqlite3",
+  "rollback": "artifacts/BC-CAJA-RC15-APERTURA-PEDIDOS-001/ROLLBACK.md",
+  "installed_version_found": "BC Caja 1.0.0-rc.11",
+  "not_started_yet": [
+    "DatePicker global",
+    "FactuFácil",
+    "Composturas"
+  ],
+  "deferred": [
+    "Laboratorio en la grilla de Pedidos: requiere join contra sale_items",
+    "Cabecera responsive a 1366x768: los KPIs quedan tapados por los botones de estado (deuda anterior a rc.14)"
+  ]
+}
