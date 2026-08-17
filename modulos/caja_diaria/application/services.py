@@ -12,6 +12,12 @@ from ..domain.models import (
     CashCount, CashDay, CashEntry, CashTotals, Order, OrderStatus, parse_business_date
 )
 
+#: Consulta canónica de Pedidos: lo vencido y lo de hoy que todavía no se entregó.
+ATTENTION_FILTER = "Requieren atención"
+ATTENTION_GROUP_OVERDUE = "Atrasados"
+ATTENTION_GROUP_TODAY = "Para hoy"
+ATTENTION_GROUP_UPCOMING = "Próximos"
+
 
 class CashDayService:
     def __init__(self, repository: CashDayRepository, carry_forward_policy: CarryForwardPolicy | None = None) -> None:
@@ -151,7 +157,12 @@ class CashDayService:
     def list_orders(self, *, filter_name: str = "Todos", today: date | str | None = None):
         reference = parse_business_date(today or date.today())
         orders = list(self.repository.list_orders())
-        if filter_name == "Hoy":
+        if filter_name == ATTENTION_FILTER:
+            orders = [
+                item for item in orders
+                if item.delivery_date <= reference and item.status is not OrderStatus.DELIVERED
+            ]
+        elif filter_name == "Hoy":
             orders = [item for item in orders if item.delivery_date == reference]
         elif filter_name == "Atrasados":
             orders = [item for item in orders if item.delivery_date < reference and item.status is not OrderStatus.DELIVERED]
@@ -162,6 +173,30 @@ class CashDayService:
             1 if item.delivery_date == reference else 2,
             item.delivery_date, item.created_at,
         ))
+
+    def order_attention_groups(self, *, today: date | str | None = None):
+        """Agrupa lo que requiere atención ahora, en orden de urgencia.
+
+        Devuelve siempre los tres grupos declarados. Cuando no hay nada atrasado
+        ni para hoy, ``Próximos`` evita que Pedidos se abra como una hoja vacía.
+        """
+        reference = parse_business_date(today or date.today())
+        pendientes = [
+            item for item in self.repository.list_orders()
+            if item.status is not OrderStatus.DELIVERED
+        ]
+        atrasados = [item for item in pendientes if item.delivery_date < reference]
+        para_hoy = [item for item in pendientes if item.delivery_date == reference]
+        proximos = [item for item in pendientes if item.delivery_date > reference]
+        orden = lambda item: (item.delivery_date, item.created_at)  # noqa: E731
+        return (
+            (ATTENTION_GROUP_OVERDUE, sorted(atrasados, key=orden)),
+            (ATTENTION_GROUP_TODAY, sorted(para_hoy, key=orden)),
+            (ATTENTION_GROUP_UPCOMING, sorted(proximos, key=orden)),
+        )
+
+    def latest_order_revisions(self):
+        return self.repository.latest_order_revisions()
 
     def update_order_status(self, order_id: str, status: OrderStatus | str, *, reason: str = "", responsible: str = "Sistema") -> Order:
         return self.repository.update_order_status(order_id, status, reason=reason, responsible=responsible)

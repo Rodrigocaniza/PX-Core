@@ -1,0 +1,50 @@
+{
+  "mission": "BC-CAJA-PEDIDOS-ATENCION-002",
+  "version": "BC Caja 1.0.0-rc.14 + Pedidos requieren atención (sin empaquetar)",
+  "base_commit": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.14",
+  "branch": "feature/bc-caja-pedidos-atencion-002",
+  "worktree": "pedidos002",
+  "ported_from": {
+    "mission": "BC-CAJA-RC12-PEDIDOS-ATENCION-001",
+    "commit": "41ee4ce0fc68dbffb58fc6f916e4596ece3d0458",
+    "commit_ref": "feature/bc-caja-rc12-pedidos-atencion-001 @ 41ee4ce",
+    "merged": false,
+    "note": "Usado como referencia. Los tres archivos que main no había tocado se portaron byte a byte; el resto se reescribió sobre rc.14"
+  },
+  "packaged": false,
+  "packaging_blocked_by": "HUMAN_GATE-PEDIDOS-002",
+  "tests": {
+    "passed": 243,
+    "subtests": 4,
+    "new": 18,
+    "baseline": 225
+  },
+  "migrations": 15,
+  "schema_changed": false,
+  "economic_rules_changed": false,
+  "source_files": {
+    ".bc-command-center/verification.json": "1c2ecfd8d7cc84c56db52ba2249b69d3985e86019d91763f2e0aac0c122c2f0d",
+    "CajaDiaria.py": "accae21d15e9c79349d0481874233b11e0eb1accfb6b43fae07887bf94ff6003",
+    "modulos/caja_diaria/domain/models.py": "bec3663c60d42fb76d9776b46a411e99843689ef9cde3f2b21b011a5aecf0e54",
+    "modulos/caja_diaria/application/ports.py": "b8da9ec7a587d829c482fa0b7aa687e31366a1e56b077d8e00ec42b639c0ea60",
+    "modulos/caja_diaria/application/services.py": "23d6430201e131ca828f4e5613efb0f40568647436707dcf027f34f5ac50393c",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "030b098dea6a64a3c4ed174c0816a88da157bccec575753314258b48253f5c75",
+    "modulos/caja_diaria/ui/controller.py": "d8cd0ed3831386029f2af662e4ed5eb781232035d676107cbf4f7a57df81c136",
+    "tests/caja_diaria/test_pedidos_atencion_002.py": "15eb5e896d582dd5019918091afbe3ee47525fea345c26713bf210bc11797844",
+    "tests/caja_diaria/test_operator_fixes_003.py": "2ac9aabe4ec4ae7402eab8f29449eaf1a69d3b30dc6a5fc4f5d942983249d1c0",
+    "tests/caja_diaria/test_rc10_operative_polish.py": "653bea2dc4e3ee6a871abc71b5424438cf88b71737ab51c728436076661b6a3c",
+    "tests/caja_diaria/test_rc5_operational_ux.py": "9e00fac70987f01672e86f2ce8ae5c899475eedda238672759e68151fc835bfb",
+    "tools/capture_caja_pedidos_atencion.py": "dab3424b233bfe57c42ef7c03939feaaf1b2e7637bee6c7e5da1307f36707e58"
+  },
+  "identical_to_previous_slice": [
+    "modulos/caja_diaria/domain/models.py",
+    "modulos/caja_diaria/application/ports.py",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py"
+  ],
+  "visual_evidence": {
+    "pedidos-atencion-1920x1080.png": "a2fb9471dbc00a7c64a3a05c153196d7836c121f76877e2ca8f6b6cbc49571af",
+    "pedidos-atencion-1366x768.png": "9dad3bdbf37c7a2060d5b360f229b7c70af10ebe6b697987f2bf08599b38e7b9",
+    "corregir-estado-1920x1080.png": "98d0c9c167fe501b03af99bbc8bf08f3de48f7ba67305c2a82c468e26f0c826a"
+  }
+}

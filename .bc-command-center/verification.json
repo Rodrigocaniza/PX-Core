@@ -26,6 +26,8 @@
                      ,"BC-CAJA-OPERATIVE-POLISH-BEFORE-ADMIN-001":  "bc-caja-operator-ux"
                      ,"BC-CAJA-RC11-TABLAS-COMPACTAS-ALINEADAS-001":  "bc-caja-operator-ux"
                      ,"BC-CAJA-APERTURA-CAJA-001":  "bc-caja-apertura-caja"
+                     ,"BC-CAJA-PEDIDOS-ATENCION-002":  "bc-caja-pedidos-atencion-002"
+                     ,"BC-CAJA-RC15-APERTURA-PEDIDOS-001":  "bc-caja-rc15-apertura-pedidos"
                  },
     "runners":  {
                     "bc-caja-pedidos-v1":  {
@@ -259,6 +261,22 @@
                         "working_directory": ".",
                         "commands": {
                             "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_rc15_apertura_caja.py", "tests/caja_diaria/test_rc4_visual_clean_contract.py", "tests/caja_diaria/test_rc12_cash_count_modal.py", "tests/caja_diaria/test_rc13_admin_counts_email.py", "tests/caja_diaria/test_session_hours.py", "tests/caja_diaria/test_ui_smoke.py", "-q"],
+                            "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
+                            "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
+                        }
+                    }
+                    ,"bc-caja-pedidos-atencion-002":  {
+                        "working_directory": ".",
+                        "commands": {
+                            "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_pedidos_atencion_002.py", "tests/caja_diaria/test_orders_v1.py", "tests/caja_diaria/test_rc10_operative_polish.py", "tests/caja_diaria/test_rc5_operational_ux.py", "tests/caja_diaria/test_operator_fixes_003.py", "tests/caja_diaria/test_rc11_compact_tables.py", "-q"],
+                            "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
+                            "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
+                        }
+                    }
+                    ,"bc-caja-rc15-apertura-pedidos":  {
+                        "working_directory": ".",
+                        "commands": {
+                            "targeted": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria/test_rc15_apertura_caja.py", "tests/caja_diaria/test_pedidos_atencion_002.py", "tests/caja_diaria/test_rc12_cash_count_modal.py", "tests/caja_diaria/test_rc13_admin_counts_email.py", "tests/caja_diaria/test_rc4_visual_clean_contract.py", "tests/caja_diaria/test_rc10_operative_polish.py", "tests/caja_diaria/test_rc5_operational_ux.py", "tests/caja_diaria/test_operator_fixes_003.py", "tests/caja_diaria/test_rc11_compact_tables.py", "tests/caja_diaria/test_orders_v1.py", "-q"],
                             "regression": ["${PYTHON}", "-m", "pytest", "tests/caja_diaria", "-q"],
                             "full": ["${PYTHON}", "-m", "pytest", "tests", "-q"]
                         }

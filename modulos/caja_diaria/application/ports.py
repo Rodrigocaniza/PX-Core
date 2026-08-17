@@ -41,6 +41,8 @@ class CashDayRepository(Protocol):
 
     def list_order_status_revisions(self, order_id: str) -> Sequence[Mapping[str, Any]]: ...
 
+    def latest_order_revisions(self) -> Mapping[str, Mapping[str, Any]]: ...
+
 
 class CarryForwardPolicy(Protocol):
     """Boundary deliberadamente sin implementación hasta decisión de negocio."""
