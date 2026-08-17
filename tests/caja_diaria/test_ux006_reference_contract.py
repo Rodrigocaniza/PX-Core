@@ -31,8 +31,10 @@ class CashDayUX006ReferenceContractTests(unittest.TestCase):
             'marco_grilla.configure(width=ancho_actual, height=alto_grid)',
             'marco_grilla.grid_propagate(False)',
             'grilla_caja.bind("<MouseWheel>"',
-            '"Estado: ABIERTO"',
-            '"Estado: CERRADO"',
+            # RC29 dejó `estado_dia` como única traducción y el port de Apertura
+            # le agrega la hora: el rótulo sigue en español y en un solo lugar.
+            'f"Estado: {estado_dia(cash_day)}"',
+            'sufijo_hora_apertura(cash_day)',
             'controller.add_outflow(',
             'text="SALIDA DE CAJA"',
             'text="Guardar salida"',

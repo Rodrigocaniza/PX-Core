@@ -323,9 +323,12 @@ class InterfazTests(unittest.TestCase):
 
     def test_el_boton_principal_no_se_deshabilita_por_atraso(self):
         bloque = FUENTE[FUENTE.index("def actualizar_acciones_seguimiento"):]
+        # La condicion es la misma; ahora la aplica `aplicar_disponibilidad`,
+        # que ademas apaga el boton de verdad y explica por que.
+        self.assertIn("aplicar_disponibilidad(", bloque[:1200])
         self.assertIn(
-            'state="normal" if info["action"] not in (None, NextAction.NONE) '
-            'else "disabled"', bloque[:1200])
+            'info["action"] not in (None, NextAction.NONE)', bloque[:1200])
+        self.assertNotIn("atrasado", bloque[:1200])
 
     def test_la_columna_telefono_se_dibuja_en_la_fila(self):
         self.assertIn('("telefono", "Teléfono"', FUENTE)

@@ -207,6 +207,85 @@ MOVEMENT_COLUMN_SPECS = (
 COLUMNAS_OPERATIVAS = [
     (key, title, width) for key, title, width, _anchor in MOVEMENT_COLUMN_SPECS
 ]
+
+#: Una acción disponible se ve sólida; una no disponible se ve apagada de verdad.
+#: El gris tiene que leerse como "todavía no", no como una variante del blanco.
+COLOR_ACCION_INACTIVA = "#DDE3EB"
+COLOR_ACCION_INACTIVA_TEXTO = "#7C8899"
+COLOR_ACCION_INACTIVA_BORDE = "#BCC7D6"
+
+
+class AvisoDeshabilitado:
+    """Explica al pasar el mouse por qué una acción no está disponible.
+
+    Se dibuja dentro de la propia ventana: no abre un Toplevel flotante, así el
+    marco nativo de BC Caja sigue intacto.
+    """
+
+    _asignados: dict[int, "AvisoDeshabilitado"] = {}
+
+    def __init__(self, widget):
+        self.widget = widget
+        self.texto = ""
+        self.etiqueta = None
+        widget.bind("<Enter>", self._mostrar, add="+")
+        widget.bind("<Leave>", self._ocultar, add="+")
+
+    @classmethod
+    def asignar(cls, widget, texto):
+        aviso = cls._asignados.get(id(widget))
+        if aviso is None:
+            aviso = cls._asignados[id(widget)] = cls(widget)
+        aviso.texto = texto or ""
+        if not aviso.texto:
+            aviso._ocultar()
+        return aviso
+
+    def _mostrar(self, _event=None):
+        if not self.texto or self.etiqueta is not None:
+            return
+        # En corridas automatizadas el aviso flotante ensucia las capturas.
+        if os.environ.get("BC_CAJA_AUTOMATED"):
+            return
+        try:
+            raiz = self.widget.winfo_toplevel()
+            self.etiqueta = ctk.CTkLabel(
+                raiz, text=f"  {self.texto}  ", fg_color="#2C3A4B", text_color="#FFFFFF",
+                corner_radius=6, height=26, font=ctk.CTkFont(size=11),
+            )
+            self.etiqueta.place(
+                x=self.widget.winfo_rootx() - raiz.winfo_rootx(),
+                y=self.widget.winfo_rooty() - raiz.winfo_rooty() + self.widget.winfo_height() + 4,
+            )
+            self.etiqueta.lift()
+        except Exception:
+            self._ocultar()
+
+    def _ocultar(self, _event=None):
+        if self.etiqueta is not None:
+            try:
+                self.etiqueta.destroy()
+            except Exception:
+                pass
+            self.etiqueta = None
+
+
+def aplicar_disponibilidad(boton, habilitado, color_activo, motivo=""):
+    """Estado visual explícito: sólido cuando se puede, apagado cuando no."""
+    if habilitado:
+        boton.configure(
+            state="normal", fg_color=color_activo, text_color="#FFFFFF",
+            border_width=0, cursor="hand2",
+        )
+    else:
+        boton.configure(
+            state="disabled", fg_color=COLOR_ACCION_INACTIVA,
+            text_color=COLOR_ACCION_INACTIVA_TEXTO, border_width=1,
+            border_color=COLOR_ACCION_INACTIVA_BORDE, cursor="arrow",
+        )
+    AvisoDeshabilitado.asignar(boton, "" if habilitado else motivo)
+
+
 PRODUCTO_TRABAJO = (
     ("arm_org", "Tipo / Producto", 150), ("cod", "Código", 90),
     ("laboratorio", "Laboratorio", 140),
@@ -1169,10 +1248,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     # Fecha y sucursal ya no se tipean: alcanza con el ancho de su contenido, y lo
     # que se libera lo necesita el acceso al histórico a 1366x768.
+    # Los anchos son los que fijó RC15-UX-OPERATIVA: "Caja inicial" y "Trabajos a
+    # entregar" comparten ancho. El port de Apertura no los toca; el acceso al
+    # histórico se acomoda en el bloque de estado.
     controles_cabecera = [
-        ("fecha", "Fecha", 96),
-        ("unidad", "Sucursal", 110),
-        ("caja_inicial", "Caja inicial", 140),
+        ("fecha", "Fecha", 130),
+        ("unidad", "Sucursal", 130),
+        ("caja_inicial", "Caja inicial", 150),
     ]
     for indice, (clave, etiqueta, ancho) in enumerate(controles_cabecera):
         # "Caja inicial" es el dato que la operadora tiene que ver primero, sin
@@ -3425,11 +3507,24 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         seleccion = grilla_pedidos.selection()
         return str(grilla_pedidos.set(seleccion[0], "estado")) if seleccion else ""
 
+    MOTIVO_ACCION_PEDIDO = {
+        "PENDIENTE": "Sólo un pedido LISTO o ENTREGADO puede volver a pendiente.",
+        "LISTO": "Elegí un pedido PENDIENTE para marcarlo listo.",
+        "ENTREGADO": "Elegí un pedido LISTO para marcarlo entregado.",
+    }
+
     def actualizar_botones_pedido(_event=None):
         estado = estado_pedido_seleccionado()
-        botones_estado_pedido["PENDIENTE"].configure(state="normal" if estado in {"LISTO", "ENTREGADO"} else "disabled")
-        botones_estado_pedido["LISTO"].configure(state="normal" if estado == "PENDIENTE" else "disabled")
-        botones_estado_pedido["ENTREGADO"].configure(state="normal" if estado == "LISTO" else "disabled")
+        disponibilidad = {
+            "PENDIENTE": estado in {"LISTO", "ENTREGADO"},
+            "LISTO": estado == "PENDIENTE",
+            "ENTREGADO": estado == "LISTO",
+        }
+        for clave, habilitado in disponibilidad.items():
+            aplicar_disponibilidad(
+                botones_estado_pedido[clave], habilitado,
+                colores_accion_pedido[clave], MOTIVO_ACCION_PEDIDO[clave],
+            )
 
     def cambiar_estado_pedido(estado):
         seleccion = grilla_pedidos.selection()
@@ -3467,17 +3562,20 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         except Exception as exc:
             mostrar_error(exc)
 
+    colores_accion_pedido = {}
     for estado, texto_boton, color in (
-        ("PENDIENTE", "Marcar pendiente", "#D97706"),
-        ("LISTO", "Marcar listo", color_verde),
+        ("PENDIENTE", "Marcar pendiente", "#A85408"),
+        ("LISTO", "Marcar listo", "#12855A"),
         ("ENTREGADO", "Marcar entregado", color_azul),
     ):
         boton = ctk.CTkButton(
             barra_pedidos, text=texto_boton, width=118,
             command=lambda destino=estado: cambiar_estado_pedido(destino), fg_color=color,
+            text_color="#FFFFFF", font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
         )
         boton.pack(side="right", padx=3)
         botones_estado_pedido[estado] = boton
+        colores_accion_pedido[estado] = color
     grilla_pedidos.bind("<<TreeviewSelect>>", actualizar_botones_pedido, add="+")
     actualizar_botones_pedido()
     # La sucursal sale del vinculo persistente de esta caja, no de la cajera ni
@@ -4786,20 +4884,29 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         etiqueta_seleccion.configure(
             text=f"{len(ids)} seleccionado{'' if len(ids) == 1 else 's'}" if hay
             else "Marcá uno o varios trabajos")
-        boton_accion_siguiente.configure(
-            text=info["label"] or "Acción siguiente",
-            state="normal" if info["action"] not in (None, NextAction.NONE) else "disabled")
+        boton_accion_siguiente.configure(text=info["label"] or "Acción siguiente")
+        aplicar_disponibilidad(
+            boton_accion_siguiente,
+            info["action"] not in (None, NextAction.NONE),
+            color_azul,
+            info.get("reason")
+            or ("Marcá uno o varios trabajos para ver su próxima acción."
+                if not hay else "Estos trabajos no tienen una próxima acción común."),
+        )
         # La accion complementaria se sugiere en el boton que ya la ejecuta, en
         # vez de sumar un cuarto boton: sigue siendo Novedad, con el nombre de
         # lo que conviene hacer. Sugerir no es exigir — el boton principal
         # queda habilitado igual, porque contactar nunca bloquea el avance.
         sugerida = info.get("complementary")
         boton_novedad.configure(
-            state="normal" if hay else "disabled",
             text=("Contactar laboratorio" if sugerida is NextAction.CONTACT_LABORATORY
                   else "Novedad"),
-            width=200 if sugerida is NextAction.CONTACT_LABORATORY else 140,
-            fg_color="#B42318" if sugerida is NextAction.CONTACT_LABORATORY else "#B45309")
+            width=200 if sugerida is NextAction.CONTACT_LABORATORY else 140)
+        aplicar_disponibilidad(
+            boton_novedad, hay,
+            "#B42318" if sugerida is NextAction.CONTACT_LABORATORY else "#B45309",
+            "Marcá uno o varios trabajos para registrar una novedad.",
+        )
 
     def ir_a_atrasados(_event=None):
         """Abre exactamente los trabajos que originaron la alerta.

@@ -18,8 +18,10 @@ class CashDayUX004VisualContractTests(unittest.TestCase):
             '"#FFFFFF"',
             '"Caja inicial"',
             'resumen_compacto',
-            '"Estado: ABIERTO"',
-            '"Estado: CERRADO"',
+            # El rótulo del estado lo compone `estado_dia` (RC29) y el port de
+            # Apertura le suma la hora; sigue siendo "Estado: " en español.
+            'f"Estado: {estado_dia(cash_day)}"',
+            'sufijo_hora_apertura(cash_day)',
             'Guardar venta  —  F9',
             'pestañas._segmented_button.grid_forget()',
             'boton_cancelar.pack_forget()',

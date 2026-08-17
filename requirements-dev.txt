@@ -1,0 +1,13 @@
+# Dependencias de verificación. NO entran al paquete: el ejecutable sólo usa
+# lo declarado en requirements.txt.
+-r requirements.txt
+
+# PyMuPDF rasteriza las páginas del PDF de cierre para comprobar que el
+# encabezado se ve de verdad y no queda tapado. `pypdf` extrae texto pero no
+# dibuja, así que no puede reemplazarlo sin perder esa verificación.
+# Se importa como `fitz` en tests/caja_diaria/test_rc16_daily_envelope_report.py
+# y tests/caja_diaria/test_rc17_continuous_daily_report.py.
+PyMuPDF>=1.24,<2
+
+pytest>=8,<9
+pytest-subtests>=0.12,<1
