@@ -1,0 +1,78 @@
+{
+  "mission": "BC-CAJA-RECOVERED-TRUNK-CONSOLIDATION-001",
+  "version": "BC Caja 1.0.0-rc.30",
+  "branch": "feature/bc-caja-recovered-trunk-consolidation-001",
+  "worktree": "seguimiento",
+  "base": {
+    "commit": "491c363",
+    "branch": "feature/bc-caja-rc21-tabla-seguimiento-logistica-001",
+    "declared_version": "1.0.0-rc.27",
+    "note": "Tronco recuperado. NO se partió de origin/main ni se mergeó main completo"
+  },
+  "ported_from_rc15": {
+    "commit": "0f10266",
+    "what": [
+      "Apertura de Caja automática: fecha del sistema no tipeable, ABRIR CAJA DE HOY, hora automática, Consultar otro día en sólo lectura, Caja inicial destacada",
+      "Contraste de acciones: disponible sólido, no disponible gris real con motivo al pasar el mouse"
+    ],
+    "discarded": [
+      "Reescritura de la grilla de Pedidos de rc.15: la línea recuperada trae una posterior (RC22/RC23 estado anclado a la fila, RC28 alerta con filtro transportado, soporte por sucursal)"
+    ]
+  },
+  "preserved_from_trunk": [
+    "Seguimiento Pilar completo: ENVIADO_DESDE_PILAR a RECIBIDO_EN_PILAR y CERRADO",
+    "NextAction como autoridad única de próxima acción",
+    "ATRASADO y QUEDA A CONFIRMAR derivados, no etapas",
+    "Lista cerrada de transiciones y corrección con motivo obligatorio",
+    "Recepción con discrepancias, ABM laboratorios, vista por sucursal",
+    "Historial agrupado por jornada, control de sobres y planilla continua PDF",
+    "Arqueo, administrador, correo de cierre y mail ops"
+  ],
+  "packaged": true,
+  "installed": false,
+  "install_blocked_by": "HUMAN_GATE-RC30-CONSOLIDACION-001",
+  "tests": {
+    "passed": 639,
+    "subtests": 4,
+    "trunk_baseline": 616,
+    "note": "616 era el verde del tronco sin los 2 archivos de PDF; ahora corren los 639 completos"
+  },
+  "migrations": 21,
+  "schema_changed_vs_trunk": false,
+  "economic_rules_changed": false,
+  "dependencies": {
+    "fitz_verdict": "Dependencia SÓLO de test. Producción escribe PDF con reportlab y lo lee con pypdf; fitz rasteriza para verificar que el encabezado se ve. Se declaró en requirements-dev.txt, no en requirements.txt",
+    "packaging_check": "0 archivos fitz/pymupdf dentro de dist/BC-Caja"
+  },
+  "package": {
+    "zip": "releases/BC-CAJA-1.0.0-rc.30-win64.zip",
+    "zip_sha256": "29b45e6b2877ae88a73dce1d55cab3d53e45077b5443c6a74788987b2b866afb",
+    "zip_bytes": 25040083,
+    "exe": "dist/BC-Caja/BC-Caja.exe",
+    "exe_sha256": "a38262a540ef59ea6be02ccb6a2db20242dfd791c11c79bc79c1cbadac52adc2",
+    "exe_bytes": 7529443,
+    "smoke": "El ejecutable empaquetado arranca contra un directorio de datos temporal"
+  },
+  "production_untouched": {
+    "main": "origin/main 65d2df4 (rc.15) sin tocar",
+    "installed": "BC Caja 1.0.0-rc.15 sigue instalada; no se instaló rc.30"
+  },
+  "source_files": {
+    "CajaDiaria.py": "8284665eb76deec5c7b91909dc87b808cd70a8bcdbae14a6ca5a87d4a72b2e53",
+    "requirements-dev.txt": "a0853e1cb4acaf0acf8392a57cf7d3c0ff928e2375cff133d59e9fad00e8f031",
+    "pilot/package_docs/VERSION.txt": "6dde320516e7527a6f4425680c9fc15452e3801cbbed8b94d21176fe4326680a",
+    "tests/caja_diaria/test_contraste_acciones.py": "dac039811fd250535d9528d957a2cac31dc0ec19d5b96a30058a84124009197a",
+    "tests/caja_diaria/test_rc15_apertura_caja.py": "d6772c75748556b3a02211465f3e8a99fefb3152043f1ea40bac4e0401dc7031",
+    "modulos/caja_diaria/domain/tracking.py": "ad406288f382a4d657208a924262a8fc2c36b47e9a09e67b98f0bcec5a88a1d8",
+    "modulos/caja_diaria/application/tracking_service.py": "e048588bf44a3ee0b32e63695ae534dcc7cb510d0683ab907efdf1974ce020cf"
+  },
+  "visual_evidence": {
+    "apertura-1920x1080.png": "438079bdf0a68cb26a76825c0faece389357241c5e8e06d47d34a7aa27578995",
+    "apertura-1366x768.png": "0ab6697b73ad70ed745cd7434f81420307bf2ee8e597c261cea58c8e313c6a56",
+    "consulta-otro-dia-1920x1080.png": "f6d3940771d276d468aa868249dd9fd05f1e134abfb829edaf2e894e264366ff",
+    "seguimiento-1920x1080.png": "7f775b208308ef0a7a9830414e69d86ac04e86afd79cab48ae3e8b740a724f9a",
+    "recepcion-1920x1080.png": "0bc384d40fb69d89d01e44498180ca0a31d35627d17fe5612b5cf5a59a32d6e6",
+    "recepcion-1920x1080-caja-principal.png": "6f7f138f7f3163ba41da4476f66a874f4d543e56ba4dafa1a2b8e3714ed12dcb",
+    "historial-jornadas-1920x1080.png": "79ffde00b03c5be3fc391c5b55fa560a67f0fc9ae9bf8b722568b9c9f1167bb6"
+  }
+}

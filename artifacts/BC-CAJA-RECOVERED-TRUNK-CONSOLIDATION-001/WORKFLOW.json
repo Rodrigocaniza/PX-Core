@@ -1,0 +1,116 @@
+{
+  "mission": "BC-CAJA-RECOVERED-TRUNK-CONSOLIDATION-001",
+  "current_state": "AWAITING_HUMAN_GATE",
+  "base": "491c363",
+  "history": [
+    {
+      "event": "MISSION_OPENED",
+      "from_state": "NOT_STARTED",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Decision de producto: adoptar la linea recuperada como tronco. Base 491c363, no origin/main",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "RESIDUE_RESOLVED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Los 3 archivos sin trackear se verificaron byte a byte contra 0f10266 (salvo fin de linea) y son exactamente los que el port necesita: se adoptaron en vez de borrarlos. El borrado quedaba bloqueado por la politica de permisos y no se eludio",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "APERTURA_PORTED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Apertura automatica aplicada sobre el tronco: 2 conflictos en CajaDiaria.py resueltos armonizando con RC18 (escala de cabecera) y RC29 (estado_dia como unica traduccion)",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "CONTRAST_PORTED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Contraste aplicado a las tres acciones de RC24 y a las de Pedidos, reutilizando el motivo que ya calcula el dominio. El aviso se dibuja dentro de la ventana: RC4 prohibe overrideredirect",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "PEDIDOS_HARMONIZED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "La grilla de Pedidos del tronco queda como autoridad. No se porto la reescritura de rc.15 para no reintroducir los chips flotantes que RC23 elimino. Lo que aun aporta rc.15 queda como slice propio",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "DEPENDENCY_RESOLVED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "VERIFICATION",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "fitz determinado como dependencia de test. Migracion a pypdf intentada y descartada por perdida de cobertura (pypdf no rasteriza). Declarada en requirements-dev.txt; 0 archivos en el paquete",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "VERIFICATION_PASSED",
+      "from_state": "VERIFICATION",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "639 pruebas + 4 subpruebas, incluidos los 2 archivos de PDF que antes no corrian. 5 contratos armonizados con su intencion preservada",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "VISUAL_EVIDENCE_PASSED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "7 capturas: apertura y consulta, seguimiento, recepcion con discrepancias, historial por jornada; 1920x1080 y regresion 1366x768",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "PACKAGED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "LIBRARIAN",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "BC-CAJA-1.0.0-rc.30-win64.zip con zip_sha256 y exe_sha256; binario probado. NO instalado",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "LIBRARIAN_PASS",
+      "from_state": "LIBRARIAN",
+      "to_state": "QA",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "MANIFEST, SUMMARY, HUMAN_GATE y ARTIFACT_CONSISTENCY coherentes, con trazabilidad al tronco 491c363 y al commit portado 0f10266",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "QA_PASS",
+      "from_state": "QA",
+      "to_state": "AUDITOR",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Seguimiento intacto, reglas economicas sin cambios, sin migraciones nuevas, arqueo/admin/correo preservados",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "AUDITOR_PASS",
+      "from_state": "AUDITOR",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Instalacion bloqueada hasta HUMAN_GATE-RC30-CONSOLIDACION-001. main 65d2df4 y la instalacion rc.15 sin tocar",
+      "gate_id": "HUMAN_GATE-RC30-CONSOLIDACION-001",
+      "gate_generation": 1,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    }
+  ]
+}

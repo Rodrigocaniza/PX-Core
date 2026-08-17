@@ -1,0 +1,46 @@
+{
+  "mission": "BC-CAJA-RECOVERED-TRUNK-CONSOLIDATION-001",
+  "state": "AWAITING_HUMAN_GATE",
+  "repository": "PX-Core",
+  "worktree": "seguimiento",
+  "branch": "feature/bc-caja-recovered-trunk-consolidation-001",
+  "version": "BC Caja 1.0.0-rc.30",
+  "base": "491c363 (tronco recuperado, declaraba 1.0.0-rc.27)",
+  "blocked_on": "HUMAN_GATE-RC30-CONSOLIDACION-001",
+  "next_action": "Correr el gate: abrir el binario rc.30 contra una COPIA de la base productiva, sin instalar ni migrar la base real. 15 puntos, ver HUMAN_GATE.md.",
+  "next_role": "HUMAN",
+  "verification": {
+    "tests": "639 passed + 4 subtests (el tronco daba 616 con 2 archivos sin correr)",
+    "focused": "48 passed (contraste + proxima accion + apertura)",
+    "visual_1920": "apertura, consulta otro dia, seguimiento, recepcion, historial",
+    "visual_1366": "apertura",
+    "migraciones": "21, sin agregar ninguna",
+    "packaging": "zip y exe hasheados, binario probado, 0 archivos de PyMuPDF dentro"
+  },
+  "fitz": {
+    "verdict": "dependencia de test, no productiva",
+    "por_que": "produccion escribe PDF con reportlab y lo lee con pypdf; fitz rasteriza para verificar que el encabezado se ve",
+    "migracion_a_pypdf": "intentada y descartada: pypdf no dibuja, se perderia esa verificacion",
+    "resolucion": "declarada en requirements-dev.txt con el motivo escrito; los 2 archivos vuelven a correr"
+  },
+  "production_untouched": {
+    "main": "origin/main 65d2df4 (rc.15)",
+    "instalada": "BC Caja 1.0.0-rc.15",
+    "rc30": "empaquetada, no instalada"
+  },
+  "after_gate_pass": [
+    "Backup previo de la base productiva y rollback verificado desde rc.15",
+    "Instalacion transaccional de rc.30",
+    "Artifact consistency con la instalacion",
+    "Promocion de esta linea a main por flujo protegido"
+  ],
+  "deferred": [
+    "Llevar al diseno del tronco lo que todavia aporta rc.15: agrupacion ATRASADOS/PARA HOY, Ultima novedad en la grilla y Corregir estado de pedidos con lista cerrada",
+    "Arquitectura Caja diaria | Trabajos | FactuFacil | Historial, con Trabajos agrupando Pedidos/Laboratorios, Envios Pilar y Composturas"
+  ],
+  "not_started_yet": [
+    "FactuFácil",
+    "Composturas",
+    "DatePicker global"
+  ]
+}
