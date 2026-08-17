@@ -178,6 +178,15 @@
       "reason": "rc.15 instalada y validada. main sin promover: el push a la rama por defecto sigue bloqueado por la politica de permisos y queda como accion explicita",
       "gate_id": null,
       "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "MAIN_PROMOTED",
+      "from_state": "CLOSED",
+      "to_state": "CLOSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "origin/main avanzado por fast-forward de 098a9fb a c7d4777. Sin force-push, sin merge commit. main == RC",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
     }
   ]
 }

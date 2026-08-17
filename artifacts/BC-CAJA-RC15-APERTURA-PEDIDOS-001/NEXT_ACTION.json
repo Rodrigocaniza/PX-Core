@@ -13,14 +13,8 @@
     "HUMAN_GATE-RC15-INSTALADA-001": "PASS"
   },
   "blocked_on": null,
-  "next_action": "Autorizar el fast-forward de main: git push origin feature/bc-caja-rc15-apertura-pedidos-001:main. Despues quedan, sin empezar: DatePicker global, FactuFacil, Composturas y Seguimiento Pilar recuperado.",
+  "next_action": "rc.15 cerrada, instalada y promovida a main. Proximos slices sin empezar: DatePicker global, FactuFacil, Composturas, Seguimiento Pilar recuperado. Pendiente decidir que hacer con los dias 12/08 y 13/08 que quedaron OPEN.",
   "next_role": "HUMAN",
-  "pending_action_blocked_by_permissions": {
-    "action": "Avanzar origin/main a la RC (fast-forward)",
-    "reason": "El push a la rama por defecto está bloqueado por la política de permisos de esta PC",
-    "command_when_authorized": "git push origin feature/bc-caja-rc15-apertura-pedidos-001:main",
-    "note": "Es fast-forward: main 098a9fb es ancestro directo de la RC. No requiere force."
-  },
   "verification": {
     "tests": "258 passed + 4 subtests (225 baseline + 10 Apertura + 18 Pedidos + 5 contraste)",
     "focused_apertura": "13 passed",
@@ -58,5 +52,11 @@
     "preinstall_backup": "bc-caja-preinstall-1.0.0-rc.15-20260817-164711-598414.sqlite3",
     "previous_kept": "BC-Caja-Pilot.previous-rc11"
   },
-  "rollback_window": "Vigente mientras se conserven bc-caja-preinstall-1.0.0-rc.15-20260817-164711-598414.sqlite3 y BC-Caja-Pilot.previous-rc11"
+  "rollback_window": "Vigente mientras se conserven bc-caja-preinstall-1.0.0-rc.15-20260817-164711-598414.sqlite3 y BC-Caja-Pilot.previous-rc11",
+  "main": {
+    "promoted": true,
+    "commit": "c7d4777",
+    "mode": "fast-forward desde 098a9fb",
+    "force": false
+  }
 }
