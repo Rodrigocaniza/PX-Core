@@ -22,6 +22,11 @@ Backup previo bc-caja-pre-1.0.0-rc.15-20260817-161651-884812.sqlite3 sha256 iden
 Rollback documentado y ejecutable ver ROLLBACK.md
 Reglas economicas de Caja sin cambios
 Arqueo, Administrador, correo de cierre y mail ops preservados y en verde
-INSTALACION NO REALIZADA bloqueada por INSTALL_GATE-RC15-001
-Version instalada real en la PC 1.0.0-rc.11: rc.12, rc.13 y rc.14 nunca se instalaron
-main sin tocar sin force-push
+INSTALL_GATE-RC15-001 resuelto: opcion A, promover rc.11 -> rc.15 con preflight exhaustivo
+INSTALACION REALIZADA transaccional: backup preinstall verificado, rc.11 preservada en BC-Caja-Pilot.previous-rc11
+Migracion 015 aplicada por el flujo soportado, sin SQL manual
+Post-install sobre la base productiva: 15 migraciones, integridad ok, filas y montos identicos
+exe instalado en disco sha256 identico al construido
+HUMAN_GATE-RC15-INSTALADA-001 PASS sobre la instalacion real, ver GATE_VERDICT.md
+Rollback vigente mientras se conserven el backup preinstall y BC-Caja-Pilot.previous-rc11
+main sin tocar sin force-push: el fast-forward queda como accion explicita autorizada por el usuario

@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-RC15-APERTURA-PEDIDOS-001",
-  "current_state": "AWAITING_HUMAN_GATE",
+  "current_state": "CLOSED",
   "integrates": [
     "BC-CAJA-APERTURA-CAJA-001",
     "BC-CAJA-PEDIDOS-ATENCION-002"
@@ -141,6 +141,42 @@
       "reason": "Sobre la base productiva: 15 migraciones, integridad ok, 8 pedidos reales, consulta canonica coherente (7 atrasados), admin sin configurar, correo NO configurado, outbox sin envios. exe instalado coincide con el construido",
       "gate_id": "HUMAN_GATE-RC15-INSTALADA-001",
       "gate_generation": 1,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "HUMAN_GATE_PASS",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "GATE_PASSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Observacion humana sobre rc.15 instalada y corriendo con datos reales. 11 puntos PASS, incluido el contraste corregido de las acciones de Pedidos. Ver GATE_VERDICT.md",
+      "gate_id": "HUMAN_GATE-RC15-INSTALADA-001",
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "LIBRARIAN_PASS",
+      "from_state": "GATE_PASSED",
+      "to_state": "QA",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "MANIFEST, SUMMARY, PREFLIGHT, ROLLBACK, INSTALL_GATE, HUMAN_GATE, GATE_VERDICT y ARTIFACT_CONSISTENCY coherentes entre si y con el paquete instalado",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "QA_PASS",
+      "from_state": "QA",
+      "to_state": "AUDITOR",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "258 pruebas + 4 subpruebas, 9 capturas fail-closed, preflight, clon productivo y post-install verificados sobre la base real",
+      "gate_id": null,
+      "session_id": "bc-caja-rc15-apertura-pedidos"
+    },
+    {
+      "event": "AUDITOR_PASS",
+      "from_state": "AUDITOR",
+      "to_state": "CLOSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "rc.15 instalada y validada. main sin promover: el push a la rama por defecto sigue bloqueado por la politica de permisos y queda como accion explicita",
+      "gate_id": null,
       "session_id": "bc-caja-rc15-apertura-pedidos"
     }
   ]
