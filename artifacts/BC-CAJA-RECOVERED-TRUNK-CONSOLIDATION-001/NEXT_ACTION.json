@@ -1,13 +1,13 @@
 {
   "mission": "BC-CAJA-RECOVERED-TRUNK-CONSOLIDATION-001",
-  "state": "INSTALLED",
+  "state": "CLOSED",
   "repository": "PX-Core",
   "worktree": "seguimiento",
   "branch": "feature/bc-caja-recovered-trunk-consolidation-001",
   "version": "BC Caja 1.0.0-rc.30",
   "base": "491c363 (tronco recuperado, declaraba 1.0.0-rc.27)",
   "blocked_on": null,
-  "next_action": "Promover esta linea a main por fast-forward y cerrar. Despues: llevar al diseno del tronco lo que aun aporta rc.15 (ATRASADOS/PARA HOY, Ultima novedad, Corregir estado con lista cerrada).",
+  "next_action": "rc.30 cerrada: instalada, validada y promovida. Proximo slice sugerido: llevar al diseno del tronco lo que aun aporta rc.15 (agrupacion ATRASADOS/PARA HOY, Ultima novedad en la grilla y Corregir estado de pedidos con lista cerrada). Sin empezar: FactuFacil, Composturas, DatePicker global y la arquitectura Caja diaria | Trabajos | FactuFacil | Historial.",
   "next_role": "HUMAN",
   "verification": {
     "tests": "639 passed + 4 subtests (el tronco daba 616 con 2 archivos sin correr)",
@@ -53,5 +53,17 @@
     "preinstall_backup": "bc-caja-preinstall-1.0.0-rc.30-20260817-181556-179677.sqlite3",
     "previous_kept": "BC-Caja-Pilot.previous-rc15"
   },
-  "rollback_window": "Vigente mientras se conserven el backup preinstall y BC-Caja-Pilot.previous-rc15"
+  "rollback_window": "Vigente mientras se conserven el backup preinstall y BC-Caja-Pilot.previous-rc15",
+  "main": {
+    "promoted": true,
+    "commit": "536d1e9",
+    "mode": "merge de main dentro de la linea y despues fast-forward",
+    "force": false,
+    "por_que_no_fue_ff_directo": "main y la linea divergian en rc.14; main no era ancestro"
+  },
+  "observado": [
+    "5 errores transitorios de setup Tk en tests/gestion_central/test_ui_interactions.py en 1 de 3 corridas completas; pasan aislados",
+    "Los dias 12/08 y 13/08 siguen OPEN y el historico es solo lectura",
+    "El correo de cierre sigue sin configurar: el envio real nunca se ejercito"
+  ]
 }

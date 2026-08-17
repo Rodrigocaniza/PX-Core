@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-RECOVERED-TRUNK-CONSOLIDATION-001",
-  "current_state": "INSTALLED",
+  "current_state": "CLOSED",
   "base": "491c363",
   "history": [
     {
@@ -145,6 +145,33 @@
       "to_state": "INSTALLED",
       "timestamp": "2026-08-17T00:00:00Z",
       "reason": "Sobre la base productiva: rc.30 instalada, exe identico al construido, 21 migraciones, integridad ok, 12 movimientos y montos intactos, 8 pedidos, seguimiento accesible, admin sin configurar, correo deshabilitado, outbox vacio",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "MAIN_MERGED",
+      "from_state": "INSTALLED",
+      "to_state": "INSTALLED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "main y esta linea habian divergido en rc.14: el fast-forward era imposible y el force-push esta prohibido. Se mergeo main dentro de la linea, resolviendo a favor de la consolidada. Entra entero lo que main aportaba y el tronco no tenia: Gestion Central, el outbox de sincronizacion y sus tests, mas los artifacts de rc.15 como historia. Los tests de la grilla de Pedidos de rc.15 pasaron a registrar la supersesion; su herramienta de captura queda fuera del arbol",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "VERIFICATION_PASSED",
+      "from_state": "INSTALLED",
+      "to_state": "INSTALLED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "669 pruebas + 4 subpruebas sobre el arbol mergeado. Una de tres corridas completas mostro 5 errores transitorios de setup Tk en los tests de UI de Gestion Central, que pasan aislados y pasaron en las otras dos: queda anotado, no es regresion",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "MAIN_PROMOTED",
+      "from_state": "INSTALLED",
+      "to_state": "CLOSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "origin/main avanzado por fast-forward de 65d2df4 a 536d1e9. Sin force-push, sin reescritura de historia. main == linea consolidada == version instalada (rc.30)",
       "gate_id": null,
       "session_id": "bc-caja-recovered-trunk-consolidation"
     }
