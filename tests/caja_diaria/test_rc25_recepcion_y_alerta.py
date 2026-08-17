@@ -540,7 +540,7 @@ class InterfazAgrupacionTests(unittest.TestCase):
         self.assertEqual(accion.count("ctk.CTkButton("), 3)
 
     def test_la_seleccion_multiple_sigue_viva(self):
-        for pieza in ("def alternar_marca", "def seleccionar_visibles",
+        for pieza in ("def alternar_marca", "def seleccionar_todo",
                       "def limpiar_seleccion", "ctk.CTkCheckBox("):
             self.assertIn(pieza, FUENTE)
 

@@ -17,8 +17,12 @@ from ..domain.models import BUSINESS_TIMEZONE, parse_business_date, utc_now
 from ..domain.tracking import (
     DEFAULT_EXPECTED_TIME,
     ETIQUETA_ACCION,
+    ETIQUETA_A_CONFIRMAR,
     ETIQUETA_DISCREPANCIA,
     TRANSICION_DE_ACCION,
+    TRANSICIONES_REVERSIBLES,
+    TrackingTransition,
+    puede_corregirse_a,
     NextAction,
     ReceptionIssue,
     next_action as calcular_next_action,
@@ -166,6 +170,8 @@ class BoardRow:
         """
         if self.overdue:
             return ALERTA_ATRASADO
+        if self.work.awaiting_confirmation:
+            return ETIQUETA_A_CONFIRMAR
         if self.work.reception_issue is not None:
             return ETIQUETA_DISCREPANCIA[self.work.reception_issue]
         if self.work.confirmed_for_next_day and self.work.status is TrackingStatus.IN_LABORATORY:
@@ -198,6 +204,7 @@ class BoardRow:
         return calcular_next_action(
             self.work.status, overdue=self.overdue,
             reception_issue=self.work.reception_issue,
+            awaiting_confirmation=self.work.awaiting_confirmation,
         )
 
     @property
@@ -217,6 +224,9 @@ class BoardRow:
     @property
     def observation(self) -> str:
         """Una sola linea: lo ultimo que se sabe, sin abrir el detalle."""
+        if self.work.awaiting_confirmation:
+            # Lo que se espera del cliente, en la propia fila.
+            return self.work.confirmation_note or "Falta que el cliente confirme"
         if self.work.reception_issue is ReceptionIssue.NOT_ARRIVED:
             return "No llegó en el envío"
         if self.work.reception_issue is ReceptionIssue.NOT_IN_LIST:
@@ -567,7 +577,8 @@ class TrackingService:
         }
         acciones = {
             calcular_next_action(w.status, overdue=w.is_overdue(momento),
-                                 reception_issue=w.reception_issue)
+                                 reception_issue=w.reception_issue,
+                                 awaiting_confirmation=w.awaiting_confirmation)
             for w in trabajos
         }
         if len(acciones) > 1:
@@ -595,7 +606,9 @@ class TrackingService:
         if accion is None or TRANSICION_DE_ACCION[accion] is None:
             raise InvalidCashDayError(
                 resumen["reason"] or "esta acción no aplica a la selección")
-        if accion is NextAction.SEND_TO_LABORATORY:
+        if accion in (NextAction.SEND_TO_LABORATORY, NextAction.RESOLVE_CONFIRMATION):
+            # Resolver la confirmacion por el camino "confirmó" es, en los
+            # hechos, despachar al laboratorio: pide lo mismo.
             if not laboratory_id:
                 raise InvalidCashDayError("elegí el laboratorio para el envío")
             return [
@@ -609,6 +622,125 @@ class TrackingService:
             self._advance(work_id, destino, responsible=responsible, note=note)
             for work_id in work_ids
         ]
+
+    # -- queda a confirmar --------------------------------------------------
+
+    def mark_awaiting_confirmation(
+        self, work_ids: Sequence[str], *, responsible: str, note: str = "",
+    ) -> list:
+        """El trabajo esta en la optica pero el cliente todavia no confirmo.
+
+        No mueve la etapa: fisicamente sigue RECIBIDO EN ASUNCION. Lo que
+        cambia es que no corresponde despacharlo, y la accion principal pasa a
+        ser resolver esa confirmacion.
+        """
+        if not work_ids:
+            raise InvalidCashDayError("marcá al menos un trabajo")
+        marcados = []
+        for work_id in work_ids:
+            work = self._load(work_id)
+            if work.status is not TrackingStatus.RECEIVED_IN_ASUNCION:
+                raise InvalidCashDayError(
+                    "solo puede quedar a confirmar un trabajo recibido en la óptica")
+            marcados.append(self.repository.save_tracked_work(dataclass_replace(
+                work, awaiting_confirmation=True,
+                confirmation_note=str(note or "").strip(), updated_at=utc_now())))
+        return marcados
+
+    def resolve_confirmation_confirmed(
+        self, work_ids: Sequence[str], *, responsible: str, laboratory_id: str,
+        expected_date=None, expected_time=None, note: str = "",
+    ) -> list:
+        """El cliente confirmó: el trabajo sale al laboratorio."""
+        return [
+            self.send_to_laboratory(
+                work_id, laboratory_id, expected_date=expected_date,
+                expected_time=expected_time, responsible=responsible,
+                note=note or "Cliente confirmó")
+            for work_id in work_ids
+        ]
+
+    def resolve_confirmation_cancelled(
+        self, work_ids: Sequence[str], *, responsible: str, reason: str,
+    ) -> list:
+        """El cliente cancelo: se cierra por excepcion, con su motivo."""
+        return [
+            self.close_by_exception(work_id, responsible=responsible, reason=reason)
+            for work_id in work_ids
+        ]
+
+    # -- excepciones auditadas ---------------------------------------------
+
+    #: Un cierre por excepcion no es el final normal del circuito —ese es
+    #: RECIBIDO EN PILAR, que ocurre solo— sino la salida para lo que no llego
+    #: a completarse: cancelaciones, devoluciones a exhibicion, trabajos sin
+    #: efecto y correcciones administrativas.
+    def close_by_exception(
+        self, work_id: str, *, responsible: str, reason: str,
+    ) -> TrackedWork:
+        """Cierra un trabajo que no completo el circuito. Exige motivo."""
+        motivo = str(reason or "").strip()
+        if not motivo:
+            raise InvalidCashDayError("el cierre por excepción requiere un motivo")
+        if not str(responsible or "").strip():
+            raise InvalidCashDayError("el cierre por excepción requiere responsable")
+        work = self._load(work_id)
+        if work.status is TrackingStatus.CLOSED:
+            raise InvalidCashDayError("el trabajo ya está cerrado")
+        # La traza queda en la propia transicion: quien, cuando y por que.
+        transicion = TrackingTransition(
+            from_status=work.status, to_status=TrackingStatus.CLOSED,
+            responsible=responsible, note=f"Cierre por excepción: {motivo}",
+        )
+        cerrado = dataclass_replace(
+            work, status=TrackingStatus.CLOSED,
+            awaiting_confirmation=False, confirmation_note="",
+            transitions=work.transitions + (transicion,),
+            updated_at=transicion.recorded_at)
+        return self.repository.save_tracked_work(cerrado)
+
+    def correctable_targets(self, work_id: str) -> tuple:
+        """Retrocesos admitidos para este trabajo. Nunca saltos arbitrarios."""
+        return TRANSICIONES_REVERSIBLES[self._load(work_id).status]
+
+    def correct_status(
+        self, work_id: str, to_status: TrackingStatus | str, *,
+        responsible: str, reason: str,
+    ) -> TrackedWork:
+        """Retrocede un paso que se dio de mas, dejando traza.
+
+        Solo admite los retrocesos declarados en `TRANSICIONES_REVERSIBLES`.
+        Cualquier otro ajuste es una excepcion administrativa, no una edicion
+        silenciosa del estado.
+        """
+        motivo = str(reason or "").strip()
+        if not motivo:
+            raise InvalidCashDayError("la corrección de estado requiere un motivo")
+        if not str(responsible or "").strip():
+            raise InvalidCashDayError("la corrección de estado requiere responsable")
+        work = self._load(work_id)
+        destino = TrackingStatus(to_status)
+        if not puede_corregirse_a(work.status, destino):
+            admitidos = ", ".join(
+                ETIQUETAS_ESTADO[e] for e in TRANSICIONES_REVERSIBLES[work.status])
+            raise InvalidCashDayError(
+                f"no se puede corregir {ETIQUETAS_ESTADO[work.status]} a "
+                f"{ETIQUETAS_ESTADO[destino]}"
+                + (f"; solo admite: {admitidos}" if admitidos
+                   else "; esta etapa no admite retroceso"))
+        transicion = TrackingTransition(
+            from_status=work.status, to_status=destino, responsible=responsible,
+            note=f"Corrección de estado: {motivo}")
+        cambios = {
+            "status": destino,
+            "transitions": work.transitions + (transicion,),
+            "updated_at": transicion.recorded_at,
+        }
+        if destino is not TrackingStatus.IN_LABORATORY:
+            # El plazo pertenece a la estadia en laboratorio.
+            cambios.update(expected_date=None, expected_time=None,
+                           confirmed_for_next_day=False)
+        return self.repository.save_tracked_work(dataclass_replace(work, **cambios))
 
     # -- discrepancias de recepcion ----------------------------------------
 

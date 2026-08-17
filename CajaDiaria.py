@@ -45,7 +45,10 @@ from modulos.caja_diaria.domain.models import (
 )
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.tracking import NextAction, TrackingStatus
-from modulos.caja_diaria.application.tracking_service import GRUPOS_SEGUIMIENTO
+from modulos.caja_diaria.application.tracking_service import (
+    ETIQUETAS_ESTADO as ETIQUETAS_ESTADO_UI,
+    GRUPOS_SEGUIMIENTO,
+)
 from modulos.caja_diaria.ui.controller import friendly_error
 from modulos.caja_diaria.ui.privacy import FinancialPrivacy
 
@@ -3383,18 +3386,15 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     )
     etiqueta_sucursal.pack(side="right", padx=(10, 6))
 
+    # RC27: el alcance de sucursal deja la barra principal.
+    #
+    # Seguimiento abre en la sucursal de esta caja, que es lo que la operadora
+    # necesita casi siempre. Ver todas las sucursales es una consulta
+    # administrativa y ocasional, asi que vive en `Más` y no ocupa un boton
+    # permanente al lado de las acciones del dia.
     def alternar_alcance_sucursal():
         contexto_sucursal["todas"] = not contexto_sucursal["todas"]
         refrescar_seguimiento()
-
-    boton_alcance_sucursal = ctk.CTkButton(
-        barra_seguimiento, text="Ver todas las sucursales", width=185, height=30,
-        fg_color="#FFFFFF", text_color=color_suave, border_width=1,
-        border_color=color_borde_suave, hover_color="#EAF3FF",
-        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
-        command=alternar_alcance_sucursal,
-    )
-    boton_alcance_sucursal.pack(side="right", padx=(6, 0))
 
     combo_lab_filtro = ctk.CTkComboBox(
         barra_seguimiento, values=["Todos los laboratorios"], width=190, height=30,
@@ -3581,7 +3581,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         Marcar o desmarcar no cambia que filas hay: solo su tilde. Reconstruir
         la tabla entera para eso costaba 440 widgets y casi un segundo de
         pantalla en blanco, que es el parpadeo que se veia al usar
-        `Seleccionar visibles` o `Limpiar selección`.
+        `Seleccionar todo` o `Limpiar selección`.
         """
         marcados = estado_seguimiento["marcados"]
         for identificador, widgets in estado_seguimiento["widgets"].items():
@@ -3594,7 +3594,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 marca.deselect()
         actualizar_acciones_seguimiento()
 
-    def seleccionar_visibles():
+    def seleccionar_todo():
         estado_seguimiento["marcados"] = set(estado_seguimiento["filas"])
         aplicar_marcas_visibles()
 
@@ -3654,16 +3654,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             etiqueta_sucursal.configure(
                 text=f"Caja {contexto_sucursal['caja'] or '—'} sin sucursal asignada",
                 text_color="#B45309")
-            boton_alcance_sucursal.configure(state="disabled")
         else:
             etiqueta_sucursal.configure(
                 text=("Todas las sucursales" if contexto_sucursal["todas"]
                       else f"Sucursal: {sucursal}"),
                 text_color=color_texto)
-            boton_alcance_sucursal.configure(
-                state="normal",
-                text=("Ver solo mi sucursal" if contexto_sucursal["todas"]
-                      else "Ver todas las sucursales"))
         # RC26: las filas se reutilizan en vez de reconstruirse.
         #
         # Cada fila son ~29 widgets Tk y la tabla entera ronda los 440.
@@ -3887,8 +3882,18 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         else:
             alerta_seguimiento.pack_forget()
         if not tablero["rows"]:
-            vacio_seguimiento.configure(text=MENSAJES_VACIO.get(
-                activo, "No hay trabajos que mostrar con este filtro."))
+            # RC27: una tabla vacia tiene que decir de que sucursal esta
+            # hablando. Antes se leia como "no hay nada" y en realidad podia
+            # haber trabajo en el otro local: la operadora no tiene por que
+            # deducir que la vista esta acotada a su caja.
+            if activo == "Activos" and sucursal and not contexto_sucursal["todas"]:
+                texto_vacio = (f"No hay trabajos pendientes en {sucursal.title()}."
+                               "\nUsá  Más ▸ Ver todas las sucursales  si "
+                               "necesitás mirar el otro local.")
+            else:
+                texto_vacio = MENSAJES_VACIO.get(
+                    activo, "No hay trabajos que mostrar con este filtro.")
+            vacio_seguimiento.configure(text=texto_vacio)
             vacio_seguimiento.place(relx=0.5, rely=0.42, anchor="center")
         else:
             vacio_seguimiento.place_forget()
@@ -4207,6 +4212,180 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ).pack(side="right")
         return dialogo
 
+    def pedir_motivo(titulo, detalle):
+        """Motivo obligatorio. Sin texto no hay excepcion ni correccion."""
+        motivo = simpledialog.askstring(titulo, detalle, parent=ventana)
+        if motivo is None:
+            return None
+        if not motivo.strip():
+            messagebox.showwarning(
+                titulo, "El motivo es obligatorio: queda en el historial.",
+                parent=ventana)
+            return None
+        return motivo.strip()
+
+    def marcar_queda_a_confirmar():
+        """El trabajo esta en la óptica pero el cliente todavia no confirmó."""
+        ids = seleccion_actual()
+        if not ids:
+            messagebox.showwarning(
+                "Queda a confirmar", "Marcá uno o varios trabajos.", parent=ventana)
+            return
+        nota = simpledialog.askstring(
+            "Queda a confirmar",
+            f"{len(ids)} trabajo(s).\n\n¿Qué se está esperando?\n"
+            "Por ejemplo: Cliente confirma mañana · Esperando llamada ·\n"
+            "Falta confirmar cristal · Esperando autorización",
+            parent=ventana)
+        if nota is None:
+            return
+        try:
+            controller.tracking.mark_awaiting_confirmation(
+                ids, responsible=responsable_actual(), note=nota)
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        refrescar_seguimiento()
+
+    def resolver_confirmacion(ids):
+        """Dos caminos válidos: confirmó o canceló. Ninguno más."""
+        dialogo = ctk.CTkToplevel(ventana)
+        dialogo.title(f"Resolver confirmación · {len(ids)} trabajo(s)")
+        dialogo.geometry("560x260")
+        dialogo.transient(ventana)
+        dialogo.grab_set()
+        ctk.CTkLabel(
+            dialogo, text=f"¿Qué pasó con {len(ids)} trabajo(s)?",
+            text_color=color_texto,
+            font=ctk.CTkFont(size=perfil["fuente_seccion"], weight="bold"),
+        ).pack(anchor="w", padx=16, pady=(16, 4))
+        ctk.CTkLabel(
+            dialogo, text="Estaban esperando la confirmación del cliente.",
+            text_color=color_suave, font=ctk.CTkFont(size=perfil["fuente_label"]),
+        ).pack(anchor="w", padx=16, pady=(0, 14))
+
+        def confirmo():
+            datos = pedir_destino_laboratorio(len(ids))
+            if datos is None:
+                return
+            try:
+                controller.tracking.resolve_confirmation_confirmed(
+                    ids, responsible=responsable_actual(), **datos)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            dialogo.destroy()
+            refrescar_seguimiento()
+
+        def cancelo():
+            motivo = pedir_motivo(
+                "Canceló",
+                "Motivo (obligatorio).\nPor ejemplo: devuelto a exhibición, "
+                "cliente desistió, trabajo sin efecto:")
+            if motivo is None:
+                return
+            try:
+                controller.tracking.resolve_confirmation_cancelled(
+                    ids, responsible=responsable_actual(), reason=motivo)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            dialogo.destroy()
+            refrescar_seguimiento()
+
+        ctk.CTkButton(
+            dialogo, text="Confirmó  —  enviar a laboratorio", height=42,
+            fg_color=color_verde, hover_color="#128A57",
+            font=ctk.CTkFont(size=perfil["fuente_label"] + 1, weight="bold"),
+            command=confirmo,
+        ).pack(fill="x", padx=16, pady=(0, 8))
+        ctk.CTkButton(
+            dialogo, text="Canceló  —  cerrar por excepción", height=42,
+            fg_color="#FFFFFF", text_color="#A32626", border_width=1,
+            border_color="#E5A3A3", hover_color="#FDECEC",
+            font=ctk.CTkFont(size=perfil["fuente_label"] + 1, weight="bold"),
+            command=cancelo,
+        ).pack(fill="x", padx=16)
+        ctk.CTkButton(
+            dialogo, text="Todavía no se sabe", height=32, fg_color="#52657D",
+            font=ctk.CTkFont(size=perfil["fuente_label"]),
+            command=dialogo.destroy,
+        ).pack(fill="x", padx=16, pady=12, side="bottom")
+        return dialogo
+
+    def cerrar_por_excepcion():
+        """Salida para lo que no llegó a completarse. Nunca el cierre normal."""
+        ids = seleccion_actual()
+        if not ids:
+            messagebox.showwarning(
+                "Cerrar por excepción", "Marcá uno o varios trabajos.", parent=ventana)
+            return
+        motivo = pedir_motivo(
+            "Cerrar por excepción",
+            f"{len(ids)} trabajo(s).\n\nMotivo (obligatorio).\n"
+            "Cancelación, devolución a exhibición, trabajo sin efecto\n"
+            "o corrección administrativa:")
+        if motivo is None:
+            return
+        if not messagebox.askyesno(
+                "Cerrar por excepción",
+                f"¿Cerrar {len(ids)} trabajo(s) por excepción?\n\n"
+                f"Motivo: {motivo}\nResponsable: {responsable_actual()}\n\n"
+                "Queda registrado en el historial del trabajo.",
+                parent=ventana):
+            return
+        try:
+            for work_id in ids:
+                controller.tracking.close_by_exception(
+                    work_id, responsible=responsable_actual(), reason=motivo)
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        refrescar_seguimiento()
+
+    def corregir_estado():
+        """Solo retrocesos declarados, con motivo y responsable."""
+        fila = trabajo_seleccionado()
+        if fila is None:
+            messagebox.showwarning(
+                "Corregir estado", "Elegí una fila.", parent=ventana)
+            return
+        try:
+            destinos = controller.tracking.correctable_targets(fila.work.id)
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        if not destinos:
+            messagebox.showinfo(
+                "Corregir estado",
+                f"{fila.physical_status} no admite retroceso.\n\n"
+                "Si hace falta un ajuste, usá Cerrar por excepción.",
+                parent=ventana)
+            return
+        opciones = {ETIQUETAS_ESTADO_UI[e]: e for e in destinos}
+        elegido = simpledialog.askstring(
+            "Corregir estado",
+            f"{fila.envelope} está en {fila.physical_status}.\n\n"
+            f"Retroceder a ({', '.join(opciones)}):",
+            parent=ventana, initialvalue=next(iter(opciones)))
+        destino = opciones.get(str(elegido or "").strip().upper())
+        if destino is None:
+            return
+        motivo = pedir_motivo(
+            "Corregir estado",
+            f"{fila.envelope}: {fila.physical_status} → {ETIQUETAS_ESTADO_UI[destino]}\n\n"
+            "Motivo (obligatorio):")
+        if motivo is None:
+            return
+        try:
+            controller.tracking.correct_status(
+                fila.work.id, destino,
+                responsible=responsable_actual(), reason=motivo)
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        refrescar_seguimiento()
+
     # RC24: tres acciones conceptuales en vez de seis transiciones.
     # La operadora identifica el trabajo, lo marca y ejecuta lo sugerido; el
     # sistema decide cual es la transicion valida via next_action.
@@ -4227,6 +4406,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             messagebox.showinfo("Acción siguiente", info["reason"], parent=ventana)
             return
         datos = {}
+        if accion is NextAction.RESOLVE_CONFIRMATION:
+            # Dos caminos validos y nada mas: confirmó o canceló. La operadora
+            # no elige un estado de una lista, elige lo que pasó.
+            resolver_confirmacion(ids)
+            return
         if accion is NextAction.SEND_TO_LABORATORY:
             datos = pedir_destino_laboratorio(len(ids))
             if datos is None:
@@ -4301,16 +4485,20 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         menu = tk.Menu(ventana, tearoff=0)
         menu.add_command(label="Ver detalle", command=abrir_detalle_trabajo)
         menu.add_separator()
-        menu.add_command(label="Seleccionar visibles", command=seleccionar_visibles)
+        menu.add_command(label="Seleccionar todo", command=seleccionar_todo)
         menu.add_command(label="Limpiar selección", command=limpiar_seleccion)
         menu.add_separator()
+        menu.add_command(label="Queda a confirmar", command=marcar_queda_a_confirmar)
+        menu.add_command(label="Corregir estado", command=corregir_estado)
+        menu.add_command(label="Cerrar por excepción", command=cerrar_por_excepcion)
+        menu.add_separator()
         menu.add_command(
-            label="Cerrar trabajo",
-            command=lambda: accion_seguimiento(
-                lambda fila: controller.tracking.close_work(
-                    fila.work.id, responsible=responsable_actual())))
+            label=("Ver solo mi sucursal" if contexto_sucursal["todas"]
+                   else "Ver todas las sucursales"),
+            command=alternar_alcance_sucursal,
+            state="normal" if contexto_sucursal["sucursal"] else "disabled")
         x = boton_mas.winfo_rootx()
-        y = boton_mas.winfo_rooty() - menu.yposition(0) - 110
+        y = boton_mas.winfo_rooty() - menu.yposition(0) - 190
         menu.tk_popup(x, max(0, y))
 
     boton_mas = ctk.CTkButton(

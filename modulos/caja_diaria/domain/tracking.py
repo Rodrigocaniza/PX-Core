@@ -69,6 +69,11 @@ ETIQUETA_DISCREPANCIA = {
 }
 
 
+#: Rotulo de la condicion "queda a confirmar". No es una etapa: el trabajo
+#: esta fisicamente RECIBIDO EN ASUNCION y solo falta que el cliente confirme.
+ETIQUETA_A_CONFIRMAR = "QUEDA A CONFIRMAR"
+
+
 class NextAction(str, Enum):
     """Unica autoridad sobre que corresponde hacer con un trabajo."""
 
@@ -79,6 +84,7 @@ class NextAction(str, Enum):
     SEND_TO_PILAR = "ENVIAR_A_PILAR"
     RECEIVE_IN_PILAR = "RECIBIR_EN_PILAR"
     RESOLVE_RECEPTION = "RESOLVER_RECEPCION"
+    RESOLVE_CONFIRMATION = "RESOLVER_CONFIRMACION"
     NONE = "NINGUNA"
 
 
@@ -91,6 +97,7 @@ ETIQUETA_ACCION = {
     NextAction.SEND_TO_PILAR: "Enviar a Pilar",
     NextAction.RECEIVE_IN_PILAR: "Recibir en Pilar",
     NextAction.RESOLVE_RECEPTION: "Resolver recepción",
+    NextAction.RESOLVE_CONFIRMATION: "Resolver confirmación",
     NextAction.NONE: "Sin acción pendiente",
 }
 
@@ -104,15 +111,40 @@ TRANSICION_DE_ACCION = {
     NextAction.SEND_TO_PILAR: TrackingStatus.SENT_TO_PILAR,
     NextAction.RECEIVE_IN_PILAR: TrackingStatus.RECEIVED_IN_PILAR,
     NextAction.RESOLVE_RECEPTION: TrackingStatus.RECEIVED_IN_ASUNCION,
+    # Resolver la confirmacion tiene dos caminos validos y uno solo avanza:
+    # si el cliente confirmo, el trabajo sale al laboratorio. El otro camino
+    # —cancelo— es un cierre por excepcion, no una etapa del circuito.
+    NextAction.RESOLVE_CONFIRMATION: TrackingStatus.IN_LABORATORY,
     # Contactar es informacion: registra la novedad y no mueve la etapa.
     NextAction.CONTACT_LABORATORY: None,
     NextAction.NONE: None,
 }
 
+#: Retrocesos admitidos por `Corregir estado`. Son los que revierten un paso
+#: que se dio de mas, y nada mas: no hay saltos arbitrarios. Cualquier otro
+#: ajuste es una excepcion administrativa, no una edicion silenciosa.
+TRANSICIONES_REVERSIBLES: Mapping[TrackingStatus, tuple[TrackingStatus, ...]] = {
+    TrackingStatus.RECEIVED_IN_ASUNCION: (TrackingStatus.SENT_FROM_PILAR,),
+    TrackingStatus.IN_LABORATORY: (TrackingStatus.RECEIVED_IN_ASUNCION,),
+    TrackingStatus.RECEIVED_FROM_LABORATORY: (TrackingStatus.IN_LABORATORY,),
+    TrackingStatus.SENT_TO_PILAR: (TrackingStatus.RECEIVED_FROM_LABORATORY,),
+    TrackingStatus.RECEIVED_IN_PILAR: (TrackingStatus.SENT_TO_PILAR,),
+    TrackingStatus.SENT_FROM_PILAR: (),
+    TrackingStatus.CLOSED: (),
+}
+
+
+def puede_corregirse_a(
+    actual: TrackingStatus | str, destino: TrackingStatus | str,
+) -> bool:
+    """Si el retroceso esta explicitamente admitido."""
+    return TrackingStatus(destino) in TRANSICIONES_REVERSIBLES[TrackingStatus(actual)]
+
 
 def next_action(
     status: TrackingStatus | str, *, overdue: bool = False,
     reception_issue: ReceptionIssue | str | None = None,
+    awaiting_confirmation: bool = False,
 ) -> NextAction:
     """La proxima transicion **fisica**. Fuente unica para dominio, servicio y UI.
 
@@ -138,7 +170,10 @@ def next_action(
     if etapa is TrackingStatus.SENT_FROM_PILAR:
         return NextAction.RECEIVE_IN_ASUNCION
     if etapa is TrackingStatus.RECEIVED_IN_ASUNCION:
-        return NextAction.SEND_TO_LABORATORY
+        # Esta en la optica, pero si falta que el cliente confirme todavia no
+        # corresponde despacharlo: lo que hay que hacer es resolver eso.
+        return (NextAction.RESOLVE_CONFIRMATION if awaiting_confirmation
+                else NextAction.SEND_TO_LABORATORY)
     if etapa is TrackingStatus.IN_LABORATORY:
         return NextAction.RECEIVE_FROM_LABORATORY
     if etapa is TrackingStatus.RECEIVED_FROM_LABORATORY:
@@ -389,6 +424,10 @@ class TrackedWork:
     confirmed_for_next_day: bool = False
     processing_branch: str = SUCURSAL_PROCESO_POR_DEFECTO
     reception_issue: ReceptionIssue | str | None = None
+    #: El cliente todavia no confirmo, asi que el trabajo no sale al
+    #: laboratorio. Condicion, no etapa: fisicamente esta en la optica.
+    awaiting_confirmation: bool = False
+    confirmation_note: str = ""
     order_id: str | None = None
     cash_entry_id: str | None = None
     shipment_id: str | None = None
@@ -422,6 +461,8 @@ class TrackedWork:
             )
         object.__setattr__(self, "expected_time", parse_expected_time(self.expected_time))
         object.__setattr__(self, "confirmed_for_next_day", bool(self.confirmed_for_next_day))
+        object.__setattr__(self, "awaiting_confirmation", bool(self.awaiting_confirmation))
+        object.__setattr__(self, "confirmation_note", str(self.confirmation_note or "").strip())
         if self.reception_issue not in (None, ""):
             object.__setattr__(self, "reception_issue", ReceptionIssue(self.reception_issue))
         else:
@@ -458,6 +499,7 @@ class TrackedWork:
         return next_action(
             self.status, overdue=self.is_overdue(now),
             reception_issue=self.reception_issue,
+            awaiting_confirmation=self.awaiting_confirmation,
         )
 
     @property
@@ -515,6 +557,11 @@ class TrackedWork:
             # cambio NO_ESTABA_EN_LISTA persiste, porque documenta que el
             # trabajo entro fuera del envio declarado.
             cambios["reception_issue"] = None
+        if target is not TrackingStatus.RECEIVED_IN_ASUNCION:
+            # Salir de la optica resuelve la espera: o el cliente confirmo y el
+            # trabajo va al laboratorio, o se cerro por excepcion. En ninguno
+            # de los dos casos sigue "a confirmar".
+            cambios.update(awaiting_confirmation=False, confirmation_note="")
         if target is not TrackingStatus.IN_LABORATORY:
             # El plazo pertenece a la estadia en laboratorio: al salir de ella
             # deja de existir y con el desaparece cualquier atraso heredado.

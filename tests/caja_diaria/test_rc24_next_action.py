@@ -316,16 +316,20 @@ class BarraDeAccionesTests(unittest.TestCase):
         self.assertIn('text=info["label"] or "Acción siguiente"', self.FUENTE)
 
     def test_hay_seleccion_multiple_con_contador(self):
-        for pieza in ("def alternar_marca", "def seleccionar_visibles",
+        for pieza in ("def alternar_marca", "def seleccionar_todo",
                       "def limpiar_seleccion", "ctk.CTkCheckBox(",
                       "seleccionado{'' if len(ids) == 1 else 's'}"):
             self.assertIn(pieza, self.FUENTE)
 
     def test_las_acciones_secundarias_viven_en_el_menu_mas(self):
+        """RC27 renombra dos y suma las excepciones auditadas."""
         menu = self.FUENTE[self.FUENTE.index("def abrir_menu_mas"):]
-        for etiqueta in ("Ver detalle", "Seleccionar visibles", "Limpiar selección",
-                         "Cerrar trabajo"):
-            self.assertIn(etiqueta, menu[:1200])
+        for etiqueta in ("Ver detalle", "Seleccionar todo", "Limpiar selección",
+                         "Queda a confirmar", "Corregir estado",
+                         "Cerrar por excepción", "Ver todas las sucursales"):
+            self.assertIn(etiqueta, menu[:1400])
+        # "Cerrar trabajo" a secas ya no existe: cerrar es por excepcion.
+        self.assertNotIn('label="Cerrar trabajo"', self.FUENTE)
 
     def test_la_novedad_aplica_a_varios_trabajos(self):
         self.assertIn("def abrir_novedad(work_ids):", self.FUENTE)

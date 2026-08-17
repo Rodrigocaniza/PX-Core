@@ -6,7 +6,7 @@ import json
 import logging
 import sqlite3
 from contextlib import contextmanager
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
 
@@ -43,6 +43,21 @@ def _iso(value: date | datetime | None) -> str | None:
 
 def _datetime(value: str | None) -> datetime | None:
     return datetime.fromisoformat(value) if value else None
+
+
+def _limites_utc_del_dia(start_date: date, end_date: date) -> tuple[str, str]:
+    """Instantes UTC que abren y cierran un rango de dias del negocio.
+
+    El limite superior es exclusivo: cubre el ultimo dia entero sin depender de
+    la hora. Devuelve texto sin offset porque se compara contra `datetime()` de
+    SQLite, que normaliza a UTC.
+    """
+    from ..domain.models import BUSINESS_TIMEZONE
+
+    desde = datetime.combine(start_date, time.min, tzinfo=BUSINESS_TIMEZONE)
+    hasta = datetime.combine(end_date + timedelta(days=1), time.min, tzinfo=BUSINESS_TIMEZONE)
+    return (desde.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
+            hasta.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
 
 
 class SQLiteCashDayRepository:
@@ -793,16 +808,25 @@ class SQLiteCashDayRepository:
         La elegibilidad se resuelve en SQL contra `tracked_works`: un pedido ya
         seguido no vuelve a ofrecerse, de modo que no se puede armar dos veces
         el mismo trabajo aunque se repita la consulta.
+
+        El rango se compara como instante, no como `date()` del texto guardado.
+        `created_at` se guarda en UTC y las fechas que elige la operadora son
+        del dia del negocio: a partir de las 21:00 locales el UTC ya es del dia
+        siguiente, asi que comparar fechas sueltas hacia desaparecer de los
+        candidatos los pedidos cargados de noche. Se convierten los limites del
+        dia local a UTC y se compara contra ellos.
         """
+        desde, hasta = _limites_utc_del_dia(start_date, end_date)
         with self._connection() as connection:
             rows = connection.execute(
                 """SELECT o.* FROM orders o
                 LEFT JOIN tracked_works t ON t.order_id = o.id
                 WHERE t.id IS NULL
                   AND o.branch = ? COLLATE NOCASE
-                  AND date(o.created_at) BETWEEN ? AND ?
+                  AND datetime(o.created_at) >= datetime(?)
+                  AND datetime(o.created_at) <  datetime(?)
                 ORDER BY o.envelope, o.created_at""",
-                (branch, _iso(start_date), _iso(end_date)),
+                (branch, desde, hasta),
             ).fetchall()
         return [self._hydrate_order(row) for row in rows]
 
@@ -961,16 +985,19 @@ class SQLiteCashDayRepository:
             try:
                 connection.execute(
                     """INSERT INTO tracked_works(
-                        id,envelope,customer_name,status,origin_branch,processing_branch,reception_issue,laboratory_id,
+                        id,envelope,customer_name,status,origin_branch,processing_branch,reception_issue,
+                        awaiting_confirmation,confirmation_note,laboratory_id,
                         expected_date,expected_time,confirmed_for_next_day,order_id,
                         cash_entry_id,shipment_id,consultation_date,observations,created_by,
                         created_at,updated_at
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     ON CONFLICT(id) DO UPDATE SET
                         envelope=excluded.envelope, customer_name=excluded.customer_name,
                         status=excluded.status, origin_branch=excluded.origin_branch,
                         processing_branch=excluded.processing_branch,
                         reception_issue=excluded.reception_issue,
+                        awaiting_confirmation=excluded.awaiting_confirmation,
+                        confirmation_note=excluded.confirmation_note,
                         laboratory_id=excluded.laboratory_id,
                         expected_date=excluded.expected_date,
                         expected_time=excluded.expected_time,
@@ -984,6 +1011,7 @@ class SQLiteCashDayRepository:
                         work.id, work.envelope, work.customer_name, work.status.value,
                         work.origin_branch, work.processing_branch,
                         work.reception_issue.value if work.reception_issue else None,
+                        int(work.awaiting_confirmation), work.confirmation_note,
                         work.laboratory_id,
                         _iso(work.expected_date),
                         work.expected_time.strftime("%H:%M") if work.expected_time else None,
@@ -1074,6 +1102,8 @@ class SQLiteCashDayRepository:
             status=row["status"], origin_branch=row["origin_branch"],
             processing_branch=row["processing_branch"],
             reception_issue=row["reception_issue"],
+            awaiting_confirmation=bool(row["awaiting_confirmation"]),
+            confirmation_note=row["confirmation_note"],
             laboratory_id=row["laboratory_id"], expected_date=row["expected_date"],
             expected_time=row["expected_time"],
             confirmed_for_next_day=bool(row["confirmed_for_next_day"]),

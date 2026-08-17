@@ -55,7 +55,7 @@ class SinReconstruirPorSeleccionTests(unittest.TestCase):
             FUENTE.index("    def aplicar_marcas_visibles():"):
             FUENTE.index("    def trabajo_seleccionado():")
         ]
-        self.assertIn("def seleccionar_visibles():", bloque)
+        self.assertIn("def seleccionar_todo():", bloque)
         self.assertIn("def limpiar_seleccion():", bloque)
         # Antes ambas llamaban a refrescar_seguimiento() y reconstruian todo.
         self.assertNotIn("refrescar_seguimiento()", bloque)
