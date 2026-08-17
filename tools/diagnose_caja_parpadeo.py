@@ -92,11 +92,18 @@ def medir(root, segundos: float, pestana: str | None = None) -> dict:
         except Exception:
             pass
 
-    ventanas = []
+    # Reposo real antes de medir. La ventana termina de asentarse despues del
+    # primer render —CustomTkinter crea widgets internos de forma perezosa— y
+    # contar eso como actividad daba un veredicto falso cuando la sonda corria
+    # pegada a otros smokes. Se descarta un segundo y recien ahi se cuenta.
+    asentado = time.monotonic()
+    while time.monotonic() - asentado < 1.0:
+        root.update()
+        time.sleep(0.005)
+
     muestras = []
     inicio = time.monotonic()
     CONTEO.clear()
-    destruidos0 = creados0 = 0
     while time.monotonic() - inicio < segundos:
         t0 = time.monotonic()
         p0 = CONTEO["place"]

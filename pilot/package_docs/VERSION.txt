@@ -1,6 +1,6 @@
-BC Caja 1.0.0-rc.25
-Misión: BC-CAJA-RC26-FLUJO-TELEFONO-PARPADEO-001
-Integra: RC18 UX · RC19 Seguimiento · RC20 Alta de lote + ABM · RC21 Tabla logística · RC22 Vista por sucursal y alertas por local · RC23 Estado anclado a la fila · RC24 Tres acciones y selección múltiple · RC25 Recepción con discrepancias y alerta de sucursal · RC26 El atraso deja de trabar el circuito, teléfono en la tabla y reuso de filas
+BC Caja 1.0.0-rc.26
+Misión: BC-CAJA-RC27-PULIDO-POST-PRUEBA-001
+Integra: RC18 UX · RC19 Seguimiento · RC20 Alta de lote + ABM · RC21 Tabla logística · RC22 Vista por sucursal y alertas por local · RC23 Estado anclado a la fila · RC24 Tres acciones y selección múltiple · RC25 Recepción con discrepancias y alerta de sucursal · RC26 El atraso deja de trabar el circuito, teléfono en la tabla y reuso de filas · RC27 Sucursal automática, queda a confirmar, cierre por excepción y corrección auditada
 Fecha: 2026-08-16
-Esquema: migraciones 001-020 (sin migración nueva)
+Esquema: migraciones 001-021
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)
