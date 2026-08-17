@@ -29,8 +29,8 @@
     "Arqueo, administrador, correo de cierre y mail ops"
   ],
   "packaged": true,
-  "installed": false,
-  "install_blocked_by": "HUMAN_GATE-RC30-CONSOLIDACION-001",
+  "installed": true,
+  "install_blocked_by": null,
   "tests": {
     "passed": 639,
     "subtests": 4,
@@ -54,8 +54,8 @@
     "smoke": "El ejecutable empaquetado arranca contra un directorio de datos temporal"
   },
   "production_untouched": {
-    "main": "origin/main 65d2df4 (rc.15) sin tocar",
-    "installed": "BC Caja 1.0.0-rc.15 sigue instalada; no se instaló rc.30"
+    "main": "pendiente de promocion",
+    "instalada": "BC Caja 1.0.0-rc.30"
   },
   "source_files": {
     "CajaDiaria.py": "8284665eb76deec5c7b91909dc87b808cd70a8bcdbae14a6ca5a87d4a72b2e53",
@@ -74,5 +74,23 @@
     "recepcion-1920x1080.png": "0bc384d40fb69d89d01e44498180ca0a31d35627d17fe5612b5cf5a59a32d6e6",
     "recepcion-1920x1080-caja-principal.png": "6f7f138f7f3163ba41da4476f66a874f4d543e56ba4dafa1a2b8e3714ed12dcb",
     "historial-jornadas-1920x1080.png": "79ffde00b03c5be3fc391c5b55fa560a67f0fc9ae9bf8b722568b9c9f1167bb6"
+  },
+  "install": {
+    "from": "1.0.0-rc.15",
+    "to": "1.0.0-rc.30",
+    "path": "%LOCALAPPDATA%\\Programs\\BC-Caja-Pilot",
+    "previous_kept": "BC-Caja-Pilot.previous-rc15",
+    "preinstall_backup": "bc-caja-preinstall-1.0.0-rc.30-20260817-181556-179677.sqlite3",
+    "backup_sha256": "e5de6f4068bbea9a0c0de695802ce090539d54cb33052a10fca28776e0c07078",
+    "migraciones": "15 -> 21 (016-021 por el flujo soportado)",
+    "datos": "2 dias, 12 movimientos, 8 pedidos, 10 items: identicos antes y despues",
+    "montos": "(6400000, 2200000, 250000) sin cambios",
+    "integridad_post": "integrity_check ok, foreign_key_check 0",
+    "exe_en_disco": "sha256 identico al construido"
+  },
+  "gate": {
+    "id": "HUMAN_GATE-RC30-CONSOLIDACION-001",
+    "result": "PASS",
+    "modo": "binario rc.30 contra copia verificada de la base productiva; original intacto"
   }
 }

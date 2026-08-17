@@ -18,5 +18,15 @@ exe_sha256 a38262a540ef59ea6be02ccb6a2db20242dfd791c11c79bc79c1cbadac52adc2
 Smoke del binario empaquetado OK
 Reglas economicas de Caja sin cambios
 Arqueo, administrador, correo de cierre y mail ops preservados
-INSTALACION NO REALIZADA bloqueada por HUMAN_GATE-RC30-CONSOLIDACION-001
-main 65d2df4 sin tocar, instalada rc.15 sin tocar, sin force-push
+HUMAN_GATE-RC30-CONSOLIDACION-001 PASS sobre copia verificada de la base productiva
+El original de la base quedo con el mismo sha256 e5de6f4068bbea9a0c0de695802ce090539d54cb33052a10fca28776e0c07078
+Ensayo de migracion rc.15 -> rc.30 hecho por el binario empaquetado sobre esa copia: 015 a 021, integridad ok
+INSTALACION REALIZADA transaccional: zip y exe verificados por hash antes de tocar nada
+Backup preinstall bc-caja-preinstall-1.0.0-rc.30-20260817-181556-179677.sqlite3 verificado
+rc.15 preservada en BC-Caja-Pilot.previous-rc15 y paquete de retorno disponible
+Post-install sobre la base productiva: 21 migraciones, integrity_check ok, foreign_key_check 0
+Filas 2 dias / 12 movimientos / 8 pedidos / 10 items y montos (6400000, 2200000, 250000) sin cambios
+exe instalado en disco sha256 identico al construido
+Correo deshabilitado y outbox sin envios tras instalar
+Rollback vigente mientras se conserven el backup preinstall y BC-Caja-Pilot.previous-rc15
+main promovido por fast-forward, sin force-push

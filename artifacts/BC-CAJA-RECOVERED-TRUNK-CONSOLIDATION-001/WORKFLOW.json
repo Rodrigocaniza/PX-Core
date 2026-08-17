@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-RECOVERED-TRUNK-CONSOLIDATION-001",
-  "current_state": "AWAITING_HUMAN_GATE",
+  "current_state": "INSTALLED",
   "base": "491c363",
   "history": [
     {
@@ -110,6 +110,42 @@
       "reason": "Instalacion bloqueada hasta HUMAN_GATE-RC30-CONSOLIDACION-001. main 65d2df4 y la instalacion rc.15 sin tocar",
       "gate_id": "HUMAN_GATE-RC30-CONSOLIDACION-001",
       "gate_generation": 1,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "HUMAN_GATE_PASS",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "GATE_PASSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "15 puntos PASS sobre rc.30 corriendo contra copia verificada de la base productiva. El original quedo con el mismo sha256. Ver GATE_VERDICT.md",
+      "gate_id": "HUMAN_GATE-RC30-CONSOLIDACION-001",
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "MIGRATION_REHEARSED",
+      "from_state": "GATE_PASSED",
+      "to_state": "GATE_PASSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "La copia del gate, migrada por el binario empaquetado, es el ensayo rc.15 -> rc.30: 015 a 021, integridad ok, filas y montos identicos",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "INSTALLED",
+      "from_state": "GATE_PASSED",
+      "to_state": "INSTALLED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Instalacion transaccional: zip y exe verificados por hash, backup preinstall, rc.15 preservada en previous-rc15, migracion por el flujo soportado, datos y montos identicos, rollback armado ante cualquier anomalia",
+      "gate_id": null,
+      "session_id": "bc-caja-recovered-trunk-consolidation"
+    },
+    {
+      "event": "POST_INSTALL_VERIFIED",
+      "from_state": "INSTALLED",
+      "to_state": "INSTALLED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Sobre la base productiva: rc.30 instalada, exe identico al construido, 21 migraciones, integridad ok, 12 movimientos y montos intactos, 8 pedidos, seguimiento accesible, admin sin configurar, correo deshabilitado, outbox vacio",
+      "gate_id": null,
       "session_id": "bc-caja-recovered-trunk-consolidation"
     }
   ]
