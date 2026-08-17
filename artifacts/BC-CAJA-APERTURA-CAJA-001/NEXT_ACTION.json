@@ -1,0 +1,30 @@
+{
+  "mission": "BC-CAJA-APERTURA-CAJA-001",
+  "state": "AWAITING_HUMAN_GATE",
+  "repository": "PX-Core",
+  "worktree": "apertura001",
+  "branch": "feature/bc-caja-apertura-caja-001",
+  "base_commit": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.14",
+  "blocked_on": "HUMAN_GATE-APERTURA-CAJA-001",
+  "next_action": "Ejecutar HUMAN_GATE-APERTURA-CAJA-001 en la Óptica (ViewSonic 24\"). Sin ese gate no se empaqueta ni se instala.",
+  "next_role": "HUMAN",
+  "verification": {
+    "tests": "210 passed + 4 subtests (200 baseline + 10 nuevas)",
+    "visual_automated": "4 capturas fail-closed 1920x1080 y 1366x768",
+    "visual_human": "NO EJECUTADA"
+  },
+  "after_gate_pass": [
+    "Empaquetar BC Caja (pilot/build_pilot.ps1) como rc.15",
+    "Backup previo en %LOCALAPPDATA%\\BC\\Caja\\Backups",
+    "Artifact consistency con zip_sha256 y exe_sha256",
+    "Safe closure y push protegido"
+  ],
+  "deferred": [
+    "Cabecera responsive a 1366x768: los KPIs quedan tapados por los botones de estado (deuda anterior a rc.15)",
+    "DatePicker/TimePicker compartido DD/MM/YYYY en español",
+    "FactuFácil integrado en BC Caja",
+    "Pedidos 'Requieren atención': depende de la decisión sobre BC-CAJA-RC12-PEDIDOS-ATENCION-001"
+  ],
+  "related_blocked_mission": "BC-CAJA-RC12-PEDIDOS-ATENCION-001 en BLOCKED_ON_PRODUCT_DECISION, ver artifacts/BC-CAJA-RC12-PEDIDOS-ATENCION-001/CANONICAL_STATE_AUDIT.md en la rama feature/bc-caja-rc12-pedidos-atencion-001"
+}

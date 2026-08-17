@@ -1,0 +1,32 @@
+{
+  "mission": "BC-CAJA-APERTURA-CAJA-001",
+  "version": "BC Caja 1.0.0-rc.14 + apertura automática (sin empaquetar)",
+  "base_commit": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.14",
+  "branch": "feature/bc-caja-apertura-caja-001",
+  "worktree": "apertura001",
+  "packaged": false,
+  "packaging_blocked_by": "HUMAN_GATE-APERTURA-CAJA-001",
+  "tests": {
+    "passed": 210,
+    "subtests": 4,
+    "new": 10,
+    "baseline": 200
+  },
+  "migrations": 15,
+  "schema_changed": false,
+  "economic_rules_changed": false,
+  "source_files": {
+    ".bc-command-center/verification.json": "ab3ec8bd1d6223284bbaf5b6f75957dee8778e614227583b417e6ae3d2010baf",
+    "CajaDiaria.py": "a6528a99aa8775663b0983257ef5f82f2f07651d6f16b62a5c1dc47bb58c3e4e",
+    "tests/caja_diaria/test_rc15_apertura_caja.py": "0e5245ab26dc7ab40d11b911c1b21fd74594a6119fb65e36515c060898d31d66",
+    "tests/caja_diaria/test_rc4_visual_clean_contract.py": "0fc69a33ca55e3871be76e54dbf85989b1622744220d705abff7fa9c053ce2cf",
+    "tools/capture_caja_rc15_apertura.py": "0c5bdf995dc4dc3487e224a405adc92bccc0bad9cb997581267b5cb8b22dfd5c"
+  },
+  "visual_evidence": {
+    "apertura-1920x1080.png": "ab68a8544c9c84c321125f3fbeecd4cbfd1f3558dac8fa5bd3188668cb4639fd",
+    "apertura-1366x768.png": "8e53589bdaf718f0800f9a7f887024bb2739ca8721fb90be4d8f942d2ba368bc",
+    "consulta-otro-dia-1920x1080.png": "da4294373d4e72aa606963540951e6c33e882aa2ce78a1753d5818c0c48bb9c2",
+    "consulta-otro-dia-1366x768.png": "41155fef727f061b35023cc7a680b75debd7517c3b31216ad7ff8d9e4744c21c"
+  }
+}
