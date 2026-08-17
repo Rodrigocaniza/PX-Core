@@ -51,14 +51,17 @@ def test_reversible_order_statuses_are_persistent_audited_and_duplicate_safe(tmp
 def test_history_contrast_and_order_alignment_chip_contract():
     for color in ("#F3F6FA", "#FFFFFF", "#EEF4FB", "#132238", "#DCEBFA", "#FDECEC", "#A32626"):
         assert color in SOURCE
-    assert 'anchor = alineacion_pedidos[clave]' in SOURCE
+    # El port de Pedidos movió la alineación a ORDER_COLUMN_SPECS; sólo "Última novedad" estira.
+    assert 'for clave, titulo, ancho, anchor in ORDER_COLUMN_SPECS:' in SOURCE
+    assert 'estirable = clave == "novedad"' in SOURCE
     assert 'grilla_pedidos.heading(clave, text=titulo, anchor=anchor)' in SOURCE
-    assert 'grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor, stretch=False)' in SOURCE
+    assert 'grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor, stretch=estirable)' in SOURCE
     for state in ("PENDIENTE", "LISTO", "ENTREGADO", "ANULADO"):
         assert f'"{state}": (' in SOURCE
-    assert 'text="Marcar pendiente"' not in SOURCE or '"Marcar pendiente"' in SOURCE
-    assert 'actual == "ENTREGADO" and estado == "PENDIENTE"' in SOURCE
-    assert 'Motivo obligatorio de la corrección:' in SOURCE
+    # La reversión auditada dejó de ser un caso especial: toda corrección pasa por
+    # el diálogo de lista cerrada y exige observación.
+    assert 'text="Observación / motivo (obligatorio)"' in SOURCE
+    assert 'aviso_correccion.configure(text="La observación es obligatoria.")' in SOURCE
     assert 'orient="vertical"' in SOURCE
 
 

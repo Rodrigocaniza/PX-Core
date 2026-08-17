@@ -33,8 +33,9 @@ class OperatorFixes003ContractTests(unittest.TestCase):
         self.assertIn('"cuotas", "saldo", "notas"', SOURCE)
 
     def test_orders_table_exposes_persisted_phone(self):
-        self.assertIn('"telefono", "documento"', SOURCE)
-        self.assertIn("pedido.customer_phone, pedido.customer_document", SOURCE)
+        # El port de Pedidos quitó CI/RUC de la grilla; el teléfono persistido sigue visible.
+        self.assertIn(("telefono", "Teléfono", 125, "center"), CajaDiaria.ORDER_COLUMN_SPECS)
+        self.assertIn("pedido.customer_phone, pedido.envelope", SOURCE)
 
     def test_responsive_profiles_and_native_chrome_contract_remain(self):
         self.assertEqual(CajaDiaria.perfil_visual(1366, 768)["nombre"], "compacto")
