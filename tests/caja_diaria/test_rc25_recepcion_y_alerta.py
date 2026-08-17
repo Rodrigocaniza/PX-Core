@@ -489,10 +489,11 @@ class InterfazAlertaTests(unittest.TestCase):
         self.assertIn("aviso_seguimiento.pack_forget()", bloque[:1100])
 
     def test_el_clic_abre_seguimiento_ya_filtrado(self):
-        bloque = FUENTE[
-            FUENTE.index("def ir_a_pendientes_sucursal"):
-            FUENTE.index("refrescar_avisos()\n\n")
-        ]
+        # El cierre del bloque se ancla al comentario que abre Seguimiento:
+        # `refrescar_avisos()` dejó de ser único desde que Pedidos también lo
+        # llama al avanzar o corregir un pedido.
+        inicio = FUENTE.index("def ir_a_pendientes_sucursal")
+        bloque = FUENTE[inicio:FUENTE.index("# ---- Seguimiento RC19", inicio)]
         self.assertIn('seleccionar_pestaña("Seguimiento")', bloque)
         self.assertIn("ir_a_atrasados()", bloque)
         self.assertIn('contexto_alerta["grupo"] = aviso_principal.get("grupo")', bloque)

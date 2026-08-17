@@ -30,7 +30,7 @@ class ContrasteAccionesTests(unittest.TestCase):
 
     def test_el_salto_entre_disponible_y_no_disponible_es_medible(self):
         apagado = _luminancia(CajaDiaria.COLOR_ACCION_INACTIVA)
-        for activo in ("#A85408", "#12855A", "#B42318", "#B45309"):
+        for activo in ("#12855A", "#B42318", "#B45309"):
             self.assertIn(activo, SOURCE, activo)
             self.assertGreater(apagado - _luminancia(activo), 0.30, activo)
 
@@ -56,8 +56,9 @@ class ContrasteAccionesTests(unittest.TestCase):
             '            state=', SOURCE)
 
     def test_las_acciones_de_pedidos_pasan_por_el_ayudante(self):
-        self.assertIn("for clave, habilitado in disponibilidad.items():", SOURCE)
-        self.assertIn("botones_estado_pedido[clave], habilitado,", SOURCE)
+        # Pedidos pasó a las mismas tres acciones que Seguimiento.
+        self.assertIn("aplicar_disponibilidad(\n            boton_avance_pedido,", SOURCE)
+        self.assertIn("aplicar_disponibilidad(\n            boton_contactar_pedido,", SOURCE)
         self.assertNotIn(
             'botones_estado_pedido["LISTO"].configure(state="normal"', SOURCE)
 
@@ -65,8 +66,8 @@ class ContrasteAccionesTests(unittest.TestCase):
         self.assertIn("class AvisoDeshabilitado:", SOURCE)
         self.assertIn('AvisoDeshabilitado.asignar(boton, "" if habilitado else motivo)', SOURCE)
         self.assertIn("Marcá uno o varios trabajos para registrar una novedad.", SOURCE)
-        self.assertIn("Elegí un pedido PENDIENTE para marcarlo listo.", SOURCE)
-        self.assertIn("Elegí un pedido LISTO para marcarlo entregado.", SOURCE)
+        self.assertIn("Marcá un pedido para ver su próxima acción.", SOURCE)
+        self.assertIn("Marcá un pedido para contactar a su laboratorio o al cliente.", SOURCE)
         # La razón que ya calcula el dominio se reusa en vez de inventar otra.
         self.assertIn('info.get("reason")', SOURCE)
 

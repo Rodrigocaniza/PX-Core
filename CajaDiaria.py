@@ -49,7 +49,9 @@ from modulos.caja_diaria.application.tracking_service import (
     ETIQUETAS_ESTADO as ETIQUETAS_ESTADO_UI,
     GRUPOS_SEGUIMIENTO,
 )
-from modulos.caja_diaria.application.services import FILTRO_REQUIEREN_ATENCION
+from modulos.caja_diaria.application.services import (
+    FILTRO_REQUIEREN_ATENCION, GRUPO_ATRASADOS, GRUPO_PARA_HOY, GRUPO_PROXIMOS,
+)
 from modulos.caja_diaria.ui.controller import friendly_error
 from modulos.caja_diaria.ui.privacy import FinancialPrivacy
 
@@ -207,6 +209,46 @@ MOVEMENT_COLUMN_SPECS = (
 COLUMNAS_OPERATIVAS = [
     (key, title, width) for key, title, width, _anchor in MOVEMENT_COLUMN_SPECS
 ]
+#: Pedidos muestra lo que la operadora necesita para actuar sin abrir otra
+#: ventana: qué pidió el cliente, para cuándo, en qué laboratorio está y cuánto
+#: se pasó. Los identificadores técnicos (CI/RUC, origen) salieron de la grilla.
+ORDER_COLUMN_SPECS = (
+    ("entrega", "Prometido", 92, "center"),
+    ("cliente", "Cliente", 180, "w"),
+    ("sobre", "Sobre", 68, "center"),
+    ("trabajo", "Trabajo", 190, "w"),
+    ("laboratorio", "Laboratorio", 175, "w"),
+    ("estado", "Estado", 96, "center"),
+    ("atraso", "Atraso", 78, "center"),
+    ("novedad", "Última novedad", 230, "w"),
+)
+ORDER_ROW_PREFIX_GROUP = "grupo::"
+
+
+def texto_atraso(entrega, referencia, entregado: bool) -> str:
+    """El atraso es una condición derivada de la fecha, no un estado guardado."""
+    if entregado:
+        return ""
+    dias = (referencia - entrega).days
+    if dias > 0:
+        return f"{dias} día" if dias == 1 else f"{dias} días"
+    if dias == 0:
+        return "hoy"
+    return ""
+
+
+def resumen_novedad(revision) -> str:
+    """Una línea corta: qué pasó, cuándo y por qué. Sin llenar la grilla."""
+    if not revision:
+        return ""
+    sello = str(revision.get("recorded_at", ""))[:10]
+    if len(sello) == 10:
+        sello = f"{sello[8:10]}-{sello[5:7]}"
+    partes = [f"{sello} {revision.get('new_status', '')}".strip()]
+    motivo = str(revision.get("reason", "")).strip()
+    if motivo:
+        partes.append(motivo if len(motivo) <= 40 else motivo[:37] + "…")
+    return " · ".join(partes)
 
 #: Una acción disponible se ve sólida; una no disponible se ve apagada de verdad.
 #: El gris tiene que leerse como "todavía no", no como una variante del blanco.
@@ -3414,13 +3456,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     marco_pedidos.pack(fill="both", expand=True, padx=10, pady=(0, 8))
     marco_pedidos.grid_rowconfigure(0, weight=1)
     marco_pedidos.grid_columnconfigure(0, weight=1)
-    columnas_pedido = ("entrega", "cliente", "telefono", "documento", "sobre", "sucursal", "vendedora", "origen", "estado")
+    columnas_pedido = tuple(clave for clave, _t, _a, _an in ORDER_COLUMN_SPECS)
     grilla_pedidos = ttk.Treeview(marco_pedidos, columns=columnas_pedido, show="headings", style="Caja.Treeview")
-    alineacion_pedidos = {
-        "entrega": "center", "cliente": "w", "telefono": "center",
-        "documento": "center", "sobre": "center", "sucursal": "center",
-        "vendedora": "center", "origen": "center", "estado": "center",
-    }
+    alineacion_pedidos = {clave: anchor for clave, _t, _a, anchor in ORDER_COLUMN_SPECS}
     # RC22: el estado del pedido pasa a color de fila del propio Treeview.
     # Antes se dibujaba como chip flotante sobre el frame contenedor y quedaba
     # desacoplado al desplazar o repintar.
@@ -3432,16 +3470,17 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     }.items():
         grilla_pedidos.tag_configure(
             f"estado_{estado_pedido}", background=fondo_pedido, foreground=texto_pedido)
-    for clave, titulo, ancho in (
-        ("entrega", "Entrega", 100), ("cliente", "Cliente", 220),
-        ("telefono", "Teléfono", 125), ("documento", "CI/RUC", 120),
-        ("sobre", "Sobre", 75), ("sucursal", "Sucursal", 100),
-        ("vendedora", "Vendedora", 120), ("origen", "Origen", 90),
-        ("estado", "Estado", 110),
-    ):
-        anchor = alineacion_pedidos[clave]
+    # Los encabezados de grupo son filas de la misma grilla, con su propio tag:
+    # nada flotante, igual que el estado desde RC22.
+    grilla_pedidos.tag_configure(
+        "grupo", background="#E8F1FC", foreground="#174A7E")
+    grilla_pedidos.tag_configure(
+        "grupo_atrasado", background="#FDECEC", foreground="#A32626")
+    for clave, titulo, ancho, anchor in ORDER_COLUMN_SPECS:
+        # Sólo "Última novedad" estira: es lo único de largo variable.
         grilla_pedidos.heading(clave, text=titulo, anchor=anchor)
-        grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor, stretch=False)
+        grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor,
+                              stretch=clave == "novedad")
     vacio_pedidos = ctk.CTkLabel(
         marco_pedidos, text="", justify="center", text_color=color_suave,
         font=ctk.CTkFont(size=perfil["fuente_label"] + 1))
@@ -3453,6 +3492,38 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     scroll_pedidos.configure(command=grilla_pedidos.yview)
     grilla_pedidos.configure(yscrollcommand=scroll_pedidos.set)
 
+    def laboratorio_visible(nombre):
+        """Nombre del laboratorio y, si el ABM lo conoce, su teléfono a mano."""
+        nombre = str(nombre or "").strip()
+        if not nombre:
+            return "", {}
+        contacto = controller.laboratory_contact(nombre)
+        telefono = contacto.get("telefono") or contacto.get("whatsapp") or ""
+        return (f"{nombre} · {telefono}" if telefono else nombre), contacto
+
+    def fila_pedido(pedido, detalles, novedades, referencia):
+        detalle = detalles.get(pedido.id, {})
+        laboratorio, _contacto = laboratorio_visible(detalle.get("laboratorio"))
+        entregado = pedido.status.value == "ENTREGADO"
+        atraso = texto_atraso(pedido.delivery_date, referencia, entregado)
+        etiquetas = [f"estado_{pedido.status.value}"]
+        grilla_pedidos.insert(
+            "", "end", iid=pedido.id, tags=tuple(etiquetas),
+            values=(
+                pedido.delivery_date.strftime("%d-%m-%Y"), pedido.customer_name,
+                pedido.envelope, detalle.get("trabajo", "") or "—",
+                laboratorio or "—", pedido.status.value, atraso,
+                resumen_novedad(novedades.get(pedido.id)),
+            ),
+        )
+
+    def encabezado_grupo(nombre, cantidad, urgente):
+        grilla_pedidos.insert(
+            "", "end", iid=f"{ORDER_ROW_PREFIX_GROUP}{nombre}",
+            tags=("grupo_atrasado" if urgente else "grupo",),
+            values=("", f"▸  {nombre.upper()}  ·  {cantidad}", "", "", "", "", "", ""),
+        )
+
     def refrescar_pedidos(nombre=None):
         if nombre:
             filtro_pedidos.set(nombre)
@@ -3463,14 +3534,30 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         sucursal = caja if activo != "Todos" else None
         for item in grilla_pedidos.get_children():
             grilla_pedidos.delete(item)
-        pedidos = controller.list_orders(activo, branch=sucursal)
-        for pedido in pedidos:
-            grilla_pedidos.insert("", "end", iid=pedido.id,
-                                  tags=(f"estado_{pedido.status.value}",), values=(
-                pedido.delivery_date.strftime("%d-%m-%Y"), pedido.customer_name,
-                pedido.customer_phone, pedido.customer_document, pedido.envelope, pedido.branch,
-                pedido.saleswoman, pedido.origin.value, pedido.status.value,
-            ))
+        referencia = date.today()
+        novedades = controller.latest_order_revisions()
+        if activo == FILTRO_REQUIEREN_ATENCION:
+            grupos = dict(controller.order_operational_groups(branch=sucursal))
+            atrasados = grupos[GRUPO_ATRASADOS]
+            para_hoy = grupos[GRUPO_PARA_HOY]
+            proximos = grupos[GRUPO_PROXIMOS]
+            # Nada urgente no es lo mismo que nada que hacer: en vez de una hoja
+            # vacía, la entrada normal cae en lo que viene.
+            visibles = (
+                ((GRUPO_ATRASADOS, atrasados), (GRUPO_PARA_HOY, para_hoy))
+                if (atrasados or para_hoy) else ((GRUPO_PROXIMOS, proximos),)
+            )
+            pedidos = [pedido for _grupo, lista in visibles for pedido in lista]
+            detalles = controller.order_work_details([p.id for p in pedidos])
+            for nombre_grupo, lista in visibles:
+                encabezado_grupo(nombre_grupo, len(lista), nombre_grupo == GRUPO_ATRASADOS)
+                for pedido in lista:
+                    fila_pedido(pedido, detalles, novedades, referencia)
+        else:
+            pedidos = controller.list_orders(activo, branch=sucursal)
+            detalles = controller.order_work_details([p.id for p in pedidos])
+            for pedido in pedidos:
+                fila_pedido(pedido, detalles, novedades, referencia)
         # Que se esta mostrando, y de donde. Sin esto, una lista corta se lee
         # como "no hay nada" cuando en realidad hay un filtro puesto.
         if activo == "Todos":
@@ -3501,81 +3588,199 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             command=lambda valor=nombre: refrescar_pedidos(valor),
         ).pack(side="left", padx=3)
 
-    botones_estado_pedido = {}
+    # Tres acciones, con el mismo vocabulario que Seguimiento: la próxima acción
+    # válida al frente, el contacto cuando sirve, y el resto guardado en `Más`.
+    #: Avance normal del pedido. La corrección hacia atrás no vive acá: pasa por
+    #: `Corregir estado`, que exige motivo.
+    AVANCE_PEDIDO = {"PENDIENTE": "LISTO", "LISTO": "ENTREGADO"}
+    ETIQUETA_AVANCE_PEDIDO = {"LISTO": "Marcar listo", "ENTREGADO": "Marcar entregado"}
+
+    def pedido_seleccionado():
+        """Id del pedido realmente seleccionado; los encabezados no son pedidos."""
+        seleccion = grilla_pedidos.selection()
+        if not seleccion or seleccion[0].startswith(ORDER_ROW_PREFIX_GROUP):
+            return ""
+        return seleccion[0]
 
     def estado_pedido_seleccionado():
-        seleccion = grilla_pedidos.selection()
-        return str(grilla_pedidos.set(seleccion[0], "estado")) if seleccion else ""
+        pedido_id = pedido_seleccionado()
+        return str(grilla_pedidos.set(pedido_id, "estado")) if pedido_id else ""
 
-    MOTIVO_ACCION_PEDIDO = {
-        "PENDIENTE": "Sólo un pedido LISTO o ENTREGADO puede volver a pendiente.",
-        "LISTO": "Elegí un pedido PENDIENTE para marcarlo listo.",
-        "ENTREGADO": "Elegí un pedido LISTO para marcarlo entregado.",
-    }
+    def laboratorio_seleccionado():
+        pedido_id = pedido_seleccionado()
+        if not pedido_id:
+            return "", {}
+        texto = str(grilla_pedidos.set(pedido_id, "laboratorio"))
+        nombre = texto.split(" · ")[0].strip()
+        if not nombre or nombre == "—":
+            return "", {}
+        return nombre, controller.laboratory_contact(nombre)
 
-    def actualizar_botones_pedido(_event=None):
-        estado = estado_pedido_seleccionado()
-        disponibilidad = {
-            "PENDIENTE": estado in {"LISTO", "ENTREGADO"},
-            "LISTO": estado == "PENDIENTE",
-            "ENTREGADO": estado == "LISTO",
-        }
-        for clave, habilitado in disponibilidad.items():
-            aplicar_disponibilidad(
-                botones_estado_pedido[clave], habilitado,
-                colores_accion_pedido[clave], MOTIVO_ACCION_PEDIDO[clave],
-            )
+    def responsable_actual():
+        return os.environ.get("USERNAME") or os.environ.get("USER") or "Sistema"
 
-    def cambiar_estado_pedido(estado):
-        seleccion = grilla_pedidos.selection()
-        if not seleccion:
-            messagebox.showwarning("Seleccioná un pedido", "Elegí una fila.", parent=ventana)
+    def avanzar_pedido():
+        """Camino rápido hacia adelante: no pide motivo, queda igual auditado."""
+        pedido_id = pedido_seleccionado()
+        destino = AVANCE_PEDIDO.get(estado_pedido_seleccionado())
+        if not pedido_id or not destino:
             return
-        actual = estado_pedido_seleccionado()
-        if actual == estado:
-            return
-        motivo = "Cambio operativo"
-        responsable = os.environ.get("USERNAME") or os.environ.get("USER") or "Sistema"
-        if actual == "ENTREGADO" and estado == "PENDIENTE":
-            if not messagebox.askyesno(
-                "Revertir entrega", "¿Corregir este pedido entregado y devolverlo a PENDIENTE?",
-                parent=ventana,
-            ):
-                return
-            motivo = simpledialog.askstring(
-                "Corrección auditada", "Motivo obligatorio de la corrección:", parent=ventana,
-            )
-            if not str(motivo or "").strip():
-                return
-            if not responsable or responsable == "Sistema":
-                responsable = simpledialog.askstring(
-                    "Corrección auditada", "Usuario responsable:", parent=ventana,
-                )
-            if not str(responsable or "").strip():
-                return
         try:
             controller.update_order_status(
-                seleccion[0], estado, reason=motivo, responsible=responsable,
+                pedido_id, destino, reason="Avance operativo",
+                responsible=responsable_actual(),
             )
             refrescar_pedidos()
             refrescar_avisos()
         except Exception as exc:
             mostrar_error(exc)
 
-    colores_accion_pedido = {}
-    for estado, texto_boton, color in (
-        ("PENDIENTE", "Marcar pendiente", "#A85408"),
-        ("LISTO", "Marcar listo", "#12855A"),
-        ("ENTREGADO", "Marcar entregado", color_azul),
-    ):
-        boton = ctk.CTkButton(
-            barra_pedidos, text=texto_boton, width=118,
-            command=lambda destino=estado: cambiar_estado_pedido(destino), fg_color=color,
-            text_color="#FFFFFF", font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
-        )
-        boton.pack(side="right", padx=3)
-        botones_estado_pedido[estado] = boton
-        colores_accion_pedido[estado] = color
+    def contactar_pedido():
+        """Primero el laboratorio, que es a quien hay que apurar; si no, el cliente."""
+        pedido_id = pedido_seleccionado()
+        if not pedido_id:
+            return
+        nombre, contacto = laboratorio_seleccionado()
+        numero = contacto.get("whatsapp") or contacto.get("telefono") or ""
+        titulo = f"Laboratorio {nombre}" if numero else "Cliente"
+        if not numero:
+            pedido = next(
+                (p for p in controller.list_orders("Todos") if p.id == pedido_id), None)
+            numero = pedido.customer_phone if pedido else ""
+        enlace = enlace_whatsapp(numero)
+        if enlace:
+            webbrowser.open(enlace)
+            return
+        messagebox.showinfo(
+            titulo,
+            f"Teléfono: {numero}" if numero else
+            "Ni el laboratorio ni el cliente tienen un teléfono cargado.",
+            parent=ventana)
+
+    def corregir_estado_pedido():
+        """Corrección auditada: lista cerrada del dominio y motivo obligatorio."""
+        pedido_id = pedido_seleccionado()
+        if not pedido_id:
+            messagebox.showwarning("Seleccioná un pedido", "Elegí una fila.", parent=ventana)
+            return
+        actual = estado_pedido_seleccionado()
+        destinos = controller.allowed_order_transitions(actual)
+        if not destinos:
+            messagebox.showinfo(
+                "Sin correcciones posibles",
+                f"Un pedido {actual} no admite otro estado.", parent=ventana)
+            return
+        dialogo = ctk.CTkToplevel(ventana)
+        dialogo.title("Corregir estado del pedido")
+        dialogo.resizable(False, False)
+        cuerpo = ctk.CTkFrame(dialogo, fg_color="#F7FAFF")
+        cuerpo.pack(fill="both", expand=True, padx=12, pady=12)
+        ctk.CTkLabel(
+            cuerpo, text=f"Estado actual: {actual}", anchor="w",
+            font=ctk.CTkFont(size=12, weight="bold"), text_color="#174A7E",
+        ).pack(fill="x", pady=(0, 8))
+        ctk.CTkLabel(cuerpo, text="Nuevo estado", anchor="w").pack(fill="x")
+        selector_estado = ctk.CTkComboBox(
+            cuerpo, values=list(destinos), state="readonly", width=340)
+        selector_estado.set(destinos[0])
+        selector_estado.pack(fill="x", pady=(2, 8))
+        ctk.CTkLabel(cuerpo, text="Responsable", anchor="w").pack(fill="x")
+        campo_responsable = ctk.CTkEntry(cuerpo, width=340)
+        campo_responsable.insert(0, responsable_actual())
+        campo_responsable.pack(fill="x", pady=(2, 8))
+        ctk.CTkLabel(cuerpo, text="Observación / motivo (obligatorio)", anchor="w").pack(fill="x")
+        campo_observacion = ctk.CTkTextbox(cuerpo, width=340, height=88)
+        campo_observacion.pack(fill="x", pady=(2, 4))
+        aviso_correccion = ctk.CTkLabel(cuerpo, text="", anchor="w", text_color=COLOR_ROJO)
+        aviso_correccion.pack(fill="x", pady=(0, 6))
+
+        def confirmar_correccion():
+            motivo = campo_observacion.get("1.0", "end").strip()
+            responsable = campo_responsable.get().strip()
+            if not motivo:
+                aviso_correccion.configure(text="La observación es obligatoria.")
+                return
+            if not responsable:
+                aviso_correccion.configure(text="Indicá el responsable de la corrección.")
+                return
+            try:
+                controller.update_order_status(
+                    pedido_id, selector_estado.get(), reason=motivo, responsible=responsable)
+            except Exception as exc:
+                dialogo.destroy()
+                mostrar_error(exc)
+                return
+            dialogo.destroy()
+            refrescar_pedidos()
+            refrescar_avisos()
+
+        acciones_correccion = ctk.CTkFrame(cuerpo, fg_color="transparent")
+        acciones_correccion.pack(fill="x")
+        ctk.CTkButton(
+            acciones_correccion, text="Cancelar", width=100, command=dialogo.destroy,
+            fg_color="#FFFFFF", text_color=color_texto, border_width=1,
+            border_color=color_borde_suave).pack(side="right", padx=(6, 0))
+        ctk.CTkButton(
+            acciones_correccion, text="Guardar corrección", width=160,
+            command=confirmar_correccion, fg_color=COLOR_PRIMARIO,
+            hover_color=COLOR_PRIMARIO_HOVER).pack(side="right")
+        dialogo.transient(ventana)
+        dialogo.update_idletasks()
+        dialogo.geometry("+{}+{}".format(
+            ventana.winfo_rootx() + (ventana.winfo_width() - dialogo.winfo_width()) // 2,
+            ventana.winfo_rooty() + (ventana.winfo_height() - dialogo.winfo_height()) // 3,
+        ))
+        dialogo.grab_set()
+        campo_observacion.focus_set()
+
+    def abrir_opciones_pedido():
+        menu = tk.Menu(ventana, tearoff=0)
+        menu.add_command(label="Corregir estado", command=corregir_estado_pedido,
+                         state="normal" if pedido_seleccionado() else "disabled")
+        menu.add_separator()
+        menu.add_command(label="Ver todos", command=lambda: refrescar_pedidos("Todos"))
+        menu.add_command(label="Requieren atención",
+                         command=lambda: refrescar_pedidos(FILTRO_REQUIEREN_ATENCION))
+        x = boton_opciones_pedido.winfo_rootx()
+        y = boton_opciones_pedido.winfo_rooty() + boton_opciones_pedido.winfo_height() + 4
+        menu.tk_popup(x, y)
+
+    boton_avance_pedido = ctk.CTkButton(
+        barra_pedidos, text="Acción siguiente", width=190, height=30,
+        command=avanzar_pedido, text_color="#FFFFFF",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"))
+    boton_avance_pedido.pack(side="right", padx=3)
+    boton_contactar_pedido = ctk.CTkButton(
+        barra_pedidos, text="Contactar", width=140, height=30,
+        command=contactar_pedido, text_color="#FFFFFF",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"))
+    boton_contactar_pedido.pack(side="right", padx=3)
+    boton_opciones_pedido = ctk.CTkButton(
+        barra_pedidos, text="Más  ▾", width=90, height=30,
+        fg_color="#FFFFFF", text_color=color_suave, border_width=1,
+        border_color=color_borde_suave, hover_color="#EAF3FF",
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=lambda: abrir_opciones_pedido())
+    boton_opciones_pedido.pack(side="right", padx=3)
+
+    def actualizar_botones_pedido(_event=None):
+        estado = estado_pedido_seleccionado()
+        destino = AVANCE_PEDIDO.get(estado)
+        boton_avance_pedido.configure(
+            text=ETIQUETA_AVANCE_PEDIDO.get(destino, "Acción siguiente"))
+        aplicar_disponibilidad(
+            boton_avance_pedido, bool(destino), "#12855A",
+            "Marcá un pedido para ver su próxima acción." if not estado
+            else f"Un pedido {estado} no tiene una acción siguiente automática.")
+        nombre_lab, contacto = laboratorio_seleccionado()
+        tiene_contacto = bool(contacto.get("telefono") or contacto.get("whatsapp"))
+        boton_contactar_pedido.configure(
+            text=f"Contactar {nombre_lab}" if tiene_contacto and len(nombre_lab) <= 14
+            else ("Contactar laboratorio" if tiene_contacto else "Contactar"))
+        aplicar_disponibilidad(
+            boton_contactar_pedido, bool(estado), "#B45309",
+            "Marcá un pedido para contactar a su laboratorio o al cliente.")
+
     grilla_pedidos.bind("<<TreeviewSelect>>", actualizar_botones_pedido, add="+")
     actualizar_botones_pedido()
     # La sucursal sale del vinculo persistente de esta caja, no de la cajera ni
@@ -3657,6 +3862,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ir_a_atrasados()
 
     refrescar_avisos()
+    # La entrada normal a Pedidos muestra lo que requiere atención, no una hoja
+    # en blanco: se puebla al abrir la ventana, sin esperar a que alguien toque
+    # un filtro. Va acá porque necesita la sucursal ya resuelta.
+    refrescar_pedidos()
 
     # ---- Seguimiento RC19: Pilar -> Asuncion -> laboratorio -> Pilar ----
     # Vista operativa, no panel de metricas: arriba las excepciones, en la

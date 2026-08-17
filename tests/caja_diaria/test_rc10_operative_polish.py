@@ -51,14 +51,18 @@ def test_reversible_order_statuses_are_persistent_audited_and_duplicate_safe(tmp
 def test_history_contrast_and_order_alignment_chip_contract():
     for color in ("#F3F6FA", "#FFFFFF", "#EEF4FB", "#132238", "#DCEBFA", "#FDECEC", "#A32626"):
         assert color in SOURCE
-    assert 'anchor = alineacion_pedidos[clave]' in SOURCE
+    # La alineación se declara una sola vez, en ORDER_COLUMN_SPECS.
+    assert 'alineacion_pedidos = {clave: anchor for clave, _t, _a, anchor in ORDER_COLUMN_SPECS}' in SOURCE
+    assert 'for clave, titulo, ancho, anchor in ORDER_COLUMN_SPECS:' in SOURCE
     assert 'grilla_pedidos.heading(clave, text=titulo, anchor=anchor)' in SOURCE
-    assert 'grilla_pedidos.column(clave, width=ancho, minwidth=ancho, anchor=anchor, stretch=False)' in SOURCE
+    # Sólo "Última novedad" estira: el resto conserva su ancho fijo.
+    assert 'stretch=clave == "novedad")' in SOURCE
     for state in ("PENDIENTE", "LISTO", "ENTREGADO", "ANULADO"):
         assert f'"{state}": (' in SOURCE
-    assert 'text="Marcar pendiente"' not in SOURCE or '"Marcar pendiente"' in SOURCE
-    assert 'actual == "ENTREGADO" and estado == "PENDIENTE"' in SOURCE
-    assert 'Motivo obligatorio de la corrección:' in SOURCE
+    # La reversión dejó de ser un caso especial con motivo libre: toda
+    # corrección pasa por la lista cerrada del dominio y exige observación.
+    assert 'destinos = controller.allowed_order_transitions(actual)' in SOURCE
+    assert 'text="Observación / motivo (obligatorio)"' in SOURCE
     assert 'orient="vertical"' in SOURCE
 
 

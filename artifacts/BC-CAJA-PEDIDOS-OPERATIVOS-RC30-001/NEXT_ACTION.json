@@ -1,0 +1,45 @@
+{
+  "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
+  "state": "AWAITING_HUMAN_GATE",
+  "repository": "PX-Core",
+  "worktree": "pedidos30",
+  "branch": "feature/bc-caja-pedidos-operativos-rc30-001",
+  "base_commit": "291fe40",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.30",
+  "blocked_on": "HUMAN_GATE-PEDIDOS-RC30-001",
+  "next_action": "Observar Pedidos con datos reales: agrupación, qué pidió el cliente, laboratorio con teléfono a mano, última novedad, atraso, corrección con lista cerrada y el contraste de las tres acciones. Sin instalar: la RC actual sigue siendo rc.30 y este slice todavía no genera una nueva.",
+  "next_role": "HUMAN",
+  "verification": {
+    "focused": "13 passed",
+    "full_suite": "682 passed + 4 subtests (669 baseline + 13)",
+    "visual": "smoke fail-closed propio a 1920x1080 y 1366x768, más las regresiones de RC28 y RC27",
+    "migraciones": "21, sin agregar ninguna",
+    "reglas_economicas": "sin cambios"
+  },
+  "headless_executor": {
+    "disponible": false,
+    "verificado_en": "BC-Core/tools y BC-Core/docs",
+    "detalle": "no hay executor headless ni ningún archivo que mencione headless; se continuó con el mecanismo actual",
+    "metricas": "no aplican: no se inventan interactive_prompts ni stdin_waits"
+  },
+  "production_untouched": {
+    "main": "origin/main 291fe40",
+    "instalada": "BC Caja 1.0.0-rc.30",
+    "rc_nueva": "no generada: este slice no empaqueta ni instala"
+  },
+  "after_gate_pass": [
+    "Empaquetar como rc.31 con backup y rollback",
+    "Instalación transaccional y validación post-install",
+    "Promoción a main por flujo protegido"
+  ],
+  "next_block": {
+    "id": "BC-CAJA-TRABAJOS-OPERATIVOS-V1",
+    "objetivo": "Consolidar Pedidos/Laboratorios, Envíos Pilar y Composturas bajo Caja diaria | Trabajos | FactuFácil | Historial",
+    "preparado_por_este_slice": "Pedidos ya usa el vocabulario de Seguimiento: Acción siguiente, contacto contextual y Más ▾"
+  },
+  "not_started_yet": [
+    "FactuFácil",
+    "Composturas",
+    "DatePicker global"
+  ]
+}

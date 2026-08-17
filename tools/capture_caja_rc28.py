@@ -58,8 +58,8 @@ def seed(directory: Path) -> None:
 #: La grilla de Movimientos tambien tiene una columna `sobre`, asi que
 #: identificar por ahi devolvia la tabla equivocada —y vacia—. La de Pedidos se
 #: reconoce por su juego completo de columnas.
-COLUMNAS_PEDIDOS = ("entrega", "cliente", "telefono", "documento", "sobre",
-                    "sucursal", "vendedora", "origen", "estado")
+COLUMNAS_PEDIDOS = ("entrega", "cliente", "sobre", "trabajo", "laboratorio",
+                    "estado", "atraso", "novedad")
 
 
 def filas_visibles(root):
@@ -68,7 +68,9 @@ def filas_visibles(root):
         if isinstance(w, ttk.Treeview)
         and tuple(w.cget("columns") or ()) == COLUMNAS_PEDIDOS
     )
-    return grilla, [grilla.set(iid, "sobre") for iid in grilla.get_children()]
+    # Los encabezados de grupo son filas de la grilla pero no son pedidos.
+    return grilla, [grilla.set(iid, "sobre") for iid in grilla.get_children()
+                    if not iid.startswith("grupo::")]
 
 
 def verificar(root, capturar_caja=None) -> dict:

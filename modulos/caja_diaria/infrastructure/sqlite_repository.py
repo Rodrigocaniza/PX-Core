@@ -700,6 +700,54 @@ class SQLiteCashDayRepository:
             connection.commit()
         return updated
 
+    def order_work_details(self, order_ids: Sequence[str]) -> dict[str, dict]:
+        """Qué pidió el cliente y a qué laboratorio fue, en una sola consulta.
+
+        Sale del movimiento que originó el pedido: los artículos cargados si los
+        hay y, si no, los campos sueltos de la venta. Sin esto la grilla sólo
+        puede mostrar identificadores y hay que abrir otra ventana para saber de
+        qué trabajo se trata.
+        """
+        if not order_ids:
+            return {}
+        marcadores = ",".join("?" for _ in order_ids)
+        with self._connection() as connection:
+            filas = connection.execute(
+                f"""SELECT o.id AS order_id, e.frame_origin, e.code,
+                           e.laboratory AS entry_laboratory,
+                           i.item_type, i.description AS item_description,
+                           i.laboratory AS item_laboratory
+                    FROM orders AS o
+                    JOIN cash_entries AS e ON e.id = o.cash_entry_id
+                    LEFT JOIN sale_items AS i ON i.cash_entry_id = e.id
+                    WHERE o.id IN ({marcadores})
+                    ORDER BY o.id, i.position""",
+                tuple(order_ids),
+            ).fetchall()
+        detalles: dict[str, dict] = {}
+        for fila in filas:
+            detalle = detalles.setdefault(
+                fila["order_id"],
+                {"trabajo": [], "laboratorio": "", "codigo": str(fila["code"] or "").strip()},
+            )
+            for candidato in (fila["item_type"], fila["item_description"]):
+                texto = str(candidato or "").strip()
+                if texto and texto not in detalle["trabajo"]:
+                    detalle["trabajo"].append(texto)
+            for candidato in (fila["item_laboratory"], fila["entry_laboratory"]):
+                if not detalle["laboratorio"] and str(candidato or "").strip():
+                    detalle["laboratorio"] = str(candidato).strip()
+            if not detalle["trabajo"] and str(fila["frame_origin"] or "").strip():
+                detalle["trabajo"].append(str(fila["frame_origin"]).strip())
+        return {
+            order_id: {
+                "trabajo": " + ".join(detalle["trabajo"]),
+                "laboratorio": detalle["laboratorio"],
+                "codigo": detalle["codigo"],
+            }
+            for order_id, detalle in detalles.items()
+        }
+
     def latest_order_revisions(self) -> dict[str, dict]:
         """Última novedad por pedido, en una sola consulta (evita N+1 en la grilla)."""
         with self._connection() as connection:

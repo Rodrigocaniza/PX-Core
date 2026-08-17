@@ -18,6 +18,12 @@ from ..domain.models import (
 #: que abre el clic, de modo que no puedan decir cosas distintas.
 FILTRO_REQUIEREN_ATENCION = "Requieren atención"
 
+#: Grupos operativos de Pedidos, en orden de urgencia. Son una condición
+#: derivada de la fecha prometida, no estados guardados.
+GRUPO_ATRASADOS = "Atrasados"
+GRUPO_PARA_HOY = "Para hoy"
+GRUPO_PROXIMOS = "Próximos"
+
 
 class CashDayService:
     def __init__(self, repository: CashDayRepository, carry_forward_policy: CarryForwardPolicy | None = None) -> None:
@@ -185,6 +191,36 @@ class CashDayService:
             1 if item.delivery_date == reference else 2,
             item.delivery_date, item.created_at,
         ))
+
+    def order_operational_groups(
+        self, *, today: date | str | None = None, branch: str | None = None,
+    ):
+        """Los tres grupos operativos, siempre en orden de urgencia.
+
+        Devuelve los tres aunque estén vacíos: la pantalla decide cuáles muestra
+        y, cuando no hay nada urgente, cae en `PRÓXIMOS` en vez de abrir en una
+        hoja en blanco.
+        """
+        reference = parse_business_date(today or date.today())
+        pendientes = [
+            item for item in self.list_orders(filter_name="Todos", today=reference, branch=branch)
+            if item.status is not OrderStatus.DELIVERED
+        ]
+        orden = lambda item: (item.delivery_date, item.created_at)  # noqa: E731
+        return (
+            (GRUPO_ATRASADOS,
+             sorted([o for o in pendientes if o.delivery_date < reference], key=orden)),
+            (GRUPO_PARA_HOY,
+             sorted([o for o in pendientes if o.delivery_date == reference], key=orden)),
+            (GRUPO_PROXIMOS,
+             sorted([o for o in pendientes if o.delivery_date > reference], key=orden)),
+        )
+
+    def order_work_details(self, order_ids):
+        return self.repository.order_work_details(list(order_ids))
+
+    def latest_order_revisions(self):
+        return self.repository.latest_order_revisions()
 
     def update_order_status(self, order_id: str, status: OrderStatus | str, *, reason: str = "", responsible: str = "Sistema") -> Order:
         return self.repository.update_order_status(order_id, status, reason=reason, responsible=responsible)

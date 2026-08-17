@@ -172,7 +172,7 @@ def main() -> int:
             for button in [w for w in descendants(root) if isinstance(w, ctk.CTkButton) and w.cget("text") == "Todos"]:
                 button.invoke()
             root.update_idletasks(); root.update()
-            pedidos_grid = next(w for w in descendants(root) if isinstance(w, ttk.Treeview) and len(w.cget("columns")) == 9)
+            pedidos_grid = next(w for w in descendants(root) if isinstance(w, ttk.Treeview) and len(w.cget("columns")) == 8)
             headers = {key: str(pedidos_grid.heading(key, "anchor")) for key in pedidos_grid.cget("columns")}
             expected_headers = {"entrega": "center", "cliente": "w", "telefono": "center", "documento": "center", "sobre": "center", "sucursal": "center", "vendedora": "center", "origen": "center", "estado": "center"}
             if headers != expected_headers:

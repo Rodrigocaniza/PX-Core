@@ -34,11 +34,14 @@ class PedidosDisenoVigenteTests(unittest.TestCase):
         self.assertNotIn("chips_pedidos", SOURCE)
         self.assertNotIn("posicionar_chips_pedidos", SOURCE)
 
-    def test_lo_que_todavia_aporta_rc15_queda_anotado_como_slice_propio(self):
-        # Agrupación ATRASADOS/PARA HOY, "Última novedad" en la grilla y el
-        # "Corregir estado" de pedidos con lista cerrada no se portaron todavía:
-        # se llevan al diseño del tronco en su propio slice.
-        self.assertNotIn("ORDER_ROW_PREFIX_GROUP", SOURCE)
+    def test_lo_que_aportaba_rc15_ya_esta_sobre_el_diseno_del_tronco(self):
+        # BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001 cerró la deuda: agrupación,
+        # "Última novedad" y corrección con lista cerrada viven ahora sobre el
+        # diseño del tronco, sin resucitar la grilla de rc.15.
+        self.assertIn("ORDER_ROW_PREFIX_GROUP", SOURCE)
+        self.assertIn("encabezado_grupo(", SOURCE)
+        self.assertIn("resumen_novedad(", SOURCE)
+        self.assertIn("controller.allowed_order_transitions(actual)", SOURCE)
 
 
 if __name__ == "__main__":

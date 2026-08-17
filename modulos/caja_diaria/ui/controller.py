@@ -18,7 +18,9 @@ from ..domain.errors import (
     InvalidCashDayError,
     InvalidMoneyError,
 )
-from ..domain.models import CashDay, CashEntry, CashTotals, money, parse_business_date
+from ..domain.models import (
+    CashDay, CashEntry, CashTotals, allowed_order_transitions, money, parse_business_date,
+)
 
 
 @dataclass(frozen=True)
@@ -361,6 +363,40 @@ class CashDayUIController:
             "branch": branch or "",
             "ids": [pedido.id for pedido in pedidos],
         }
+
+    def order_operational_groups(self, today=None, branch: str | None = None):
+        return self.service.order_operational_groups(today=today, branch=branch)
+
+    def order_work_details(self, order_ids):
+        return self.service.order_work_details(order_ids)
+
+    def latest_order_revisions(self):
+        return self.service.latest_order_revisions()
+
+    @staticmethod
+    def allowed_order_transitions(status: str):
+        """Lista cerrada de destinos válidos; la UI nunca compone estados libres."""
+        return tuple(estado.value for estado in allowed_order_transitions(status))
+
+    def laboratory_contact(self, nombre: str) -> dict:
+        """Contacto del laboratorio que el ABM conoce con ese nombre.
+
+        Los pedidos guardan el laboratorio como texto de la venta; el ABM lo
+        tiene con teléfono y WhatsApp. Se cruzan por nombre normalizado para no
+        obligar a entrar al ABM sólo a buscar el número.
+        """
+        objetivo = str(nombre or "").strip().casefold()
+        if not objetivo or self.tracking is None:
+            return {}
+        for laboratorio in self.tracking.list_laboratories():
+            if laboratorio.name.strip().casefold() == objetivo:
+                return {
+                    "nombre": laboratorio.name,
+                    "telefono": laboratorio.phone_line,
+                    "whatsapp": laboratorio.whatsapp,
+                    "activo": laboratorio.active,
+                }
+        return {}
 
     @staticmethod
     def _require_saleswoman(values: Mapping[str, Any]) -> None:

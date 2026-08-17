@@ -171,8 +171,9 @@ class InterfazTests(unittest.TestCase):
 
     def test_el_contexto_del_filtro_queda_visible(self):
         bloque = FUENTE[FUENTE.index("def refrescar_pedidos"):]
-        self.assertIn('text=f"Mostrando: {activo} ({len(pedidos)})"', bloque[:2200])
-        self.assertIn("contexto_pedidos.pack(", bloque[:2200])
+        # La ventana creció con la agrupación operativa; el contrato no cambia.
+        self.assertIn('text=f"Mostrando: {activo} ({len(pedidos)})"', bloque[:3600])
+        self.assertIn("contexto_pedidos.pack(", bloque[:3600])
 
     def test_ver_todos_quita_el_filtro(self):
         bloque = FUENTE[

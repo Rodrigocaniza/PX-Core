@@ -1,0 +1,80 @@
+{
+  "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
+  "current_state": "AWAITING_HUMAN_GATE",
+  "base": "291fe40",
+  "history": [
+    {
+      "event": "MISSION_OPENED",
+      "from_state": "NOT_STARTED",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Mejorar la pantalla de Pedidos del tronco rc.30 conservando su diseño posterior como autoridad",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "HEADLESS_EXECUTOR_UNAVAILABLE",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "BC-Core/tools no tiene executor headless y ningún archivo menciona headless. Se continuó con el mecanismo actual, como estaba previsto para ese caso. Sin métricas inventadas",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "IMPLEMENTATION_COMPLETED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "VERIFICATION",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Agrupación operativa, trabajo y laboratorio con teléfono en la fila, última novedad compacta, atraso derivado, corrección con lista cerrada del dominio y tres acciones con contraste. Consulta única al repositorio para el detalle, sin N+1",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "VERIFICATION_PASSED",
+      "from_state": "VERIFICATION",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "13 focalizadas y 682 pruebas + 4 subpruebas. Cuatro contratos ajenos actualizados preservando su intención; las funciones nuevas se nombraron para no sombrear las de Seguimiento",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "VISUAL_EVIDENCE_PASSED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "LIBRARIAN",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Smoke fail-closed propio a 1920x1080 y 1366x768 más las regresiones de la alerta RC28 y de Seguimiento RC27",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "LIBRARIAN_PASS",
+      "from_state": "LIBRARIAN",
+      "to_state": "QA",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "MANIFEST, SUMMARY, HUMAN_GATE y ARTIFACT_CONSISTENCY coherentes con lo implementado",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "QA_PASS",
+      "from_state": "QA",
+      "to_state": "AUDITOR",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Autoridad del tronco preservada, grilla de rc.15 no resucitada, sin migraciones nuevas, reglas económicas sin cambios",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "AUDITOR_PASS",
+      "from_state": "AUDITOR",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Sin empaquetar y sin instalar: la RC vigente sigue siendo rc.30. main 291fe40 sin tocar",
+      "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
+      "gate_generation": 1,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    }
+  ]
+}

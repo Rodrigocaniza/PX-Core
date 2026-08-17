@@ -33,8 +33,12 @@ class OperatorFixes003ContractTests(unittest.TestCase):
         self.assertIn('"cuotas", "saldo", "notas"', SOURCE)
 
     def test_orders_table_exposes_persisted_phone(self):
-        self.assertIn('"telefono", "documento"', SOURCE)
-        self.assertIn("pedido.customer_phone, pedido.customer_document", SOURCE)
+        # El teléfono dejó de ocupar una columna: la grilla usa ese ancho para
+        # decir qué pidió el cliente y en qué laboratorio está. El dato sigue
+        # persistido y ahora se usa donde sirve, en la acción de contacto.
+        self.assertIn("pedido.customer_phone if pedido else", SOURCE)
+        self.assertIn('("trabajo", "Trabajo"', SOURCE)
+        self.assertIn('("laboratorio", "Laboratorio"', SOURCE)
 
     def test_responsive_profiles_and_native_chrome_contract_remain(self):
         self.assertEqual(CajaDiaria.perfil_visual(1366, 768)["nombre"], "compacto")
