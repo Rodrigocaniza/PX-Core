@@ -1076,23 +1076,54 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         font=ctk.CTkFont(size=10, weight="bold")
     ).grid(row=0, column=0, sticky="w", padx=(10, 8), pady=4)
 
+    # Fecha y sucursal ya no se tipean: alcanza con el ancho de su contenido, y lo
+    # que se libera lo necesita el acceso al histórico a 1366x768.
     controles_cabecera = [
-        ("fecha", "Fecha", 130),
-        ("unidad", "Sucursal", 130),
-        ("caja_inicial", "Caja inicial", 150),
+        ("fecha", "Fecha", 96),
+        ("unidad", "Sucursal", 110),
+        ("caja_inicial", "Caja inicial", 140),
     ]
     for indice, (clave, etiqueta, ancho) in enumerate(controles_cabecera):
-        ctk.CTkLabel(cabecera, text=etiqueta, text_color=COLOR_TEXTO_SUAVE).grid(
-            row=0, column=indice * 2 + 1, sticky="w", padx=(4, 3), pady=4
-        )
+        # "Caja inicial" es el dato que la operadora tiene que ver primero.
+        destacado = clave == "caja_inicial"
+        ctk.CTkLabel(
+            cabecera, text=etiqueta,
+            text_color=color_azul if destacado else COLOR_TEXTO_SUAVE,
+            font=ctk.CTkFont(size=12, weight="bold") if destacado else None,
+        ).grid(row=0, column=indice * 2 + 1, sticky="w", padx=(4, 3), pady=4)
         if clave == "unidad":
             campo = ctk.CTkComboBox(cabecera, values=UNIDADES, width=ancho, height=max(27, perfil["campo_alto"]))
             campo.set(UNIDAD_POR_DEFECTO)
+        elif destacado:
+            campo = ctk.CTkEntry(
+                cabecera, width=ancho, height=max(27, perfil["campo_alto"]),
+                border_width=2, border_color=color_azul,
+                font=ctk.CTkFont(size=13, weight="bold"),
+            )
         else:
             campo = ctk.CTkEntry(cabecera, width=ancho, height=max(27, perfil["campo_alto"]))
         campo.grid(row=0, column=indice * 2 + 2, padx=(0, 8), pady=4)
         campos_manual[clave] = campo
-    campos_manual["fecha"].insert(0, date.today().strftime("%d-%m-%Y"))
+
+    # La fecha operativa la pone el sistema: no se tipea ni se elige para abrir.
+    FORMATO_FECHA_OPERATIVA = "%d-%m-%Y"
+
+    def fecha_de_hoy():
+        return date.today().strftime(FORMATO_FECHA_OPERATIVA)
+
+    def fecha_operativa():
+        return campos_manual["fecha"].get().strip()
+
+    def es_dia_de_hoy():
+        return fecha_operativa() == fecha_de_hoy()
+
+    def fijar_fecha_operativa(texto):
+        campos_manual["fecha"].delete(0, "end")
+        campos_manual["fecha"].insert(0, texto)
+        actualizar_indicador_consulta()
+
+    campos_manual["fecha"].insert(0, fecha_de_hoy())
+    campos_manual["fecha"].bind("<Key>", lambda _event: "break")
     campos_manual["caja_inicial"].bind("<Key>", lambda _event: "break")
 
     aviso_entregas = ctk.CTkButton(
@@ -1754,11 +1785,19 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             pass
 
     entrada_busqueda.bind("<KeyRelease>", lambda _event: aplicar_filtro_movimientos(filtro_movimientos.get()))
+    def sufijo_hora_apertura(cash_day):
+        """Hora local de apertura. La pone el sistema al abrir; nunca se pide."""
+        try:
+            return " · " + cash_day.opened_at.astimezone().strftime("%H:%M")
+        except (AttributeError, ValueError, OSError):
+            return ""
+
     def actualizar_estado(cash_day):
         totales = cash_day.totals()
         abierta = cash_day.status.value == "OPEN"
         estado_caja.configure(
-            text="Estado: ABIERTO" if abierta else "Estado: CERRADO",
+            text=("Estado: ABIERTO" + sufijo_hora_apertura(cash_day) if abierta
+                  else "Estado: CERRADO"),
             fg_color="#123B2C" if abierta else "#3A2630",
             text_color=color_verde if abierta else "#E0717C",
         )
@@ -1789,9 +1828,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             refrescar_avisos()
         except NameError:
             pass
-        estado_control = "normal" if cash_day.status.value == "OPEN" else "disabled"
-        estado_edicion["caja_abierta"] = cash_day.status.value == "OPEN"
-        boton_cerrar_caja.configure(state="normal" if abierta else "disabled")
+        # Sólo la caja de hoy es operable: consultar otro día es siempre sólo lectura.
+        operable = abierta and es_dia_de_hoy()
+        estado_control = "normal" if operable else "disabled"
+        estado_edicion["caja_abierta"] = operable
+        boton_cerrar_caja.configure(state="normal" if operable else "disabled")
         for clave in claves_operacion:
             campos_manual[clave].configure(state=estado_control)
         campos_manual["transferencia"].configure(state=estado_control)
@@ -1854,6 +1895,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             cash_day = controller.load_day(campos_manual["fecha"].get().strip(), campos_manual["unidad"].get().strip())
             aviso = None
         except Exception as exc:
+            if not es_dia_de_hoy():
+                messagebox.showinfo(
+                    "Sin caja ese día",
+                    f"No hay caja registrada el {fecha_operativa()}. "
+                    "Sólo se puede abrir la caja de hoy.",
+                    parent=ventana,
+                )
+                return
             quantities = solicitar_conteo_obligatorio("Arqueo de apertura")
             if quantities is None:
                 return
@@ -2103,15 +2152,112 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     acciones.pack(fill="x", padx=6, pady=(1, 2))
     acciones_primarias = ctk.CTkFrame(acciones, fg_color="transparent")
     acciones_primarias.pack(fill="x", padx=4, pady=3)
+    def abrir_caja_hoy():
+        """La caja se abre siempre con la fecha y la hora de hoy."""
+        if not es_dia_de_hoy():
+            fijar_fecha_operativa(fecha_de_hoy())
+        abrir_o_consultar()
+
+    def volver_a_hoy():
+        fijar_fecha_operativa(fecha_de_hoy())
+        refrescar_estado_consultado()
+
+    def consultar_otro_dia():
+        """Único acceso al histórico: carga el día elegido en sólo lectura."""
+        selector = ctk.CTkToplevel(ventana)
+        selector.title("Consultar otro día")
+        selector.resizable(False, False)
+        hoy = date.today()
+        estado_mes = {"año": hoy.year, "mes": hoy.month}
+        cuerpo = ctk.CTkFrame(selector, fg_color="#FFFFFF")
+        cuerpo.pack(fill="both", expand=True, padx=10, pady=10)
+
+        def elegir(dia):
+            texto = date(estado_mes["año"], estado_mes["mes"], dia).strftime(
+                FORMATO_FECHA_OPERATIVA
+            )
+            try:
+                cash_day = controller.load_day(texto, campos_manual["unidad"].get().strip())
+            except Exception:
+                messagebox.showinfo(
+                    "Sin caja ese día",
+                    f"No hay caja registrada el {texto}.",
+                    parent=selector,
+                )
+                return
+            selector.destroy()
+            fijar_fecha_operativa(texto)
+            actualizar_estado(cash_day)
+
+        def renderizar(delta=0):
+            mes = estado_mes["mes"] + delta
+            año = estado_mes["año"]
+            if mes < 1: año, mes = año - 1, 12
+            if mes > 12: año, mes = año + 1, 1
+            estado_mes.update(año=año, mes=mes)
+            for widget in cuerpo.winfo_children(): widget.destroy()
+            ctk.CTkButton(cuerpo, text="‹", width=32, command=lambda: renderizar(-1)).grid(row=0, column=0)
+            ctk.CTkLabel(cuerpo, text=f"{calendar.month_name[mes].capitalize()} {año}", width=190,
+                         font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, columnspan=5)
+            ctk.CTkButton(cuerpo, text="›", width=32, command=lambda: renderizar(1)).grid(row=0, column=6)
+            for columna, nombre in enumerate(("Lu", "Ma", "Mi", "Ju", "Vi", "Sá", "Do")):
+                ctk.CTkLabel(cuerpo, text=nombre, width=34).grid(row=1, column=columna, pady=3)
+            for fila, semana in enumerate(calendar.monthcalendar(año, mes), start=2):
+                for columna, dia in enumerate(semana):
+                    if dia:
+                        ctk.CTkButton(cuerpo, text=str(dia), width=34, height=28,
+                                      command=lambda valor=dia: elegir(valor)).grid(row=fila, column=columna, padx=1, pady=1)
+        renderizar()
+        selector.transient(ventana)
+        selector.grab_set()
+
+    # A 1366x768 la cabecera no tiene lugar para las etiquetas largas.
+    compacta = perfil["nombre"] != "full-hd"
+    texto_abrir = "ABRIR CAJA" if compacta else "ABRIR CAJA DE HOY"
+    texto_otro_dia = "Otro día" if compacta else "Consultar otro día"
     boton_abrir = ctk.CTkButton(
-        estado_operativo, text="ABRIR / CONSULTAR", command=abrir_o_consultar,
-        width=118, height=21, corner_radius=4, fg_color=color_azul,
+        estado_operativo, text=texto_abrir, command=abrir_caja_hoy,
+        width=104 if compacta else 132, height=21, corner_radius=4, fg_color=color_azul,
         hover_color="#1D65C5", font=ctk.CTkFont(size=9, weight="bold"),
     )
     boton_abrir.pack(side="left", padx=(0, 5), before=estado_caja)
+    boton_otro_dia = ctk.CTkButton(
+        estado_operativo, text=texto_otro_dia, command=consultar_otro_dia,
+        width=74 if compacta else 112, height=21, corner_radius=4, fg_color="transparent",
+        border_width=1, border_color=color_azul, text_color=color_azul,
+        hover_color="#E7F1FC", font=ctk.CTkFont(size=9),
+    )
+    boton_otro_dia.pack(side="left", padx=(0, 5), before=estado_caja)
+    boton_volver_hoy = ctk.CTkButton(
+        estado_operativo, text="Volver a hoy", command=lambda: volver_a_hoy(),
+        width=86, height=21, corner_radius=4, fg_color="#FFF3CD",
+        text_color="#7A4B00", hover_color="#FFE5A3",
+        font=ctk.CTkFont(size=9, weight="bold"),
+    )
+    # La fecha consultada ya se lee en la cabecera: el aviso sólo agrega el modo.
+    etiqueta_consulta = ctk.CTkLabel(
+        estado_operativo, text="SÓLO LECTURA", width=92, height=20, corner_radius=5,
+        fg_color="#FFF3CD", text_color="#7A4B00",
+        font=ctk.CTkFont(size=9, weight="bold"),
+    )
+
+    def actualizar_indicador_consulta():
+        if es_dia_de_hoy():
+            etiqueta_consulta.pack_forget()
+            boton_volver_hoy.pack_forget()
+            if not boton_otro_dia.winfo_manager():
+                boton_otro_dia.pack(side="left", padx=(0, 5), before=estado_caja)
+            return
+        # Consultando: el aviso y "Volver a hoy" ocupan el lugar de los de hoy.
+        boton_abrir.pack_forget()
+        boton_otro_dia.pack_forget()
+        if not etiqueta_consulta.winfo_manager():
+            etiqueta_consulta.pack(side="left", padx=(0, 5), before=estado_caja)
+        if not boton_volver_hoy.winfo_manager():
+            boton_volver_hoy.pack(side="left", padx=(0, 5), before=estado_caja)
 
     def mostrar_boton_abrir(_event=None):
-        if not boton_abrir.winfo_manager():
+        if es_dia_de_hoy() and not boton_abrir.winfo_manager():
             boton_abrir.pack(side="left", padx=(0, 5), before=estado_caja)
 
     for clave in ("fecha", "unidad", "caja_inicial"):

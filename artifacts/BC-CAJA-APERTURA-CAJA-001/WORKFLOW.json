@@ -1,0 +1,88 @@
+{
+  "mission": "BC-CAJA-APERTURA-CAJA-001",
+  "current_state": "AWAITING_HUMAN_GATE",
+  "history": [
+    {
+      "event": "MISSION_OPENED",
+      "from_state": "NOT_STARTED",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Slice de apertura automática sobre la baseline canónica real origin/main 098a9fb (rc.14)",
+      "gate_id": null,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "BASELINE_VERIFIED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "IN_PROGRESS",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "tests/caja_diaria en verde antes de tocar nada: 200 pruebas + 4 subpruebas",
+      "gate_id": null,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "IMPLEMENTATION_COMPLETED",
+      "from_state": "IN_PROGRESS",
+      "to_state": "VERIFICATION",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Fecha y hora automáticas, consulta de otro día en sólo lectura, Caja inicial destacada",
+      "gate_id": null,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "VERIFICATION_PASSED",
+      "from_state": "VERIFICATION",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "210 pruebas + 4 subpruebas (200 baseline + 10 nuevas)",
+      "gate_id": null,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "VISUAL_EVIDENCE_PASSED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "ARTIFACT_AUDIT",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "4 capturas con contrato fail-closed a 1920x1080 y 1366x768, incluida la regresión responsive de la cabecera",
+      "gate_id": null,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "ARTIFACT_CONSISTENCY_PASSED",
+      "from_state": "ARTIFACT_AUDIT",
+      "to_state": "LIBRARIAN",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "4 fuentes y 4 capturas hasheadas; sin ZIP ni EXE porque el empaquetado está bloqueado",
+      "gate_id": null,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "LIBRARIAN_PASS",
+      "from_state": "LIBRARIAN",
+      "to_state": "QA",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "MANIFEST, SUMMARY, HUMAN_GATE, IMPLEMENTATION_PACKET y ARTIFACT_CONSISTENCY completos y coherentes entre sí",
+      "gate_id": null,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "QA_PASS",
+      "from_state": "QA",
+      "to_state": "AUDITOR",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Automático PASS. Visual automatizado PASS. Observación humana en la Óptica: pendiente, no se inventó",
+      "gate_id": null,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "AUDITOR_PASS",
+      "from_state": "AUDITOR",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Empaquetado e instalación bloqueados hasta HUMAN_GATE-APERTURA-CAJA-001. main intacto, sin force-push",
+      "gate_id": "HUMAN_GATE-APERTURA-CAJA-001",
+      "gate_generation": 1,
+      "session_id": "bc-caja-apertura-caja"
+    }
+  ]
+}

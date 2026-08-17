@@ -41,5 +41,8 @@ def test_rc4_observations_calendar_and_clear_contract():
 
 
 def test_rc4_never_displays_open_status_in_english():
-    assert 'text="Estado: ABIERTO"' in SOURCE
+    # rc.15 le agrega la hora de apertura al mismo texto; el estado sigue en español.
+    assert '"Estado: ABIERTO"' in SOURCE
+    assert '"Estado: CERRADO"' in SOURCE
+    assert '"Estado: OPEN"' not in SOURCE
     assert "'ABIERTO' if cash_day.status.value == 'OPEN'" in SOURCE
