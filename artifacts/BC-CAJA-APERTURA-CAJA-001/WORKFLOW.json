@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-APERTURA-CAJA-001",
-  "current_state": "AWAITING_HUMAN_GATE",
+  "current_state": "GATE_PASSED",
   "history": [
     {
       "event": "MISSION_OPENED",
@@ -80,6 +80,16 @@
       "to_state": "AWAITING_HUMAN_GATE",
       "timestamp": "2026-08-17T00:00:00Z",
       "reason": "Empaquetado e instalación bloqueados hasta HUMAN_GATE-APERTURA-CAJA-001. main intacto, sin force-push",
+      "gate_id": "HUMAN_GATE-APERTURA-CAJA-001",
+      "gate_generation": 1,
+      "session_id": "bc-caja-apertura-caja"
+    },
+    {
+      "event": "HUMAN_GATE_PASS",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "GATE_PASSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Observacion humana real en sesion consolidada con HUMAN_GATE-PEDIDOS-002. 9 puntos PASS incluida la regresion 1366x768. Ver GATE_VERDICT.md",
       "gate_id": "HUMAN_GATE-APERTURA-CAJA-001",
       "gate_generation": 1,
       "session_id": "bc-caja-apertura-caja"

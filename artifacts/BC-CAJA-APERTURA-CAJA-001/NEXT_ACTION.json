@@ -1,18 +1,18 @@
 {
   "mission": "BC-CAJA-APERTURA-CAJA-001",
-  "state": "AWAITING_HUMAN_GATE",
+  "state": "GATE_PASSED",
   "repository": "PX-Core",
   "worktree": "apertura001",
   "branch": "feature/bc-caja-apertura-caja-001",
   "base_commit": "098a9fbd95549cd4308a4754b69f90aa93eb6fca",
   "baseline": "origin/main = BC Caja 1.0.0-rc.14",
-  "blocked_on": "HUMAN_GATE-APERTURA-CAJA-001",
-  "next_action": "Ejecutar HUMAN_GATE-APERTURA-CAJA-001 en la Óptica (ViewSonic 24\"). Sin ese gate no se empaqueta ni se instala.",
-  "next_role": "HUMAN",
+  "blocked_on": null,
+  "next_action": "Integrado en la RC combinada BC-CAJA-RC15-APERTURA-PEDIDOS-001. No se instala por separado.",
+  "next_role": "COMMAND_CENTER",
   "verification": {
     "tests": "210 passed + 4 subtests (200 baseline + 10 nuevas)",
     "visual_automated": "4 capturas fail-closed 1920x1080 y 1366x768",
-    "visual_human": "NO EJECUTADA"
+    "visual_human": "PASS (sesion consolidada 2026-08-17, ver GATE_VERDICT.md)"
   },
   "after_gate_pass": [
     "Empaquetar BC Caja (pilot/build_pilot.ps1) como rc.15",
