@@ -5,7 +5,7 @@
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "continues": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "state": "HELD",
+  "state": "RELEASED_FOR_SAFE_PAUSE",
   "continuous_session": true,
   "auto_resume": true,
   "production_enabled": false,
@@ -19,5 +19,9 @@
     "BC-Finanzas",
     "main"
   ],
-  "release_condition": "tres verdicts independientes PASS sobre el snapshot publicado"
+  "release_condition": "tres verdicts independientes PASS sobre el snapshot publicado (sin cumplir)",
+  "released_at_commit": "998037f924cdeb0c88565cc4618a85f9a0c92477",
+  "released_reason": "Safe Pause: la mision continua desde la PC de la Optica",
+  "safe_closure": "PENDING",
+  "reacquire_before": "cualquier cambio de codigo o de artifacts de la generacion 6"
 }

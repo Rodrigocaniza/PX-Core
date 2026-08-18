@@ -4,8 +4,8 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "REMEDIATION",
-  "mission_lease": "HELD",
+  "current_state": "SAFE_PAUSED",
+  "mission_lease": "RELEASED_FOR_SAFE_PAUSE",
   "generation": 6,
   "autochain": [
     "LIBRARIAN",
@@ -296,7 +296,7 @@
     "20. LIBRARIAN-003 obs 1: el checker de consistencia no inspecciona el ZIP ni cuenta observaciones de los verdicts, que es donde sobrevivio L1",
     "21. LIBRARIAN-003 obs 3: el parrafo de cabecera de INDEPENDENCE sigue citando solo el snapshot de la generacion 1",
     "22. LIBRARIAN-003 obs 5: MIGRATION paso 1 atribuye commission_policy_versions a _add_missing_columns; la crea migrate()",
-    "23. MANIFEST.sha256 solo verifica en el worktree donde se genera: con core.autocrlf=true y sin .gitattributes, un checkout limpio devuelve 20 de los 39 ficheros con CRLF —17 de 25 .md, 1 de 2 .json y 2 de 8 .py— y el propio manifest llega con CRLF. Heredado de la generacion 1; el ZIP si conserva los bytes exactos.",
+    "23. MANIFEST.sha256 solo verifica en el worktree donde se genera: con core.autocrlf=true y sin .gitattributes, un checkout limpio devuelve 20 de los 40 ficheros con CRLF —18 de 26 .md y 2 de 8 .py— y el propio manifest llega con CRLF. Heredado de la generacion 1; el ZIP si conserva los bytes exactos.",
     "24. QA-004 O3: en la rama de reparacion el bloque replaced se asienta con rate_bp y commission_amount nulos cuando no hubo importe que retirar; ruido en el historial, sin impacto economico",
     "25. Una venta con fecha futura mal tipeada. La forma que reportaron AUDITOR-004 O1 y QA-004 O4 —congelacion de la publicacion por MAX(period) global— quedo cerrada en la generacion 5, que retiro la guarda. El problema de fondo sigue abierto y empeoro: ahora fija ese mes para siempre y lo hace pagar mal en silencio. Ver el bloqueante economico AB2-g5.",
     "26. AUDITOR-004 O2: observar una liquidacion pagada retira su importe del KPI paid_amount, de modo que dinero que salio deja de verse en el reporte del periodo",
@@ -519,14 +519,17 @@
   ],
   "next_action": {
     "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6",
-    "state": "REMEDIATION",
-    "blocked_on": "decision de propietario sobre cuando se graba la evidencia (AB1-g5 y AB2-g5)",
+    "state": "SAFE_PAUSED_PENDING_RESUME",
     "steps": [
-      "1. Resolver la pregunta de fondo: que hecho debe fijar un periodo. El primer recalculo no distingue una liquidacion que producira dinero de un tipeo que sera anulado.",
-      "2. Cerrar AB1-g5: la siembra debe ignorar REVERTIDA y ventas anuladas, preferir la tasa pagada, no fijar nada ante discrepancia, y auditar cada periodo sembrado.",
-      "3. Cerrar AB2-g5 segun la decision del paso 1.",
-      "4. Cerrar QB1-g5 y QB2-g5: rotular la ausencia de tasa en pantalla y en el disclaimer.",
-      "5. Publicar snapshot de la generacion 6 y relanzar los tres runners. No reutilizar verdicts de 1 a 5."
+      "1. Adquirir el Mission Lease en el host de la Optica sobre la branch ya publicada.",
+      "2. Cerrar AB2-g5: fijar el periodo solo al alcanzar APROBADA o PAGADA, no en el primer calculo.",
+      "3. Cerrar AB1-g5: la siembra de la migracion debe ignorar REVERTIDA y ventas anuladas, apoyarse en el mismo boundary APROBADA/PAGADA, no fijar nada ante evidencia ambigua o discrepante, no tocar importes ni avales, y auditar cada periodo sembrado en central_audit.",
+      "4. Cerrar QB1-g5: rotular la ausencia de tasa en la cabecera y en el KPI en vez de caer a la global.",
+      "5. Cerrar QB2-g5: policy_disclaimer propio cuando el periodo no tiene tasa en vigor.",
+      "6. Regenerar VISUAL_EVIDENCE: el rotulo cambio y la captura de la generacion 3 ya no coincide (L6-g5).",
+      "7. Pruebas dirigidas, suite del modulo, regresion completa.",
+      "8. Publicar snapshot de la generacion 6 y relanzar los tres runners independientes.",
+      "9. No reutilizar verdicts de las generaciones 1 a 5."
     ],
     "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 sigue sin abrirse."
   },
@@ -549,5 +552,41 @@
     "why_not_blocking": "bloquear la publicacion no puede satisfacer a la vez la proteccion de todo periodo tarifado y la exigencia de que una fecha erronea no congele la publicacion: una vigencia para 2027 gobierna tambien a 2036. Fijar el periodo a la tasa con la que fue tarifado satisface ambas.",
     "constraint_met": "no se usa MAX(period) global; la proteccion es el conjunto de periodos tarifados",
     "out_of_scope": "el flujo de correccion retroactiva explicita y auditada no se implementa"
+  },
+  "safe_pause": {
+    "state": "SAFE_PAUSED",
+    "reason": "continuar desde la PC de la Optica",
+    "paused_at_commit": "998037f924cdeb0c88565cc4618a85f9a0c92477",
+    "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
+    "worktree_on_paused_host": ".worktrees/gc-comision-policy-1pct-001",
+    "remote": "origin 0 ahead / 0 behind",
+    "working_tree": "clean",
+    "code_changed_while_pausing": false,
+    "evidence_untouched": "generation-1..5, tres verdicts cada una, quince en total",
+    "resume_with": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6",
+    "resume_precondition": [
+      "git fetch y checkout de la branch en el host nuevo",
+      "verificar HEAD == 998037f924cdeb0c88565cc4618a85f9a0c92477 y arbol limpio",
+      "adquirir el Mission Lease antes de tocar codigo"
+    ]
+  },
+  "policy_decision_gen6": {
+    "decided_by": "propietario del repositorio",
+    "decision": "la tasa del periodo NO se fija en el primer calculo",
+    "boundary": [
+      "APROBADA",
+      "PAGADA"
+    ],
+    "rules": [
+      "el periodo queda fijado unicamente cuando existe un hecho economico oficial: la liquidacion alcanza APROBADA o PAGADA",
+      "los estados provisionales anteriores —ELEGIBLE, CALCULADA, REVISADA— siguen siendo corregibles y no fijan nada",
+      "la migracion no puede sembrar desde una venta anulada, ni desde un primer calculo arbitrario, ni desde evidencia ambigua",
+      "una migracion nunca puede modificar silenciosamente dinero aprobado o pagado, ni retirar una aprobacion o un pago"
+    ],
+    "closes": [
+      "AB2-g5",
+      "AB1-g5 (parcialmente: fija el criterio de siembra)"
+    ],
+    "rationale": "un tipeo anulado nunca alcanza APROBADA ni PAGADA, de modo que no puede fijar un mes; y la siembra deja de depender del orden de creacion para depender de un hecho economico"
   }
 }

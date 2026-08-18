@@ -6,15 +6,15 @@
 Resultado: **consistente**, verificado también por
 `python tools/check_mission_package_consistency.py artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001`.
 
-- `MANIFEST.sha256` fija **39 archivos**: los seis de código y pruebas tocados por la misión, los
-  dos de herramientas, el contrato anterior anotado, y los 30 del paquete. `sha256sum -c`:
-  **39/39 OK** ejecutado en el worktree donde se genera el paquete.
+- `MANIFEST.sha256` fija **40 archivos**: los seis de código y pruebas tocados por la misión, los
+  dos de herramientas, el contrato anterior anotado, y los 31 del paquete. `sha256sum -c`:
+  **40/40 OK** ejecutado en el worktree donde se genera el paquete.
 - **Alcance exacto de esa verificación.** Los hashes se toman sobre los bytes del worktree. Este
   repositorio corre con `core.autocrlf=true` y sin `.gitattributes`, de modo que git reescribe los
-  finales de línea al hacer checkout: en un clon nuevo **20 de los 39 ficheros** —17 de los 25
-  `.md`, uno de los dos `.json` y dos de los ocho `.py`— llegan con CRLF y sus hashes no coinciden.
-  Los 19 restantes no cambian: 18 ya traen CRLF en el worktree —entre ellos `COMMISSION_RULES.md`
-  y los tres `PROMPT_*.txt`— y el decimonoveno es el PNG, que es binario. El propio `MANIFEST.sha256` llega con CRLF, que `sha256sum -c` ni siquiera
+  finales de línea al hacer checkout: en un clon nuevo **20 de los 40 ficheros** —18 de los 26
+  `.md` y dos de los ocho `.py`— llegan con CRLF y sus hashes no coinciden. Los 20 restantes no
+  cambian: 19 ya traen CRLF en el worktree —entre ellos `COMMISSION_RULES.md`, los tres
+  `PROMPT_*.txt` y los dos `.json`— y el vigésimo es el PNG, que es binario. El propio `MANIFEST.sha256` llega con CRLF, que `sha256sum -c` ni siquiera
   puede analizar. El manifest acredita integridad
   **del paquete tal como se produce**, no reproducibilidad byte a byte entre checkouts. Es una
   propiedad heredada de cómo se construyó el paquete desde la generación 1, no algo que introduzca
@@ -22,7 +22,7 @@ Resultado: **consistente**, verificado también por
   `.gitattributes`— excede el alcance de esta generación, que es sólo B1 y B2.
 - Quedan fuera del manifest exactamente dos archivos, por imposibilidad lógica: `MANIFEST.sha256`
   y el ZIP. El ZIP se reconstruyó después de escribir todos los documentos y se verificó miembro a
-  miembro contra el worktree: **40 miembros, 40 byte-idénticos, 0 mismatch** — los 39 del manifest
+  miembro contra el worktree: **41 miembros, 41 byte-idénticos, 0 mismatch** — los 40 del manifest
   más el propio `MANIFEST.sha256`. El ZIP guarda los bytes del worktree, así que es el entregable
   que sí reproduce el paquete exactamente, con independencia de lo que git haga en un checkout.
 - Base idéntica en `SUMMARY.md`, `MISSION_LEASE.json` y `WORKFLOW.json`:
@@ -81,8 +81,11 @@ Resultado: **consistente**, verificado también por
 - Los **quince** verdicts existen en `generation-1/` … `generation-5/` y coinciden con
   `WORKFLOW.generations[]` y con `INDEPENDENCE.md`; los doce anteriores se conservan sin retocar.
   `generation-6/` está vacío.
-- La misión **no** está en Safe Closure. `WORKFLOW.current_state` es `IMPLEMENTED`, el
-  `MISSION_LEASE` sigue `HELD` y `safe_closure` sigue `PENDING`.
+- La misión **no** está en Safe Closure y **no** está cerrada: está en **Safe Pause**.
+  `WORKFLOW.current_state` es `SAFE_PAUSED`, `safe_closure` sigue `PENDING`, y el `MISSION_LEASE`
+  quedó `RELEASED_FOR_SAFE_PAUSE` para que el host de la Óptica pueda adquirirlo. Pausar no cierra
+  nada: los cuatro bloqueantes abiertos siguen abiertos y `SAFE_PAUSE.md` recoge el estado para
+  Auto-Resume, subordinado siempre al estado canónico.
 - Captura 1920×1080 RGB, con su SHA-256 y su tamaño declarados en `VISUAL_EVIDENCE.md`, que también
   advierte que el PNG no es reproducible byte a byte porque el historial muestra marcas de tiempo
   reales.

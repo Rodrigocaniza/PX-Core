@@ -101,8 +101,8 @@ Aportados por las observaciones no bloqueantes de la generación 3, abiertos y *
 Detectado en la generación 4 sobre el propio paquete:
 
 23. **`MANIFEST.sha256` sólo verifica en el worktree donde se genera.** Detectado en la generación
-    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 20 de los 39
-    ficheros con CRLF —17 de los 25 `.md`, uno de los dos `.json` y dos `.py`— y sus hashes dejan de
+    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 20 de los 40
+    ficheros con CRLF —18 de los 26 `.md` y dos `.py`— y sus hashes dejan de
     coincidir; el propio
     manifest llega con CRLF y `sha256sum -c` no puede analizarlo. Es heredado de cómo se construyó
     el paquete desde la generación 1, no lo introduce esta generación. El ZIP sí conserva los bytes
@@ -214,6 +214,30 @@ dos: nada se re-tarifa y nada se congela.
 
 **Fuera de alcance, por decisión explícita:** el flujo separado de corrección retroactiva. Hasta que
 exista, la tasa de un período ya tarifado no se corrige por ruta pública.
+
+## Decisión de propietario para la generación 6
+
+**La tasa del período NO se fija en el primer cálculo.** Queda fijada únicamente cuando existe un
+**hecho económico oficial**.
+
+- **Boundary: `APROBADA` o `PAGADA`.**
+- Los estados provisionales anteriores —`ELEGIBLE`, `CALCULADA`, `REVISADA`— siguen siendo
+  **corregibles** y no fijan nada.
+- **La migración no puede sembrar** desde una venta anulada, ni desde un primer cálculo arbitrario,
+  ni desde evidencia ambigua.
+- **Una migración nunca puede modificar silenciosamente dinero aprobado o pagado**, ni retirar una
+  aprobación o un pago.
+
+Cierra los dos bloqueantes económicos por la raíz: un tipeo que será anulado nunca alcanza
+`APROBADA` ni `PAGADA`, de modo que no puede fijar un mes (`AB2-g5`); y la siembra deja de depender
+del orden de creación para depender del mismo hecho económico (`AB1-g5`).
+
+## Safe Pause
+
+La misión queda en `SAFE_PAUSED` en el commit `998037f924cdeb0c88565cc4618a85f9a0c92477`, con la
+branch publicada y sincronizada, el árbol limpio y el Mission Lease **liberado** para que otro host
+lo adquiera. Safe Closure sigue `PENDING`: pausar no es cerrar. El resumen de Auto-Resume está en
+`SAFE_PAUSE.md`, y el estado canónico manda sobre él.
 
 ## Siguiente paso propuesto
 
