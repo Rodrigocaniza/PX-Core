@@ -4,9 +4,9 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "IMPLEMENTED",
+  "current_state": "REMEDIATION",
   "mission_lease": "HELD",
-  "generation": 5,
+  "generation": 6,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -221,12 +221,56 @@
     },
     {
       "generation": 5,
-      "snapshot_commit": null,
-      "status": "PENDING_REVIEW",
+      "snapshot_commit": "2ac9f5c93ec99ed506133310ee6cd19f6779b971",
+      "status": "INVALIDATED",
       "tests": 371,
-      "verdicts": [],
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-005",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-18T02:30:43Z",
+          "blockers": [
+            "L1-g5",
+            "L2-g5",
+            "L3-g5",
+            "L4-g5",
+            "L5-g5",
+            "L6-g5"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-005",
+          "role": "QA",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-18T02:30:34Z",
+          "blockers": [
+            "QB1-g5",
+            "QB2-g5"
+          ]
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-005",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-18T02:38:49Z",
+          "blockers": [
+            "AB1-g5",
+            "AB2-g5"
+          ]
+        }
+      ],
       "scope": "invariante historica durable por periodo tarifado; cierre de B1-g4 y B2-g4; matriz de transiciones; sin frontera global por MAX(period)",
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-5/"
+    },
+    {
+      "generation": 6,
+      "snapshot_commit": null,
+      "status": "PENDING_REMEDIATION",
+      "tests": null,
+      "verdicts": [],
+      "scope": "cerrar AB1-g5 y AB2-g5 (economicos, requieren decision de propietario), QB1-g5 y QB2-g5 (rotulado) y L1..L6-g5 (documentales)",
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-6/"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -252,9 +296,9 @@
     "20. LIBRARIAN-003 obs 1: el checker de consistencia no inspecciona el ZIP ni cuenta observaciones de los verdicts, que es donde sobrevivio L1",
     "21. LIBRARIAN-003 obs 3: el parrafo de cabecera de INDEPENDENCE sigue citando solo el snapshot de la generacion 1",
     "22. LIBRARIAN-003 obs 5: MIGRATION paso 1 atribuye commission_policy_versions a _add_missing_columns; la crea migrate()",
-    "23. MANIFEST.sha256 solo verifica en el worktree donde se genera: con core.autocrlf=true y sin .gitattributes, un checkout limpio devuelve 21 de 33 ficheros con CRLF y el propio manifest llega con CRLF. Heredado de la generacion 1; el ZIP si conserva los bytes exactos.",
+    "23. MANIFEST.sha256 solo verifica en el worktree donde se genera: con core.autocrlf=true y sin .gitattributes, un checkout limpio devuelve 20 de los 39 ficheros con CRLF —17 de 25 .md, 1 de 2 .json y 2 de 8 .py— y el propio manifest llega con CRLF. Heredado de la generacion 1; el ZIP si conserva los bytes exactos.",
     "24. QA-004 O3: en la rama de reparacion el bloque replaced se asienta con rate_bp y commission_amount nulos cuando no hubo importe que retirar; ruido en el historial, sin impacto economico",
-    "25. AUDITOR-004 O1 y QA-004 O4: una venta con fecha futura mal tipeada que llegue a CALCULADA fija el suelo de la guarda en ese periodo y congela toda publicacion de tasas durante anios",
+    "25. Una venta con fecha futura mal tipeada. La forma que reportaron AUDITOR-004 O1 y QA-004 O4 —congelacion de la publicacion por MAX(period) global— quedo cerrada en la generacion 5, que retiro la guarda. El problema de fondo sigue abierto y empeoro: ahora fija ese mes para siempre y lo hace pagar mal en silencio. Ver el bloqueante economico AB2-g5.",
     "26. AUDITOR-004 O2: observar una liquidacion pagada retira su importe del KPI paid_amount, de modo que dinero que salio deja de verse en el reporte del periodo",
     "27. LIBRARIAN-004 obs 6: SUMMARY declara la comision de la venta con saldo como 0 y verified_examples como null; ninguna es falsa pero el mismo caso se declara de dos formas",
     "28. El export sube a contract_version 3: el bloque policy pasa a ser el del periodo exportado, con la marca pinned, y la politica vigente al exportar viaja aparte en current_policy. Cualquier consumidor del contrato 2 debe adaptarse.",
@@ -394,7 +438,7 @@
       "role": "AUDITOR",
       "generation": 4,
       "kind": "ECONOMICO",
-      "status": "CERRADO_PENDIENTE_VERIFICACION",
+      "status": "CERRADO_VERIFICADO_GEN5_POR_LOS_TRES_RUNNERS",
       "summary": "la guarda de periodo liquidado consulta el estado actual, no la evidencia de tarifacion: observe() sobre una PAGADA, void_sale() sobre una venta con comision pagada, revert() o una correccion cosmetica de origen sacan el periodo de SETTLED_STATES y devuelven la fuga entera",
       "impact": "400.000 Gs pagados por 2026-08 donde el 1% eran 40.000; o el mes completo anulado a cero",
       "false_claims": [
@@ -411,7 +455,7 @@
       "role": "AUDITOR",
       "generation": 4,
       "kind": "ECONOMICO",
-      "status": "CERRADO_PENDIENTE_VERIFICACION",
+      "status": "CERRADO_VERIFICADO_GEN5_POR_LOS_TRES_RUNNERS",
       "summary": "_apply_source_update anula rate_bp y commission_amount y escribe SOURCE_UPDATED sin el bloque replaced; para un importe heredado de una base migrada, que no tiene asiento previo, el valor desaparece de toda ruta publica",
       "impact": "80.000 Gs de comision legada perdidos por una correccion cosmetica de sobre",
       "false_claims": [
@@ -421,16 +465,68 @@
       "proposed_closure": "replicar en SOURCE_UPDATED el bloque replaced que recalculate ya escribe",
       "owner_decision_needed": false,
       "closure": "_apply_source_update escribe el mismo bloque replaced que recalculate cuando la correccion retira una tasa o un importe previo"
+    },
+    {
+      "id": "AB1-g5",
+      "role": "AUDITOR",
+      "generation": 5,
+      "kind": "ECONOMICO",
+      "status": "ABIERTO",
+      "summary": "la siembra de la migracion fija el periodo con la tasa de la liquidacion mas antigua, aunque este REVERTIDA o su venta anulada, y aunque contradiga lo ya pagado y aprobado ese mes. El filtro mira la etiqueta CANONICA_APROBADA, no si la tasa sigue siendo la oficial del periodo",
+      "impact": "un mes pagado dos veces al 5% queda fijado al 1% desde una venta anulada; una venta nueva cobra 100.000 donde le corresponden 500.000 y se paga. La migracion baja una APROBADA de 500.000 a 100.000 y le borra el aval. Cero filas de auditoria.",
+      "false_claims": [
+        "MIGRATION.md:89",
+        "ARCHITECTURE_DELTA.md:52"
+      ],
+      "owner_decision_needed": true
+    },
+    {
+      "id": "AB2-g5",
+      "role": "AUDITOR",
+      "generation": 5,
+      "kind": "ECONOMICO",
+      "status": "ABIERTO",
+      "summary": "un error de tipeo de fecha fija para siempre la tasa de un mes lejano, incluso despues de que el sistema registre por dos vias que fue un error: correccion de origen y void_sale. El pin sobrevive a ambas y no hay ruta publica que lo corrija",
+      "impact": "una venta real de ese mes cobra 100.000 en vez de 500.000 y se paga, en silencio. La generacion 4 convertia la fecha erronea en un bloqueo visible y reversible; la 5 la convierte en una liquidacion equivocada e irreversible",
+      "owner_decision_needed": true
+    },
+    {
+      "id": "QB1-g5",
+      "role": "QA",
+      "generation": 5,
+      "kind": "ROTULADO",
+      "status": "ABIERTO",
+      "summary": "la cabecera de comisiones_ui cae a la politica global cuando el periodo no tiene tasa en vigor y la rotula como oficial de ese mes: declara 'Comision oficial 10,00%' en un mes donde no rige ninguna tasa",
+      "owner_decision_needed": false
+    },
+    {
+      "id": "QB2-g5",
+      "role": "QA",
+      "generation": 5,
+      "kind": "ROTULADO",
+      "status": "ABIERTO",
+      "summary": "el policy_disclaimer del export contract_version 3 emite 'Comision oficial None%'",
+      "owner_decision_needed": false
+    },
+    {
+      "id": "L1-g5..L6-g5",
+      "role": "LIBRARIAN",
+      "generation": 5,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_COMMIT_DE_REGISTRO",
+      "summary": "seis afirmaciones falsas, todas por no actualizar la documentacion al retirar la guarda por estado: reliquia de la asercion 'ya fue liquidado' en TEST_EVIDENCE; 'cuatro pruebas' donde se enumeran seis; hallazgo 23 de WORKFLOW congelado en '21 de 33'; hallazgo 25 declarado abierto describiendo un MAX(period) que ya no existe; COMMISSION_POLICY invocando la guarda retirada; y la justificacion falsa de que el rotulo de la captura coincide, cuando ahora lleva 'fijada al tarifarse'"
     }
   ],
   "next_action": {
-    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN5",
-    "state": "PENDING_INDEPENDENT_REVIEW",
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6",
+    "state": "REMEDIATION",
+    "blocked_on": "decision de propietario sobre cuando se graba la evidencia (AB1-g5 y AB2-g5)",
     "steps": [
-      "1. Publicar el snapshot de la generacion 5.",
-      "2. Lanzar LIBRARIAN, QA y AUDITOR independientes sobre ese snapshot, con foco en la invariante historica y en la matriz de transiciones.",
-      "3. No reutilizar verdicts de las generaciones 1 a 4.",
-      "4. Con 3xPASS: protected commit/push, Safe Closure, liberar Mission Lease y persistir NEXT_ACTION."
+      "1. Resolver la pregunta de fondo: que hecho debe fijar un periodo. El primer recalculo no distingue una liquidacion que producira dinero de un tipeo que sera anulado.",
+      "2. Cerrar AB1-g5: la siembra debe ignorar REVERTIDA y ventas anuladas, preferir la tasa pagada, no fijar nada ante discrepancia, y auditar cada periodo sembrado.",
+      "3. Cerrar AB2-g5 segun la decision del paso 1.",
+      "4. Cerrar QB1-g5 y QB2-g5: rotular la ausencia de tasa en pantalla y en el disclaimer.",
+      "5. Publicar snapshot de la generacion 6 y relanzar los tres runners. No reutilizar verdicts de 1 a 5."
     ],
     "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 sigue sin abrirse."
   },
@@ -443,7 +539,8 @@
       "no se modifica retroactivamente una liquidacion calculada, revisada, aprobada o pagada",
       "corregir una tasa mal publicada sobre un periodo ya liquidado exigira un flujo separado de correccion explicita y auditada"
     ],
-    "out_of_scope": "el flujo de correccion/ajuste explicito no se implementa en esta generacion"
+    "out_of_scope": "el flujo de correccion/ajuste explicito no se implementa en esta generacion",
+    "superseded_by": "policy_decision_b1_g4 (generacion 5): la proteccion ya no bloquea publicaciones"
   },
   "policy_decision_b1_g4": {
     "decided_by": "propietario del repositorio",

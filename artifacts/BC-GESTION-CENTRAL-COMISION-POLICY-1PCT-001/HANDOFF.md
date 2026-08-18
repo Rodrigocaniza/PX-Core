@@ -101,8 +101,8 @@ Aportados por las observaciones no bloqueantes de la generación 3, abiertos y *
 Detectado en la generación 4 sobre el propio paquete:
 
 23. **`MANIFEST.sha256` sólo verifica en el worktree donde se genera.** Detectado en la generación
-    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 18 de los 36
-    ficheros con CRLF —15 de los 22 `.md`, uno de los dos `.json` y dos `.py`— y sus hashes dejan de
+    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 20 de los 39
+    ficheros con CRLF —17 de los 25 `.md`, uno de los dos `.json` y dos `.py`— y sus hashes dejan de
     coincidir; el propio
     manifest llega con CRLF y `sha256sum -c` no puede analizarlo. Es heredado de cómo se construyó
     el paquete desde la generación 1, no lo introduce esta generación. El ZIP sí conserva los bytes
@@ -116,10 +116,12 @@ corregidos:
     no tenía importe ni porcentaje que retirar, el bloque se escribe igual con `rate_bp: None` y
     `commission_amount: None`. Registra un dato cierto, pero es ruido: un lector del historial ve un
     `replaced` donde no hubo retiro de valor.
-25. **Una venta con fecha futura mal tipeada congela toda publicación de tasas.** AUDITOR-004 O1 y
-    QA-004 O4: la guarda usa `MAX(period)` global, así que un `2036` en lugar de `2026` que llegue a
-    `CALCULADA` deja la política inmutable durante diez años, y el mensaje de error nombra un período
-    que el operador no reconoce. Falla del lado seguro; es disponibilidad, no corrección.
+25. **Una venta con fecha futura mal tipeada.** AUDITOR-004 O1 y QA-004 O4 lo describieron como una
+    congelación de la publicación: la guarda usaba `MAX(period)` global. **Esa forma quedó cerrada en
+    la generación 5**, que retiró la guarda; ya no existe ningún `MAX(period)` en el código y la
+    publicación no se congela. Pero el problema de fondo **sigue abierto y empeoró**: ahora la fecha
+    errónea fija ese mes para siempre y lo hace pagar mal en silencio. Está registrado como el
+    bloqueante económico `AB2-g5`.
 26. **Observar una liquidación pagada retira su importe del KPI `paid_amount`.** AUDITOR-004 O2:
     `report()` lo calcula sobre `status == "PAGADA"`, de modo que dinero que efectivamente salió deja
     de verse en el reporte del período. Es además lo que vuelve invisible en pantalla la fuga B1-g4.
@@ -159,8 +161,10 @@ Aportados por la generación 5, abiertos y **no** corregidos:
     adaptarse; dentro del piloto no hay ninguno.
 29. **La cabecera de la pantalla rotula la política del período en curso**, no la última publicada,
     e indica cuándo el período está fijado. Ningún importe cambia; sí cambia el texto que el
-    operador lee, y `VISUAL_EVIDENCE.md` sigue mostrando la captura de la generación 3, donde el
-    período no estaba fijado y el rótulo coincide.
+    operador lee. **`VISUAL_EVIDENCE.md` quedó desactualizado**: el capturador tarifa el período, de
+    modo que la cabecera real ahora incluye « · fijada al tarifarse» y la captura de la generación 3
+    ya no coincide. La prueba de interfaz sólo comprueba subcadenas y no lo detecta. Debe
+    regenerarse en la generación 6.
 
 ## Generación 4 — resultado: INVALIDADA
 

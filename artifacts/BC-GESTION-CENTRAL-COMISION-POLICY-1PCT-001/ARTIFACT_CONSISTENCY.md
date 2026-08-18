@@ -6,15 +6,15 @@
 Resultado: **consistente**, verificado también por
 `python tools/check_mission_package_consistency.py artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001`.
 
-- `MANIFEST.sha256` fija **36 archivos**: los seis de código y pruebas tocados por la misión, los
-  dos de herramientas, el contrato anterior anotado, y los 27 del paquete. `sha256sum -c`:
-  **36/36 OK** ejecutado en el worktree donde se genera el paquete.
+- `MANIFEST.sha256` fija **39 archivos**: los seis de código y pruebas tocados por la misión, los
+  dos de herramientas, el contrato anterior anotado, y los 30 del paquete. `sha256sum -c`:
+  **39/39 OK** ejecutado en el worktree donde se genera el paquete.
 - **Alcance exacto de esa verificación.** Los hashes se toman sobre los bytes del worktree. Este
   repositorio corre con `core.autocrlf=true` y sin `.gitattributes`, de modo que git reescribe los
-  finales de línea al hacer checkout: en un clon nuevo **18 de los 36 ficheros** —15 de los 22
+  finales de línea al hacer checkout: en un clon nuevo **20 de los 39 ficheros** —17 de los 25
   `.md`, uno de los dos `.json` y dos de los ocho `.py`— llegan con CRLF y sus hashes no coinciden.
-  Los 18 restantes no cambian: 17 ya traen CRLF en el worktree —entre ellos `COMMISSION_RULES.md`
-  y los tres `PROMPT_*.txt`— y el decimoctavo es el PNG, que es binario. El propio `MANIFEST.sha256` llega con CRLF, que `sha256sum -c` ni siquiera
+  Los 19 restantes no cambian: 18 ya traen CRLF en el worktree —entre ellos `COMMISSION_RULES.md`
+  y los tres `PROMPT_*.txt`— y el decimonoveno es el PNG, que es binario. El propio `MANIFEST.sha256` llega con CRLF, que `sha256sum -c` ni siquiera
   puede analizar. El manifest acredita integridad
   **del paquete tal como se produce**, no reproducibilidad byte a byte entre checkouts. Es una
   propiedad heredada de cómo se construyó el paquete desde la generación 1, no algo que introduzca
@@ -22,7 +22,7 @@ Resultado: **consistente**, verificado también por
   `.gitattributes`— excede el alcance de esta generación, que es sólo B1 y B2.
 - Quedan fuera del manifest exactamente dos archivos, por imposibilidad lógica: `MANIFEST.sha256`
   y el ZIP. El ZIP se reconstruyó después de escribir todos los documentos y se verificó miembro a
-  miembro contra el worktree: **37 miembros, 37 byte-idénticos, 0 mismatch** — los 36 del manifest
+  miembro contra el worktree: **40 miembros, 40 byte-idénticos, 0 mismatch** — los 39 del manifest
   más el propio `MANIFEST.sha256`. El ZIP guarda los bytes del worktree, así que es el entregable
   que sí reproduce el paquete exactamente, con independencia de lo que git haga en un checkout.
 - Base idéntica en `SUMMARY.md`, `MISSION_LEASE.json` y `WORKFLOW.json`:
@@ -30,10 +30,9 @@ Resultado: **consistente**, verificado también por
   snapshot de la generación 1 y ancestro de los siguientes, uno por generación revisada.
   `WORKFLOW.generations[].snapshot_commit` fija cada snapshot **ya sometido a revisión**; el de la
   generación en curso viaja en `null` hasta el commit de registro posterior, porque un commit no
-  puede contener su propio SHA. Así quedaron fijadas las generaciones 1 a 4 —la 3 en
-  `75f5c5728cf9194b3e4c91a3b1e83c10ea1ec48a` por el commit de registro `b90a5db`, y la 4 en
-  `5652e46ce7127060ed50d96e464e732809351550` por este commit de registro—, y por eso la generación
-  5, que es la que queda abierta, figura en `null`.
+  puede contener su propio SHA. Así quedaron fijadas las generaciones 1 a 5 —la 5 en
+  `2ac9f5c93ec99ed506133310ee6cd19f6779b971`, por este commit de registro—, y por eso la generación
+  6, que es la que queda abierta, figura en `null`.
 - Cifras coherentes en todos los documentos: **371/371** de regresión, 302 de línea base, **+69**
   casos, **171** en la suite del módulo, **120** casos entre los dos archivos de comisiones. De esos
   69, **26 son de la generación 5** (345 → 371), repartidos en 13 funciones nuevas más 13 casos de
@@ -66,16 +65,22 @@ Resultado: **consistente**, verificado también por
   `replaced` en la corrección de origen y el contrato 3—, `comisiones_ui.py` —la cabecera por
   período—, y los dos de pruebas. **`comision_policy.py` no cambia**: la aritmética `Decimal` y el
   único `HALF_UP` canónico son exactamente los de la generación 3.
-- **La generación 4 fue INVALIDADA** (Librarian PASS, QA PASS, Auditor FAIL con `B1-g4` y `B2-g4`).
-  La generación 5 cierra los dos por decisión de propietario: la protección de un período tarifado
-  deja de ser un predicado sobre el estado actual y pasa a ser evidencia durable en
-  `commission_rated_periods`. Los invariantes 5 y 7 de `ARCHITECTURE_DELTA.md` están reescritos con
-  el diseño nuevo, y sus ecos en `COMMISSION_POLICY_1PCT.md` y `SUMMARY.md` también. **Nada de lo
-  que este documento afirma sobre el diseño nuevo debe leerse como verificado** hasta que los tres
-  runners se pronuncien sobre el snapshot de la generación 5.
-- Los **doce** verdicts existen en `generation-1/` … `generation-4/` y coinciden con
-  `WORKFLOW.generations[]` y con `INDEPENDENCE.md`; se conservan sin retocar. `generation-5/` está
-  vacío hasta que los runners se pronuncien.
+- **La generación 5 fue INVALIDADA: los tres runners fallaron**, cada uno en una capa distinta y sin
+  solaparse. Los tres confirmaron que `B1-g4` y `B2-g4` están cerrados y que el diseño de la
+  evidencia durable es correcto; ninguno halló una transición que devuelva un período tarifado al
+  catálogo. Lo que falla es lo que el diseño no cubrió: **cuándo se graba la evidencia**. `AB1-g5` y
+  `AB2-g5` son económicos y quedan **abiertos**, con dinero mal pagado reproducido en ambos.
+  `QB1-g5` y `QB2-g5` son de rotulado y quedan abiertos. Los seis del Librarian son documentales y se
+  cierran en este commit de registro.
+- En consecuencia, **dos afirmaciones de este paquete están demostradas falsas y se conservan**, para
+  que la generación 6 las corrija con la evidencia a la vista: la de `MIGRATION.md` y
+  `ARCHITECTURE_DELTA.md` según la cual «un importe heredado no oficial no fija nada, porque fijarlo
+  lo volvería incorregible» —la comprobación mira la etiqueta, no si la tasa sigue siendo la oficial
+  del período—, y la lectura implícita de que una fecha errónea quedó resuelta: ya no congela la
+  publicación, pero fija ese mes para siempre y lo hace pagar mal en silencio.
+- Los **quince** verdicts existen en `generation-1/` … `generation-5/` y coinciden con
+  `WORKFLOW.generations[]` y con `INDEPENDENCE.md`; los doce anteriores se conservan sin retocar.
+  `generation-6/` está vacío.
 - La misión **no** está en Safe Closure. `WORKFLOW.current_state` es `IMPLEMENTED`, el
   `MISSION_LEASE` sigue `HELD` y `safe_closure` sigue `PENDING`.
 - Captura 1920×1080 RGB, con su SHA-256 y su tamaño declarados en `VISUAL_EVIDENCE.md`, que también

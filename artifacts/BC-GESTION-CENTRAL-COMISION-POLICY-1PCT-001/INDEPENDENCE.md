@@ -144,12 +144,50 @@ propio verdict qué superficie no cubrió, sin retocar el PASS. Las **catorce** 
 bloqueantes de los tres verdicts —siete del Librarian, cuatro de QA y tres del Auditor— quedan
 registradas, no corregidas.
 
-## Generación 5
+## Generación 5 — snapshot `2ac9f5c93ec99ed506133310ee6cd19f6779b971`
 
-Pendiente de revisión. El propietario decidió no seguir endureciendo predicados sobre el estado
-actual y adoptar una invariante basada en evidencia durable: un período que alguna vez recibió una
-tasa queda fijado a ella, con independencia de las transiciones posteriores.
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISION-POLICY-1PCT-005` | LIBRARIAN | **FAIL** — L1-g5 … L6-g5 |
+| `QA-IND-COMISION-POLICY-1PCT-005` | QA | **FAIL** — QB1-g5, QB2-g5 |
+| `AUDITOR-IND-COMISION-POLICY-1PCT-005` | AUDITOR | **FAIL** — AB1-g5, AB2-g5 |
 
-Los tres runners deben revisar específicamente **la invariante histórica y la matriz de
-transiciones**, no sólo los bloqueantes anteriores. Los verdicts de las generaciones 1 a 4 no se
-reutilizan.
+Evidencia íntegra y sin retocar en `generation-5/`.
+
+**Los tres coinciden en que el diseño es correcto y en que B1-g4 y B2-g4 están cerrados de verdad**,
+cada uno por su cuenta: QA con una matriz propia de 18 transiciones y 7 cadenas encadenadas, el
+Librarian ejecutando la matriz y comprobando que ninguna sentencia escribe `UPDATE` o `DELETE` sobre
+la evidencia, el Auditor con 10 transiciones, 30 semillas × 120 pasos de fuzz histórico y
+concurrencia real. Los diez invariantes pasan sobre bases frescas. Nadie encontró una transición que
+devuelva un período tarifado al catálogo.
+
+Y aun así los tres fallan, cada uno en una capa distinta, y ninguno se solapa con otro:
+
+- **El Auditor**, en la capa que el diseño no cubrió: **cuándo se graba la evidencia**. Un pin es
+  definitivo, así que grabarlo mal es peor que una guarda floja. Encontró dos formas de grabarlo mal,
+  ambas con dinero mal pagado. `AB1-g5`: la siembra de la migración fija el período con la tasa de la
+  liquidación más antigua, aunque esté `REVERTIDA` y su venta anulada, y aunque el mes se haya pagado
+  dos veces a otra tasa; la migración baja una `APROBADA` de 500.000 a 100.000 Gs y le borra el aval,
+  sin una sola fila de auditoría. `AB2-g5`: un tipeo de fecha fija un mes lejano para siempre, y el
+  pin sobrevive a la corrección de origen y a la anulación que el propio sistema registra.
+- **QA**, en la capa del rótulo: en un período donde no rige ninguna tasa, la pantalla declara oficial
+  la tasa global publicada y el export emite «Comisión oficial None%». Es el error que la misión
+  corrige desde la generación 2, sobreviviendo en las dos superficies que la gente lee.
+- **El Librarian**, en la capa documental: seis afirmaciones falsas, todas por no actualizar la
+  documentación al retirar la guarda por estado, incluida una que declaraba abierto un hallazgo que
+  el propio paquete demuestra imposible, y otra que justificaba no regenerar la captura con un rótulo
+  que ya cambió.
+
+La observación del Auditor que ordena la misión entera: «es la quinta generación consecutiva en que
+la fuga aparece en el mismo sitio conceptual: la afirmación de que un importe es oficial se apoya en
+algo que no verifica que lo sea. Antes era la etiqueta; ahora es la primera fila escrita.»
+
+Los seis bloqueantes documentales se cierran en el commit de registro. Las **diecisiete**
+observaciones no bloqueantes de los tres verdicts —siete del Librarian, cuatro de QA y seis del
+Auditor— quedan registradas, no corregidas.
+
+## Generación 6
+
+Pendiente. Su alcance es cerrar `AB1-g5` y `AB2-g5` —ambos requieren decisión de propietario sobre
+qué hecho debe fijar un período—, `QB1-g5` y `QB2-g5`, y reverificar los seis documentales. Los
+verdicts de las generaciones 1 a 5 no se reutilizan.

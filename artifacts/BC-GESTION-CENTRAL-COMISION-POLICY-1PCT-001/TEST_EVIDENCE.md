@@ -57,6 +57,13 @@ evidencia durable en `commission_rated_periods`. Publicar ya no se bloquea.
 La exactitud monetaria no se toca: `comision_policy.py` no cambia, el único `HALF_UP` sigue donde
 estaba, y las pruebas de redondeo de la generación 3 siguen en verde sin retoques.
 
+> **Advertencia añadida al registrar la generación 5.** La tabla de arriba es cierta en lo que
+> afirma, pero el Auditor demostró que no cubre el caso completo: la fecha errónea ya no congela la
+> publicación, pero **fija ese mes para siempre y lo hace pagar mal en silencio**, incluso después
+> de que el propio sistema registre por dos vías que fue un error. Es el bloqueante `AB2-g5`.
+> Ninguna prueba de esta generación cubre lo que ocurre *después* de que un pin se graba mal, ni
+> por la ruta del tipeo ni por la de la siembra de la migración (`AB1-g5`).
+
 ## Validaciones dirigidas exigidas por la misión
 
 | Validación | Prueba |
@@ -162,13 +169,13 @@ La generación 4 modifica **una sola** prueba, y era propia de esta misión, no 
 
 - `test_a_settlement_calculated_under_an_older_version_is_never_paid` (añadida en la generación 3
   para el bloqueante G2-A1). Construía la deriva de versión publicando una tasa que gobernaba un
-  período ya liquidado, que es exactamente lo que B1 prohíbe desde ahora. Conserva su intención
-  intacta —una liquidación con sello desfasado no llega al pago— y **gana** una aserción: que la
-  ruta pública está cerrada (`pytest.raises(..., "ya fue liquidado")`). El estado desfasado se
-  reconstruye por SQL mediante el ayudante `_inject_policy_version`, porque una base migrada de
-  otra instalación sí puede traerlo y la guarda de pago debe seguir defendiendo contra él.
+  período ya liquidado. Desde la generación 5 esa deriva no es alcanzable publicando —el período
+  queda fijado al tarifarse—, así que la prueba conserva su intención —una liquidación con sello
+  desfasado no llega al pago— y reconstruye el estado borrando la evidencia del período con
+  `clear_rated_periods`, que es como llega una base migrada de una instalación anterior. La
+  aserción de excepción que tuvo en la generación 4 **ya no existe**: publicar dejó de rechazarse.
 
-La generación 5 modifica cuatro pruebas, todas propias de esta misión y ninguna heredada, porque
+La generación 5 modifica seis pruebas, todas propias de esta misión y ninguna heredada, porque
 el contrato que verificaban cambió por decisión de propietario:
 
 - `test_a_rate_effective_on_the_same_date_never_re_rates_what_was_already_rated` y

@@ -137,7 +137,7 @@ aval anterior ya no lo respalda—, con el importe reemplazado asentado en el hi
 **Si el período es anterior a la vigencia, no hay reparación posible.** La decisión es
 `FUERA_DE_VIGENCIA` y la liquidación queda con la base informada y sin porcentaje: un importe
 heredado de ese período se retira y no se sustituye, y ninguna ruta pública lo devuelve —publicar
-una vigencia que alcance ese período está prohibido por la guarda de período liquidado. Lo que sí
+una vigencia que alcance ese período no lo alcanza, porque la vigencia no puede retroceder. Lo que sí
 está garantizado es que **el importe retirado queda asentado**: `recalculate` escribe el bloque
 `replaced` en toda rama que anule o reemplace un importe anterior, no sólo al reparar una `REVISADA`
 o una `APROBADA`. Recuperar ese importe exigirá el flujo de corrección explícita que hoy no existe.
