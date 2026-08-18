@@ -4,9 +4,9 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "IMPLEMENTED",
+  "current_state": "REMEDIATION",
   "mission_lease": "HELD",
-  "generation": 3,
+  "generation": 4,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -153,11 +153,46 @@
     },
     {
       "generation": 3,
-      "snapshot_commit": null,
-      "status": "PENDING_REVIEW",
+      "snapshot_commit": "75f5c5728cf9194b3e4c91a3b1e83c10ea1ec48a",
+      "status": "INVALIDATED",
       "tests": 331,
-      "verdicts": [],
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-003",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-18T00:55:51Z",
+          "blockers": [
+            "L1",
+            "L2"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-003",
+          "role": "QA",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-18T00:58:35Z"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-003",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-18T00:59:06Z",
+          "blockers": [
+            "B1",
+            "B2"
+          ]
+        }
+      ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-3/"
+    },
+    {
+      "generation": 4,
+      "snapshot_commit": null,
+      "status": "PENDING_REMEDIATION",
+      "tests": null,
+      "verdicts": [],
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-4/"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -174,7 +209,15 @@
     "11. cancelled_date viaja siempre nulo en el contrato v2",
     "12. El chequeo de consistencia trata la generacion en curso como revisada",
     "13. Una correccion de origen sobre una OBSERVADA no oficial borra el importe sin registrarlo",
-    "14. La nota de una SIN_POLITICA_APLICADA ya pagada invita a recalcular sin que sea posible"
+    "14. La nota de una SIN_POLITICA_APLICADA ya pagada invita a recalcular sin que sea posible",
+    "15. QA-003 O1: una vigencia que no es dia 1 de mes se publica como una fecha y se aplica desde el dia 1, re-tarifando y desavalando una liquidacion ya aprobada del mismo mes (agrava el hallazgo 5)",
+    "16. QA-003 O3: el resumen por vendedora no expone la columna de importe no oficial; el dato queda solo en el banner",
+    "17. AUDITOR-003 O2: mark_paid no lleva la guarda _reject_paid; sin ruta publica que lo explote, asimetria de defensa en profundidad",
+    "18. AUDITOR-003 O3: set_general_rate quedaria sin guarda de retroceso si commission_policy_versions estuviese vacia; sin ruta publica que lo produzca",
+    "19. AUDITOR-003 O7: recalculate abre una conexion por entrada dentro del BEGIN IMMEDIATE; rendimiento, no correccion",
+    "20. LIBRARIAN-003 obs 1: el checker de consistencia no inspecciona el ZIP ni cuenta observaciones de los verdicts, que es donde sobrevivio L1",
+    "21. LIBRARIAN-003 obs 3: el parrafo de cabecera de INDEPENDENCE sigue citando solo el snapshot de la generacion 1",
+    "22. LIBRARIAN-003 obs 5: MIGRATION paso 1 atribuye commission_policy_versions a _add_missing_columns; la crea migrate()"
   ],
   "inherited_open_findings": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/HANDOFF.md",
   "untouched": [
@@ -263,5 +306,56 @@
       "role": "AUDITOR",
       "summary": "paid_at IS NULL colgaba de una rama y no del WHERE, de modo que el invariante declarado era falso"
     }
-  ]
+  ],
+  "blockers_open": [
+    {
+      "id": "L1",
+      "role": "LIBRARIAN",
+      "generation": 3,
+      "kind": "DOCUMENTAL",
+      "summary": "ARTIFACT_CONSISTENCY declaraba 27 miembros del ZIP; eran 31",
+      "status": "CERRADO_EN_COMMIT_DE_REGISTRO"
+    },
+    {
+      "id": "L2",
+      "role": "LIBRARIAN",
+      "generation": 3,
+      "kind": "DOCUMENTAL",
+      "summary": "INDEPENDENCE declaraba veinte observaciones no bloqueantes de la generacion 2; son diecisiete",
+      "status": "CERRADO_EN_COMMIT_DE_REGISTRO"
+    },
+    {
+      "id": "B1",
+      "role": "AUDITOR",
+      "generation": 3,
+      "kind": "ECONOMICO",
+      "summary": "set_general_rate acepta una vigencia IGUAL a la ultima publicada, de modo que un periodo ya liquidado y aprobado se re-tarifa al alza o a cero y se paga; contradice 'no se puede re-tarifar el pasado'",
+      "status": "ABIERTO_REQUIERE_DECISION_DE_PROPIETARIO",
+      "decision_fork": [
+        "ENDURECER_GUARDA",
+        "RETIRAR_AFIRMACION_Y_DOCUMENTAR_RETARIFADO"
+      ]
+    },
+    {
+      "id": "B2",
+      "role": "AUDITOR",
+      "generation": 3,
+      "kind": "ECONOMICO",
+      "summary": "recalculate no repara la liquidacion legada de un periodo anterior a la vigencia y anula su importe sin asentar 'replaced' fuera de las ramas REVISADA/APROBADA",
+      "status": "ABIERTO",
+      "cierre_esperable": "escribir replaced en toda rama que anule un commission_amount previo y corregir COMMISSION_POLICY_1PCT.md:110"
+    }
+  ],
+  "next_action": {
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN4",
+    "state": "REMEDIATION",
+    "blocked_on": "decision de propietario sobre B1",
+    "steps": [
+      "1. Resolver la bifurcacion de B1: endurecer la guarda de set_general_rate contra periodos ya liquidados, o retirar la afirmacion y documentar el re-tarifado retroactivo con su control explicito.",
+      "2. Cerrar B2: asentar 'replaced' en toda rama de recalculate que anule o modifique un commission_amount previo, y corregir COMMISSION_POLICY_1PCT.md:110 para no prometer reparacion donde el periodo es anterior a la vigencia.",
+      "3. Regenerar evidencia y publicar el snapshot de la generacion 4.",
+      "4. Relanzar los tres runners independientes sobre ese snapshot. No reutilizar verdicts de las generaciones 1, 2 ni 3."
+    ],
+    "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 queda condicionado a 3xPASS y a la Safe Closure de esta mision; no se abre todavia."
+  }
 }

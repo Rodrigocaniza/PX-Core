@@ -69,8 +69,47 @@ Nuevos, abiertos y **no** corregidos:
 14. **La nota de una `SIN_POLITICA_APLICADA` ya pagada invita a recalcular** aunque `recalculate`
     jamás la alcanzará. La rama `POLITICA_HISTORICA_PREVIA` sí distingue si movió dinero; esta no.
 
+Aportados por las observaciones no bloqueantes de la generación 3, abiertos y **no** corregidos:
+
+15. **Una vigencia que no es día 1 de mes se publica como una fecha y se aplica desde el día 1.**
+    QA-003 O1: `set_general_rate` acepta cualquier `effective_from` válido, pero `is_in_effect`
+    compara prefijos `AAAA-MM`. Publicar «3% desde 2026-08-20» re-tarifa a 30.000 una venta del 5 de
+    agosto ya aprobada y le quita el aval. Agrava el hallazgo 5, que sólo describía la granularidad.
+16. **El resumen por vendedora no expone la columna de importe no oficial.** QA-003 O3: `report()`
+    calcula `non_official_amount` por vendedora pero `SUMMARY_COLUMNS` no lo muestra, así que el
+    dato queda sólo en el banner global.
+17. **`mark_paid` no lleva la guarda `_reject_paid`.** AUDITOR-003 O2: confía sólo en la máquina de
+    estados. No hay ruta pública que lo explote —se verificó—, pero es una asimetría de defensa en
+    profundidad frente al blindaje explícito que sí tiene `recalculate`.
+18. **`set_general_rate` quedaría sin guarda de retroceso si `commission_policy_versions` estuviese
+    vacía.** AUDITOR-003 O3: `latest` se deriva sólo de esa tabla. No se encontró ruta pública que
+    produzca ese estado; queda como endurecimiento.
+19. **`recalculate` abre una conexión por entrada dentro del `BEGIN IMMEDIATE`.** AUDITOR-003 O7:
+    correcto en WAL y sin bloqueos en las pruebas de concurrencia, pero escala mal por período.
+    Rendimiento, no corrección.
+20. **El checker de consistencia no inspecciona el ZIP ni cuenta las observaciones de los
+    verdicts.** LIBRARIAN-003 obs 1: es justo donde sobrevivieron L1 y L2, y
+    `ARTIFACT_CONSISTENCY.md` presenta su veredicto como respaldo de un bloque de afirmaciones más
+    amplio que su alcance real.
+21. **El párrafo de cabecera de `INDEPENDENCE.md` citaba sólo el snapshot de la generación 1.**
+    LIBRARIAN-003 obs 3. Corregido en el commit de registro de la generación 3; queda anotado para
+    que el Librarian lo reverifique.
+22. **`MIGRATION.md` paso 1 atribuye `commission_policy_versions` a `_add_missing_columns`.**
+    LIBRARIAN-003 obs 5: la crea el `CREATE TABLE IF NOT EXISTS` de `migrate()`. El efecto descrito
+    es correcto; la atribución no.
+
 ## Siguiente paso propuesto
 
-Cablear `register_payment` y `sync_review_sales` desde el producto (heredado 11), que es lo único
-que impide que el ciclo cobro → elegibilidad → 1% → aprobación → pago sea alcanzable sin el
-capturador sintético.
+**Cerrar la generación 4.** Los dos bloqueantes económicos del Auditor mandan sobre todo lo demás:
+
+- **B1** — resolver la bifurcación: endurecer la guarda de `set_general_rate` para que rechace una
+  vigencia que gobierne un período ya liquidado, o retirar la afirmación «no se puede re-tarifar el
+  pasado» y documentar el re-tarifado retroactivo con su control explícito. Es una decisión del
+  propietario, no del implementador.
+- **B2** — asentar `replaced` en toda rama de `recalculate` que anule o modifique un
+  `commission_amount` previo, y corregir `COMMISSION_POLICY_1PCT.md:110` para no prometer
+  reparación donde el período es anterior a la vigencia.
+
+Sólo después vuelve a la cola el cableado de `register_payment` y `sync_review_sales` desde el
+producto (heredado 11), que sigue siendo lo único que impide que el ciclo cobro → elegibilidad →
+1% → aprobación → pago sea alcanzable sin el capturador sintético.

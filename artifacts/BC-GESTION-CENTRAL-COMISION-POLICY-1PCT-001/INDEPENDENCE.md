@@ -5,9 +5,11 @@ runners separados, con identidad de rol exclusiva, contexto propio, prompt espec
 evaluación concurrente sobre el mismo snapshot inmutable y **sin compartir razonamiento ni
 conclusiones**. Ninguno conoce el verdict de los otros antes de emitir el propio.
 
-Los tres corrieron en paralelo sobre `578bf8b7205c857f9032581744f1e5818dab99fa` con el worktree
-limpio, y ninguno modificó el árbol: QA y el Auditor escribieron sus escenarios propios en un
-directorio temporal fuera del repositorio.
+En cada generación los tres corrieron en paralelo sobre el snapshot de esa generación —
+`578bf8b7205c857f9032581744f1e5818dab99fa`, `7abc30e6d33eb5dc522be7e43aa3ad3886a65b32` y
+`75f5c5728cf9194b3e4c91a3b1e83c10ea1ec48a` respectivamente— con el worktree limpio, y ninguno
+modificó el árbol: QA y el Auditor escribieron sus escenarios propios en un directorio temporal
+fuera del repositorio.
 
 ## Generación 1 — snapshot `578bf8b7205c857f9032581744f1e5818dab99fa`
 
@@ -60,9 +62,47 @@ que la corrección era **insuficiente contra su propio enunciado**, cada uno por
   antes— y una prueba que ya no ejercitaba el caso por el que existía, porque el arreglo la había
   vuelto inalcanzable.
 
-Los diez bloqueantes se corrigieron y sólo ellos. Sus veinte observaciones no bloqueantes quedaron
-registradas, no corregidas.
+Los diez bloqueantes se corrigieron y sólo ellos. Sus **diecisiete** observaciones no bloqueantes
+—seis del Librarian, cinco de QA y seis del Auditor— quedaron registradas, no corregidas.
 
-## Generación 3
+## Generación 3 — snapshot `75f5c5728cf9194b3e4c91a3b1e83c10ea1ec48a`
 
-Pendiente de revisión sobre el snapshot que publica esta corrección.
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISION-POLICY-1PCT-003` | LIBRARIAN | **FAIL** — L1, L2 |
+| `QA-IND-COMISION-POLICY-1PCT-003` | QA | PASS |
+| `AUDITOR-IND-COMISION-POLICY-1PCT-003` | AUDITOR | **FAIL** — B1, B2 |
+
+Evidencia íntegra y sin retocar en `generation-3/`.
+
+Los tres verificaron por su cuenta el cierre de los quince bloqueantes de las generaciones 1 y 2, y
+los tres coincidieron en que están cerrados. QA lo hizo por ejecución, reconstruyendo con sus
+propios escenarios los tres casos que él mismo había roto en la generación 2, y pasó. El Auditor
+reprodujo los diez invariantes económicos del enunciado y **los diez pasan**, incluida la
+concurrencia real sobre `mark_paid`, `set_general_rate`, `register_payment` y `recalculate`.
+
+Los dos FAIL no revierten nada de lo anterior; abren frente nuevo:
+
+- El Auditor encontró la **fuga inversa** de la que cerró en las generaciones 1 y 2. Allí se pagaba
+  a una política ya superada; aquí se paga a una política que **no regía cuando se generó la
+  comisión**: la guarda de `set_general_rate` rechaza una vigencia *anterior* a la última publicada
+  pero acepta una **igual**, de modo que un período ya calculado, revisado y aprobado se re-tarifa
+  al alza —4.000.000 Gs donde el 1% eran 100.000— o a cero, y se paga. Es exactamente lo que el
+  código dice que «el versionado existe para impedir».
+- El mismo Auditor encontró que la promesa de reparación sin destrucción es falsa en dos sub-casos:
+  el período anterior a la vigencia no tiene salida por ninguna ruta pública, y el importe anulado
+  no queda asentado cuando la liquidación no estaba en `REVISADA` ni `APROBADA`.
+- El Librarian encontró dos recuentos falsos, **ambos desactualizados por la corrección de esta
+  misma generación** y ambos del mismo tipo que G2-L1 y G2-L2: los miembros del ZIP y las
+  observaciones de la generación 2 en este mismo documento. Se corrigen en el commit de registro,
+  y su cierre queda sujeto a la reverificación del Librarian sobre el snapshot de la generación 4.
+
+QA, que pasó, había rozado el asunto de B1 por el flanco de las vigencias a mitad de mes (su
+observación O1) sin cruzar hasta la vigencia igual, y por eso no llegó al mismo sitio que el
+Auditor. Las **diecisiete** observaciones no bloqueantes de los tres verdicts —seis del Librarian,
+cuatro de QA y siete del Auditor— quedan registradas, no corregidas.
+
+## Generación 4
+
+Pendiente. Su alcance es cerrar B1 y B2, y reverificar L1 y L2, sobre el snapshot que publique esa
+corrección. Los verdicts de las generaciones 1, 2 y 3 no se reutilizan.
