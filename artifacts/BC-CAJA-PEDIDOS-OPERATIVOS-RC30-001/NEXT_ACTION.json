@@ -1,17 +1,17 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "state": "AWAITING_HUMAN_GATE",
+  "state": "AWAITING_INSTALL_ON_TARGET",
   "repository": "PX-Core",
   "worktree": "pedidos30",
   "branch": "feature/bc-caja-pedidos-operativos-rc30-001",
   "base_commit": "291fe40",
   "baseline": "origin/main = BC Caja 1.0.0-rc.30",
-  "blocked_on": "HUMAN_GATE-PEDIDOS-RC30-001",
-  "next_action": "Veredicto humano de los 11 puntos sobre la evidencia visual regenerada. Sin PASS no se empaqueta, no se instala y no se promueve",
+  "blocked_on": "INSTALL_TARGET_NOT_HERE",
+  "next_action": "Instalar rc.31 en la maquina de la Optica siguiendo INSTALL_READINESS.md, previa verificacion de que alli la instalacion vigente sea efectivamente rc.30",
   "next_role": "HUMAN",
   "verification": {
     "focused": "13 passed del slice + 3 del contrato visual UX004 = 16 passed",
-    "full_suite": "680 passed + 2 failed en tests/gestion_central/test_ui_interactions.py, reproducidas identicas en el baseline 291fe40: deuda preexistente ajena a Caja",
+    "full_suite": "682 passed. Los 2 fallos de gestion_central de la corrida anterior pasaron en esta: queda confirmado que son dependientes del reloj, no del codigo",
     "visual": "smoke fail-closed regenerado a 1920x1080 y 1366x768, ahora tambien sobre el resaltado de la barra de navegacion",
     "migraciones": "21, sin agregar ninguna",
     "reglas_economicas": "sin cambios"
@@ -24,9 +24,11 @@
     "metricas": "no aplican: no se inventan interactive_prompts ni stdin_waits"
   },
   "production_untouched": {
-    "main": "origin/main 291fe40",
-    "instalada": "BC Caja 1.0.0-rc.30",
-    "rc_nueva": "no generada: este slice no empaqueta ni instala"
+    "main": "origin/main 291fe40, sin tocar",
+    "instalada_en_este_equipo": "serie rc.27, sin tocar",
+    "instalada_en_la_optica": "rc.30 segun el registro; no verificable desde aca",
+    "rc_nueva": "1.0.0-rc.31 empaquetada y verificada, NO instalada",
+    "db_local": "sha256 sin cambios antes y despues del smoke"
   },
   "after_gate_pass": [
     "Empaquetar como rc.31 con backup y rollback",
@@ -35,12 +37,12 @@
   ],
   "next_block": {
     "id": "BC-CAJA-TRABAJOS-OPERATIVOS-V1",
-    "objetivo": "Consolidar Pedidos/Laboratorios, Envíos Pilar y Composturas bajo Caja diaria | Trabajos | FactuFácil | Historial",
-    "preparado_por_este_slice": "Pedidos ya usa el vocabulario de Seguimiento: Acción siguiente, contacto contextual y Más ▾"
+    "estado": "SIGUIENTE, NO INICIADA",
+    "objetivo": "Unificar progresivamente Pedidos/Laboratorios, Envios Pilar y Composturas bajo Caja diaria | Trabajos | FactuFacil | Historial",
+    "preparado_por_este_slice": "Pedidos ya habla el vocabulario de Seguimiento: Accion siguiente, contacto contextual y Mas ▾"
   },
   "not_started_yet": [
-    "FactuFácil",
-    "Composturas",
+    "FactuFacil",
     "DatePicker global"
   ],
   "safe_pause": {
@@ -68,11 +70,12 @@
     ]
   },
   "next_session": [
-    "1. Recibir el veredicto humano de HUMAN_GATE-PEDIDOS-RC30-001 (11 puntos)",
-    "2. Si PASS: rc.31 con backup, rollback verificado, instalacion transaccional, validacion post-install y promocion a main por flujo protegido",
-    "3. Si FAIL: corregir en el worktree pedidos30, revalidar y regenerar el gate",
-    "4. Antes de la proxima mision con Headless: sincronizar BC-Core local",
-    "5. Recien despues iniciar BC-CAJA-TRABAJOS-OPERATIVOS-V1"
+    "1. En la maquina de la Optica: verificar que VERSION.txt diga rc.30. Si no, detenerse",
+    "2. Instalar rc.31 por INSTALL_READINESS.md: backup con hash, rollback apartado, instalacion, verificacion del sha256 del exe",
+    "3. Validacion post-install: integrity_check, foreign_key_check, 21 migraciones, datos y montos contra el backup, Pedidos, Seguimiento, Historial, Arqueo, Administrador, correo y outbox sin envios",
+    "4. Recien con eso validado, promover a main por flujo protegido",
+    "5. Antes de la proxima mision con Headless: sincronizar BC-Core local",
+    "6. Despues iniciar BC-CAJA-TRABAJOS-OPERATIVOS-V1"
   ],
   "gate_generation": 2,
   "deuda_registrada": [
@@ -86,5 +89,6 @@
       "estado": "HALLAZGO ANOTADO, NO CORREGIDO",
       "detalle": "Editar desde Historial usa pestanas.set directo y deja el resaltado en Historial: el mismo patron que causaba el falso positivo del punto 10, pero en el producto. Preexistente en 291fe40 y fuera del slice de Pedidos"
     }
-  ]
+  ],
+  "gate": "HUMAN_GATE-PEDIDOS-RC30-001 PASS (generacion 2, 11/11)"
 }

@@ -27,6 +27,27 @@ Hallazgo adyacente NO corregido: CajaDiaria.py:3253 (editar desde Historial) usa
 BC-Core local desactualizado (recovery/command-center-safe-exit-ops-20260811, 7991df3) y
   sin Headless Executor. Sincronizar desde el origin/main canonico antes de la proxima
   mision de codigo que pretenda usarlo. No se mezclo con este gate
+
+REVISION 3 (gate PASS y empaquetado de rc.31)
+HUMAN_GATE-PEDIDOS-RC30-001 PASS generacion 2, 11/11, veredicto humano. Registrado en
+  WORKFLOW.json y en GATE_VERDICT.md
+Fuentes 7 sha256 ok (se suma pilot/package_docs/VERSION.txt), evidencia visual 5 sha256 ok
+Suite 682 passed. Los 2 fallos de gestion_central de la corrida anterior pasaron en esta:
+  confirmado que dependen del reloj. Siguen registrados como deuda separada, sin tocar
+Version 1.0.0-rc.31 en VERSION_APLICACION y en pilot/package_docs/VERSION.txt, atada por
+  prueba. Unico cambio de codigo desde el gate
+Paquete releases/BC-CAJA-1.0.0-rc.31-win64.zip
+  zip sha256 95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948
+  exe sha256 62e8f1d87206b31b428892dc60266dde3394ef30a8b530b41f53563fe892152f
+  21 migraciones embebidas, sin migracion nueva respecto de rc.30
+Smoke del binario empaquetado en directorio de datos aislado: esquema en 021, integrity
+  ok, foreign_key_check 0, outbox 0, sin startup-error.log
+NO INSTALADO: este equipo no tiene rc.30. La instalacion vigente aca es de la serie rc.27
+  y no existe backup preinstall ni rollback de rc.30. El destino productivo es la maquina
+  de la Optica. Runbook en INSTALL_READINESS.md, reversion en ROLLBACK.md
+Validacion post-install NO ejecutada y NO declarada
+main 291fe40 sin tocar, sin force-push. Promocion pendiente hasta que rc.31 este instalada
+  y validada en el destino real
 Migraciones 21 sin agregar ninguna
 Reglas economicas de Caja sin cambios
 Autoridad del tronco preservada: estado anclado a la fila, alerta con filtro transportado, sucursal, Seguimiento y NextAction

@@ -4,9 +4,9 @@
   "worktree": "pedidos30",
   "base_commit": "291fe40",
   "baseline": "origin/main = BC Caja 1.0.0-rc.30",
-  "packaged": false,
+  "packaged": true,
   "installed": false,
-  "version_unchanged": "1.0.0-rc.30: este slice no genera RC nueva todavía",
+  "version_unchanged": null,
   "authority_preserved": [
     "Sin chips flotantes: el estado sigue anclado a la fila (RC22/RC23)",
     "Alerta con filtro transportado (RC28) y contexto Mostrando/Ver todos",
@@ -35,12 +35,13 @@
   "economic_rules_changed": false,
   "headless_executor": "NO DISPONIBLE: BC-Core/tools no tiene ningún executor headless ni menciona headless. Se continuó con el mecanismo actual, como estaba previsto para ese caso",
   "source_files": {
-    "CajaDiaria.py": "b481fb201a3f8f3b9ef54b347b6d28dcca67a0afcd64d3530bfce2fde47de045",
+    "CajaDiaria.py": "09a4cc6507a1f1e14b46f38690f2bf814d8dd6cf359a913828a4647125a6d680",
     "modulos/caja_diaria/infrastructure/sqlite_repository.py": "fc43f68dd31f983bce48284417ec3d1b0a057d0739cd939a9fb1871281d90033",
     "modulos/caja_diaria/application/services.py": "ac671d65139c56a86ef6d0e076cf2aadfb206e33e25c5d0f2114d5f9b15fbc0c",
     "modulos/caja_diaria/ui/controller.py": "1aba1e3388e0b7c4e89a522793fc06f6b0a9c951a8a7b838aff02e7a4f44ee69",
     "tests/caja_diaria/test_pedidos_operativos_rc30.py": "f00bc5a77852dc4140a92781654c291b20e951a2360d48d75c167b26b2a82285",
-    "tools/capture_caja_pedidos_rc30.py": "56550a61ce54140a431106f1dbfd91372e2fca7386fdaf3c0f7b087b44bb7015"
+    "tools/capture_caja_pedidos_rc30.py": "56550a61ce54140a431106f1dbfd91372e2fca7386fdaf3c0f7b087b44bb7015",
+    "pilot/package_docs/VERSION.txt": "994a4ebcbf2730fb79d5b1f8bef01a87f99f426f34611607cb9051bd5737926a"
   },
   "visual_evidence": {
     "pedidos-operativos-1920x1080.png": "283fcc4a96a064287a946bf0a2cc70efdfe9f7ba6faf159564b4847a61da29c7",
@@ -50,5 +51,21 @@
     "seguimiento-1920x1080.png": "2512dd67b8d3ff22f9cbe5b89d7d50954e8aac339e693800b1b2d0eef9b94753"
   },
   "hash_convention": "source_files: sha256 con saltos normalizados a LF, para que la verificacion no dependa del checkout Windows. visual_evidence: sha256 del byte crudo",
-  "harness_fix": "El smoke navegaba con pestanas.set(Pedidos): eso mueve el CTkTabview pero no repinta la barra de navegacion propia de la app (CajaDiaria.py:1017-1029), que es la unica visible. Ahora el smoke toca el boton de navegacion, como la operadora, y falla cerrado si Pedidos no queda resaltado o si otra pestana sigue encendida. Codigo productivo sin tocar"
+  "harness_fix": "El smoke navegaba con pestanas.set(Pedidos): eso mueve el CTkTabview pero no repinta la barra de navegacion propia de la app (CajaDiaria.py:1017-1029), que es la unica visible. Ahora el smoke toca el boton de navegacion, como la operadora, y falla cerrado si Pedidos no queda resaltado o si otra pestana sigue encendida. Codigo productivo sin tocar",
+  "version": "1.0.0-rc.31",
+  "package": {
+    "zip": "releases/BC-CAJA-1.0.0-rc.31-win64.zip",
+    "zip_bytes": 34111433,
+    "zip_sha256": "95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948",
+    "exe_sha256": "62e8f1d87206b31b428892dc60266dde3394ef30a8b530b41f53563fe892152f",
+    "contenido": [
+      "BC-Caja.exe",
+      "VERSION.txt",
+      "INSTALACION.txt",
+      "GUIA_RAPIDA.txt"
+    ],
+    "migraciones_embebidas": 21,
+    "smoke_binario": "arranca en directorio de datos aislado, esquema en 021, integrity ok, foreign_key_check 0, outbox 0, sin startup-error.log"
+  },
+  "install_blocked": "NO instalado. Este equipo no tiene rc.30: la instalacion vigente aca es de la serie rc.27 (VERSION.txt rc.27, exe del 16-08) y no existe ni backup preinstall de rc.30 ni carpeta de rollback de rc.30. La instalacion productiva vive en la maquina de la Optica. Runbook y rollback quedan escritos en INSTALL_READINESS.md y ROLLBACK.md"
 }

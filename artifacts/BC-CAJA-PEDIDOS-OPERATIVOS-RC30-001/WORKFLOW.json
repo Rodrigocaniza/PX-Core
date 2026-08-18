@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "current_state": "GATE_PASSED",
+  "current_state": "AWAITING_INSTALL_ON_TARGET",
   "base": "291fe40",
   "history": [
     {
@@ -130,6 +130,24 @@
       "reason": "Veredicto humano sobre la evidencia visual de generacion 2: los 11 puntos aprobados. La evidencia se produjo con fixtures sinteticas, 0 correos, 0 cierres y sin DB productiva",
       "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
       "gate_generation": 2,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "PACKAGED",
+      "from_state": "GATE_PASSED",
+      "to_state": "PACKAGED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "BC Caja 1.0.0-rc.31 empaquetada con build_pilot.ps1. 682 passed antes de construir. Zip y exe hasheados, VERSION.txt del paquete en rc.31, 21 migraciones embebidas. Smoke del binario en directorio de datos aislado: integrity ok, foreign_key_check 0, outbox 0. La DB local quedo con el mismo sha256 antes y despues",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "INSTALL_BLOCKED",
+      "from_state": "PACKAGED",
+      "to_state": "AWAITING_INSTALL_ON_TARGET",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "El destino real no esta en rc.30. En %LOCALAPPDATA%/Programs/BC-Caja-Pilot la instalacion vigente dice rc.27, con exe del 16-08, y no hay backup preinstall de rc.30 ni carpeta de rollback de rc.30 ni paquete rc.28/29/30 en disco. La instalacion productiva esta en la maquina de la Optica. Instalar aca seria instalar sobre rc.27 saltando un tramo no ensayado y asentar como validada una instalacion que no es la productiva. No se hizo ni se declara hecha",
+      "gate_id": null,
       "session_id": "bc-caja-pedidos-operativos-rc30"
     }
   ]

@@ -1,6 +1,6 @@
-BC Caja 1.0.0-rc.30
-Misión: BC-CAJA-RECOVERED-TRUNK-CONSOLIDATION-001
-Integra: todo lo de 1.0.0-rc.27 (RC18 UX · RC19 Seguimiento · RC20 Alta de lote + ABM · RC21 Tabla logística · RC22 Vista por sucursal · RC23 Estado anclado a la fila · RC24 Tres acciones · RC25 Recepción con discrepancias · RC26 El atraso no traba el circuito · RC27 Sucursal automática y queda a confirmar · RC28 La alerta de Pedidos abre sus pedidos · RC29 Historial por jornada) + Apertura de Caja automática y contraste de acciones, portados desde rc.15
+BC Caja 1.0.0-rc.31
+Misión: BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001
+Integra: todo lo de 1.0.0-rc.30 + Pedidos operativo: ATRASADOS / PARA HOY con fallback a PRÓXIMOS, la pantalla se puebla al abrir, columnas Cliente · Sobre · Trabajo, laboratorio con su teléfono en la fila, atraso derivado de la fecha prometida, última novedad en una línea, tres acciones (Acción siguiente · Contactar · Más ▾) con contraste real, y Corregir estado con lista cerrada del dominio, observación obligatoria y auditoría
 Fecha: 2026-08-17
 Esquema: migraciones 001-021 (sin migración nueva)
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)
