@@ -28,6 +28,16 @@ from modulos.caja_diaria.domain.models import SaleItem
 
 COLUMNAS = tuple(clave for clave, _t, _a, _an in CajaDiaria.ORDER_COLUMN_SPECS)
 
+#: La barra visible es la de botones propios: la app oculta el segmented button
+#: del CTkTabview (CajaDiaria.py:1017) y navega por seleccionar_pestaña(), que
+#: mueve la pestaña y repinta el resaltado. Tocar pestañas.set() haría sólo la
+#: mitad de abajo y dejaría el resaltado en la pestaña anterior, así que el
+#: smoke navega como la operadora: tocando el botón.
+NAV_PEDIDOS = "📦  Pedidos"
+NAV_OTRAS = ("▣  Caja diaria", "🚚  Seguimiento", "Historial")
+#: Fondo del botón de navegación activo (CajaDiaria.py:1027).
+COLOR_NAV_ACTIVA = "#EAF3FF"
+
 
 def descendants(widget):
     for child in widget.winfo_children():
@@ -92,8 +102,20 @@ def luminancia(color):
 def verificar(root) -> dict:
     root.update_idletasks(); root.update()
     pestañas = next(w for w in descendants(root) if isinstance(w, ctk.CTkTabview))
-    pestañas.set("Pedidos")
+    nav_pedidos = boton(root, NAV_PEDIDOS)
+    nav_pedidos.invoke()
     root.update_idletasks(); root.update()
+
+    # Las dos mitades de la navegación tienen que haberse movido juntas.
+    if pestañas.get() != "Pedidos":
+        raise RuntimeError(f"la pestaña activa no es Pedidos: {pestañas.get()!r}")
+    if str(nav_pedidos.cget("fg_color")) != COLOR_NAV_ACTIVA:
+        raise RuntimeError(
+            f"Pedidos no quedó resaltado en la barra: {nav_pedidos.cget('fg_color')!r}")
+    encendidas = [t for t in NAV_OTRAS
+                  if str(boton(root, t).cget("fg_color")) == COLOR_NAV_ACTIVA]
+    if encendidas:
+        raise RuntimeError(f"otra pestaña sigue resaltada junto a Pedidos: {encendidas}")
 
     grilla = grilla_pedidos(root)
     filas = list(grilla.get_children())
@@ -158,7 +180,8 @@ def verificar(root) -> dict:
     grilla.selection_set(pendiente)
     grilla.event_generate("<<TreeviewSelect>>")
     root.update_idletasks(); root.update()
-    return {"grupos": encabezados, "pedidos": len(reales),
+    return {"nav": f"{pestañas.get()} resaltada, {len(NAV_OTRAS)} apagadas",
+            "grupos": encabezados, "pedidos": len(reales),
             "laboratorio": str(grilla.set(con_lab[0], "laboratorio")),
             "atrasos": sorted(a for a in atrasos if a)}
 
@@ -184,6 +207,7 @@ def main() -> int:
             metricas = verificar(root)
             capturar_ventana(root, salida)
             print(f"BC_CAJA_PEDIDOS_RC30_SMOKE_OK resolution={resolucion} "
+                  f"nav=\"{metricas['nav']}\" "
                   f"grupos={metricas['grupos']} pedidos={metricas['pedidos']} "
                   f"laboratorio=\"{metricas['laboratorio']}\" "
                   f"atrasos={metricas['atrasos']} emails=0 new_closures=0")

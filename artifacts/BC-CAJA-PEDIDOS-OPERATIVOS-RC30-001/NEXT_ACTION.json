@@ -1,25 +1,26 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "state": "SAFE_PAUSE",
+  "state": "AWAITING_HUMAN_GATE",
   "repository": "PX-Core",
   "worktree": "pedidos30",
   "branch": "feature/bc-caja-pedidos-operativos-rc30-001",
   "base_commit": "291fe40",
   "baseline": "origin/main = BC Caja 1.0.0-rc.30",
   "blocked_on": "HUMAN_GATE-PEDIDOS-RC30-001",
-  "next_action": "Reanudar por los pasos de next_session, en ese orden.",
+  "next_action": "Veredicto humano de los 11 puntos sobre la evidencia visual regenerada. Sin PASS no se empaqueta, no se instala y no se promueve",
   "next_role": "HUMAN",
   "verification": {
-    "focused": "13 passed",
-    "full_suite": "682 passed + 4 subtests (669 baseline + 13)",
-    "visual": "smoke fail-closed propio a 1920x1080 y 1366x768, más las regresiones de RC28 y RC27",
+    "focused": "13 passed del slice + 3 del contrato visual UX004 = 16 passed",
+    "full_suite": "680 passed + 2 failed en tests/gestion_central/test_ui_interactions.py, reproducidas identicas en el baseline 291fe40: deuda preexistente ajena a Caja",
+    "visual": "smoke fail-closed regenerado a 1920x1080 y 1366x768, ahora tambien sobre el resaltado de la barra de navegacion",
     "migraciones": "21, sin agregar ninguna",
     "reglas_economicas": "sin cambios"
   },
   "headless_executor": {
     "disponible": false,
-    "verificado_en": "BC-Core/tools y BC-Core/docs",
-    "detalle": "no hay executor headless ni ningún archivo que mencione headless; se continuó con el mecanismo actual",
+    "verificado_en": "BC-Core local: tools/ y arbol completo",
+    "detalle": "BC-Core local esta en recovery/command-center-safe-exit-ops-20260811 (7991df3) y no tiene un solo archivo que mencione headless. Se continuo con el mecanismo actual. No bloquea Pedidos",
+    "accion_pendiente": "Sincronizar BC-Core local desde su origin/main canonico ANTES de la proxima mision de codigo que pretenda usar Headless. No se mezclo con este gate para no tocar superficies ajenas",
     "metricas": "no aplican: no se inventan interactive_prompts ni stdin_waits"
   },
   "production_untouched": {
@@ -67,11 +68,23 @@
     ]
   },
   "next_session": [
-    "1. Verificar estado canonico real: origin/main, HEAD de la rama, version instalada, migraciones, worktrees, leases",
-    "2. Verificar BC-Core/Command Center actualizado y si el Headless Executor estandar ya esta disponible de verdad",
-    "3. Recuperar esta mision automaticamente desde este NEXT_ACTION; no reconstruir contexto a mano",
-    "4. Ejecutar HUMAN_GATE-PEDIDOS-RC30-001 (11 puntos, ver HUMAN_GATE.md)",
-    "5. Si PASS: rc.31 con backup, rollback verificado, instalacion transaccional, validacion post-install y promocion a main por flujo protegido",
-    "6. Recien despues iniciar BC-CAJA-TRABAJOS-OPERATIVOS-V1"
+    "1. Recibir el veredicto humano de HUMAN_GATE-PEDIDOS-RC30-001 (11 puntos)",
+    "2. Si PASS: rc.31 con backup, rollback verificado, instalacion transaccional, validacion post-install y promocion a main por flujo protegido",
+    "3. Si FAIL: corregir en el worktree pedidos30, revalidar y regenerar el gate",
+    "4. Antes de la proxima mision con Headless: sincronizar BC-Core local",
+    "5. Recien despues iniciar BC-CAJA-TRABAJOS-OPERATIVOS-V1"
+  ],
+  "gate_generation": 2,
+  "deuda_registrada": [
+    {
+      "id": "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001",
+      "estado": "SUGERIDA, NO INICIADA",
+      "detalle": "test_refresh_and_filters_have_visible_feedback y test_alert_selection_acknowledgement_and_restart_persistence fallan por alertas LATE_OPEN dependientes del reloj. Reproducidas identicas en 291fe40: ya estan en produccion rc.30. Fuera de esta mision"
+    },
+    {
+      "id": "CajaDiaria.py:3253",
+      "estado": "HALLAZGO ANOTADO, NO CORREGIDO",
+      "detalle": "Editar desde Historial usa pestanas.set directo y deja el resaltado en Historial: el mismo patron que causaba el falso positivo del punto 10, pero en el producto. Preexistente en 291fe40 y fuera del slice de Pedidos"
+    }
   ]
 }

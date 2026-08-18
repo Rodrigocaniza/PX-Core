@@ -35,18 +35,20 @@
   "economic_rules_changed": false,
   "headless_executor": "NO DISPONIBLE: BC-Core/tools no tiene ningún executor headless ni menciona headless. Se continuó con el mecanismo actual, como estaba previsto para ese caso",
   "source_files": {
-    "CajaDiaria.py": "7aac6f2d5c02589fdeffa11d31dd6d1e742093c456040bfb9822adcd7bdbdc3c",
-    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "8c2849719c905c8a860638caabffc7baa36a0ff3fe40a2e7f0a4551d6614d23e",
-    "modulos/caja_diaria/application/services.py": "1669056229a77ca9be91012b83ff4ab9e4645df0081d9e91efd82cbc7525a0f3",
-    "modulos/caja_diaria/ui/controller.py": "e8268ba31cb5d686e4d28a15e562cb20746d382cdd6e4f28e2251b1581eb4591",
+    "CajaDiaria.py": "b481fb201a3f8f3b9ef54b347b6d28dcca67a0afcd64d3530bfce2fde47de045",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "fc43f68dd31f983bce48284417ec3d1b0a057d0739cd939a9fb1871281d90033",
+    "modulos/caja_diaria/application/services.py": "ac671d65139c56a86ef6d0e076cf2aadfb206e33e25c5d0f2114d5f9b15fbc0c",
+    "modulos/caja_diaria/ui/controller.py": "1aba1e3388e0b7c4e89a522793fc06f6b0a9c951a8a7b838aff02e7a4f44ee69",
     "tests/caja_diaria/test_pedidos_operativos_rc30.py": "f00bc5a77852dc4140a92781654c291b20e951a2360d48d75c167b26b2a82285",
-    "tools/capture_caja_pedidos_rc30.py": "0c7ce9f32a1da8849f8efe37b7bc09198679e04b36f35cb4f6de68f1302d4b1c"
+    "tools/capture_caja_pedidos_rc30.py": "56550a61ce54140a431106f1dbfd91372e2fca7386fdaf3c0f7b087b44bb7015"
   },
   "visual_evidence": {
-    "pedidos-operativos-1920x1080.png": "0c4b31d104ddaacb5a257a7b8155704d292d158e0781b98e0688542cd7feefea",
-    "pedidos-operativos-1366x768.png": "24a0dc9a3a1ce24a53ac576b978da0baedf3ec3e46f61e4470fa8767e8be3d6e",
+    "pedidos-operativos-1920x1080.png": "283fcc4a96a064287a946bf0a2cc70efdfe9f7ba6faf159564b4847a61da29c7",
+    "pedidos-operativos-1366x768.png": "c348c092bbcdf74a9ff39e76278cfcb79aa36ecd22f7b53f93b0307939cd09a8",
     "alerta-rc28-1920x1080.png": "f70eb4a8a6525f397df0dd8d9c26ff06067be8811af62acb6029d55d197562f2",
     "alerta-rc28-1920x1080-caja.png": "8121a553532b7fbddea1741ecb6af4a1dccb030f3070c6c55b76bf045e074148",
     "seguimiento-1920x1080.png": "2512dd67b8d3ff22f9cbe5b89d7d50954e8aac339e693800b1b2d0eef9b94753"
-  }
+  },
+  "hash_convention": "source_files: sha256 con saltos normalizados a LF, para que la verificacion no dependa del checkout Windows. visual_evidence: sha256 del byte crudo",
+  "harness_fix": "El smoke navegaba con pestanas.set(Pedidos): eso mueve el CTkTabview pero no repinta la barra de navegacion propia de la app (CajaDiaria.py:1017-1029), que es la unica visible. Ahora el smoke toca el boton de navegacion, como la operadora, y falla cerrado si Pedidos no queda resaltado o si otra pestana sigue encendida. Codigo productivo sin tocar"
 }

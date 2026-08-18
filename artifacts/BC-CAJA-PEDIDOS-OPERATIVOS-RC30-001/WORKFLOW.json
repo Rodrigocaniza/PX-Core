@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "current_state": "SAFE_PAUSE",
+  "current_state": "GATE_PASSED",
   "base": "291fe40",
   "history": [
     {
@@ -83,6 +83,53 @@
       "timestamp": "2026-08-17T00:00:00Z",
       "reason": "Cierre de jornada. Worktree limpio y rama sincronizada en 3373c6f, 0 leases vivos, 0 procesos residuales. Produccion sigue en rc.30 con 21 migraciones, integridad ok y montos sin cambios; ningun correo enviado y ninguna migracion nueva aplicada. main 291fe40 sin tocar. El gate, el empaquetado, la instalacion y la promocion quedan sin ejecutar a proposito",
       "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "MISSION_RESUMED",
+      "from_state": "SAFE_PAUSE",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Reanudada desde NEXT_ACTION en worktree aislado pedidos30 sobre la rama de la mision. Estado canonico verificado: origin/main 291fe40 rc.30, 0 leases, rc.31 no empaquetada. Headless Executor sigue NO disponible: BC-Core local esta en recovery/command-center-safe-exit-ops-20260811 (7991df3) y no tiene un solo archivo que mencione headless. Se continuo con el mecanismo actual",
+      "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "GATE_FINDING_TRIAGED",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Punto 10: la grilla mostraba Pedidos pero la barra resaltaba Caja diaria. Determinado por codigo, no por inferencia: la app oculta el segmented button del CTkTabview (CajaDiaria.py:1017) y toda navegacion real pasa por seleccionar_pestana(), que mueve la pestana y repinta la barra. El harness llamaba pestanas.set() directo, o sea solo la mitad de abajo. DEFECTO DEL HARNESS, no del producto",
+      "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "HARNESS_FIXED",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "tools/capture_caja_pedidos_rc30.py navega tocando el boton de navegacion y falla cerrado si Pedidos no queda resaltado o si otra pestana sigue encendida. Control negativo ejecutado: con la navegacion vieja aborta y no guarda captura. Codigo productivo sin tocar. 16 focalizadas passed. Evidencia visual regenerada en 1920x1080 y 1366x768",
+      "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "HUMAN_GATE_REOPENED",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "AWAITING_HUMAN_GATE",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Gate ejecutable desde el equipo de desarrollo por la via de captura que el propio HUMAN_GATE.md ofrece: fixtures sinteticas, 0 correos, 0 cierres, sin DB productiva y sin instalar. El veredicto de los 11 puntos sigue siendo humano: no se declara PASS por cuenta propia",
+      "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
+      "gate_generation": 2,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "HUMAN_GATE_PASS",
+      "from_state": "AWAITING_HUMAN_GATE",
+      "to_state": "GATE_PASSED",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "Veredicto humano sobre la evidencia visual de generacion 2: los 11 puntos aprobados. La evidencia se produjo con fixtures sinteticas, 0 correos, 0 cierres y sin DB productiva",
+      "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
+      "gate_generation": 2,
       "session_id": "bc-caja-pedidos-operativos-rc30"
     }
   ]
