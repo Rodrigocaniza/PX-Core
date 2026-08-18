@@ -1,0 +1,89 @@
+{
+  "mission": "BC-OPTICA-SALES-ARTICLE-LINK-V1-004",
+  "current_state": "SAFE_CLOSURE / SLICE 4 CERRADO",
+  "base": "ecc0c7b",
+  "base_branch": "feature/bc-optica-purchases-providers-v1-003",
+  "history": [
+    {
+      "event": "MISSION_STARTED",
+      "from_state": null,
+      "to_state": "ESTADO_CANONICO_VERIFICADO",
+      "timestamp": "2026-08-18T19:10:00-03:00",
+      "reason": "Encadenada por el NEXT_ACTION del slice 3. Verificado sin asumir SHAs: origin/main 7db56a0, slices 1 a 3 en ed0dbba, 54f5f06 y ecc0c7b, los cuatro identicos en local y origin. Las migraciones 022, 023 y 024 confirmadas commit por commit con --diff-filter=A. Produccion en 21 migraciones, sha256 1c4fcc40...98ec, cero tablas del nucleo comercial. 0 leases. Headless Executor NO disponible sin sincronizar BC-Core, asi que no se uso",
+      "gate_id": null,
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    },
+    {
+      "event": "CANONICAL_MODEL_DISCOVERED",
+      "from_state": "ESTADO_CANONICO_VERIFICADO",
+      "to_state": "MODELO_ENTENDIDO",
+      "timestamp": "2026-08-18T19:20:00-03:00",
+      "reason": "Antes de diseñar el vinculo se leyo como representa BC Caja una linea de venta HOY, incluyendo los datos productivos reales. Hallazgo que definio todo el slice: una linea NO es un articulo, lleva frame_price y lens_price en la misma fila, porque es un par de anteojos. La 022 habia agregado article_id asumiendo un articulo por linea. Partir la venta en dos filas habria sido reescribir el subsistema de ventas, prohibido por la regla central de esta mision",
+      "gate_id": null,
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    },
+    {
+      "event": "WORKTREE_CREATED",
+      "from_state": "MODELO_ENTENDIDO",
+      "to_state": "AISLADO",
+      "timestamp": "2026-08-18T19:24:00-03:00",
+      "reason": "Worktree .worktrees/sales-link-004 y rama feature/bc-optica-sales-article-link-v1-004 derivados de ecc0c7b: la venta necesita el catalogo de la 022, el ledger y el spine de la 023, y el patron de derivacion atomica que dejo la 024",
+      "gate_id": null,
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    },
+    {
+      "event": "TESTS_FIRST",
+      "from_state": "AISLADO",
+      "to_state": "TESTS_ESCRITOS",
+      "timestamp": "2026-08-18T19:45:00-03:00",
+      "reason": "42 pruebas dirigidas escritas antes de la implementacion, cubriendo los 12 grupos pedidos: venta solo stock, solo servicio, mixta, trabajo no stockeable, stock insuficiente, sucursal, idempotencia, atomicidad, edicion postventa, historico, dinero y migraciones",
+      "gate_id": null,
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    },
+    {
+      "event": "IMPLEMENTED",
+      "from_state": "TESTS_ESCRITOS",
+      "to_state": "IMPLEMENTADO",
+      "timestamp": "2026-08-18T20:05:00-03:00",
+      "reason": "Migracion 025 con sale_items.lens_article_id, sale_stock_integrations, la vista stock_origen_venta y seis triggers. VentasLedgerIntegrator corre DENTRO de la transaccion que save() ya abria y nunca abre una propia. El integrador es opcional y por defecto no esta: sin el, el repositorio guarda exactamente como guardaba antes de que existiera el nucleo comercial",
+      "gate_id": null,
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    },
+    {
+      "event": "LATE_REJECTION_REPLACED_BY_EARLY_ONE",
+      "from_state": "IMPLEMENTADO",
+      "to_state": "SUITE_VERDE",
+      "timestamp": "2026-08-18T20:20:00-03:00",
+      "reason": "La venta sin stock se rechazaba, pero como violacion de constraint del trigger a mitad del guardado. Se agrego el chequeo previo sobre la MISMA conexion de la transaccion: preguntarlo por otra devolveria lo de antes de empezar y en una venta de dos lineas del mismo articulo le daria el visto bueno a las dos. El trigger de la 023 sigue debajo como respaldo. Suite 848 passed, 4 subtests, exit 0",
+      "gate_id": null,
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    },
+    {
+      "event": "VERIFIED_ON_PRODUCTION_COPY",
+      "from_state": "SUITE_VERDE",
+      "to_state": "VERIFICADO",
+      "timestamp": "2026-08-18T20:32:00-03:00",
+      "reason": "La cadena 022..025 se aplico sobre una COPIA de la base real de la Optica. 12 cash_entries y 10 sale_items intactos, 0 tablas perdidas, 0 filas cambiadas, integrity ok, foreign_key_check 0, cadena 21 -> 025, totales de Caja sin cambios. Los invariantes se probaron con una venta REAL marcada como integrada: las seis mutaciones prohibidas rechazadas, y una venta no integrada sigue editable y borrable como siempre. La base real quedo sin tocar, sha256 identico",
+      "gate_id": null,
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    },
+    {
+      "event": "GATES_PASSED",
+      "from_state": "VERIFICADO",
+      "to_state": "3xPASS",
+      "timestamp": "2026-08-18T20:45:00-03:00",
+      "reason": "Librarian PASS: rutas, simbolos y objetos de base existen; el integrador no expone forma de revertir; el default de sale_integrator es None; el integrador no contiene BEGIN ni COMMIT; el modulo no escribe en ninguna tabla de Caja ni menciona negative_override. QA PASS: 848 passed, 4 subtests, exit 0. Auditor PASS: main y las tres ramas previas intactas, sin force push, 0 leases, produccion en 21 migraciones con sha256 identico y cero tablas del nucleo comercial. Artifact Consistency PASS: 6 fuentes",
+      "gate_id": "librarian+qa+auditor",
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    },
+    {
+      "event": "SAFE_CLOSURE",
+      "from_state": "3xPASS",
+      "to_state": "SAFE_CLOSURE / SLICE 4 CERRADO",
+      "timestamp": "2026-08-18T20:52:00-03:00",
+      "reason": "Slice 4 cerrado y pusheado. Sin PR, sin merge, sin empaquetar, sin instalar. El circuito quedo cerrado de punta a punta y en los dos sentidos. Continua por la UI y la carga inicial de articulos: el dominio de cuatro slices esta cerrado y probado, y todavia no hay una sola pantalla desde donde usarlo",
+      "gate_id": null,
+      "session_id": "bc-optica-sales-article-link-v1-004"
+    }
+  ]
+}

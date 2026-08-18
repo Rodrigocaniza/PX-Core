@@ -1,0 +1,97 @@
+{
+  "mission": "BC-OPTICA-SALES-ARTICLE-LINK-V1-004",
+  "state": "SAFE_CLOSURE / SLICE 4 CERRADO 3xPASS",
+  "repository": "PX-Core",
+  "worktree": ".worktrees/sales-link-004",
+  "branch": "feature/bc-optica-sales-article-link-v1-004",
+  "base_commit": "ecc0c7b",
+  "base_branch": "feature/bc-optica-purchases-providers-v1-003",
+  "cadena_de_slices": {
+    "origin/main": "7db56a0 = BC Caja 1.0.0-rc.31, instalada y validada en la Optica",
+    "slice_1_catalogo": "ed0dbba (022)",
+    "slice_2_ledger": "54f5f06 (023)",
+    "slice_3_compras": "ecc0c7b (024)",
+    "slice_4_ventas": "esta mision (025)"
+  },
+  "closed_on": "2026-08-18",
+  "blocked_on": null,
+
+  "circuito_cerrado": "Compra -> PURCHASE_CONFIRMED -> INGRESO_COMPRA -> stock -> venta -> SALE_COMPLETED -> VENTA -> stock restante. Y en los dos sentidos: stock_origen_compra y stock_origen_venta explican con una consulta de donde entro y por donde salio cada unidad",
+
+  "next_action": "BC-OPTICA-COMERCIAL-UI-Y-CARGA-INICIAL-V1-005. El dominio de los cuatro slices esta cerrado, probado y sin UI: hoy nada de esto se puede usar desde la pantalla. El siguiente slice tiene que darle a la operacion (a) el ABM de articulos con su carga inicial real, porque un catalogo vacio hace inutil todo lo demas, (b) la pantalla de Compras sobre el dominio del slice 3, y (c) el selector de articulo en la linea de venta con el stock visible, sobre el dominio del slice 4. Recien con eso el circuito deja de ser algo que pasa las pruebas y pasa a ser algo que la Optica usa",
+  "next_role": "COMMAND_CENTER",
+
+  "por_que_ui_y_no_mas_dominio": "Los slices 5 (trabajos) y 6 (FactuFacil) agregan mas dominio sobre un sistema que todavia no tiene una sola pantalla nueva. Seguir por ahi acumularia capacidad sin uso. Ademas la carga inicial de articulos es un prerrequisito duro: sin catalogo cargado, ninguna venta puede vincular un articulo y el circuito no se ejercita nunca contra la realidad",
+
+  "entregado_en_este_slice": {
+    "migracion": "025_sales_article_link.sql, aditiva, cadena 24 -> 25",
+    "columna_nueva": "sale_items.lens_article_id, nullable",
+    "tabla_nueva": "sale_stock_integrations",
+    "vista_nueva": "stock_origen_venta",
+    "triggers_nuevos": 6,
+    "modulo": "modulos/comercial/application/ventas.py con VentasLedgerIntegrator, VentasService y planificar_backfill_de_ventas",
+    "caja_tocada": "SaleItem gana dos campos nulos y una propiedad derivada; SQLiteCashDayRepository acepta un integrador opcional. Reglas economicas y UI sin cambios"
+  },
+
+  "descubrimiento_que_definio_el_diseño": {
+    "que": "una linea de venta de BC Caja no es un articulo: lleva frame_price y lens_price en la misma fila",
+    "evidencia": "los datos productivos reales, no el modelo en papel",
+    "consecuencia": "el vinculo son DOS columnas. Partir la venta en dos filas habria sido reescribir el subsistema de ventas, que es lo que este slice tenia prohibido"
+  },
+
+  "verification": {
+    "suite": "848 passed, 4 subtests, exit 0 (806 baseline del slice 3 + 42 nuevas)",
+    "pruebas_dirigidas_primero": true,
+    "migracion_sobre_copia_productiva": "PASS: 12 cash_entries y 10 sale_items intactos, 0 tablas perdidas, 0 filas cambiadas, integrity ok, foreign_key_check 0, cadena 21 -> 025, SUM(cash_entries.total) 6.400.000 sin cambios",
+    "invariantes_sobre_la_copia": "probados con una venta REAL de la Optica marcada como integrada: las seis mutaciones prohibidas rechazadas, y una venta no integrada sigue editable y borrable como siempre",
+    "base_productiva_real": "sin tocar, sha256 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec antes y despues",
+    "gates": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS", "artifact_consistency": "PASS"}
+  },
+
+  "no_promovido_a_main": {
+    "decision": "deliberada",
+    "motivo": "Agrega la 025 sobre la 024, la 023 y la 022. Ninguna de las cuatro se empaqueto ni se instalo. main es lo que se empaqueta: promoverlo haria que la proxima RC arrastre cuatro cambios de esquema que nunca pasaron gate de instalacion",
+    "estado": "rama pusheada a origin, main intacto en 7db56a0",
+    "cuando_promover": "cuando se decida el release que incluya 022, 023, 024 y 025 juntas, con su gate de empaquetado e instalacion, backup y rollback, igual que rc.31. Son cuatro migraciones acumuladas: ese gate ya no es tramite"
+  },
+
+  "slices_restantes": [
+    {"n": 5, "id": "UI comercial y carga inicial de articulos", "estado": "SIGUIENTE", "detalle": "ABM de articulos con categoria y marca inline, carga inicial real del catalogo usando el importador del slice 1 (planifica y recien despues aplica), pantalla de Compras sobre el dominio del slice 3, y selector de articulo con stock visible en la linea de venta sobre el del slice 4"},
+    {"n": 6, "id": "trabajos: cristales y composturas", "estado": "VOCABULARIO DEFINIDO", "detalle": "Ninguno mueve stock, verificado en los slices 2, 3 y 4. Falta el catalogo de tipos de cristal con laboratorio y precio; el costo queda PENDIENTE_DE_CONCILIACION hasta la factura mensual del laboratorio, que ya se puede cargar como compra"},
+    {"n": 7, "id": "FactuFacil reducido a bandeja", "estado": "CONTRATO ESCRITO", "detalle": "SALE_COMPLETED ya lleva en su payload lo que la bandeja necesita. Ver pendiente, confirmar cargado, registrar N.o de factura, habilitar comision despues. NO modifica ventas"}
+  ],
+
+  "boundaries_explicitos_abiertos": [
+    {"id": "REVERSION-DE-VENTAS", "detalle": "Hoy una venta que movio stock no se puede anular ni editar en sus lineas. La reversion correcta es el movimiento compensatorio de la 023 atado al circuito de negocio de la anulacion. Es el boundary mas urgente de los abiertos: la operacion real va a necesitar anular una venta mal cargada"},
+    {"id": "NOTAS-DE-CREDITO-Y-ANULACION-DE-COMPRAS", "detalle": "Mismo boundary del lado de Compras, abierto desde el slice 3"},
+    {"id": "CUENTAS-POR-PAGAR", "detalle": "Solo se guarda e indexa el vencimiento de la factura de compra"},
+    {"id": "TRANSFERENCIAS-ENTRE-SUCURSALES", "detalle": "TRANSFERENCIA_SALIDA y TRANSFERENCIA_ENTRADA declaradas desde el slice 2, todavia sin caso de uso"},
+    {"id": "IVA", "detalle": "La factura de compra guarda su total. Sin evidencia, no se inventa apertura impositiva"},
+    {"id": "CANTIDAD-POR-LINEA-DE-VENTA", "detalle": "SaleItem no tiene cantidad: una linea es una unidad. Vender dos armazones iguales son hoy dos lineas. Si la operacion pide cantidad, es un cambio de modelo con su propia migracion, no un parche"}
+  ],
+
+  "deuda_heredada_sin_tocar": [
+    {"id": "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001", "estado": "REAPARECIO, NO CORREGIDA", "detalle": "Una corrida intermedia dio 5 errors en tests/gestion_central/test_ui_interactions.py. Aislados pasan y la corrida siguiente dio 848 limpios. Segunda mision consecutiva en que aparece; ya conviene atacarla"},
+    {"id": "CajaDiaria.py:3253", "estado": "HALLAZGO ANOTADO, NO CORREGIDO"},
+    {"id": "BC-CORE-LOCAL-DESACTUALIZADO", "estado": "PENDIENTE", "detalle": "BC-Core local no tiene Headless Executor. Por eso no se uso en este slice: usarlo habria exigido sincronizar BC-Core, que estaba fuera de alcance"},
+    {"id": "ADMIN-USERS-VACIO", "estado": "DECISION DEL DUENO", "detalle": "admin_users = 0 en produccion. Preexistente a rc.31"},
+    {"id": "PX-CORE-MAIN-LOCAL-VIEJO", "estado": "ANOTADO, NO CORREGIDO", "detalle": "La referencia local main esta 147 commits detras de origin/main. Sin worktree asociado"},
+    {"id": "SESION-AJENA-BC-CORE-COLGADA", "estado": "ANOTADO, NO TOCADO", "detalle": "Procesos python de otra mision de BC-Core siguen vivos. No tocan PX-Core/main"}
+  ],
+
+  "safe_closure": {
+    "worktree": "limpio tras el commit",
+    "rama": "pusheada a origin",
+    "main": "sin tocar, 7db56a0",
+    "pr": false,
+    "merge": false,
+    "force_push": false,
+    "leases_vivos": 0,
+    "procesos_residuales_propios": 0,
+    "datos_productivos": "sin tocar, sha256 identico",
+    "empaquetado": false,
+    "instalacion": "BC Caja 1.0.0-rc.31 sigue siendo la vigente",
+    "bc_core_y_telegram": "sin tocar",
+    "sesiones_ajenas": "sin interferir"
+  }
+}

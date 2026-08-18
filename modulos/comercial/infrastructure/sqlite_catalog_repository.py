@@ -66,6 +66,20 @@ class SQLiteCatalogRepository:
                     "SELECT name FROM sqlite_master WHERE type='table'")
             }
 
+    def branch_of_register(self, cash_register: str) -> str | None:
+        """La sucursal de una caja, según el vínculo administrativo que ya existe.
+
+        `cash_register_branches` es canónica desde la 018 y la 020. Esto la
+        LEE; no la duplica ni la reinterpreta. Devuelve `None` cuando la caja
+        no está vinculada, que no es lo mismo que estar en Asunción: es no
+        saberlo, y quien pregunte tiene que decidir qué hacer con eso.
+        """
+        with self._connection() as connection:
+            fila = connection.execute(
+                "SELECT branch FROM cash_register_branches WHERE cash_register = ?",
+                (str(cash_register or "").strip(),)).fetchone()
+        return fila["branch"] if fila else None
+
     def asegurar_laboratorio(self, nombre: str) -> str:
         """Devuelve el id del laboratorio, creándolo si todavía no está.
 

@@ -61,7 +61,21 @@ def _limites_utc_del_dia(start_date: date, end_date: date) -> tuple[str, str]:
 
 
 class SQLiteCashDayRepository:
-    def __init__(self, database_path: str | Path) -> None:
+    def __init__(
+        self, database_path: str | Path, *, sale_integrator=None
+    ) -> None:
+        """`sale_integrator` engancha la venta con el inventario.
+
+        Es opcional y por defecto no hay ninguno: sin el, este repositorio
+        guarda exactamente como guardaba antes de que existiera el nucleo
+        comercial. Esa es la condicion para que instalar esto no cambie el
+        comportamiento de una caja que todavia no vincula articulos.
+
+        Cuando esta, corre DENTRO de la misma transaccion del guardado. No abre
+        una propia: una segunda transaccion independiente podria dejar la venta
+        guardada y el stock no, o al reves.
+        """
+        self._sale_integrator = sale_integrator
         self.database_path = Path(database_path)
         if self.database_path != Path(":memory:"):
             self.database_path.parent.mkdir(parents=True, exist_ok=True)
@@ -129,6 +143,25 @@ class SQLiteCashDayRepository:
                 connection.commit()
 
     @staticmethod
+    def _ventas_ya_integradas(
+        connection: sqlite3.Connection, cash_day: CashDay
+    ) -> set[str]:
+        """Entradas de este dia que ya movieron inventario.
+
+        Vive en la base y no en memoria: reabrir la ventana o recuperarse de un
+        corte tiene que encontrar lo mismo que habia antes.
+        """
+        if not cash_day.entries:
+            return set()
+        marcas = ",".join("?" * len(cash_day.entries))
+        return {
+            fila[0] for fila in connection.execute(
+                f"SELECT cash_entry_id FROM sale_stock_integrations"
+                f" WHERE cash_entry_id IN ({marcas})",
+                [entry.id for entry in cash_day.entries])
+        }
+
+    @staticmethod
     def _table_exists(connection: sqlite3.Connection, table: str) -> bool:
         return connection.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)
@@ -157,6 +190,11 @@ class SQLiteCashDayRepository:
         with self._connection() as connection:
             try:
                 connection.execute("BEGIN IMMEDIATE")
+                stage = "sale_stock_guard"
+                integradas = self._ventas_ya_integradas(connection, cash_day)
+                if integradas and self._sale_integrator is not None:
+                    self._sale_integrator.verificar_editable(
+                        connection, cash_day, integradas)
                 connection.execute(
                     """INSERT INTO cash_days(
                         id,business_date,unit,opening_cash,status,opened_at,closed_at,
@@ -234,16 +272,24 @@ class SQLiteCashDayRepository:
                     [self._entry_values(entry) for entry in cash_day.entries],
                 )
                 stage = "sale_items_refresh"
+                # Las lineas de una venta que ya movio stock no se reescriben.
+                # El guardado normal borra y reinserta, que esta bien para una
+                # venta que todavia no saco nada del deposito y es inaceptable
+                # para una que si: el movimiento que la saco apunta a esta fila.
+                refrescables = [
+                    entry for entry in cash_day.entries if entry.id not in integradas
+                ]
                 connection.executemany(
                     "DELETE FROM sale_items WHERE cash_entry_id = ?",
-                    [(entry.id,) for entry in cash_day.entries],
+                    [(entry.id,) for entry in refrescables],
                 )
                 connection.executemany(
                     """INSERT INTO sale_items(
                         id,cash_entry_id,position,description,code,item_type,frame_price,
                         lens_price,laboratory,prescription_doctor,frame_discount_percent,
-                        lens_discount_percent,frame_final_price,lens_final_price,no_cost
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                        lens_discount_percent,frame_final_price,lens_final_price,no_cost,
+                        article_id,lens_article_id
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     [
                         (
                             item.id, entry.id, position, item.description, item.code,
@@ -251,11 +297,16 @@ class SQLiteCashDayRepository:
                             item.laboratory, item.prescription_doctor,
                             item.frame_discount_percent, item.lens_discount_percent,
                             item.frame_final_price, item.lens_final_price, int(item.no_cost),
+                            item.article_id, item.lens_article_id,
                         )
-                        for entry in cash_day.entries
+                        for entry in refrescables
                         for position, item in enumerate(entry.items)
                     ],
                 )
+                stage = "sale_ledger_integration"
+                if self._sale_integrator is not None:
+                    self._sale_integrator.integrar_en(
+                        connection, cash_day, integradas)
                 connection.commit()
             except Exception as error:
                 connection.rollback()
@@ -398,6 +449,8 @@ class SQLiteCashDayRepository:
                     "lens_original_price": item.lens_price,
                     "frame_discount_percent": item.frame_discount_percent,
                     "lens_discount_percent": item.lens_discount_percent,
+                    "article_id": item.article_id,
+                    "lens_article_id": item.lens_article_id,
                     "frame_final_price": item.frame_final_price,
                     "lens_final_price": item.lens_final_price,
                     "no_cost": item.no_cost,
@@ -461,6 +514,8 @@ class SQLiteCashDayRepository:
                 frame_discount_percent=item["frame_discount_percent"],
                 lens_discount_percent=item["lens_discount_percent"],
                 no_cost=bool(item["no_cost"]),
+                article_id=item["article_id"],
+                lens_article_id=item["lens_article_id"],
             ))
         entries = [CashEntry(
             id=item["id"], cash_day_id=item["cash_day_id"], description=item["description"],
