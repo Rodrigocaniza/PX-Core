@@ -1,0 +1,71 @@
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 antes    : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+copia           : C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\3baea3ea-a357-4bf0-86f8-1dd9bfcaca1f\scratchpad\prod-copy-024.sqlite3
+tablas antes    : 25
+migraciones antes: 21 -> 021
+
+== tablas nuevas ==
+  + administrative_entry_reasons  (4 filas)
+  + administrative_exit_reasons  (7 filas)
+  + article_categories  (0 filas)
+  + articles  (0 filas)
+  + brands  (0 filas)
+  + domain_events  (0 filas)
+  + event_effects  (0 filas)
+  + purchase_line_distributions  (0 filas)
+  + purchase_lines  (0 filas)
+  + purchases  (0 filas)
+  + stock_movements  (0 filas)
+  + suppliers  (0 filas)
+
+== tablas perdidas ==
+  ninguna
+
+== filas cambiadas en tablas preexistentes ==
+  ninguna
+
+== columnas agregadas a suppliers ==
+  address, email, contact_name
+
+== invariantes verificados sobre la copia ==
+  distribuir un no-stockeable: rechazado (la linea no mueve stock por la naturaleza del articulo: no se distribuye)
+  distribuir mas de lo comprado: rechazado (la distribucion no puede superar la cantidad comprada)
+  reparto valido Asuncion 6: aceptado
+  reparto que excede al sumar: rechazado (la distribucion no puede superar la cantidad comprada)
+  credito con vencimiento inventado: rechazado (el vencimiento se deriva de la fecha del documento y el plazo)
+  misma factura del mismo proveedor dos veces: rechazado (UNIQUE constraint failed: purchases.supplier_id, purchases.document_number)
+  segundo proveedor con el mismo RUC: rechazado (UNIQUE constraint failed: suppliers.document)
+  transicion BORRADOR -> CONFIRMADA: aceptada
+  editar una compra confirmada: rechazado (una compra confirmada no se reescribe: la correccion es un hecho nuevo, no una edicion)
+  borrar una compra confirmada: rechazado (una compra confirmada no se borra: el stock que genero quedaria sin origen)
+  editar la linea de una confirmada: rechazado (la linea de una compra confirmada no se reescribe)
+  borrar la linea de una confirmada: rechazado (la linea de una compra confirmada no se borra)
+  agregar linea a una confirmada: rechazado (no se agregan lineas a una compra confirmada)
+  borrar el reparto de una confirmada: rechazado (el reparto de una compra confirmada no se borra)
+
+== integridad ==
+  integrity_check      : ok
+  foreign_key_check    : 0 violaciones
+  migraciones          : 24 -> 024
+  sale_items           : 10 -> 10
+  sale_items sin articulo inventado: 10/10
+  SUM(cash_entries.total): 6400000 -> 6400000
+  purchases            : 0
+  vista stock_origen_compra: 0 filas
+  triggers de compras  : 11
+    - purchase_distribuciones_de_confirmada_inmutables
+    - purchase_distribuciones_de_confirmada_sin_delete
+    - purchase_distribuciones_de_confirmada_sin_insert
+    - purchase_line_distributions_no_excede
+    - purchase_line_distributions_solo_stockeables
+    - purchase_lines_de_confirmada_inmutables
+    - purchase_lines_de_confirmada_sin_delete
+    - purchase_lines_de_confirmada_sin_insert
+    - purchases_confirmada_inmutable
+    - purchases_confirmada_sin_delete
+    - purchases_vencimiento_derivado
+
+sha256 despues  : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+base real intacta: True
+
+RESULTADO: PASS

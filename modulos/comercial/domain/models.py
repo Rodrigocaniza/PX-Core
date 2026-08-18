@@ -215,10 +215,22 @@ class Brand:
 
 @dataclass(frozen=True)
 class Supplier:
+    """Un proveedor.
+
+    `document` es el RUC o CI cuando existe. Cuando hay identidad fiscal fiable
+    el duplicado se bloquea en la base; cuando no la hay, no se inventa una.
+
+    Los datos de contacto son los que la carga de una factura real pide y nada
+    más. Esto no es un CRM.
+    """
+
     name: str
     kind: str = "PROVEEDOR"
     document: str = ""
     phone: str = ""
+    address: str = ""
+    email: str = ""
+    contact_name: str = ""
     laboratory_id: str | None = None
     active: bool = True
     id: str = field(default_factory=new_id)
@@ -232,7 +244,7 @@ class Supplier:
         if clase not in {"PROVEEDOR", "LABORATORIO", "AMBOS"}:
             raise ValueError(f"clase de proveedor inválida: {self.kind!r}")
         object.__setattr__(self, "kind", clase)
-        for campo in ("document", "phone"):
+        for campo in ("document", "phone", "address", "email", "contact_name"):
             object.__setattr__(self, campo, _texto(getattr(self, campo)))
 
 

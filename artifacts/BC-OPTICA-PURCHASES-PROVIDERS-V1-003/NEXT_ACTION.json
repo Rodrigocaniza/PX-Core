@@ -1,0 +1,92 @@
+{
+  "mission": "BC-OPTICA-PURCHASES-PROVIDERS-V1-003",
+  "state": "SAFE_CLOSURE / SLICE 3 CERRADO 3xPASS",
+  "repository": "PX-Core",
+  "worktree": ".worktrees/purchases-003",
+  "branch": "feature/bc-optica-purchases-providers-v1-003",
+  "base_commit": "54f5f06",
+  "base_branch": "feature/bc-optica-inventory-ledger-v1-002",
+  "cadena_de_slices": {
+    "origin/main": "7db56a0 = BC Caja 1.0.0-rc.31, instalada y validada en la Optica",
+    "slice_1_catalogo": "ed0dbba (migracion 022)",
+    "slice_2_ledger": "54f5f06 (migracion 023)",
+    "slice_3_compras": "esta mision (migracion 024)"
+  },
+  "closed_on": "2026-08-18",
+  "blocked_on": null,
+
+  "next_action": "BC-OPTICA-SALES-ARTICLE-LINK-V1-004. Activar sale_items.article_id en la UI de venta y emitir SALE_COMPLETED, para que el spine derive la VENTA en el ledger igual que ahora deriva el INGRESO_COMPRA. Es el slice 4 y es el que cierra el circuito: hoy el stock solo puede subir por compra y bajar por salida administrativa o ajuste, porque la venta todavia no esta enganchada. Toda la maquinaria que necesita ya existe: la columna (022), el movimiento VENTA y el bloqueo de stock negativo (023), y el patron evento -> efectos -> movimientos atomico e idempotente (024)",
+  "next_role": "COMMAND_CENTER",
+
+  "por_que_no_compras_ui_todavia": "La UI de Compras es trabajo de presentacion sobre un dominio que ya esta cerrado y probado. La venta, en cambio, es la mitad que falta del circuito: sin ella el stock nunca baja por el camino normal y el ledger no refleja la operacion real de la optica. Primero se cierra el circuito, despues se lo hace comodo",
+
+  "entregado_en_este_slice": {
+    "migracion": "024_purchases_providers.sql, aditiva, cadena 23 -> 24",
+    "tablas_nuevas": ["purchases", "purchase_lines", "purchase_line_distributions"],
+    "columnas_agregadas": ["suppliers.address", "suppliers.email", "suppliers.contact_name"],
+    "vista_nueva": "stock_origen_compra",
+    "triggers_nuevos": 11,
+    "indices_unicos": ["idx_suppliers_documento_unico (parcial)", "idx_purchases_documento_unico"],
+    "modulo": "modulos/comercial gana domain/compras.py, application/compras.py e infrastructure/sqlite_purchase_repository.py",
+    "flujo": "Factura real -> proveedor -> lineas -> distribucion fisica -> confirmar -> PURCHASE_CONFIRMED -> event_effects -> INGRESO_COMPRA por linea y destino -> stock derivado",
+    "ledger_rediseñado": false,
+    "que_se_toco_del_ledger": "solo se expusieron registrar_en, asegurar_evento_en y marcar_evento_procesado_en para que la confirmacion pueda ser atomica. La logica no cambio"
+  },
+
+  "verification": {
+    "suite": "806 passed, 4 subtests, exit 0 (763 baseline del slice 2 + 43 nuevas)",
+    "pruebas_dirigidas_primero": true,
+    "migracion_sobre_copia_productiva": "PASS: 0 tablas perdidas, 0 filas cambiadas en las 25 preexistentes, sale_items 10/10 con article_id NULL, integrity ok, foreign_key_check 0, cadena 21 -> 024, SUM(cash_entries.total) 6.400.000 sin cambios",
+    "invariantes_verificados_sobre_la_copia": "14, con filas reales sembradas: distribuir un no-stockeable, exceder lo comprado, vencimiento inventado, factura duplicada, RUC duplicado, y las seis formas de reescribir una compra confirmada",
+    "base_productiva_real": "sin tocar, sha256 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec antes y despues",
+    "gates": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS", "artifact_consistency": "PASS"}
+  },
+
+  "defecto_real_encontrado_por_las_pruebas": {
+    "que": "PURCHASE_CONFIRMED se insertaba como efecto colateral del primer movimiento de stock",
+    "consecuencia": "una factura de puras lineas no-stock (laboratorio, servicios) fallaba al confirmar con violacion de clave foranea, porque la compra apuntaba a un evento que nunca se habia grabado",
+    "correccion": "el hecho se registra por si mismo y antes que sus efectos. Un hecho es durable aunque no produzca ninguna consecuencia",
+    "lo_encontro": "test_una_linea_no_stock_no_genera_movimiento, escrita antes que el codigo"
+  },
+
+  "no_promovido_a_main": {
+    "decision": "deliberada",
+    "motivo": "Agrega la 024 sobre la 023 y la 022. Ninguna de las tres se empaqueto ni se instalo. main es lo que se empaqueta: promoverlo haria que la proxima RC arrastre tres cambios de esquema que nunca pasaron gate de instalacion",
+    "estado": "rama pusheada a origin, main intacto en 7db56a0",
+    "cuando_promover": "cuando se decida el release que incluya 022, 023 y 024 juntas, con su gate de empaquetado e instalacion, backup y rollback, igual que rc.31"
+  },
+
+  "slices_restantes": [
+    {"n": 4, "id": "enlace venta -> articulo y consumidor final", "estado": "SIGUIENTE", "detalle": "Activar sale_items.article_id en la UI, normalizar el cliente vacio a CONSUMIDOR_FINAL y emitir SALE_COMPLETED para que el spine derive la VENTA. El bloqueo de stock negativo del slice 2 recien ahi empieza a actuar sobre la operacion real"},
+    {"n": 5, "id": "trabajos: cristales y composturas", "estado": "VOCABULARIO DEFINIDO", "detalle": "Ninguno mueve stock, ya verificado en los slices 2 y 3. Falta el catalogo de tipos de cristal con descripcion, laboratorio y precio de venta; el costo queda PENDIENTE_DE_CONCILIACION hasta que llegue la factura mensual del laboratorio, que ahora ya se puede cargar como compra"},
+    {"n": 6, "id": "FactuFacil reducido a bandeja", "estado": "CONTRATO ESCRITO", "detalle": "Ver pendiente, confirmar cargado, registrar N.o de factura, habilitar comision despues. NO modifica ventas"},
+    {"n": "3b", "id": "notas de credito y anulacion de compras", "estado": "BOUNDARY EXPLICITO", "detalle": "No implementado a proposito. Hoy la mutacion destructiva esta bloqueada por 9 triggers. Con devolucion fisica -> DEVOLUCION_PROVEEDOR, que ya existe en el ledger. Sin devolucion -> no mueve stock. La factura original nunca se borra"},
+    {"n": "3c", "id": "UI de Compras", "estado": "PENDIENTE, DOMINIO LISTO", "detalle": "Listado y busqueda, + Nueva compra, proveedor con + Crear inline, lineas, distribucion y confirmar. El contrato de UI esta escrito desde el slice 1 y el dominio que necesita ya esta cerrado y probado"},
+    {"n": "3d", "id": "Cuentas por Pagar", "estado": "BOUNDARY EXPLICITO", "detalle": "Hoy solo se guarda e indexa el vencimiento, que es lo necesario para preservar la factura. La gestion de la deuda es otro slice"},
+    {"n": "futuro", "id": "transferencias entre sucursales", "estado": "VOCABULARIO DECLARADO SIN USAR", "detalle": "TRANSFERENCIA_SALIDA y TRANSFERENCIA_ENTRADA existen desde el slice 2; falta el caso de uso que las emita en par"}
+  ],
+
+  "deuda_heredada_sin_tocar": [
+    {"id": "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001", "estado": "REAPARECIO, NO CORREGIDA", "detalle": "Una corrida intermedia dio 5 errors en tests/gestion_central/test_ui_interactions.py. Aislados pasan y la corrida siguiente dio 806 limpios. Agravado por los procesos de la sesion ajena compitiendo por recursos. No lo introdujo este slice"},
+    {"id": "CajaDiaria.py:3253", "estado": "HALLAZGO ANOTADO, NO CORREGIDO"},
+    {"id": "BC-CORE-LOCAL-DESACTUALIZADO", "estado": "PENDIENTE", "detalle": "BC-Core local no tiene Headless Executor. Por eso este slice no lo uso: no es compatible con el estado actual de BC-Core y sincronizarlo habria sido tocar BC-Core, que estaba fuera de alcance"},
+    {"id": "ADMIN-USERS-VACIO", "estado": "DECISION DEL DUENO", "detalle": "admin_users = 0 en produccion; la app pide Configuracion inicial administrativa al abrir. Preexistente a rc.31"},
+    {"id": "PX-CORE-MAIN-LOCAL-VIEJO", "estado": "ANOTADO, NO CORREGIDO", "detalle": "La referencia local main esta 147 commits detras de origin/main. Sin worktree asociado, ninguna mision la usa"},
+    {"id": "SESION-AJENA-BC-CORE-COLGADA", "estado": "ANOTADO, NO TOCADO", "detalle": "Procesos python de otra mision de BC-Core (mission_workflow_engine y un venv de pilot-readiness) iniciados 16:38-16:42 y todavia vivos. No tocan PX-Core/main. Se dejan como estan porque BC-Core y las sesiones ajenas quedan fuera del alcance"}
+  ],
+
+  "safe_closure": {
+    "worktree": "limpio tras el commit",
+    "rama": "pusheada a origin",
+    "main": "sin tocar, 7db56a0",
+    "pr": "no se abrio, como se pidio",
+    "merge": "no",
+    "force_push": false,
+    "leases_vivos": 0,
+    "procesos_residuales_propios": 0,
+    "datos_productivos": "sin tocar, sha256 identico",
+    "empaquetado": "no",
+    "instalacion": "BC Caja 1.0.0-rc.31 sigue siendo la vigente",
+    "bc_core_y_telegram": "sin tocar"
+  }
+}

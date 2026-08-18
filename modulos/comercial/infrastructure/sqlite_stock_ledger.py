@@ -91,79 +91,117 @@ class SQLiteStockLedgerRepository:
         evento: DomainEvent | None = None,
         efecto: str = "STOCK_MOVEMENT",
     ) -> StockMovement:
-        """Graba el hecho y su efecto de una sola vez, o no graba nada.
+        """Graba el hecho y su efecto en su propia transacción.
 
         Si la clave de idempotencia ya está, devuelve lo que ya había: el mismo
         hecho no descuenta dos veces.
         """
         with self._escritura() as connection:
-            existente = self._buscar_por_clave(connection, movimiento.idempotency_key)
-            if existente is not None:
-                return existente
+            return self.registrar_en(connection, movimiento, evento=evento,
+                                     efecto=efecto)
 
-            registrado = _ahora()
-            event_id = None
-            if evento is not None:
-                event_id = self._asegurar_evento(connection, evento)
+    def transaccion(self):
+        """Transacción de escritura para quien necesite abarcar más que el ledger.
 
+        Confirmar una compra tiene que grabar la factura, el hecho y todos los
+        movimientos, o ninguna de las tres cosas. Media factura confirmada sería
+        peor que ninguna, porque el stock parcial se ve igual que el correcto.
+        """
+        return self._escritura()
+
+    def registrar_en(
+        self,
+        connection: sqlite3.Connection,
+        movimiento: StockMovement,
+        *,
+        evento: DomainEvent | None = None,
+        efecto: str = "STOCK_MOVEMENT",
+    ) -> StockMovement:
+        """Lo mismo, dentro de una transacción que abrió otro.
+
+        No abre ni cierra nada: el dueño de la transacción decide si al final
+        todo esto queda o no queda.
+        """
+        existente = self._buscar_por_clave(connection, movimiento.idempotency_key)
+        if existente is not None:
+            return existente
+
+        registrado = _ahora()
+        event_id = None
+        if evento is not None:
+            event_id = self.asegurar_evento_en(connection, evento)
+
+        connection.execute(
+            """
+            INSERT INTO stock_movements(
+                id, event_id, article_id, destination, kind, quantity,
+                occurred_at, recorded_at, actor, reason_code, note,
+                supplier_id, document_kind, document_id, document_line_id,
+                document_number, compensates_id, negative_override,
+                idempotency_key)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            """,
+            (
+                movimiento.id,
+                event_id,
+                movimiento.article_id,
+                movimiento.destination.value,
+                movimiento.kind.value,
+                movimiento.signed_quantity,
+                _iso(movimiento.occurred_at),
+                _iso(registrado),
+                movimiento.actor,
+                movimiento.reason_code,
+                movimiento.note,
+                movimiento.supplier_id,
+                movimiento.document_kind,
+                movimiento.document_id,
+                movimiento.document_line_id,
+                movimiento.document_number,
+                movimiento.compensates_id,
+                1 if movimiento.negative_override else 0,
+                movimiento.idempotency_key,
+            ),
+        )
+
+        if event_id is not None:
             connection.execute(
                 """
-                INSERT INTO stock_movements(
-                    id, event_id, article_id, destination, kind, quantity,
-                    occurred_at, recorded_at, actor, reason_code, note,
-                    supplier_id, document_kind, document_id, document_line_id,
-                    document_number, compensates_id, negative_override,
-                    idempotency_key)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                INSERT OR IGNORE INTO event_effects(
+                    event_id, effect_kind, effect_table, effect_id, created_at)
+                VALUES (?,?,?,?,?)
                 """,
-                (
-                    movimiento.id,
-                    event_id,
-                    movimiento.article_id,
-                    movimiento.destination.value,
-                    movimiento.kind.value,
-                    movimiento.signed_quantity,
-                    _iso(movimiento.occurred_at),
-                    _iso(registrado),
-                    movimiento.actor,
-                    movimiento.reason_code,
-                    movimiento.note,
-                    movimiento.supplier_id,
-                    movimiento.document_kind,
-                    movimiento.document_id,
-                    movimiento.document_line_id,
-                    movimiento.document_number,
-                    movimiento.compensates_id,
-                    1 if movimiento.negative_override else 0,
-                    movimiento.idempotency_key,
-                ),
+                (event_id, efecto, "stock_movements", movimiento.id,
+                 _iso(registrado)),
             )
+            self.marcar_evento_procesado_en(connection, event_id, registrado)
 
-            if event_id is not None:
-                connection.execute(
-                    """
-                    INSERT OR IGNORE INTO event_effects(
-                        event_id, effect_kind, effect_table, effect_id, created_at)
-                    VALUES (?,?,?,?,?)
-                    """,
-                    (event_id, efecto, "stock_movements", movimiento.id,
-                     _iso(registrado)),
-                )
-                connection.execute(
-                    "UPDATE domain_events SET processing_state = ?, processed_at = ?"
-                    " WHERE event_id = ?",
-                    (EventProcessingState.PROCESADO.value, _iso(registrado), event_id),
-                )
+        return self._buscar_por_id(connection, movimiento.id)
 
-            return self._buscar_por_id(connection, movimiento.id)
+    @staticmethod
+    def marcar_evento_procesado_en(
+        connection: sqlite3.Connection, event_id: str, momento: datetime
+    ) -> None:
+        """Avanzar el estado es lo único que un hecho registrado admite, y el
+        trigger `domain_events_inmutable` se encarga de que siga siendo así."""
+        connection.execute(
+            "UPDATE domain_events SET processing_state = ?, processed_at = ?"
+            " WHERE event_id = ?",
+            (EventProcessingState.PROCESADO.value, _iso(momento), event_id),
+        )
 
-    def _asegurar_evento(
+    def asegurar_evento_en(
         self, connection: sqlite3.Connection, evento: DomainEvent
     ) -> str:
         """Devuelve el `event_id` del hecho, registrándolo si es la primera vez.
 
         La clave de idempotencia manda sobre el id: si el mismo hecho llega con
         un id nuevo, sigue siendo el mismo hecho.
+
+        Es público porque un hecho puede ser durable sin producir stock: una
+        factura de puros servicios se confirma igual, y su `PURCHASE_CONFIRMED`
+        tiene que quedar registrado aunque no haya un solo movimiento que lo
+        arrastre a la base.
         """
         fila = connection.execute(
             "SELECT event_id FROM domain_events WHERE idempotency_key = ?",

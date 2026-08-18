@@ -1,0 +1,89 @@
+{
+  "mission": "BC-OPTICA-PURCHASES-PROVIDERS-V1-003",
+  "current_state": "SAFE_CLOSURE / SLICE 3 CERRADO",
+  "base": "54f5f06",
+  "base_branch": "feature/bc-optica-inventory-ledger-v1-002",
+  "history": [
+    {
+      "event": "MISSION_STARTED",
+      "from_state": null,
+      "to_state": "ESTADO_CANONICO_VERIFICADO",
+      "timestamp": "2026-08-18T17:30:00-03:00",
+      "reason": "Encadenada por el NEXT_ACTION del slice 2. Verificado sin asumir SHAs del prompt: origin/main 7db56a0, slice 1 ed0dbba, slice 2 54f5f06, los tres identicos en local y origin. La 022 entro en ed0dbba y la 023 en 54f5f06, confirmado con git log --diff-filter=A sobre los archivos de migracion. Produccion en 21 migraciones, sha256 1c4fcc40...98ec, sin ninguna tabla de los slices 2 y 3. 0 leases. Sesiones ajenas: procesos de una mision de BC-Core, que no tocan PX-Core/main y quedan fuera de alcance. Headless Executor no se uso: BC-Core local no lo tiene y sincronizarlo habria sido tocar BC-Core",
+      "gate_id": null,
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    },
+    {
+      "event": "WORKTREE_CREATED",
+      "from_state": "ESTADO_CANONICO_VERIFICADO",
+      "to_state": "AISLADO",
+      "timestamp": "2026-08-18T17:32:00-03:00",
+      "reason": "Worktree .worktrees/purchases-003 y rama feature/bc-optica-purchases-providers-v1-003 derivados de 54f5f06: Compras necesita el catalogo de la 022 y el ledger y el spine de la 023",
+      "gate_id": null,
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    },
+    {
+      "event": "TESTS_FIRST",
+      "from_state": "AISLADO",
+      "to_state": "TESTS_ESCRITOS",
+      "timestamp": "2026-08-18T17:50:00-03:00",
+      "reason": "43 pruebas dirigidas escritas antes de la implementacion, cubriendo los 16 puntos pedidos: proveedor, factura contado, factura credito con vencimiento derivado, lineas stock y no-stock, distribucion Asuncion/Pilar, suma invalida, intento de distribuir no-stock, confirmacion, evento unico, efectos unicos, movimientos correctos, reintento idempotente, rollback atomico, imposibilidad de mutacion destructiva post-confirmacion, coexistencia sin alterar Caja y cadena de migraciones",
+      "gate_id": null,
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    },
+    {
+      "event": "IMPLEMENTED",
+      "from_state": "TESTS_ESCRITOS",
+      "to_state": "IMPLEMENTADO",
+      "timestamp": "2026-08-18T18:10:00-03:00",
+      "reason": "Migracion 024 con purchases, purchase_lines, purchase_line_distributions, la vista stock_origen_compra, 11 triggers y dos indices unicos. suppliers extendido en vez de duplicado. El ledger NO se rediseño: solo se expusieron registrar_en, asegurar_evento_en y marcar_evento_procesado_en para que la confirmacion sea atomica",
+      "gate_id": null,
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    },
+    {
+      "event": "DEFECT_FOUND_BY_TESTS",
+      "from_state": "IMPLEMENTADO",
+      "to_state": "CORREGIDO",
+      "timestamp": "2026-08-18T18:18:00-03:00",
+      "reason": "PURCHASE_CONFIRMED se insertaba como efecto colateral del primer movimiento de stock, asi que una factura de puras lineas no-stock fallaba al confirmar con violacion de clave foranea: la compra apuntaba a un evento que nunca se habia grabado. Un hecho es durable aunque no produzca ninguna consecuencia, asi que ahora se registra por si mismo y antes que sus efectos. Lo encontro test_una_linea_no_stock_no_genera_movimiento, escrita antes que el codigo",
+      "gate_id": null,
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    },
+    {
+      "event": "OWN_CONTRACT_FIXED_AND_ROOT_CAUSE_REMOVED",
+      "from_state": "CORREGIDO",
+      "to_state": "SUITE_VERDE",
+      "timestamp": "2026-08-18T18:28:00-03:00",
+      "reason": "test_la_cadena_de_migraciones_llega_a_023, del slice 2, fijaba el final de la cadena. Tercera aparicion del mismo error, asi que ademas de corregirla se agrego afirmar_cadena_completa_con() en tests/migration_chain.py para que el proximo slice no lo repita. Suite 806 passed, 4 subtests, exit 0",
+      "gate_id": null,
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    },
+    {
+      "event": "VERIFIED_ON_PRODUCTION_COPY",
+      "from_state": "SUITE_VERDE",
+      "to_state": "VERIFICADO",
+      "timestamp": "2026-08-18T18:38:00-03:00",
+      "reason": "La cadena 022+023+024 se aplico sobre una COPIA de la base real de la Optica, abierta en modo lectura. 0 tablas perdidas, 0 filas cambiadas en las 25 preexistentes, sale_items 10/10 con article_id NULL, integrity ok, foreign_key_check 0, cadena 21 -> 024, SUM(cash_entries.total) 6.400.000 sin cambios. Los 14 invariantes se probaron con filas reales sembradas sobre esa copia, no sobre tablas vacias. La base real quedo sin tocar, sha256 identico",
+      "gate_id": null,
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    },
+    {
+      "event": "GATES_PASSED",
+      "from_state": "VERIFICADO",
+      "to_state": "3xPASS",
+      "timestamp": "2026-08-18T18:48:00-03:00",
+      "reason": "Librarian PASS: rutas, simbolos y 11 objetos de base que nombran los artefactos existen; el trigger de distribucion lista las mismas naturalezas que el dominio y ninguna otra; Compras no nombra ninguna tabla de Caja; el servicio no expone anular, eliminar, borrar ni revertir. QA PASS: 806 passed, 4 subtests, exit 0. Auditor PASS: origin/main intacto en 7db56a0, ramas de los slices 1 y 2 intactas, sin force push, 0 leases, produccion en 21 migraciones con sha256 identico y cero tablas de compras. Artifact Consistency PASS: 10 fuentes",
+      "gate_id": "librarian+qa+auditor",
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    },
+    {
+      "event": "SAFE_CLOSURE",
+      "from_state": "3xPASS",
+      "to_state": "SAFE_CLOSURE / SLICE 3 CERRADO",
+      "timestamp": "2026-08-18T18:55:00-03:00",
+      "reason": "Slice 3 cerrado y pusheado a su rama. Sin PR, sin merge, sin empaquetar, sin instalar. Continua el slice 4, el enlace venta -> articulo, que es la mitad que falta del circuito: hoy el stock solo puede subir por compra y bajar por salida administrativa o ajuste, porque la venta todavia no esta enganchada",
+      "gate_id": null,
+      "session_id": "bc-optica-purchases-providers-v1-003"
+    }
+  ]
+}

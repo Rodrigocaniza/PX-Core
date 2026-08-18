@@ -29,3 +29,17 @@ def versiones_esperadas() -> list[str]:
 def versiones_esperadas_como_filas() -> list[tuple[str]]:
     """La misma lista con la forma que devuelve `fetchall()` de una sola columna."""
     return [(version,) for version in versiones_esperadas()]
+
+
+def afirmar_cadena_completa_con(conexion, version: str) -> None:
+    """La `version` esta aplicada y la cadena esta entera.
+
+    Existe porque tres slices seguidos escribieron la misma prueba como "la
+    ultima migracion es la mia", y las tres se rompieron en cuanto llego la
+    siguiente. Lo que cada una queria decir era "la mia se aplico y no falta
+    ninguna", que es lo que esto afirma y lo que sigue siendo cierto despues.
+    """
+    aplicadas = [fila[0] for fila in conexion.execute(
+        "SELECT version FROM schema_migrations ORDER BY version")]
+    assert version in aplicadas, f"falta la migracion {version}"
+    assert aplicadas == versiones_esperadas()

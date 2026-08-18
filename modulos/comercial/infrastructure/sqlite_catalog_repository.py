@@ -124,16 +124,19 @@ class SQLiteCatalogRepository:
         ahora = _ahora()
         with self._connection() as connection:
             connection.execute(
-                "INSERT INTO suppliers(id, name, kind, document, phone,"
-                " laboratory_id, active, created_at, updated_at)"
-                " VALUES(?,?,?,?,?,?,?,?,?)"
+                "INSERT INTO suppliers(id, name, kind, document, phone, address,"
+                " email, contact_name, laboratory_id, active, created_at, updated_at)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
                 " ON CONFLICT(id) DO UPDATE SET name=excluded.name,"
                 " kind=excluded.kind, document=excluded.document,"
-                " phone=excluded.phone, laboratory_id=excluded.laboratory_id,"
+                " phone=excluded.phone, address=excluded.address,"
+                " email=excluded.email, contact_name=excluded.contact_name,"
+                " laboratory_id=excluded.laboratory_id,"
                 " active=excluded.active, updated_at=excluded.updated_at",
                 (supplier.id, supplier.name, supplier.kind, supplier.document,
-                 supplier.phone, supplier.laboratory_id, int(supplier.active),
-                 ahora, ahora))
+                 supplier.phone, supplier.address, supplier.email,
+                 supplier.contact_name, supplier.laboratory_id,
+                 int(supplier.active), ahora, ahora))
             connection.commit()
         return supplier
 
@@ -148,7 +151,9 @@ class SQLiteCatalogRepository:
     def _a_proveedor(fila: sqlite3.Row) -> Supplier:
         return Supplier(
             name=fila["name"], kind=fila["kind"], document=fila["document"],
-            phone=fila["phone"], laboratory_id=fila["laboratory_id"],
+            phone=fila["phone"], address=fila["address"], email=fila["email"],
+            contact_name=fila["contact_name"],
+            laboratory_id=fila["laboratory_id"],
             active=bool(fila["active"]), id=fila["id"])
 
     # -- artículos ----------------------------------------------------------

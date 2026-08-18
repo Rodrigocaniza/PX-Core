@@ -656,14 +656,16 @@ def test_se_puede_ir_del_origen_a_sus_movimientos(ledger, armazon):
 # --------------------------------------------------------------------------
 
 
-def test_la_cadena_de_migraciones_llega_a_023(base):
+def test_la_cadena_de_migraciones_incluye_la_023_completa(base):
+    """La 023 esta aplicada y la cadena esta entera. No que termine ahi: eso
+    ya rompio esta misma prueba en el slice siguiente."""
+    from tests.migration_chain import afirmar_cadena_completa_con
+
     conexion = sqlite3.connect(str(base))
     try:
-        versiones = [fila[0] for fila in conexion.execute(
-            "SELECT version FROM schema_migrations ORDER BY version")]
+        afirmar_cadena_completa_con(conexion, "023")
     finally:
         conexion.close()
-    assert versiones[-1] == "023"
 
 
 def test_la_023_es_aditiva():
