@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "current_state": "AWAITING_INSTALL_ON_TARGET",
+  "current_state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
   "base": "291fe40",
   "history": [
     {
@@ -147,6 +147,15 @@
       "to_state": "AWAITING_INSTALL_ON_TARGET",
       "timestamp": "2026-08-17T00:00:00Z",
       "reason": "El destino real no esta en rc.30. En %LOCALAPPDATA%/Programs/BC-Caja-Pilot la instalacion vigente dice rc.27, con exe del 16-08, y no hay backup preinstall de rc.30 ni carpeta de rollback de rc.30 ni paquete rc.28/29/30 en disco. La instalacion productiva esta en la maquina de la Optica. Instalar aca seria instalar sobre rc.27 saltando un tramo no ensayado y asentar como validada una instalacion que no es la productiva. No se hizo ni se declara hecha",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "SAFE_PAUSE",
+      "from_state": "AWAITING_INSTALL_ON_TARGET",
+      "to_state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "El operador confirma que rc.30 fue instalada y validada en la PC de la Optica y que esta PC es la de casa, en rc.27: no es el destino de rc.31. La mision pausa con rc.31 empaquetada y verificada, gates en PASS y runbooks escritos. Worktree limpio, rama sincronizada, 0 leases, 0 procesos residuales, main 291fe40 sin tocar. Queda anotado que el zip vive solo en el disco de casa y hay que transportarlo: reconstruirlo en la Optica daria otro sha256 y romperia la verificacion del runbook sin que nada este mal",
       "gate_id": null,
       "session_id": "bc-caja-pedidos-operativos-rc30"
     }

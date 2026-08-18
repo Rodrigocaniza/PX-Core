@@ -1,13 +1,13 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "state": "AWAITING_INSTALL_ON_TARGET",
+  "state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
   "repository": "PX-Core",
   "worktree": "pedidos30",
   "branch": "feature/bc-caja-pedidos-operativos-rc30-001",
   "base_commit": "291fe40",
   "baseline": "origin/main = BC Caja 1.0.0-rc.30",
-  "blocked_on": "INSTALL_TARGET_NOT_HERE",
-  "next_action": "Instalar rc.31 en la maquina de la Optica siguiendo INSTALL_READINESS.md, previa verificacion de que alli la instalacion vigente sea efectivamente rc.30",
+  "blocked_on": "INSTALL_TARGET_IS_ANOTHER_MACHINE",
+  "next_action": "Retomar en la PC de la Optica por auto_resume_en_la_optica, en ese orden. No reconstruir ni reempaquetar rc.31: los artifacts vigentes ya estan verificados",
   "next_role": "HUMAN",
   "verification": {
     "focused": "13 passed del slice + 3 del contrato visual UX004 = 16 passed",
@@ -47,22 +47,23 @@
   ],
   "safe_pause": {
     "verificado": {
-      "worktree": "limpio",
-      "rama_sincronizada": "3373c6f == origin, 0 commits sin pushear",
+      "worktree": "pedidos30 limpio",
+      "rama": "feature/bc-caja-pedidos-operativos-rc30-001 sincronizada con origin",
+      "main": "291fe40 sin tocar, sin force-push",
       "leases_vivos": 0,
       "procesos_residuales": 0,
-      "produccion": "BC Caja 1.0.0-rc.30 intacta, 21 migraciones, integrity ok, foreign keys 0",
-      "datos": "12 movimientos, montos (6400000, 2200000, 250000) sin cambios",
-      "migraciones_nuevas_en_produccion": "ninguna",
-      "correo": "deshabilitado, sin destinatario, outbox sin envios",
-      "rollback": "vigente: backup preinstall rc.30 y BC-Caja-Pilot.previous-rc15",
-      "main": "291fe40 sin cambios"
+      "instalacion_de_casa": "rc.27 intacta, no se instalo rc.31",
+      "db_local": "sha256 sin cambios, integrity ok, foreign_key_check 0, 21 migraciones",
+      "correo": "sin envios, outbox 0",
+      "paquete": "rc.31 en disco, hasheado, fuera del remoto por convencion"
     },
     "no_ejecutado_a_proposito": [
-      "HUMAN_GATE-PEDIDOS-RC30-001",
-      "packaging rc.31",
-      "instalacion",
+      "instalacion de rc.31",
+      "validacion post-install",
       "promocion a main",
+      "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001",
+      "correccion de CajaDiaria.py:3253",
+      "sincronizacion de BC-Core local",
       "BC-CAJA-TRABAJOS-OPERATIVOS-V1",
       "FactuFacil",
       "Composturas",
@@ -90,5 +91,48 @@
       "detalle": "Editar desde Historial usa pestanas.set directo y deja el resaltado en Historial: el mismo patron que causaba el falso positivo del punto 10, pero en el producto. Preexistente en 291fe40 y fuera del slice de Pedidos"
     }
   ],
-  "gate": "HUMAN_GATE-PEDIDOS-RC30-001 PASS (generacion 2, 11/11)"
+  "gate": "HUMAN_GATE-PEDIDOS-RC30-001 PASS (generacion 2, 11/11)",
+  "equipos": {
+    "casa_desarrollo": {
+      "rol": "donde se implemento, se paso el gate y se empaqueto rc.31",
+      "instalada": "BC Caja 1.0.0-rc.27, intacta",
+      "no_es_destino": true,
+      "confirmado_por": "el operador, mas la verificacion de disco de esta sesion"
+    },
+    "optica_produccion": {
+      "rol": "destino real de rc.31",
+      "instalada": "BC Caja 1.0.0-rc.30, instalada y validada alli",
+      "confirmado_por": "el operador",
+      "verificar_al_llegar": "VERSION.txt debe seguir diciendo rc.30. Si no, detenerse y reportar antes de tocar nada"
+    }
+  },
+  "paquete_rc31": {
+    "zip": "releases/BC-CAJA-1.0.0-rc.31-win64.zip",
+    "zip_sha256": "95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948",
+    "zip_bytes": 34111433,
+    "exe_sha256": "62e8f1d87206b31b428892dc60266dde3394ef30a8b530b41f53563fe892152f",
+    "ubicacion": "solo en el disco de la PC de casa",
+    "en_el_remoto": false,
+    "por_que": "los zips de RC estan gitignoreados por convencion: viaja el hash en el MANIFEST, no el binario",
+    "transporte_pendiente": "hay que llevar este zip a la Optica por medio fisico. Reconstruirlo alla NO sirve para verificar contra estos hashes: PyInstaller no produce binarios reproducibles byte a byte, asi que un rebuild daria otro sha256 y el paso de verificacion del runbook fallaria aun estando todo bien. Si por lo que sea hay que reconstruir, hacerlo desde el commit de esta rama y anotar el hash nuevo como generacion 2 del paquete, en vez de forzar la comparacion"
+  },
+  "no_rehacer": [
+    "empaquetado de rc.31: hecho y verificado",
+    "HUMAN_GATE-PEDIDOS-RC30-001: PASS generacion 2, 11/11",
+    "Artifact Consistency: PASS, 12 sha256",
+    "Librarian, QA y Auditor: PASS"
+  ],
+  "auto_resume_en_la_optica": [
+    "1. Auto-Resume: recuperar esta mision desde este NEXT_ACTION, sin reconstruir contexto a mano",
+    "2. Verificar canonical state de la PC de la Optica: origin/main, HEAD de la rama, version instalada, migraciones, worktrees, leases, artifacts",
+    "3. Confirmar que la instalacion vigente alli sea rc.30. Si no lo es, detenerse",
+    "4. Backup preinstall de la base, con hash verificado contra el original",
+    "5. Apartar rc.30 entera como rollback, sin borrarla, y verificar su VERSION.txt",
+    "6. Instalar rc.31 transaccionalmente, verificando el sha256 del exe antes de mover nada. Ante cualquier desvio, ROLLBACK.md",
+    "7. Validacion post-install: integrity_check, foreign_key_check, 21 migraciones, datos y montos contra el backup, Pedidos, Seguimiento, Historial, Arqueo, Administrador, correo y outbox sin envios",
+    "8. Artifact Consistency sobre lo instalado",
+    "9. Librarian, QA y Auditor sobre la instalacion y su evidencia",
+    "10. Promocion protegida a main: git push origin feature/bc-caja-pedidos-operativos-rc30-001:main",
+    "11. Safe Closure"
+  ]
 }

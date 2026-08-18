@@ -38,6 +38,24 @@ no lo es. No se hizo, y no se declara hecho.
 | Smoke del binario | arranca en directorio de datos aislado, crea esquema en 021, `integrity ok`, `foreign_key_check 0`, outbox 0, sin `startup-error.log` |
 | DB local | `sha256` sin cambios antes y después del smoke |
 
+## Confirmado por el operador
+
+rc.30 **sí** fue instalada y validada en la máquina de la Óptica. Este equipo es el de
+casa y quedó en rc.27. La tabla de arriba no describe un release perdido: describe que
+este equipo no es el destino.
+
+## El zip hay que llevarlo
+
+El paquete vive **sólo en el disco de esta PC**. Los zips de RC están gitignoreados por
+convención —viaja el hash en el `MANIFEST`, no el binario—, así que clonar la rama en la
+Óptica no lo trae.
+
+Reconstruirlo allá **no** sirve para verificar contra estos hashes: PyInstaller no produce
+binarios reproducibles byte a byte, así que un rebuild daría otro `sha256` y el paso de
+verificación del runbook fallaría con todo en orden. Hay que transportar este zip por
+medio físico. Si por lo que sea hubiera que reconstruirlo, hacerlo desde el commit de esta
+rama y anotar el hash nuevo como generación 2 del paquete, en vez de forzar la comparación.
+
 ## Runbook para ejecutar en la máquina de la Óptica
 
 Requiere que ahí la instalación vigente sea efectivamente rc.30. **Verificarlo primero: si
