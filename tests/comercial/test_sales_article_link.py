@@ -663,18 +663,25 @@ def test_los_campos_que_no_tocan_el_inventario_se_siguen_editando(
     assert ledger.stock(armazon.id, Destination.ASUNCION) == 4
 
 
-def test_una_venta_integrada_no_se_puede_anular(caja, armazon, ledger):
-    """Anularla borraría la venta y dejaría la unidad afuera. La reversión
-    necesita el movimiento compensatorio, y ese camino es de otro slice."""
+def test_una_venta_integrada_se_anula_compensando(caja, armazon, ledger):
+    """Este era el boundary del slice 4: anular estaba prohibido porque el
+    circuito compensatorio no existía. La 027 lo construyó, así que ahora
+    anular devuelve la mercadería en la misma transacción. Lo que sigue siendo
+    imposible es que la unidad quede afuera sin nada que la explique — eso se
+    verifica entero en `test_sale_void_compensation.py`."""
     _dar_stock(ledger, armazon, 5)
     dia = _dia(entradas=[_venta(_linea(armazon=armazon, precio_armazon=280_000))])
     _guardar(caja, dia)
+    assert ledger.stock(armazon.id, Destination.ASUNCION) == 4
 
     recargado = caja.get_by_date_and_unit(dia.business_date, dia.unit)
-    recargado.entries[0] = recargado.entries[0].void(reason="me equivoqué")
-    with pytest.raises(VentaIntegradaNoEditable):
-        caja.save(recargado)
-    assert ledger.stock(armazon.id, Destination.ASUNCION) == 4
+    recargado.void_entry(recargado.entries[0].id, "me equivoqué")
+    caja.save(recargado, audit_reason="me equivoqué", edited_by="rodrigo")
+
+    assert ledger.stock(armazon.id, Destination.ASUNCION) == 5
+    devuelto = [m for m in ledger.movimientos() if m.compensates_id]
+    assert len(devuelto) == 1
+    assert devuelto[0].note == "me equivoqué"
 
 
 def test_la_base_impide_borrar_las_lineas_de_una_venta_integrada(

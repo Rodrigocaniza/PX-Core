@@ -195,6 +195,12 @@ class SQLiteCashDayRepository:
                 if integradas and self._sale_integrator is not None:
                     self._sale_integrator.verificar_editable(
                         connection, cash_day, integradas)
+                    stage = "sale_void_compensation"
+                    # Antes de escribir el VOIDED, no despues: la devolucion de
+                    # la mercaderia es lo que habilita la anulacion, y si algo
+                    # de esto falla no queda ni la anulacion ni la devolucion.
+                    self._sale_integrator.compensar_anulaciones_en(
+                        connection, cash_day, integradas, actor=edited_by)
                 connection.execute(
                     """INSERT INTO cash_days(
                         id,business_date,unit,opening_cash,status,opened_at,closed_at,

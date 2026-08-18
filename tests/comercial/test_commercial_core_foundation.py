@@ -202,6 +202,9 @@ def test_los_motivos_de_salida_estan_sembrados_completos(repo):
     assert codigos == {
         "ROTO", "RAYADO", "PERDIDA", "DETERIORO",
         "USO_INTERNO", "ERROR_INVENTARIO", "OTRO",
+        # Reservado, sembrado por la 027: explica la devolución al depósito de
+        # una venta anulada y no se elige a mano.
+        "VENTA_ANULADA",
     }
 
 

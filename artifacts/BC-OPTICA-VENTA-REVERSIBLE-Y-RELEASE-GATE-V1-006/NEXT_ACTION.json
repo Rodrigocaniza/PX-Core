@@ -1,0 +1,158 @@
+{
+  "mission": "BC-OPTICA-VENTA-REVERSIBLE-Y-RELEASE-GATE-V1-006",
+  "state": "SAFE_CLOSURE",
+  "repository": "PX-Core",
+  "worktree": ".worktrees/optica-venta-reversible-006",
+  "branch": "feature/bc-optica-venta-reversible-y-release-gate-v1-006",
+  "base_commit": "a8443a3",
+  "base_branch": "feature/bc-optica-comercial-ui-carga-inicial-v1-005",
+  "closed_on": "2026-08-18",
+  "closed_at": "PC Casa",
+  "blocked_on": null,
+
+  "next_action": "BC-OPTICA-INSTALACION-PRODUCTIVA-V1-007, y NO se ejecuta sin autorizacion explicita del dueno. Los dos bloqueantes tecnicos ya no existen: la reversion compensatoria esta implementada y el gate 022-027 dio PASS con rollback probado. Lo que falta es especifico y hay que hacerlo EN LA OPTICA, no desde PC Casa: (1) correr tools/release_gate_optica_022_027.py sobre la base productiva REAL de la Optica -- el gate de esta mision corrio sobre la base local del piloto de PC Casa, que tiene la misma forma pero otros datos; (2) backup de la base real con la evidencia de su sha256; (3) instalar BC-CAJA-1.0.0-rc.32-win64.zip con la carpeta anterior conservada como rollback, igual que rc.31; (4) smoke con la operadora sobre datos reales: apertura, venta legacy, venta con articulo, compra, stock, anulacion compensatoria y cierre; (5) recien despues, la carga inicial del archivo de articulos cuando el dueno lo produzca",
+  "next_role": "COMMAND_CENTER",
+  "next_pc": "Optica",
+  "autorizacion_requerida": true,
+
+  "por_que_este_next_action_y_no_otro": {
+    "evaluado_mas_dominio": "NO. Trabajos, FactuFacil, cuentas por pagar y notas de credito agregan superficie sobre un sistema que la Optica todavia no usa. Primero que lo use",
+    "evaluado_instalar_desde_aca": "NO SE PUEDE. La base productiva de la Optica no esta en PC Casa y el gate sobre datos reales es parte del release, no un tramite que se pueda dar por hecho",
+    "evaluado_cargar_los_3000_articulos": "NO. Se inspecciono el repositorio: no hay ninguna fuente canonica, solo docs/PLANTILLA_ARTICULOS.csv (6 lineas) y el csv de prueba del slice 5 (5 lineas). Sigue siendo deuda del dueno y no se pidio trabajo manual",
+    "evaluado_anulacion_en_dia_cerrado": "NO en esta mision. Es una deuda real y acotada, no un bloqueante: hoy la anulacion se hace el mismo dia"
+  },
+
+  "entregado_en_este_slice": {
+    "migracion": "027_sale_void_compensation.sql, cadena 26 -> 27",
+    "hecho_nuevo": "SALE_VOIDED",
+    "efecto_nuevo": "AJUSTE_POSITIVO con motivo reservado VENTA_ANULADA, uno por unidad devuelta",
+    "tabla_nueva": "sale_void_compensations, append-only",
+    "vista_nueva": "stock_origen_anulacion",
+    "triggers_nuevos": 7,
+    "trigger_reemplazado": "cash_entries_integrada_sin_anular: de prohibir la anulacion a exigir que este compensada",
+    "aplicacion": "VentasLedgerIntegrator.compensar_anulaciones_en, en la transaccion del guardado de Caja",
+    "version": "1.0.0-rc.32",
+    "paquete": "releases/BC-CAJA-1.0.0-rc.32-win64.zip, sha256 119888956123fded9d5b4d35edaab437c7dc2068e974ce92f115d4f3a1a12336, LOCAL, no en el remoto",
+    "herramientas": [
+      "tools/release_gate_optica_022_027.py",
+      "tools/smoke_release_006.py",
+      "tools/smoke_ui_comercial_006.py"
+    ]
+  },
+
+  "decisiones_de_diseno_que_conviene_no_reabrir": {
+    "compensar_no_es_deshacer": "el hecho original permanece y se agrega uno nuevo. No hay un undo en ningun lado del sistema",
+    "lo_que_se_devuelve_lo_dice_el_ledger": "no se re-deriva del catalogo. Si la naturaleza de un articulo cambio desde la venta, re-derivarla devolveria una cantidad distinta de la que salio",
+    "la_compensacion_es_total_o_no_es": "una reversion parcial deja el deposito en un estado que nadie puede explicar. El trigger la rechaza entera",
+    "venta_anulada_es_un_motivo_reservado": "sin eso, cualquiera podria ingresar mercaderia a mano diciendo que una venta se anulo",
+    "corregir_una_venta_integrada_es_anularla_y_cargar_la_correcta": "editar la linea en el lugar dejaria el movimiento apuntando a una fila que ya dice otra cosa",
+    "un_hecho_es_durable_aunque_no_produzca_efectos": "una venta de puros servicios emite SALE_COMPLETED y su anulacion emite SALE_VOIDED, las dos con cero movimientos",
+    "el_movimiento_de_stock_no_mueve_plata": "el hecho economico de la anulacion ya lo resuelve Caja sacando la entrada del total"
+  },
+
+  "verification": {
+    "pruebas_dirigidas_primero": true,
+    "suite_dirigida": "tests/comercial/test_sale_void_compensation.py, 31 passed",
+    "suite_completa": "934 passed, 2 failed, una sola corrida al cierre",
+    "fallas_declaradas": "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001, identico sobre el commit base a8443a3 (903 passed, mismas 2)",
+    "release_gate": "PASS, 0 fallas, sobre copia de la base local de PC Casa",
+    "rollback": "PASS, byte a byte, cadena de vuelta a 021",
+    "packaging": "PASS, 1.0.0-rc.32",
+    "smoke_ejecutable": "PASS",
+    "smoke_ui_comercial": "PASS",
+    "gates": {
+      "librarian": "PASS",
+      "qa": "PASS",
+      "auditor": "PASS",
+      "artifact_consistency": "PASS"
+    }
+  },
+
+  "produccion": {
+    "optica": "INTACTA. No fue tocada ni alcanzada desde PC Casa. Sigue en 21 migraciones y BC Caja 1.0.0-rc.31",
+    "pc_casa": "INTACTA. sha256 b38d9f275e88eb11689fc6f318a21619ba091bda1f8b560f1fba93f69b76c116 antes y despues. Sigue en 21 migraciones y BC Caja 1.0.0-rc.27",
+    "todo_lo_que_escribio_esta_mision": "copias en directorios temporales, mas el paquete en releases/"
+  },
+
+  "deudas_explicitas_no_mezcladas": [
+    {
+      "id": "GATE-SOBRE-BASE-REAL-DE-LA-OPTICA",
+      "estado": "PENDIENTE, BLOQUEANTE PARA INSTALAR",
+      "detalle": "el gate de esta mision corrio sobre la base local de PC Casa. El mismo script tiene que correr sobre la base real antes de instalar"
+    },
+    {
+      "id": "ANULACION-EN-DIA-CERRADO",
+      "estado": "BOUNDARY ABIERTO",
+      "detalle": "CashDay._require_open impide anular una venta de un dia ya cerrado. Preexistente, no lo introduce este slice"
+    },
+    {
+      "id": "NOTAS-DE-CREDITO-Y-ANULACION-DE-COMPRAS",
+      "estado": "BOUNDARY ABIERTO desde el slice 3",
+      "detalle": "el lado de compras del mismo problema que este slice resolvio para ventas"
+    },
+    {
+      "id": "CUENTAS-POR-PAGAR",
+      "estado": "BOUNDARY ABIERTO"
+    },
+    {
+      "id": "TRANSFERENCIAS-ENTRE-SUCURSALES",
+      "estado": "VOCABULARIO DECLARADO SIN USAR desde el slice 2"
+    },
+    {
+      "id": "IVA-COMPLETO",
+      "estado": "BOUNDARY ABIERTO, 10% uniforme"
+    },
+    {
+      "id": "CANTIDAD-POR-LINEA-DE-VENTA",
+      "estado": "BOUNDARY ABIERTO, una linea es una unidad"
+    },
+    {
+      "id": "INVENTARIO-OPERATIVO",
+      "estado": "PREPARADO SIN EXPLOTAR, min_stock ya se guarda"
+    },
+    {
+      "id": "ARCHIVO-REAL-DE-3000-ARTICULOS",
+      "estado": "NO LOCALIZADO",
+      "detalle": "inspeccionado el repositorio en esta mision: solo la plantilla de 6 lineas y el csv de prueba de 5. La fuente la produce la Optica"
+    },
+    {
+      "id": "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001",
+      "estado": "HEREDADO, SIN CORREGIR",
+      "detalle": "2 fallas en tests/gestion_central/test_ui_interactions.py, identicas sobre el commit base"
+    },
+    {
+      "id": "CajaDiaria.py:3253",
+      "estado": "HALLAZGO ANOTADO, NO CORREGIDO"
+    },
+    {
+      "id": "BC-CORE-LOCAL-SIN-HEADLESS-EXECUTOR",
+      "estado": "PENDIENTE",
+      "detalle": "por eso esta mision corrio en sesion, igual que los cinco slices anteriores"
+    },
+    {
+      "id": "ADMIN-USERS-VACIO",
+      "estado": "DECISION DEL DUENO"
+    },
+    {
+      "id": "PX-CORE-MAIN-LOCAL-VIEJO",
+      "estado": "ANOTADO",
+      "detalle": "139 commits detras de origin/main, sin worktree asociado, inofensivo"
+    }
+  ],
+
+  "safe_closure": {
+    "worktree": "limpio tras el commit",
+    "rama": "pusheada a origin",
+    "main": "sin tocar, 7db56a0",
+    "pr": false,
+    "merge": false,
+    "force_push": false,
+    "leases_vivos": 0,
+    "procesos_residuales": 0,
+    "worktree_temporal_de_verificacion": "removido",
+    "datos_productivos": "sin tocar",
+    "empaquetado": true,
+    "instalacion": false,
+    "bc_core_y_telegram": "sin tocar"
+  }
+}

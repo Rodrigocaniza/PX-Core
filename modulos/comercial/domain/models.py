@@ -91,6 +91,10 @@ class AdministrativeExitReason(str, Enum):
 
     Espeja `administrative_exit_reasons`, sembrada en la migración 022. El
     movimiento que los consume es el slice del ledger; acá está el vocabulario.
+
+    `VENTA_ANULADA` lo agrega la 027 y es **reservado**: no es un motivo que
+    alguien elija, es el que explica la devolución al depósito cuando una venta
+    se anula. Un trigger impide usarlo en cualquier otro movimiento.
     """
 
     ROTO = "ROTO"
@@ -100,6 +104,12 @@ class AdministrativeExitReason(str, Enum):
     USO_INTERNO = "USO_INTERNO"
     ERROR_INVENTARIO = "ERROR_INVENTARIO"
     OTRO = "OTRO"
+    VENTA_ANULADA = "VENTA_ANULADA"
+
+    @property
+    def reservado(self) -> bool:
+        """Si lo produce el sistema en vez de elegirlo una persona."""
+        return self is AdministrativeExitReason.VENTA_ANULADA
 
 
 class AdministrativeEntryReason(str, Enum):

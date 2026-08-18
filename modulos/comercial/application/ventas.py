@@ -43,10 +43,27 @@ class VentaIntegradaNoEditable(VentasError):
     """La venta ya movió stock; esa parte es historia."""
 
 
+class AnulacionSinResponsable(VentasError):
+    """Nadie firmó la anulación.
+
+    Una venta anulada devuelve mercadería al depósito. Sin un responsable, el
+    stock aparece y no hay a quién preguntarle por qué.
+    """
+
+
+class AnulacionSinMotivo(VentasError):
+    """La anulación no dice por qué."""
+
+
 #: Tipo del hecho. Se nombra una sola vez, igual que `PURCHASE_CONFIRMED`.
 EVENTO_VENTA_COMPLETADA = "SALE_COMPLETED"
+#: El hecho compensatorio. Es un hecho nuevo, no la negación del anterior: el
+#: `SALE_COMPLETED` original sigue estando y sigue siendo verdad.
+EVENTO_VENTA_ANULADA = "SALE_VOIDED"
 ORIGEN_CAJA = "CAJA"
 DOCUMENTO_VENTA = "VENTA"
+#: Motivo canónico de la devolución al stock, sembrado por la migración 027.
+MOTIVO_VENTA_ANULADA = "VENTA_ANULADA"
 
 
 @dataclass(frozen=True)
@@ -168,10 +185,10 @@ class VentasLedgerIntegrator:
         for entry in cash_day.entries:
             if entry.id not in integradas:
                 continue
-            if str(getattr(entry.status, "value", entry.status)) == "VOIDED":
-                raise VentaIntegradaNoEditable(
-                    f"la venta «{entry.description}» ya movió stock: anularla dejaría "
-                    "la mercadería afuera sin nada que la explique")
+            # Anular ya no está prohibido: tiene su propio circuito, que devuelve
+            # la mercadería antes de que la entrada cambie de estado. Lo que
+            # sigue prohibido —también para una venta anulada— es reescribir las
+            # líneas, porque el movimiento que sacó la unidad apunta a ellas.
             if self._huella(entry) != self._huella_guardada(connection, entry.id):
                 raise VentaIntegradaNoEditable(
                     f"la venta «{entry.description}» ya movió stock: sus líneas no se "
@@ -192,6 +209,187 @@ class VentasLedgerIntegrator:
             for fila in connection.execute(
                 "SELECT position, id, article_id, lens_article_id FROM sale_items"
                 " WHERE cash_entry_id = ? ORDER BY position", (entry_id,)))
+
+    # -- anulación compensatoria -------------------------------------------
+
+    def compensar_anulaciones_en(
+        self,
+        connection: sqlite3.Connection,
+        cash_day,
+        integradas: set[str],
+        *,
+        actor: str = "",
+    ) -> None:
+        """Devuelve al depósito la mercadería de las ventas recién anuladas.
+
+        Corre **antes** de que la entrada cambie de estado, y no por prolijidad:
+        el trigger de la 027 exige que la compensación ya esté registrada para
+        dejar pasar el `VOIDED`. Si la devolución falla, la anulación no ocurre;
+        si la anulación falla, la devolución tampoco. Son la misma transacción,
+        la del guardado de Caja, y por eso no se abre ninguna acá.
+
+        Nada de esto reescribe el pasado. La venta, su `SALE_COMPLETED` y sus
+        movimientos `VENTA` quedan exactamente como estaban.
+        """
+        for entry in cash_day.entries:
+            if entry.id not in integradas:
+                continue
+            if str(getattr(entry.status, "value", entry.status)) != "VOIDED":
+                continue
+            if self._anulacion_ya_registrada(connection, entry.id):
+                # Guardar el mismo día dos veces no devuelve el stock dos veces.
+                continue
+            self._compensar_entrada(connection, cash_day, entry, actor=actor)
+
+    def _compensar_entrada(
+        self, connection: sqlite3.Connection, cash_day, entry, *, actor: str
+    ) -> None:
+        motivo = str(getattr(entry, "void_reason", "") or "").strip()
+        if not motivo:
+            raise AnulacionSinMotivo(
+                f"la anulación de «{entry.description}» no declara motivo, y esa "
+                "anulación devuelve mercadería al depósito")
+        responsable = self._responsable(actor, cash_day, entry)
+
+        integracion = connection.execute(
+            "SELECT event_id, destination FROM sale_stock_integrations"
+            " WHERE cash_entry_id = ?", (entry.id,)).fetchone()
+        if integracion is None:
+            # No debería ocurrir: `integradas` sale de esa misma tabla.
+            raise VentasError(
+                f"la venta «{entry.description}» figura integrada pero no tiene "
+                "registro de integración")
+        sale_event_id, destino_guardado = integracion[0], integracion[1]
+
+        # Lo que se devuelve es lo que esta venta sacó, leído del ledger. No se
+        # vuelve a derivar del catálogo: si la naturaleza de un artículo cambió
+        # desde la venta, derivarla de nuevo devolvería una cantidad distinta de
+        # la que salió, o inventaría stock de un servicio.
+        movimientos = connection.execute(
+            "SELECT id, article_id, destination, quantity, document_line_id, note"
+            " FROM stock_movements WHERE document_kind = ? AND document_id = ?"
+            " AND kind = ? ORDER BY rowid",
+            (DOCUMENTO_VENTA, entry.id, StockMovementKind.VENTA.value)).fetchall()
+
+        momento = datetime.now(timezone.utc).replace(microsecond=0)
+        evento = DomainEvent(
+            event_type=EVENTO_VENTA_ANULADA,
+            source=ORIGEN_CAJA,
+            entity_type="SALE",
+            entity_id=entry.id,
+            destination=destino_guardado,
+            actor=responsable,
+            occurred_at=momento,
+            idempotency_key=f"{DOCUMENTO_VENTA}:{entry.id}:ANULACION",
+            payload=self._payload_de_anulacion(
+                cash_day, entry, motivo, responsable, sale_event_id, movimientos),
+            processing_state=EventProcessingState.PENDIENTE,
+        )
+        # El hecho primero, igual que en la venta: una anulación es durable
+        # aunque el ledger no tenga nada que devolver.
+        void_event_id = self._ledger.asegurar_evento_en(connection, evento)
+
+        for fila in movimientos:
+            self._ledger.registrar_en(
+                connection,
+                StockMovement(
+                    article_id=fila[1],
+                    destination=Destination(fila[2]),
+                    kind=StockMovementKind.AJUSTE_POSITIVO,
+                    quantity=abs(int(fila[3])),
+                    actor=responsable,
+                    occurred_at=momento,
+                    # La misma clave que usa `StockLedgerService.compensar`: un
+                    # movimiento se compensa una vez, la haya disparado la
+                    # anulación o una corrección manual del ledger.
+                    idempotency_key=f"compensa:{fila[0]}",
+                    reason_code=MOTIVO_VENTA_ANULADA,
+                    note=motivo,
+                    document_kind=DOCUMENTO_VENTA,
+                    document_id=entry.id,
+                    document_line_id=fila[4],
+                    compensates_id=fila[0],
+                ),
+                evento=evento)
+
+        self._ledger.marcar_evento_procesado_en(connection, void_event_id, momento)
+        connection.execute(
+            "INSERT INTO sale_void_compensations(cash_entry_id, sale_event_id,"
+            " void_event_id, destination, reason_code, note, movement_count,"
+            " voided_at, voided_by) VALUES (?,?,?,?,?,?,?,?,?)",
+            (entry.id, sale_event_id, void_event_id, destino_guardado,
+             MOTIVO_VENTA_ANULADA, motivo,
+             self._compensaciones_registradas(connection, entry.id),
+             momento.isoformat(), responsable))
+
+    @staticmethod
+    def _anulacion_ya_registrada(
+        connection: sqlite3.Connection, entry_id: str
+    ) -> bool:
+        """Vive en la base y no en memoria: reabrir la ventana o recuperarse de
+        un corte tiene que encontrar que esta venta ya devolvió su mercadería."""
+        return connection.execute(
+            "SELECT 1 FROM sale_void_compensations WHERE cash_entry_id = ?",
+            (entry_id,)).fetchone() is not None
+
+    @staticmethod
+    def _compensaciones_registradas(
+        connection: sqlite3.Connection, entry_id: str
+    ) -> int:
+        """Cuántas devoluciones tiene esta venta, contadas en el ledger.
+
+        Se cuenta en vez de acumularse en un contador propio porque el trigger
+        de la 027 verifica exactamente esta cuenta: declarar otra cosa sería
+        declarar un efecto que no ocurrió.
+        """
+        return int(connection.execute(
+            "SELECT COUNT(*) FROM stock_movements WHERE document_kind = ?"
+            " AND document_id = ? AND compensates_id IS NOT NULL",
+            (DOCUMENTO_VENTA, entry_id)).fetchone()[0])
+
+    @staticmethod
+    def _responsable(actor: str, cash_day, entry) -> str:
+        """Quién firma la devolución de la mercadería.
+
+        Se prefiere quien ejecutó la anulación; si el llamador no lo pasó, se
+        cae a quien abrió la caja y después a la vendedora de la línea. Si no
+        hay ninguno, la anulación se rechaza: stock que vuelve sin responsable
+        es stock aparecido.
+        """
+        for candidato in (actor, getattr(cash_day, "opened_by", ""),
+                          getattr(entry, "saleswoman", "")):
+            limpio = str(candidato or "").strip()
+            if limpio:
+                return limpio
+        raise AnulacionSinResponsable(
+            f"la anulación de «{entry.description}» devuelve mercadería al depósito "
+            "y no tiene responsable declarado")
+
+    @staticmethod
+    def _payload_de_anulacion(
+        cash_day, entry, motivo: str, responsable: str, sale_event_id: str,
+        movimientos,
+    ) -> dict:
+        """Lo mínimo para reconstruir la anulación sin volver a consultar nada."""
+        return {
+            "cash_day_id": cash_day.id,
+            "business_date": cash_day.business_date.isoformat(),
+            "unit": cash_day.unit,
+            "entry_description": entry.description,
+            "sale_event_id": sale_event_id,
+            "void_reason": motivo,
+            "voided_by": responsable,
+            "compensated_movements": [
+                {
+                    "movement_id": fila[0],
+                    "article_id": fila[1],
+                    "destination": fila[2],
+                    "quantity": abs(int(fila[3])),
+                    "sale_item_id": fila[4],
+                }
+                for fila in movimientos
+            ],
+        }
 
     # -- integración --------------------------------------------------------
 
