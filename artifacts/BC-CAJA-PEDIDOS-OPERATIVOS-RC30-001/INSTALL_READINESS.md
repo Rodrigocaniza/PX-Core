@@ -44,17 +44,50 @@ rc.30 **sí** fue instalada y validada en la máquina de la Óptica. Este equipo
 casa y quedó en rc.27. La tabla de arriba no describe un release perdido: describe que
 este equipo no es el destino.
 
-## El zip hay que llevarlo
+## El zip se recupera solo: no hace falta transporte físico
 
-El paquete vive **sólo en el disco de esta PC**. Los zips de RC están gitignoreados por
-convención —viaja el hash en el `MANIFEST`, no el binario—, así que clonar la rama en la
-Óptica no lo trae.
+Los zips de RC están gitignoreados por convención —viaja el hash en el `MANIFEST`, no el
+binario—, así que clonar la rama no lo trae. Y reconstruirlo allá **no** sirve para
+verificar contra estos hashes: PyInstaller no produce binarios reproducibles byte a byte,
+así que un rebuild daría otro `sha256` y el runbook fallaría con todo en orden.
 
-Reconstruirlo allá **no** sirve para verificar contra estos hashes: PyInstaller no produce
-binarios reproducibles byte a byte, así que un rebuild daría otro `sha256` y el paso de
-verificación del runbook fallaría con todo en orden. Hay que transportar este zip por
-medio físico. Si por lo que sea hubiera que reconstruirlo, hacerlo desde el commit de esta
-rama y anotar el hash nuevo como generación 2 del paquete, en vez de forzar la comparación.
+El artefacto exacto quedó publicado como release asset de un repositorio **privado**,
+fuera del historial Git:
+
+| | |
+| --- | --- |
+| Repositorio | `Rodrigocaniza/PX-Core-releases` (privado) |
+| Tag | `bc-caja-1.0.0-rc.31` |
+| Asset | `BC-CAJA-1.0.0-rc.31-win64.zip` |
+| sha256 | `95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948` |
+
+**Round-trip verificado desde la PC de casa:** subido y vuelto a descargar, el zip vuelve
+con el mismo `sha256` y los mismos 34 111 433 bytes; el `BC-Caja.exe` dentro conserva
+`62e8f1d8…` y su `VERSION.txt` dice rc.31.
+
+### Recuperarlo en la Óptica
+
+Requiere `gh` autenticado con acceso al repo privado. Verificarlo primero:
+
+```powershell
+gh auth status          # si falla: gh auth login
+gh release view bc-caja-1.0.0-rc.31 --repo Rodrigocaniza/PX-Core-releases
+```
+
+```powershell
+$Z = "$env:TEMP\rc31"
+gh release download bc-caja-1.0.0-rc.31 `
+  --repo Rodrigocaniza/PX-Core-releases `
+  --pattern "BC-CAJA-1.0.0-rc.31-win64.zip" --dir $Z
+
+# No instalar nada si esto no da True
+(Get-FileHash "$Z\BC-CAJA-1.0.0-rc.31-win64.zip").Hash.ToLower() -eq `
+  "95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948"
+```
+
+Si `gh` no estuviera disponible allá, el mismo asset se baja desde la web del repositorio
+privado con la cuenta del dueño; el paso de verificación de hash es el mismo y no es
+opcional. Recién ahí sigue el runbook, con `<ruta>` = `$Z\BC-CAJA-1.0.0-rc.31-win64.zip`.
 
 ## Runbook para ejecutar en la máquina de la Óptica
 

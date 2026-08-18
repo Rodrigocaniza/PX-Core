@@ -158,6 +158,15 @@
       "reason": "El operador confirma que rc.30 fue instalada y validada en la PC de la Optica y que esta PC es la de casa, en rc.27: no es el destino de rc.31. La mision pausa con rc.31 empaquetada y verificada, gates en PASS y runbooks escritos. Worktree limpio, rama sincronizada, 0 leases, 0 procesos residuales, main 291fe40 sin tocar. Queda anotado que el zip vive solo en el disco de casa y hay que transportarlo: reconstruirlo en la Optica daria otro sha256 y romperia la verificacion del runbook sin que nada este mal",
       "gate_id": null,
       "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "ARTIFACT_TRANSPORT_RESOLVED",
+      "from_state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
+      "to_state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
+      "timestamp": "2026-08-17T00:00:00Z",
+      "reason": "El zip exacto quedo publicado como release asset del repo privado Rodrigocaniza/PX-Core-releases, tag bc-caja-1.0.0-rc.31, fuera del historial Git y sin reconstruirlo. Round-trip verificado desde la PC de casa: vuelve con el mismo sha256, los mismos 34111433 bytes, el exe interno 62e8f1d8 y VERSION.txt en rc.31. Ya no hace falta transporte fisico. PX-Core es publico, asi que el binario NO se publico ahi: el operador eligio un repositorio privado propio para artefactos. Codigo sin modificar, nada instalado, main sin promover",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
     }
   ]
 }
