@@ -329,11 +329,19 @@ def test_la_migracion_022_es_aditiva_y_no_pierde_filas(tmp_path):
     conexion.close()
 
 
-def test_la_cadena_de_migraciones_llega_a_022(tmp_path):
+def test_la_cadena_de_migraciones_incluye_la_022_completa(tmp_path):
+    """Que la 022 este aplicada y que la cadena este entera, no que termine ahi.
+
+    Contaba las migraciones a mano, que es exactamente lo que este slice le
+    corrigio a otros seis contratos ajenos. La intencion era "la 022 se aplico
+    y no falta ninguna", no "nunca va a haber una 023".
+    """
+    from tests.migration_chain import versiones_esperadas
+
     ruta = tmp_path / "bc.sqlite3"
     SQLiteCashDayRepository(ruta)
     conexion = sqlite3.connect(ruta)
     versiones = {v[0] for v in conexion.execute("SELECT version FROM schema_migrations")}
     conexion.close()
     assert "022" in versiones
-    assert len(versiones) == 22
+    assert versiones == set(versiones_esperadas())

@@ -15,6 +15,7 @@ from typing import Iterator, Sequence
 from uuid import uuid4
 
 from ..domain.models import (
+    AdministrativeEntryReasonRow,
     AdministrativeExitReasonRow,
     Article,
     ArticleNature,
@@ -207,6 +208,28 @@ class SQLiteCatalogRepository:
         with self._connection() as connection:
             filas = connection.execute(consulta).fetchall()
         return [AdministrativeExitReasonRow(
+            code=f["code"], label=f["label"],
+            requires_note=bool(f["requires_note"]),
+            position=f["position"], active=bool(f["active"])) for f in filas]
+
+    def list_administrative_entry_reasons(
+        self, *, only_active: bool = True
+    ) -> Sequence[AdministrativeEntryReasonRow]:
+        """El espejo del anterior, para lo que entra sin factura.
+
+        Son dos catálogos y no uno solo con una bandera: «roto» no puede ser el
+        motivo por el que algo entró, y «stock encontrado» no puede ser el
+        motivo por el que algo salió. Una lista única obligaría a filtrarla en
+        cada pantalla y tarde o temprano alguien elegiría el motivo del otro
+        lado.
+        """
+        consulta = "SELECT * FROM administrative_entry_reasons"
+        if only_active:
+            consulta += " WHERE active = 1"
+        consulta += " ORDER BY position"
+        with self._connection() as connection:
+            filas = connection.execute(consulta).fetchall()
+        return [AdministrativeEntryReasonRow(
             code=f["code"], label=f["label"],
             requires_note=bool(f["requires_note"]),
             position=f["position"], active=bool(f["active"])) for f in filas]

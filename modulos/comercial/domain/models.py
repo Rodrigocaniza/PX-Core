@@ -8,6 +8,7 @@ nombra mal acá, después hay que migrar dos veces.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4
 
@@ -101,21 +102,85 @@ class AdministrativeExitReason(str, Enum):
     OTRO = "OTRO"
 
 
+class AdministrativeEntryReason(str, Enum):
+    """Por qué entró al stock algo que no vino por una compra.
+
+    Espeja `administrative_entry_reasons`, sembrada en la migración 023. Todos
+    exigen observación: un ingreso sin factura y sin explicación sería stock
+    aparecido de la nada.
+    """
+
+    STOCK_ENCONTRADO = "STOCK_ENCONTRADO"
+    CORRECCION_INVENTARIO = "CORRECCION_INVENTARIO"
+    FUERA_DE_CIRCUITO = "FUERA_DE_CIRCUITO"
+    OTRO = "OTRO"
+
+
 class StockMovementKind(str, Enum):
-    """Movimientos válidos del ledger. Se define acá para que el slice del
-    ledger no tenga que reabrir esta discusión.
+    """Movimientos válidos del ledger.
 
     Una compra histórica **nunca** se modifica ni se borra para sacar stock: lo
     que corresponde es registrar la salida administrativa o el ajuste auditado.
+
+    El slice 1 dejó `TRANSFERENCIA` como un solo miembro. El ledger lo abre en
+    dos patas porque un único valor no puede decir de qué lado del traslado
+    está el destino, y el signo del movimiento se deriva justamente de eso.
+    Nada consumía todavía el nombre viejo, así que se corrige acá y no queda
+    una tercera forma de escribir lo mismo.
     """
 
     INGRESO_COMPRA = "INGRESO_COMPRA"
     INGRESO_PRODUCCION = "INGRESO_PRODUCCION"
+    INGRESO_ADMINISTRATIVO = "INGRESO_ADMINISTRATIVO"
+    AJUSTE_POSITIVO = "AJUSTE_POSITIVO"
+    TRANSFERENCIA_ENTRADA = "TRANSFERENCIA_ENTRADA"
+
     VENTA = "VENTA"
     SALIDA_ADMINISTRATIVA = "SALIDA_ADMINISTRATIVA"
-    AJUSTE_POSITIVO = "AJUSTE_POSITIVO"
+    DEVOLUCION_PROVEEDOR = "DEVOLUCION_PROVEEDOR"
     AJUSTE_NEGATIVO = "AJUSTE_NEGATIVO"
-    TRANSFERENCIA = "TRANSFERENCIA"
+    TRANSFERENCIA_SALIDA = "TRANSFERENCIA_SALIDA"
+
+    @property
+    def signo(self) -> int:
+        """+1 si entra, -1 si sale.
+
+        Es derivado, igual que `tracks_stock`. Una columna de signo al lado del
+        tipo permitiría una venta que suma.
+        """
+        return 1 if self in _MOVIMIENTOS_DE_ENTRADA else -1
+
+    @property
+    def es_entrada(self) -> bool:
+        return self.signo == 1
+
+    @property
+    def exige_motivo(self) -> bool:
+        """Lo que entra o sale sin una venta ni una compra detrás se explica."""
+        return self in _MOVIMIENTOS_QUE_EXIGEN_MOTIVO
+
+
+_MOVIMIENTOS_DE_ENTRADA = frozenset({
+    StockMovementKind.INGRESO_COMPRA,
+    StockMovementKind.INGRESO_PRODUCCION,
+    StockMovementKind.INGRESO_ADMINISTRATIVO,
+    StockMovementKind.AJUSTE_POSITIVO,
+    StockMovementKind.TRANSFERENCIA_ENTRADA,
+})
+
+_MOVIMIENTOS_QUE_EXIGEN_MOTIVO = frozenset({
+    StockMovementKind.INGRESO_ADMINISTRATIVO,
+    StockMovementKind.SALIDA_ADMINISTRATIVA,
+    StockMovementKind.AJUSTE_POSITIVO,
+    StockMovementKind.AJUSTE_NEGATIVO,
+})
+
+# La excepción al bloqueo de stock negativo es administrativa. Una venta no
+# puede pedirla: para eso existe el bloqueo.
+_MOVIMIENTOS_QUE_ADMITEN_NEGATIVO = frozenset({
+    StockMovementKind.SALIDA_ADMINISTRATIVA,
+    StockMovementKind.AJUSTE_NEGATIVO,
+})
 
 
 def _texto(valor: object) -> str:
@@ -232,3 +297,95 @@ class AdministrativeExitReasonRow:
     requires_note: bool = False
     position: int = 0
     active: bool = True
+
+
+@dataclass(frozen=True)
+class AdministrativeEntryReasonRow:
+    """Fila del catálogo de motivos de ingreso, tal como vive en la base."""
+
+    code: str
+    label: str
+    requires_note: bool = True
+    position: int = 0
+    active: bool = True
+
+
+@dataclass(frozen=True)
+class StockMovement:
+    """Un hecho físico de inventario.
+
+    La cantidad que se declara es siempre positiva: el signo lo pone el tipo.
+    Es la misma decisión que `tracks_stock`, por el mismo motivo — si el signo
+    fuera un dato aparte, nada impediría una venta que suma.
+
+    Un movimiento de stock **no** tiene impacto monetario. Una salida
+    administrativa no toca Caja; si además hubo un hecho económico, ese hecho
+    se registra por su lado.
+    """
+
+    article_id: str
+    destination: Destination | str
+    kind: StockMovementKind | str
+    quantity: int
+    actor: str
+    idempotency_key: str
+    event_id: str | None = None
+    occurred_at: datetime | None = None
+    recorded_at: datetime | None = None
+    reason_code: str | None = None
+    note: str = ""
+    supplier_id: str | None = None
+    document_kind: str | None = None
+    document_id: str | None = None
+    document_line_id: str | None = None
+    document_number: str | None = None
+    compensates_id: str | None = None
+    negative_override: bool = False
+    id: str = field(default_factory=new_id)
+
+    def __post_init__(self) -> None:
+        if not _texto(self.article_id):
+            raise ValueError("el movimiento necesita artículo")
+
+        try:
+            destino = Destination(self.destination)
+        except ValueError as exc:
+            raise ValueError(f"destino inválido: {self.destination!r}") from exc
+        object.__setattr__(self, "destination", destino)
+
+        try:
+            tipo = StockMovementKind(self.kind)
+        except ValueError as exc:
+            raise ValueError(f"tipo de movimiento inválido: {self.kind!r}") from exc
+        object.__setattr__(self, "kind", tipo)
+
+        cantidad = self.quantity
+        if isinstance(cantidad, bool) or not isinstance(cantidad, int) or cantidad <= 0:
+            raise ValueError(
+                "la cantidad se declara positiva; el signo lo decide el tipo")
+
+        actor = _texto(self.actor)
+        if not actor:
+            raise ValueError("el movimiento necesita saber quién lo hizo")
+        object.__setattr__(self, "actor", actor)
+
+        if not _texto(self.idempotency_key):
+            raise ValueError("el movimiento necesita clave de idempotencia")
+        object.__setattr__(self, "idempotency_key", _texto(self.idempotency_key))
+
+        object.__setattr__(self, "note", _texto(self.note))
+        motivo = _texto(self.reason_code).upper() or None
+        object.__setattr__(self, "reason_code", motivo)
+        object.__setattr__(self, "negative_override", bool(self.negative_override))
+
+        if self.occurred_at is None:
+            object.__setattr__(self, "occurred_at", datetime.now(timezone.utc))
+
+    @property
+    def signed_quantity(self) -> int:
+        """Lo que este movimiento le suma al stock. El ledger suma esto."""
+        return self.quantity * self.kind.signo
+
+    @property
+    def admite_negative_override(self) -> bool:
+        return self.kind in _MOVIMIENTOS_QUE_ADMITEN_NEGATIVO

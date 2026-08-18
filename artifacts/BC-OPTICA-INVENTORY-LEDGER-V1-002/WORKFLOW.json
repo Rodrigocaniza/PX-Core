@@ -1,0 +1,80 @@
+{
+  "mission": "BC-OPTICA-INVENTORY-LEDGER-V1-002",
+  "current_state": "SAFE_CLOSURE / SLICE 2 CERRADO",
+  "base": "ed0dbba",
+  "base_branch": "feature/bc-optica-commercial-core-foundation-v1-001",
+  "history": [
+    {
+      "event": "MISSION_STARTED",
+      "from_state": null,
+      "to_state": "ESTADO_CANONICO_VERIFICADO",
+      "timestamp": "2026-08-18T16:00:00-03:00",
+      "reason": "Encadenada por el NEXT_ACTION del slice 1. Verificado antes de tocar nada: origin/main = 7db56a0, produccion con 21 migraciones y sha256 1c4fcc40... identico al registrado en el slice 1, rama del slice 1 pusheada y limpia en ed0dbba, 0 leases vivos. main local esta 147 commits detras de origin/main: es una referencia vieja sin worktree asociado, no un conflicto, y no se toca. Hay otra sesion activa (BC-HEADLESS-EXECUTOR-CHANGED-PATHS-FIDELITY-V1-001) pero opera sobre BC-Core, no sobre PX-Core/main",
+      "gate_id": null,
+      "session_id": "bc-optica-inventory-ledger-v1-002"
+    },
+    {
+      "event": "WORKTREE_CREATED",
+      "from_state": "ESTADO_CANONICO_VERIFICADO",
+      "to_state": "AISLADO",
+      "timestamp": "2026-08-18T16:02:00-03:00",
+      "reason": "Worktree .worktrees/inventory-ledger-002 y rama feature/bc-optica-inventory-ledger-v1-002 derivados de ed0dbba, no de origin/main: el ledger referencia articles(id) y suppliers(id), que crea la 022",
+      "gate_id": null,
+      "session_id": "bc-optica-inventory-ledger-v1-002"
+    },
+    {
+      "event": "TESTS_FIRST",
+      "from_state": "AISLADO",
+      "to_state": "TESTS_ESCRITOS",
+      "timestamp": "2026-08-18T16:20:00-03:00",
+      "reason": "49 pruebas dirigidas escritas antes de la implementacion, cubriendo los 18 puntos pedidos: compra, produccion, ingreso administrativo, venta, salida administrativa, devolucion a proveedor, ajustes, calculo de stock, aislamiento Asuncion/Pilar, servicio y cristal sin stock, idempotencia, correccion compensatoria, no DELETE, stock negativo, concurrencia, compatibilidad historica, migracion sobre copia real, trazabilidad origen -> movimiento y un evento con un solo efecto",
+      "gate_id": null,
+      "session_id": "bc-optica-inventory-ledger-v1-002"
+    },
+    {
+      "event": "IMPLEMENTED",
+      "from_state": "TESTS_ESCRITOS",
+      "to_state": "IMPLEMENTADO",
+      "timestamp": "2026-08-18T16:40:00-03:00",
+      "reason": "Migracion 023 aditiva estricta con domain_events, event_effects, administrative_entry_reasons, stock_movements, la vista stock_actual y 10 triggers. El stock es SUM(quantity) y el signo se deriva del tipo, atado por un CHECK. Event Spine V1 como tabla de hechos, no como event bus",
+      "gate_id": null,
+      "session_id": "bc-optica-inventory-ledger-v1-002"
+    },
+    {
+      "event": "FOREIGN_CONTRACT_UPDATED",
+      "from_state": "IMPLEMENTADO",
+      "to_state": "SUITE_VERDE",
+      "timestamp": "2026-08-18T16:48:00-03:00",
+      "reason": "test_la_cadena_de_migraciones_llega_a_022 contaba las migraciones a mano, que es lo que el slice 1 le corrigio a otros seis contratos y reintrodujo en su propia prueba. Ahora deriva la lista de tests/migration_chain.py y sigue exigiendo que la 022 este. Suite 763 passed, 4 subtests, exit 0",
+      "gate_id": null,
+      "session_id": "bc-optica-inventory-ledger-v1-002"
+    },
+    {
+      "event": "VERIFIED_ON_PRODUCTION_COPY",
+      "from_state": "SUITE_VERDE",
+      "to_state": "VERIFICADO",
+      "timestamp": "2026-08-18T16:55:00-03:00",
+      "reason": "La 022 y la 023 se aplicaron sobre una COPIA de la base real de la Optica, abierta en modo lectura y copiada con la API de backup. 0 tablas perdidas, 0 filas cambiadas en las 25 preexistentes, sale_items 10/10 con article_id NULL, integrity ok, foreign_key_check 0, cadena 21 -> 023, SUM(cash_entries.total) 6.400.000 sin cambios. Append-only y bloqueo de negativo verificados sobre la copia con filas reales sembradas: la primera pasada del verificador dio falso fallo porque un trigger BEFORE ... FOR EACH ROW sobre tabla vacia no rechaza nada. La base real quedo sin tocar, sha256 identico",
+      "gate_id": null,
+      "session_id": "bc-optica-inventory-ledger-v1-002"
+    },
+    {
+      "event": "GATES_PASSED",
+      "from_state": "VERIFICADO",
+      "to_state": "3xPASS",
+      "timestamp": "2026-08-18T17:05:00-03:00",
+      "reason": "Librarian PASS: las 14 rutas, los simbolos y los 16 objetos de base que nombran los artefactos existen, y el ledger no nombra ninguna tabla de Caja. QA PASS: 763 passed, 4 subtests, exit 0. Auditor PASS: origin/main intacto en 7db56a0, rama del slice 1 intacta, sin force push, 0 leases, produccion en 21 migraciones y sha256 identico. Artifact Consistency PASS: 10 fuentes + 1 contrato ajeno",
+      "gate_id": "librarian+qa+auditor",
+      "session_id": "bc-optica-inventory-ledger-v1-002"
+    },
+    {
+      "event": "SAFE_CLOSURE",
+      "from_state": "3xPASS",
+      "to_state": "SAFE_CLOSURE / SLICE 2 CERRADO",
+      "timestamp": "2026-08-18T17:10:00-03:00",
+      "reason": "Slice 2 cerrado y pusheado a su rama. NO se promueve a main: agrega la 023 sobre la 022 y ninguna paso gate de empaquetado ni instalacion. Continua el slice 3, compras centralizadas con proveedores, que ya engancha con el ledger sin otra migracion",
+      "gate_id": null,
+      "session_id": "bc-optica-inventory-ledger-v1-002"
+    }
+  ]
+}
