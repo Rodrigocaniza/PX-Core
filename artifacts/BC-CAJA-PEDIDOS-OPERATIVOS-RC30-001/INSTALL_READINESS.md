@@ -1,5 +1,11 @@
 # INSTALL_READINESS — BC Caja 1.0.0-rc.31
 
+> **EJECUTADO el 18-08-2026 en la PC de la Optica, stamp `20260818-123848`.**
+> Este runbook se corrio entero y rc.31 quedo instalada y validada. Lo que sigue queda
+> como registro historico: la tabla "Encontrado en este equipo" describe el equipo de
+> desarrollo, que estaba en rc.27 y no era el destino. El resultado real esta en
+> `INSTALL_EVIDENCE.md`.
+
 **El paquete está listo y verificado. La instalación NO se ejecutó, y no por permisos:
 este equipo no tiene instalada rc.30.**
 

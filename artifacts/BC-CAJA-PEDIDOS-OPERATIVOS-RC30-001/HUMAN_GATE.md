@@ -1,5 +1,10 @@
 # HUMAN_GATE-PEDIDOS-RC30-001
 
+> **Estado al 18-08-2026: gate cerrado, PASS 11/11, y rc.31 instalada y validada en
+> la PC de la Optica.** Lo que sigue es el checklist tal como se escribio ANTES de
+> empaquetar, y por eso habla en presente de cosas que ya ocurrieron. El veredicto vive
+> en `GATE_VERDICT.md` y la evidencia de instalacion en `INSTALL_EVIDENCE.md`.
+
 **Nada se empaquetó ni se instaló.** La Óptica sigue con rc.30 y `main` sigue en `291fe40`.
 Este gate mira la pantalla nueva de Pedidos; si pasa, recién ahí se arma la RC.
 

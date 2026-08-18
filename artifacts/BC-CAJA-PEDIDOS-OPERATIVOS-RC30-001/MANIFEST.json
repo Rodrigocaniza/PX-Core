@@ -6,7 +6,7 @@
   "baseline": "origin/main = BC Caja 1.0.0-rc.30",
   "packaged": true,
   "installed": true,
-  "version_unchanged": null,
+  "version_unchanged": false,
   "authority_preserved": [
     "Sin chips flotantes: el estado sigue anclado a la fila (RC22/RC23)",
     "Alerta con filtro transportado (RC28) y contexto Mostrando/Ver todos",
@@ -126,6 +126,15 @@
     "install-rc31-laboratorios-1920x1080.png": "8dbc3607976231edccad74ae984a666b2022eef49f9b5f9df6c5e8541e839f1c",
     "install-rc31-pedidos-1920x1080.png": "934ecafaefffbd2df62fb896c31a5ea8a463818601aa1a9759024347ef13fd74",
     "install-rc31-seguimiento-1920x1080.png": "dd4459407e6df4f4fbfd988dfbe5e902a4edc8a0b23b7e67c90e9be92611e02d",
-    "INSTALL_EVIDENCE.md": "f4061c90cdfdaced5513240f8354bd140a785f17a23fb0811032e5e31372bf15"
-  }
+    "INSTALL_EVIDENCE.md": "f4061c90cdfdaced5513240f8354bd140a785f17a23fb0811032e5e31372bf15",
+    "QA_SUITE_OPTICA.txt": "0392cb0ceb7c4a18afcf2459ee26d81bf42f1d42936d54362aa1c19e4aedfcbd"
+  },
+  "promoted": {
+    "target": "main",
+    "mecanismo": "fast-forward desde feature/bc-caja-pedidos-operativos-rc30-001",
+    "force_push": false,
+    "base_anterior": "291fe40",
+    "ramas_ajenas_tocadas": 0
+  },
+  "qa_suite_optica": "682 passed, 4 subtests, exit 0. Log crudo en QA_SUITE_OPTICA.txt"
 }
