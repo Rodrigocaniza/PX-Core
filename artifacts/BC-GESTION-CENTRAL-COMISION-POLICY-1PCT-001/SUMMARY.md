@@ -64,15 +64,22 @@ Los dos últimos son medio guaraní hacia arriba: `3.166,66 → 3.167` y `12.345
   `REVISADA`/`APROBADA` ya correcta conserva su aval.
 - **Cada liquidación se resuelve contra la versión de su propio período.** Programar el porcentaje
   del mes que viene no reescribe el mes en curso.
-- **Un período tarifado conserva su tasa, y eso no se sostiene bloqueando la publicación.** La
-  primera vez que se aplica un porcentaje a un período queda grabado en `commission_rated_periods`
-  —una fila por período, escrita una sola vez, nunca actualizada ni borrada— y la resolución de ese
-  período pasa por ahí antes que por el catálogo de versiones. Publicar siempre es posible y no
-  reescribe lo tarifado. La protección **no** depende del estado de la liquidación: observar,
-  revertir, anular la venta o corregir el origen cambian el estado y la evidencia sigue ahí.
-  Tampoco hay frontera global: una venta con fecha errónea protege su propio mes y no congela
-  ninguno anterior. Corregir la tasa de un período ya tarifado exige un flujo de corrección
-  explícita y auditada, que hoy no existe.
+- **La tasa de un período se fija ante un hecho económico oficial, no en el primer cálculo.**
+  Boundary: la liquidación alcanza `APROBADA` o `PAGADA`. Ahí queda grabada en
+  `commission_rated_periods` —una fila por período, escrita una sola vez, nunca actualizada ni
+  borrada— y la resolución de ese período pasa por ahí antes que por el catálogo de versiones.
+  Publicar siempre es posible y no reescribe lo fijado. La protección **no** depende del estado
+  *posterior*: observar, revertir, anular la venta o corregir el origen cambian el estado y la
+  evidencia sigue ahí. Tampoco hay frontera global. Corregir la tasa de un período ya fijado exige
+  un flujo de corrección explícita y auditada, que hoy no existe.
+- **Los estados provisionales siguen siendo corregibles.** `ELEGIBLE`, `CALCULADA` y `REVISADA` no
+  fijan nada: publicar y recalcular los corrige. Ésa es la propiedad que permite deshacer una fecha
+  mal tipeada o una venta que después se anula, y su ausencia era el origen de los dos bloqueantes
+  económicos de la generación 5.
+- **La migración nunca inventa una tasa.** Siembra sólo desde liquidaciones `APROBADA`/`PAGADA` con
+  política canónica y venta no anulada; ante evidencia ausente o discrepante deja el período sin
+  fijar. No toca importes, tasas, aprobaciones ni pagos, y asienta en `central_audit` tanto lo que
+  siembra como lo que descarta, con su motivo.
 - Un período anterior a toda vigencia no aplica el porcentaje hacia atrás: informa la base,
   marca `FUERA_DE_VIGENCIA` y no es revisable ni pagable. Un importe heredado de ese período se
   retira sin sustituto y **no tiene reparación posible**; lo que sí queda garantizado es que el
@@ -87,10 +94,11 @@ Los dos últimos son medio guaraní hacia arriba: `3.166,66 → 3.167` y `12.345
 Base exacta: `e7732603d9eb098867a272598e6d30803a4f1ac3`.
 
 El export estructurado sube a `contract_version: 3`: su bloque `policy` pasa a ser el del período
-exportado —con la marca `pinned` de si quedó fijado al tarifarse— y la política vigente al exportar
+exportado —con la marca `pinned` de si su tasa ya quedó fijada— y la política vigente al exportar
 viaja aparte en `current_policy`. Rotular un período con la tasa global declararía oficial ahí un
-porcentaje que en ese mes no rige.
+porcentaje que en ese mes no rige, y un período sin tasa en vigor se dice como tal —en pantalla, en
+el KPI y en el `policy_disclaimer`— en vez de emitir un porcentaje inexistente.
 
-Regresión completa **371/371 PASS** (302 de línea base + 69 de esta misión: 67 de dominio y 2 de
-interfaz, de los cuales 26 son de la generación 5). Sin nómina, sin bancos, sin datos de clientes,
-sin proveedor externo, sin red, sin producción, sin merge a `main`.
+Regresión completa **395/395 PASS** (302 de línea base + 93 de esta misión: 89 de dominio y 4 de
+interfaz, de los cuales 26 son de la generación 5 y 26 de la generación 6). Sin nómina, sin bancos,
+sin datos de clientes, sin proveedor externo, sin red, sin producción, sin merge a `main`.

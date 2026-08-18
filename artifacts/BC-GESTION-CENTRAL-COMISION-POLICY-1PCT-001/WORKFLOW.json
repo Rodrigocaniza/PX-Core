@@ -4,8 +4,8 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "SAFE_PAUSED",
-  "mission_lease": "RELEASED_FOR_SAFE_PAUSE",
+  "current_state": "GENERATION_6_REMEDIATED_PENDING_VERDICTS",
+  "mission_lease": "ACQUIRED",
   "generation": 6,
   "autochain": [
     "LIBRARIAN",
@@ -15,12 +15,17 @@
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "PENDING",
   "tests": {
-    "full_regression": 371,
+    "full_regression": 395,
     "baseline": 302,
-    "added_cases": 69,
-    "module_suite": 171,
-    "commissions_cases": 120,
-    "generation_5_added_cases": 26
+    "added_cases": 93,
+    "module_suite": 195,
+    "commissions_cases": 144,
+    "generation_5_added_cases": 26,
+    "generation_6_added_cases": 26,
+    "generation_6_directed_file": "tests/gestion_central/test_comision_rate_boundary.py",
+    "generation_6_directed_cases": 24,
+    "generation_6_ui_cases": 2,
+    "generation_6_rewritten_cases": "23 casos de la generacion 5 reescritos al contrato nuevo; 2 parametrizaciones retiradas (CALCULADA y REVISADA dejaron de ser estados protegidos a proposito)"
   },
   "decision": {
     "code": "COMISION_GENERAL_1PCT",
@@ -266,11 +271,29 @@
     {
       "generation": 6,
       "snapshot_commit": null,
-      "status": "PENDING_REMEDIATION",
-      "tests": null,
+      "status": "REMEDIATED_PENDING_VERDICTS",
+      "tests": 395,
       "verdicts": [],
       "scope": "cerrar AB1-g5 y AB2-g5 (economicos, requieren decision de propietario), QB1-g5 y QB2-g5 (rotulado) y L1..L6-g5 (documentales)",
-      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-6/"
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-6/",
+      "remediation": {
+        "boundary": "APROBADA o PAGADA",
+        "code_changes": [
+          "comisiones.py: RATING_BOUNDARY_STATES y PROVISIONAL_STATES explicitos",
+          "comisiones.py: _pin_rated_period, invocado solo desde approve() y mark_paid() dentro de la misma transaccion que registra el hecho economico",
+          "comisiones.py: recalculate() ya no escribe commission_rated_periods",
+          "comisiones.py: _policy_disclaimer propio para un periodo sin tasa en vigor (QB2-g5)",
+          "repository.py: _backfill_rated_periods reescrito; siembra solo desde APROBADA/PAGADA canonicas con venta no anulada, no desempata evidencia discrepante, no toca commission_entries y audita siembra y descarte",
+          "repository.py: _audit_seed_once para que la auditoria de la migracion no se repita en cada apertura",
+          "comisiones_ui.py: la cabecera y el KPI rotulan la ausencia de tasa en vigor en vez de caer a la politica global (QB1-g5)"
+        ],
+        "audit_actions": [
+          "COMMISSION_PERIOD_RATE_PINNED",
+          "COMMISSION_PERIOD_RATE_SEEDED",
+          "COMMISSION_PERIOD_RATE_SEED_SKIPPED"
+        ],
+        "visual_evidence_regenerated": true
+      }
     }
   ],
   "non_blocking_findings_recorded": [
@@ -471,42 +494,42 @@
       "role": "AUDITOR",
       "generation": 5,
       "kind": "ECONOMICO",
-      "status": "ABIERTO",
+      "status": "CERRADO_EN_GEN6_PENDIENTE_DE_VERDICTS",
       "summary": "la siembra de la migracion fija el periodo con la tasa de la liquidacion mas antigua, aunque este REVERTIDA o su venta anulada, y aunque contradiga lo ya pagado y aprobado ese mes. El filtro mira la etiqueta CANONICA_APROBADA, no si la tasa sigue siendo la oficial del periodo",
       "impact": "un mes pagado dos veces al 5% queda fijado al 1% desde una venta anulada; una venta nueva cobra 100.000 donde le corresponden 500.000 y se paga. La migracion baja una APROBADA de 500.000 a 100.000 y le borra el aval. Cero filas de auditoria.",
       "false_claims": [
         "MIGRATION.md:89",
         "ARCHITECTURE_DELTA.md:52"
       ],
-      "owner_decision_needed": true
+      "closure": "la siembra de la migracion solo lee liquidaciones APROBADA/PAGADA con politica canonica y venta no anulada; ante evidencia ausente o discrepante deja el periodo sin fijar y lo asienta en central_audit; no escribe una sola vez sobre commission_entries"
     },
     {
       "id": "AB2-g5",
       "role": "AUDITOR",
       "generation": 5,
       "kind": "ECONOMICO",
-      "status": "ABIERTO",
+      "status": "CERRADO_EN_GEN6_PENDIENTE_DE_VERDICTS",
       "summary": "un error de tipeo de fecha fija para siempre la tasa de un mes lejano, incluso despues de que el sistema registre por dos vias que fue un error: correccion de origen y void_sale. El pin sobrevive a ambas y no hay ruta publica que lo corrija",
       "impact": "una venta real de ese mes cobra 100.000 en vez de 500.000 y se paga, en silencio. La generacion 4 convertia la fecha erronea en un bloqueo visible y reversible; la 5 la convierte en una liquidacion equivocada e irreversible",
-      "owner_decision_needed": true
+      "closure": "la tasa del periodo se fija solo al alcanzar APROBADA o PAGADA; un tipeo de fecha que nadie aprueba no fija nada y los estados provisionales siguen siendo corregibles"
     },
     {
       "id": "QB1-g5",
       "role": "QA",
       "generation": 5,
       "kind": "ROTULADO",
-      "status": "ABIERTO",
+      "status": "CERRADO_EN_GEN6_PENDIENTE_DE_VERDICTS",
       "summary": "la cabecera de comisiones_ui cae a la politica global cuando el periodo no tiene tasa en vigor y la rotula como oficial de ese mes: declara 'Comision oficial 10,00%' en un mes donde no rige ninguna tasa",
-      "owner_decision_needed": false
+      "closure": "la cabecera y el KPI rotulan 'Sin tasa oficial en vigor para AAAA-MM' en vez de caer a la politica global"
     },
     {
       "id": "QB2-g5",
       "role": "QA",
       "generation": 5,
       "kind": "ROTULADO",
-      "status": "ABIERTO",
+      "status": "CERRADO_EN_GEN6_PENDIENTE_DE_VERDICTS",
       "summary": "el policy_disclaimer del export contract_version 3 emite 'Comision oficial None%'",
-      "owner_decision_needed": false
+      "closure": "_policy_disclaimer emite un texto propio cuando el periodo no tiene tasa en vigor; ya no interpola None"
     },
     {
       "id": "L1-g5..L6-g5",
@@ -518,18 +541,14 @@
     }
   ],
   "next_action": {
-    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6",
-    "state": "SAFE_PAUSED_PENDING_RESUME",
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6-VERDICTS",
+    "state": "PENDING_INDEPENDENT_VERDICTS",
     "steps": [
-      "1. Adquirir el Mission Lease en el host de la Optica sobre la branch ya publicada.",
-      "2. Cerrar AB2-g5: fijar el periodo solo al alcanzar APROBADA o PAGADA, no en el primer calculo.",
-      "3. Cerrar AB1-g5: la siembra de la migracion debe ignorar REVERTIDA y ventas anuladas, apoyarse en el mismo boundary APROBADA/PAGADA, no fijar nada ante evidencia ambigua o discrepante, no tocar importes ni avales, y auditar cada periodo sembrado en central_audit.",
-      "4. Cerrar QB1-g5: rotular la ausencia de tasa en la cabecera y en el KPI en vez de caer a la global.",
-      "5. Cerrar QB2-g5: policy_disclaimer propio cuando el periodo no tiene tasa en vigor.",
-      "6. Regenerar VISUAL_EVIDENCE: el rotulo cambio y la captura de la generacion 3 ya no coincide (L6-g5).",
-      "7. Pruebas dirigidas, suite del modulo, regresion completa.",
-      "8. Publicar snapshot de la generacion 6 y relanzar los tres runners independientes.",
-      "9. No reutilizar verdicts de las generaciones 1 a 5."
+      "1. Publicar el snapshot de la generacion 6 (protected commit y push).",
+      "2. Relanzar los tres runners independientes sobre ese snapshot: Librarian, QA y Auditor.",
+      "3. No reutilizar verdicts de las generaciones 1 a 5.",
+      "4. Con 3xPASS: Artifact Consistency, Safe Closure, liberar el lease y persistir el NEXT_ACTION siguiente.",
+      "5. Con cualquier FAIL: abrir la generacion 7 con el alcance exacto de los bloqueantes."
     ],
     "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 sigue sin abrirse."
   },
@@ -554,7 +573,7 @@
     "out_of_scope": "el flujo de correccion retroactiva explicita y auditada no se implementa"
   },
   "safe_pause": {
-    "state": "SAFE_PAUSED",
+    "state": "RESUMED",
     "reason": "continuar desde la PC de la Optica",
     "paused_at_commit": "998037f924cdeb0c88565cc4618a85f9a0c92477",
     "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
@@ -568,7 +587,10 @@
       "git fetch y checkout de la branch en el host nuevo",
       "verificar HEAD == 998037f924cdeb0c88565cc4618a85f9a0c92477 y arbol limpio",
       "adquirir el Mission Lease antes de tocar codigo"
-    ]
+    ],
+    "resumed_on_host": "PC-CASA",
+    "resumed_at_commit": "e87be30f8cde4752644bd0a0250a1ab22846a422",
+    "note": "la mision se retomo en PC Casa, no en la PC de la Optica; el estado canonico mandaba sobre el plan"
   },
   "policy_decision_gen6": {
     "decided_by": "propietario del repositorio",
@@ -587,6 +609,13 @@
       "AB2-g5",
       "AB1-g5 (parcialmente: fija el criterio de siembra)"
     ],
-    "rationale": "un tipeo anulado nunca alcanza APROBADA ni PAGADA, de modo que no puede fijar un mes; y la siembra deja de depender del orden de creacion para depender de un hecho economico"
+    "rationale": "un tipeo anulado nunca alcanza APROBADA ni PAGADA, de modo que no puede fijar un mes; y la siembra deja de depender del orden de creacion para depender de un hecho economico",
+    "implemented_in_generation": 6,
+    "implementation": {
+      "boundary_predicate": "modulos/gestion_central/comisiones.py::RATING_BOUNDARY_STATES",
+      "hot_path": "CommissionService._pin_rated_period desde approve() y mark_paid()",
+      "migration_path": "CentralRepository._backfill_rated_periods",
+      "provisional_predicate": "modulos/gestion_central/comisiones.py::PROVISIONAL_STATES"
+    }
   }
 }

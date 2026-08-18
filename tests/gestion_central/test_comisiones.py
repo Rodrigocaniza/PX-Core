@@ -1088,11 +1088,12 @@ def test_structured_export_has_stable_contract_and_no_customer_data(service):
     service.recalculate(SOL)
     export = service.export_summary(SOL, "2099-04")
     assert export["contract_version"] == 3 and export["period"] == "2099-04"
-    # `policy` pasa a ser la del período exportado, con la marca de si quedó fijada al tarifarse.
+    # `policy` es la del período exportado, con la marca de si su tasa ya quedó fijada. Aquí
+    # sólo se calculó: nadie aprobó ni pagó nada, así que el mes sigue siendo corregible.
     assert export["policy"] == {
         "code": CANONICAL_CODE, "scope": "GENERAL", "status": POLICY_CANONICAL, "version": 1,
         "effective_from": CANONICAL_EFFECTIVE_FROM, "rate_bp": 100, "rate_percent": "1.00",
-        "rounding": "HALF_UP", "currency": "GS", "pinned": True}
+        "rounding": "HALF_UP", "currency": "GS", "pinned": False}
     # Y la vigente al exportar viaja aparte, que antes era lo único que había.
     assert export["current_policy"]["rate_bp"] == CANONICAL_RATE_BP
     assert "1.00%" in export["policy_disclaimer"] and "5%" in export["policy_disclaimer"]
@@ -1347,9 +1348,15 @@ def test_a_future_rate_that_governs_no_settled_period_is_accepted(service):
     assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
 
 
-@pytest.mark.parametrize("status", ["CALCULADA", "REVISADA", "APROBADA", "PAGADA"])
+@pytest.mark.parametrize("status", ["APROBADA", "PAGADA"])
 def test_a_rated_period_is_never_re_rated(service, status):
-    """Ningún estado liquidado se re-tarifa: ni calculado, ni revisado, ni aprobado, ni pagado."""
+    """Un período fijado por un hecho económico oficial no se re-tarifa nunca.
+
+    Desde la generación 6 el boundary es `APROBADA`/`PAGADA`. `CALCULADA` y `REVISADA` son
+    provisionales **a propósito** y sí se corrigen: que un cálculo fijara el mes era el
+    defecto que abrió `AB1-g5` y `AB2-g5`. Esa corregibilidad se prueba aparte, en
+    `test_comision_rate_boundary.py`.
+    """
     entry_id = settled_entry(service, status)
     before = snapshot(service, entry_id)
     assert before[1] == CANONICAL_RATE_BP and before[2] == 4_000
@@ -1480,12 +1487,41 @@ def test_recalculate_records_nothing_replaced_when_there_was_no_previous_amount(
 # sobre el estado actual. Ninguna transición posterior puede devolverla al catálogo.
 
 def rate_a_period(service, *, envelope="S-100", source="matriz"):
-    """Deja el período 2099-04 tarifado al 1% y devuelve la liquidación que lo tarifó."""
+    """Deja el período 2099-04 fijado al 1% y devuelve la liquidación que lo fijó.
+
+    Fijar exige un hecho económico oficial, así que la liquidación llega hasta `APROBADA`:
+    calcular ya no fija nada.
+    """
     sale_id, _ = service.register_sale(
         SOL, common(source_sale_id=source, envelope=envelope, initial_paid=400_000))
     service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    service.review(SOL, entry_id)
+    service.approve(SOL, entry_id, "Sol")
     assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
-    return sale_id, active(service, sale_id)["id"]
+    return sale_id, entry_id
+
+
+def subject_in_rated_period(service, status):
+    """Segunda liquidación del mes ya fijado, llevada al estado desde el que se transiciona.
+
+    La liquidación que fijó el mes y la que sufre la transición se separan: así la matriz
+    cubre también las transiciones desde estados provisionales, que ya no fijan nada.
+    """
+    sale_id, _ = service.register_sale(
+        SOL, common(source_sale_id="sujeto", envelope="S-SUJ", initial_paid=400_000))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    if status == "CALCULADA":
+        return entry_id
+    service.review(SOL, entry_id)
+    if status == "REVISADA":
+        return entry_id
+    service.approve(SOL, entry_id, "Sol")
+    if status == "APROBADA":
+        return entry_id
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
+    return entry_id
 
 
 def try_to_re_rate(service, *, rate_bp=10_000, effective_from="2099-04-01"):
@@ -1540,13 +1576,8 @@ def test_no_public_transition_reopens_a_rated_period(service, name, base_status,
     una PAGADA —o `void_sale`, o `revert`, o una corrección de sobre— devolvía el período al
     catálogo y con él la fuga entera. La evidencia durable no depende del estado.
     """
-    sale_id, entry_id = rate_a_period(service)
-    if base_status != "CALCULADA":
-        service.review(SOL, entry_id)
-        if base_status in {"APROBADA", "PAGADA"}:
-            service.approve(SOL, entry_id, "Sol")
-        if base_status == "PAGADA":
-            service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
+    sale_id, _ = rate_a_period(service)
+    entry_id = subject_in_rated_period(service, base_status)
 
     try:
         transition(service, sale_id, entry_id)
@@ -1569,8 +1600,6 @@ def test_no_public_transition_reopens_a_rated_period(service, name, base_status,
 def test_observing_a_paid_settlement_does_not_reopen_its_period(service):
     """Reproduce literalmente la fuga del Auditor de la generación 4 y la demuestra cerrada."""
     _, entry_id = rate_a_period(service, envelope="S-ANA", source="ana")
-    service.review(SOL, entry_id)
-    service.approve(SOL, entry_id, "Sol")
     service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-ANA")
     assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
     # La ruta pública, permitida y no destructiva que desarmaba la guarda anterior.
@@ -1589,7 +1618,6 @@ def test_the_durable_evidence_has_no_public_eraser(service):
     """La evidencia es append-only: ninguna operación pública la borra ni la reescribe."""
     _, entry_id = rate_a_period(service)
     before = rated_periods(service)
-    service.review(SOL, entry_id)
     service.observe(SOL, entry_id, "control")
     service.set_general_rate(SOL, 7_500, "2099-04-01", "otra tasa")
     for _ in range(3):
@@ -1604,6 +1632,9 @@ def test_a_rated_period_does_not_block_a_later_effective_date(service):
         SOL, common(source_sale_id="jul", envelope="S-JUL", sale_date="2099-07-10",
                     total_amount=400_000, initial_paid=400_000))
     service.recalculate(SOL)
+    julio = active(service, sale_id)["id"]
+    service.review(SOL, julio)
+    service.approve(SOL, julio, "Sol")  # el hecho oficial que fija 2099-07
     assert rated_periods(service) == {"2099-07": CANONICAL_RATE_BP}
     # Publicar para el mes siguiente y para un futuro lejano: ambas válidas.
     assert service.set_general_rate(SOL, 200, "2099-08-01", "agosto") == (2, True)
@@ -1624,12 +1655,19 @@ def test_a_far_future_typo_does_not_freeze_any_intermediate_period(service):
 
     La guarda anterior tomaba `MAX(period)` global sobre los estados liquidados, así que un
     `2136` en lugar de `2036` bloqueaba toda vigencia anterior a él. La protección por período
-    tarifado no tiene frontera global: protege 2136 y no toca nada más.
+    fijado no tiene frontera global: protege 2136 y no toca nada más.
+
+    Aquí el `2136` se aprueba a propósito, que es lo único que fija un mes desde la generación 6.
+    Un tipeo que nadie aprueba ya no fija nada —eso lo cubre `test_comision_rate_boundary.py`—;
+    lo que esta prueba defiende es que un mes fijado, aun absurdamente lejano, no congela nada.
     """
-    service.register_sale(SOL, common(source_sale_id="tipeo", envelope="S-ERR",
-                                      sale_date="2136-04-10", total_amount=400_000,
-                                      initial_paid=400_000))
+    tipeo, _ = service.register_sale(SOL, common(source_sale_id="tipeo", envelope="S-ERR",
+                                                 sale_date="2136-04-10", total_amount=400_000,
+                                                 initial_paid=400_000))
     service.recalculate(SOL)
+    lejano = active(service, tipeo)["id"]
+    service.review(SOL, lejano)
+    service.approve(SOL, lejano, "Sol")
     assert "2136-04" in rated_periods(service)
     # Diez publicaciones intermedias, todas legítimas, todas aceptadas.
     for index, year in enumerate(range(2100, 2110), start=2):
@@ -1646,10 +1684,13 @@ def test_a_far_future_typo_does_not_freeze_any_intermediate_period(service):
 def test_protection_is_per_period_and_never_a_global_maximum(service):
     """No existe dependencia insegura de `MAX(period)`: la protección es un conjunto, no un techo."""
     for source, envelope, date_text in (("a", "S-A", "2099-04-10"), ("b", "S-B", "2101-09-10")):
-        service.register_sale(SOL, common(source_sale_id=source, envelope=envelope,
-                                          sale_date=date_text, total_amount=400_000,
-                                          initial_paid=400_000))
-    service.recalculate(SOL)
+        sale_id, _ = service.register_sale(SOL, common(source_sale_id=source, envelope=envelope,
+                                                       sale_date=date_text, total_amount=400_000,
+                                                       initial_paid=400_000))
+        service.recalculate(SOL)
+        entry_id = active(service, sale_id)["id"]
+        service.review(SOL, entry_id)
+        service.approve(SOL, entry_id, "Sol")  # cada mes se fija por su propio hecho oficial
     assert set(rated_periods(service)) == {"2099-04", "2101-09"}
     # El hueco entre ambos NO está protegido: se puede publicar y rige de verdad.
     assert service.set_general_rate(SOL, 400, "2100-01-01", "hueco") == (2, True)
@@ -1770,5 +1811,6 @@ def test_a_recalculation_down_to_zero_records_the_previous_amount(service):
                 if "replaced" in json.loads(row["details_json"])]
     assert replaced == [{"rate_bp": CANONICAL_RATE_BP, "commission_amount": 4_000,
                          "policy_status": POLICY_CANONICAL}]
-    # Y el período queda fijado al 0% que efectivamente se aplicó, no al 1% anterior.
-    assert rated_periods(service) == {"2099-04": 0}
+    # Y el mes sigue **sin fijar**: recalcular es provisional y nunca fija un período. La
+    # fijación llega recién cuando alguien aprueba o paga el importe corregido.
+    assert rated_periods(service) == {}

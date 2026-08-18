@@ -277,39 +277,93 @@ class CentralRepository:
                 (comision_policy.POLICY_ABSENT, status),
             )
 
-    @staticmethod
-    def _backfill_rated_periods(con):
-        """Siembra la evidencia durable desde las liquidaciones que ya llevan una tasa aplicada.
+    def _backfill_rated_periods(self, con):
+        """Siembra la fijación de tasa **sólo** desde hechos económicos oficiales.
 
-        Idempotente y aditiva: `INSERT OR IGNORE` sobre la clave primaria, y nunca actualiza una
-        fila existente. Sólo mira `rate_bp IS NOT NULL`, que es la marca de que a ese período se le
-        aplicó un porcentaje, no el estado actual de la liquidación.
+        Una migración no puede inventar una tasa. Sembrar desde el primer cálculo que encontrara
+        —lo que hacía la versión anterior— fijaba meses enteros con la tasa de una liquidación
+        `REVERTIDA`, o de una venta anulada, y contradecía lo que ese mismo mes ya había pagado.
+        Aquí sólo cuenta como evidencia una liquidación que:
 
-        Una base migrada puede traer liquidaciones cuyo estado ya cambió —observadas, revertidas—
-        pero que conservan su tasa: ésas también siembran su período, que es justamente lo que la
-        protección por estado no veía. Las que ya perdieron la tasa por una corrección de origen no
-        pueden sembrarse desde aquí; su rastro vive en el historial.
+        * está en `APROBADA` o `PAGADA` —el mismo boundary que fija en caliente—;
+        * lleva la política canónica y una tasa concreta;
+        * no está revertida, y su venta de origen no está anulada.
 
-        Sólo siembran las tarifadas con la **política canónica**. Un importe heredado del piloto
-        anterior lleva `POLITICA_HISTORICA_PREVIA` y no es oficial: fijar el período con ese
-        porcentaje lo volvería incorregible, que es lo contrario de lo que la misión persigue.
-        Esas liquidaciones siguen siendo reparables, y al repararse fijan el período con la tasa
-        canónica que les corresponda.
+        Reglas que la siembra respeta sin excepción:
+
+        * **No inventa.** Un período sin ninguna evidencia oficial no se siembra: queda sin fijar
+          y por lo tanto corregible, que es el estado correcto para algo que nadie avaló.
+        * **No desempata a ciegas.** Si el mismo período muestra tasas oficiales distintas, la
+          evidencia es discrepante y no se fija nada: elegir una sería decidir por el propietario
+          cuál de dos importes ya avalados es el bueno. Queda asentado para que se resuelva a mano.
+        * **No toca dinero.** No escribe una sola vez sobre `commission_entries`: ni importes, ni
+          tasas, ni aprobaciones, ni pagos. Es puramente aditiva sobre `commission_rated_periods`.
+        * **Es idempotente.** `INSERT OR IGNORE` sobre la clave del período, y ni la siembra ni el
+          descarte se re-asientan si su asiento ya existe: arrancar mil veces deja lo mismo que
+          arrancar una.
+        * **Es auditable.** Todo período sembrado y todo período descartado deja fila en
+          `central_audit` con su motivo.
         """
-        con.execute(
-            "INSERT OR IGNORE INTO commission_rated_periods(period,rate_bp,policy_code,policy_version,"
-            "policy_effective_from,policy_scope,first_rated_by,first_rated_at,origin)"
-            " SELECT period, rate_bp,"
-            "        COALESCE(policy_code,?), COALESCE(policy_version,?),"
-            "        COALESCE(policy_effective_from,?), COALESCE(policy_scope,?),"
-            "        'MIGRACION', MIN(created_at), 'BACKFILL'"
-            "   FROM commission_entries"
-            "  WHERE period IS NOT NULL AND rate_bp IS NOT NULL AND policy_status=?"
-            "  GROUP BY period",
-            (comision_policy.CANONICAL_CODE, comision_policy.CANONICAL_VERSION,
-             comision_policy.CANONICAL_EFFECTIVE_FROM, comision_policy.CANONICAL_SCOPE,
-             comision_policy.POLICY_CANONICAL),
-        )
+        rows = con.execute(
+            "SELECT e.id,e.period,e.rate_bp,e.policy_code,e.policy_version,e.policy_effective_from,"
+            "       e.policy_scope,e.status,e.created_at"
+            "  FROM commission_entries e JOIN commission_sales s ON s.id=e.sale_id"
+            " WHERE e.period IS NOT NULL AND e.rate_bp IS NOT NULL"
+            "   AND e.policy_status=? AND e.status IN ('APROBADA','PAGADA')"
+            "   AND COALESCE(s.voided,0)=0"
+            " ORDER BY e.period,e.created_at,e.id",
+            (comision_policy.POLICY_CANONICAL,),
+        ).fetchall()
+
+        official: dict[str, list] = {}
+        for row in rows:
+            official.setdefault(str(row["period"])[:7], []).append(row)
+
+        already = {row[0] for row in con.execute("SELECT period FROM commission_rated_periods")}
+        for period, evidence in sorted(official.items()):
+            if period in already:
+                continue
+            rates = {int(row["rate_bp"]) for row in evidence}
+            if len(rates) > 1:
+                # Dos importes oficiales distintos para el mismo mes: no hay una tasa del período
+                # que la migración pueda afirmar. Se deja sin fijar y se asienta el conflicto.
+                self._audit_seed_once(
+                    con, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period,
+                    {"reason": "EVIDENCIA_DISCREPANTE", "rates_bp": sorted(rates),
+                     "entries": [row["id"] for row in evidence]})
+                continue
+            # Un pago manda sobre una aprobación: es el hecho más fuerte del mes. A igualdad de
+            # fuerza gana el más antiguo, así el resultado no depende del orden de lectura.
+            chosen = sorted(evidence, key=lambda row: (row["status"] != "PAGADA",
+                                                       str(row["created_at"]), str(row["id"])))[0]
+            con.execute(
+                "INSERT OR IGNORE INTO commission_rated_periods(period,rate_bp,policy_code,policy_version,"
+                "policy_effective_from,policy_scope,first_rated_by,first_rated_at,origin)"
+                " VALUES(?,?,?,?,?,?,'MIGRACION',?,'BACKFILL')",
+                (period, int(chosen["rate_bp"]),
+                 chosen["policy_code"] or comision_policy.CANONICAL_CODE,
+                 chosen["policy_version"] if chosen["policy_version"] is not None
+                 else comision_policy.CANONICAL_VERSION,
+                 chosen["policy_effective_from"] or comision_policy.CANONICAL_EFFECTIVE_FROM,
+                 chosen["policy_scope"] or comision_policy.CANONICAL_SCOPE,
+                 chosen["created_at"]),
+            )
+            self._audit_seed_once(
+                con, "COMMISSION_PERIOD_RATE_SEEDED", period,
+                {"rate_bp": int(chosen["rate_bp"]), "boundary": chosen["status"],
+                 "entry_id": chosen["id"], "evidence_entries": len(evidence),
+                 "policy_code": chosen["policy_code"], "policy_version": chosen["policy_version"]})
+
+    def _audit_seed_once(self, con, action, target, details):
+        """Asienta una decisión de siembra una sola vez.
+
+        La migración corre en cada apertura de la base. Sin esta guarda, un período descartado
+        volvería a asentarse en cada arranque y la auditoría dejaría de poder leerse.
+        """
+        if con.execute("SELECT 1 FROM central_audit WHERE action=? AND target=?",
+                       (action, target)).fetchone():
+            return
+        self.audit(con, "MIGRACION", action, target, details=details)
 
     def audit(self, con, actor, action, target, result="SUCCESS", details=None):
         con.execute(

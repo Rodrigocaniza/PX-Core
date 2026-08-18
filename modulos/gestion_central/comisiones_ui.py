@@ -237,20 +237,36 @@ class CommissionsPanel(tk.Frame):
         El KPI sí lleva el porcentaje porque suma únicamente lo calculado con la política
         aprobada. Las columnas no: una fila puede arrastrar un importe de una política
         retirada, y encabezarla «Comisión 1,00%» declararía como oficial algo que no lo es.
+
+        Un período sin tasa en vigor se rotula como tal. Caer a la política global y titular
+        «Comisión oficial 10,00%» en un mes donde no rige ninguna tasa era declarar oficial un
+        porcentaje inexistente: el operador leía en pantalla una cifra que ningún cálculo de ese
+        mes usó.
         """
-        # La política del período en pantalla, no la última publicada: si el período ya estaba
-        # tarifado conserva su tasa, y encabezarlo con la vigente declararía oficial aquí un
+        # La política del período en pantalla, no la última publicada: si el período ya quedó
+        # fijado conserva su tasa, y encabezarlo con la vigente declararía oficial aquí un
         # porcentaje que en este mes no rige.
         policy = self.service.policy_for_period(self.principal, self.report["period"])
         if policy["rate_bp"] is None:
-            policy = self.service.current_policy(self.principal)
+            self.policy_label.config(
+                text=f"Sin tasa oficial en vigor para {self.report['period']} · se fija cuando una "
+                     f"liquidación se aprueba o se paga · se informa sólo la base comisionable · "
+                     f"redondeo {policy['rounding']} a Gs. enteros")
+            self.kpi_captions["commission_amount"].config(text="COMISIÓN OFICIAL — SIN TASA EN VIGOR")
+            return self._policy_labels_tail(policy)
         percent = rate_percent_text(policy["rate_bp"])
-        fixed = " · fijada al tarifarse" if policy.get("pinned") else ""
+        # El rótulo dice de dónde viene la tasa: fijarla es un hecho económico, no un cálculo.
+        fixed = (" · fijada al aprobarse o pagarse" if policy.get("pinned")
+                 else " · provisional: aún sin aprobación ni pago en el período")
         self.policy_label.config(
             text=f"Comisión oficial {percent} de la base · {policy['code']} v{policy['version']} · "
                  f"vigente desde {policy['effective_from']}{fixed} · "
                  f"redondeo {policy['rounding']} a Gs. enteros")
         self.kpi_captions["commission_amount"].config(text=f"COMISIÓN OFICIAL {percent}")
+        return self._policy_labels_tail(policy)
+
+    def _policy_labels_tail(self, policy):
+        """Aviso de importes no oficiales. Vale con tasa en vigor y sin ella."""
         kpi = self.report["kpi"]
         if kpi["non_official_amount"]:
             self.warning.config(

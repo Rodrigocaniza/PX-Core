@@ -1,7 +1,10 @@
 # Evidencia visual
 
-`screenshots/comision-1pct-1920x1080.png` — 1920×1080, RGB, 93.307 bytes.
-SHA-256 `4c616c0c90b8d3bb6f3806a1d5ac85ea3d0cecb4846cb4e250b4dffd2105019e`.
+`screenshots/comision-1pct-1920x1080.png` — 1920×1080, RGB, 93.725 bytes.
+SHA-256 `1c9a1e5e5fafec09cd55d1c2d619761240d7abedaf33a14fe83a49f702b07906`.
+
+**Regenerada en la generación 6** (`L6-g5`): el rótulo del encabezado cambió al cambiar la regla
+de fijación, así que la captura de la generación 3 dejó de coincidir con la pantalla real.
 
 Generada por `python tools/capture_gestion_central_comisiones.py <destino>` sobre una base
 temporal con el piloto sintético. El capturador ya no configura porcentaje: la política oficial
@@ -15,8 +18,21 @@ rótulos y disposición— sí es determinista y está verificado por las prueba
 ## Lo que la captura demuestra
 
 **Encabezado.** «Comisión oficial 1,00% de la base · COMISION_GENERAL_1PCT v1 · vigente desde
-2026-08-01 · redondeo HALF_UP a Gs. enteros». El porcentaje vigente se nombra en pantalla, no se
-da por sabido.
+2026-08-01 · **fijada al aprobarse o pagarse** · redondeo HALF_UP a Gs. enteros». El porcentaje
+vigente se nombra en pantalla, no se da por sabido, y el rótulo dice además **de dónde viene**: en
+esta base el mes `2099-04` tiene una liquidación aprobada y otra pagada, así que su tasa ya quedó
+fijada por un hecho económico oficial.
+
+El mismo rótulo tiene otras dos formas, que la captura no muestra porque esta base no las
+produce y que verifican las pruebas de interfaz:
+
+- **Período todavía provisional** —ninguna liquidación del mes fue aprobada ni pagada—:
+  «… · provisional: aún sin aprobación ni pago en el período». El mes sigue siendo corregible.
+- **Período sin tasa en vigor** —anterior a toda vigencia publicada—: «Sin tasa oficial en vigor
+  para AAAA-MM · se fija cuando una liquidación se aprueba o se paga · se informa sólo la base
+  comisionable · redondeo HALF_UP a Gs. enteros», y el KPI pasa a «COMISIÓN OFICIAL — SIN TASA EN
+  VIGOR». Antes de la generación 6 la pantalla caía aquí a la política global y la declaraba
+  oficial de ese mes (`QB1-g5`): rotulaba «Comisión oficial 10,00%» donde no regía nada.
 
 **KPIs.** `BASE COMISIONABLE 4.345.000 Gs.` y `COMISIÓN OFICIAL 1,00% 43.450 Gs.` — el 1% exacto
 del agregado. El rótulo del KPI lleva el porcentaje vigente.

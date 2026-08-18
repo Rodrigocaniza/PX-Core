@@ -188,6 +188,28 @@ Auditor— quedan registradas, no corregidas.
 
 ## Generación 6
 
-Pendiente. Su alcance es cerrar `AB1-g5` y `AB2-g5` —ambos requieren decisión de propietario sobre
-qué hecho debe fijar un período—, `QB1-g5` y `QB2-g5`, y reverificar los seis documentales. Los
-verdicts de las generaciones 1 a 5 no se reutilizan.
+**Remediada, pendiente de los tres verdicts.** Alcance ejecutado: `AB1-g5`, `AB2-g5`, `QB1-g5` y
+`QB2-g5`, más la regeneración de la evidencia visual (`L6-g5`) y la corrección de las dos
+afirmaciones que la generación 5 conservó demostradas falsas a propósito.
+
+La decisión de propietario que la generación 5 dejó pendiente —qué hecho fija un período— quedó
+resuelta y persistida antes de esta generación: **la tasa se fija al alcanzar `APROBADA` o
+`PAGADA`, nunca en el primer cálculo**. No se volvió a consultar.
+
+**Qué superficie debe cubrir cada rol en esta generación, a la vista de lo que cada uno no cubrió
+antes:**
+
+- **Librarian.** Las cinco generaciones anteriores acumulan doce hallazgos documentales, todos por
+  documentación que no se actualizó al cambiar el código. Esta generación cambia la **semántica**
+  de `commission_rated_periods`, no sólo su implementación: cada afirmación sobre «tarifar» en los
+  cinco documentos de contrato es sospechosa por defecto. Verificar también las cifras de pruebas
+  (395 / 195 / 144) y los recuentos del paquete.
+- **QA.** La generación 5 encontró los dos de rotulado leyendo la pantalla y el export en un
+  período sin tasa. Aquí conviene la matriz de transiciones completa **más** el eje nuevo:
+  provisional contra fijado, y qué se rotula en cada combinación.
+- **Auditor.** Los cuatro bloqueantes económicos de las generaciones 3 a 5 salieron de perseguir el
+  dinero a través de rutas que el diseño no había considerado. La superficie nueva es la migración
+  reescrita y la transacción de `approve`/`mark_paid`: fuzz sobre bases legadas, concurrencia real
+  sobre el boundary, y el caso de evidencia discrepante.
+
+Los verdicts de las generaciones 1 a 5 **no se reutilizan**.

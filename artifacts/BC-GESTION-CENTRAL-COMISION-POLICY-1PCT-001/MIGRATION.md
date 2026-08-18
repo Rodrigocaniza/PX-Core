@@ -79,19 +79,35 @@ posterior trayéndola a 4.750 porque no estaba pagada.
 `test_the_official_commission_survives_reopening_the_database` comprueba que reabrir vuelve a
 migrar sin duplicar políticas ni versiones y sin cambiar nada (`changed == 0`).
 
-## Paso 5 — evidencia durable de períodos tarifados (generación 5)
+## Paso 5 — siembra de la fijación de tasa por período (generación 6)
 
-`_backfill_rated_periods` siembra `commission_rated_periods` desde las liquidaciones que ya llevan
-`rate_bp` **y política canónica**, una fila por período, con `INSERT OR IGNORE` sobre la clave
-primaria. Es aditiva e idempotente: no actualiza filas existentes y correr la migración otra vez no
-cambia nada.
+`_backfill_rated_periods` siembra `commission_rated_periods`, una fila por período, con
+`INSERT OR IGNORE` sobre la clave primaria. Es aditiva e idempotente: no actualiza filas
+existentes y correr la migración otra vez no cambia nada.
 
-Sólo siembran las canónicas. Un importe heredado del piloto anterior lleva `POLITICA_HISTORICA_PREVIA`
-y no es oficial: fijar el período con ese porcentaje lo volvería incorregible, que es lo contrario de
-lo que la misión persigue. Esas liquidaciones siguen siendo reparables por `recalculate`, y al
-repararse fijan el período con la tasa canónica que les corresponda.
+**Una migración no puede inventar una tasa.** Por eso sólo cuenta como evidencia una liquidación
+que reúne las tres condiciones a la vez:
 
-Una base migrada puede traer liquidaciones cuyo estado ya cambió —observadas, revertidas— pero que
-conservan su tasa: ésas **sí** siembran su período, que es justamente lo que la protección por estado
-no veía. Las que ya perdieron la tasa por una corrección de origen no pueden sembrarse desde aquí;
-desde la generación 5 su importe retirado queda en el asiento `SOURCE_UPDATED`.
+* está en `APROBADA` o `PAGADA` —el mismo boundary económico que fija en caliente—;
+* lleva política canónica y una tasa concreta;
+* su venta de origen no está anulada.
+
+Las reglas que la siembra respeta sin excepción:
+
+| Regla | Qué significa |
+|---|---|
+| **No inventa** | un período sin ninguna evidencia oficial no se siembra: queda **sin fijar** y por lo tanto corregible, que es el estado correcto para algo que nadie avaló |
+| **No desempata a ciegas** | si el mismo período muestra tasas oficiales distintas, la evidencia es discrepante y no se fija nada: elegir una sería decidir por el propietario cuál de dos importes ya avalados es el bueno |
+| **No toca dinero** | no escribe una sola vez sobre `commission_entries`: ni importes, ni tasas, ni aprobaciones, ni pagos |
+| **Es idempotente** | `INSERT OR IGNORE` por período; ni la siembra ni el descarte se re-asientan si su asiento ya existe |
+| **Es auditable** | todo período sembrado deja `COMMISSION_PERIOD_RATE_SEEDED` y todo período descartado deja `COMMISSION_PERIOD_RATE_SEED_SKIPPED` con su motivo, en `central_audit` |
+
+A igualdad de evidencia, un pago manda sobre una aprobación —es el hecho más fuerte del mes— y a
+igualdad de fuerza gana el más antiguo, para que el resultado no dependa del orden de lectura.
+
+**Qué cambió respecto de la generación 5 y por qué.** La siembra anterior miraba `rate_bp IS NOT
+NULL` y agrupaba por período tomando la liquidación **más antigua**, sin mirar su estado ni su
+venta. De ahí salió `AB1-g5`: un mes pagado dos veces al 5% quedaba fijado al 1% desde una
+liquidación `REVERTIDA` cuya venta estaba anulada, bajando una `APROBADA` de 500.000 a 100.000 Gs.
+y borrándole el aval, sin una sola fila de auditoría. Ahora la siembra depende del mismo hecho
+económico que la fijación en caliente, y no del orden de creación.

@@ -43,14 +43,15 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
   `policy_scope` (todas anulables: una liquidación aún sin recalcular no tiene traza).
 - `commission_policy_versions` **(tabla nueva)** — historial append-only con
   `UNIQUE(policy_id, version)`.
-- `commission_rated_periods` **(tabla nueva, generación 5)** — evidencia durable de que a un período
-  se le aplicó una tasa. `period` es la clave primaria, de modo que hay **una fila por período**;
-  se escribe con `INSERT OR IGNORE` la primera vez que se tarifa y no se actualiza ni se borra
-  nunca. Guarda la tasa y la traza de política con la que ese período quedó fijado, más quién y
-  cuándo. Es la representación mínima que responde «este período ya tuvo una tasa aplicada» sin
-  inferirlo del estado actual de ninguna liquidación. La migración la siembra desde las
-  liquidaciones que ya llevan `rate_bp` **con política canónica**: un importe heredado no oficial no
-  fija nada, porque fijarlo lo volvería incorregible.
+- `commission_rated_periods` **(tabla nueva, generación 5; semántica redefinida en la 6)** —
+  evidencia durable de que la tasa de un período **quedó fijada por un hecho económico oficial**.
+  `period` es la clave primaria, de modo que hay **una fila por período**; se escribe con
+  `INSERT OR IGNORE` y no se actualiza ni se borra nunca. Guarda la tasa y la traza de política con
+  la que ese período quedó fijado, más quién, cuándo y en qué boundary (`origin`).
+  Se escribe en exactamente dos lugares: `approve()` y `mark_paid()` en caliente, y la siembra de
+  la migración desde liquidaciones que ya están en `APROBADA`/`PAGADA`. **Calcular no escribe
+  aquí**: mientras el mes sólo tiene cálculos provisionales no tiene fila, y por eso sigue siendo
+  corregible.
 
 ## Invariantes que esta misión agrega
 
@@ -71,13 +72,14 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
    liquidación sin importe, una cuyo `policy_status` no sea `CANONICA_APROBADA`, y una cuyo
    porcentaje y versión grabados no coincidan con la política que rige hoy su período. El sello se
    graba al calcular y puede quedar atrás: comprobar sólo el sello no alcanza.
-5. **Un período tarifado conserva su tasa, y la protección es durable.** La primera vez que se
-   aplica un porcentaje a un período se graba una fila en `commission_rated_periods`, y `decide()`
-   resuelve ese período contra esa fila antes que contra el catálogo. `set_general_rate` ya **no**
-   bloquea: publicar siempre es posible y no reescribe lo tarifado. La protección **no** se apoya en
-   el estado de la liquidación —`observe`, `revert`, `void_sale` y la corrección de origen lo
-   cambian y la evidencia sigue ahí— ni en una frontera global: es el conjunto de períodos
-   tarifados, de modo que una fecha errónea protege su propio mes y no congela ningún otro.
+5. **Un período fijado conserva su tasa, y la protección es durable.** La tasa de un período se
+   fija cuando una liquidación alcanza `APROBADA` o `PAGADA` —el boundary económico oficial—: ahí
+   se graba una fila en `commission_rated_periods`, y `decide()` resuelve ese período contra esa
+   fila antes que contra el catálogo. `set_general_rate` ya **no** bloquea: publicar siempre es
+   posible y no reescribe lo fijado. La protección **no** se apoya en el estado *posterior* de la
+   liquidación —`observe`, `revert`, `void_sale` y la corrección de origen lo cambian y la
+   evidencia sigue ahí— ni en una frontera global: es el conjunto de períodos fijados, de modo que
+   una fecha errónea aprobada protege su propio mes y no congela ningún otro.
    `paid_at IS NULL` sigue colgando del `WHERE` entero de `recalculate`, así que nada que haya
    movido dinero es alcanzable aunque su estado se hubiera alterado por otra vía.
 6. **La resolución es por período, no por «última publicada».** Cada liquidación se calcula con la
@@ -95,6 +97,18 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
 8. **La comisión oficial no se mezcla.** `report` y el export separan `commission_amount` —sólo
    `CANONICA_APROBADA`— de `non_official_amount`. Ningún agregado rotulado «oficial 1,00%» incluye
    un importe calculado con otra política.
+9. **Lo provisional es corregible; lo avalado, no.** `ELEGIBLE`, `CALCULADA` y `REVISADA` no fijan
+   nada: una publicación posterior más un `recalculate` los corrige, y ésa es la propiedad que
+   permite deshacer una fecha mal tipeada o una venta que después se anula. `APROBADA` y `PAGADA`
+   sí fijan, y desde ese momento ninguna publicación, recálculo ni migración reinterpreta su
+   importe. La frontera es un solo predicado —`RATING_BOUNDARY_STATES`— y se aplica igual en
+   caliente y en la migración.
+10. **La migración nunca inventa ni desempata.** La siembra sólo lee liquidaciones `APROBADA`/
+    `PAGADA` con política canónica y venta no anulada; ante evidencia ausente o discrepante deja el
+    período **sin fijar** y lo asienta. No escribe una sola vez sobre `commission_entries`.
+11. **Fijar deja traza.** `COMMISSION_PERIOD_RATE_PINNED` en caliente,
+    `COMMISSION_PERIOD_RATE_SEEDED` y `COMMISSION_PERIOD_RATE_SEED_SKIPPED` en la migración. Los
+    tres son idempotentes: no se re-asientan si su asiento ya existe.
 
 ## Límites que se mantienen
 

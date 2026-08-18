@@ -232,19 +232,60 @@ Cierra los dos bloqueantes económicos por la raíz: un tipeo que será anulado 
 `APROBADA` ni `PAGADA`, de modo que no puede fijar un mes (`AB2-g5`); y la siembra deja de depender
 del orden de creación para depender del mismo hecho económico (`AB1-g5`).
 
-## Safe Pause
+## Safe Pause — reanudada
 
-La misión queda en `SAFE_PAUSED` en el commit `998037f924cdeb0c88565cc4618a85f9a0c92477`, con la
-branch publicada y sincronizada, el árbol limpio y el Mission Lease **liberado** para que otro host
-lo adquiera. Safe Closure sigue `PENDING`: pausar no es cerrar. El resumen de Auto-Resume está en
-`SAFE_PAUSE.md`, y el estado canónico manda sobre él.
+La misión quedó en `SAFE_PAUSED` en `998037f924cdeb0c88565cc4618a85f9a0c92477`, con Safe Pause
+registrada en `e87be30f8cde4752644bd0a0250a1ab22846a422`. **Se reanudó en PC Casa**, no en la PC de
+la Óptica: el estado canónico —branch, HEAD, lease, artifacts— manda sobre el host que el plan
+anticipaba. El Mission Lease se readquirió antes de tocar una sola línea. Safe Closure sigue
+`PENDING` hasta los tres verdicts de la generación 6.
+
+## Generación 6 — qué se hizo
+
+Remediación mínima de los cuatro bloqueantes abiertos, sin rediseñar el módulo y sin UI nueva más
+allá del rótulo que el propio contrato exige.
+
+**Código.**
+
+- `comisiones.py`: `RATING_BOUNDARY_STATES` (`APROBADA`, `PAGADA`) y `PROVISIONAL_STATES`
+  (`ELEGIBLE`, `CALCULADA`, `REVISADA`) explícitos, para que la frontera económica sea un
+  predicado con nombre y no una condición repartida.
+- `comisiones.py`: `_pin_rated_period`, invocado **sólo** desde `approve()` y `mark_paid()`, dentro
+  de la misma transacción que registra el hecho económico: no hay ventana en la que uno exista sin
+  el otro. `INSERT OR IGNORE` por período y asiento `COMMISSION_PERIOD_RATE_PINNED` únicamente
+  cuando la fila es nueva.
+- `comisiones.py`: `recalculate()` **ya no escribe** `commission_rated_periods`. Ésa es la línea que
+  cierra `AB2-g5` por la raíz.
+- `comisiones.py`: `_policy_disclaimer` propio para un período sin tasa en vigor (`QB2-g5`).
+- `repository.py`: `_backfill_rated_periods` reescrito. Siembra sólo desde `APROBADA`/`PAGADA` con
+  política canónica y venta no anulada; no desempata evidencia discrepante; no escribe una sola vez
+  sobre `commission_entries`; asienta `COMMISSION_PERIOD_RATE_SEEDED` y
+  `COMMISSION_PERIOD_RATE_SEED_SKIPPED`. Cierra `AB1-g5`.
+- `repository.py`: `_audit_seed_once`, para que la auditoría de la migración no se repita en cada
+  apertura de la base.
+- `comisiones_ui.py`: la cabecera y el KPI rotulan la ausencia de tasa en vigor en vez de caer a la
+  política global (`QB1-g5`), y distinguen una tasa ya fijada de una todavía provisional.
+
+**Pruebas.** 24 dirigidas nuevas en `tests/gestion_central/test_comision_rate_boundary.py` y 2 de
+interfaz. 23 casos de la generación 5 reescritos al contrato nuevo y 2 parametrizaciones retiradas
+—`CALCULADA` y `REVISADA` dejaron de ser estados protegidos **a propósito**—. Regresión
+**395/395**, suite del módulo **195**.
+
+**Documentos.** Se corrigieron las dos afirmaciones que la generación 5 conservó demostradas falsas
+a propósito: la de `MIGRATION.md` / `ARCHITECTURE_DELTA.md` sobre lo que la siembra fija, y la
+lectura implícita de que la fecha errónea quedaba resuelta. `VISUAL_EVIDENCE.md` y su captura se
+regeneraron (`L6-g5`).
+
+**Lo que no se hizo, y por qué.** No se abrió el flujo de corrección explícita de un período ya
+fijado: sigue sin existir y sigue siendo otra decisión, no un cambio de política. No se tocó
+`comision_policy.py`: la aritmética `Decimal` y el único `HALF_UP` canónico siguen intactos desde la
+generación 3.
 
 ## Siguiente paso propuesto
 
-**Generación 5 en revisión: cerrar B1-g4 y B2-g4.** B1-g4 requiere decisión de propietario sobre en qué debe
-apoyarse la guarda y con qué alcance temporal, porque la corrección obvia —proteger todo período
-que alguna vez tuvo un porcentaje aplicado— congela ese mes de forma permanente, y se cruza con el
-hallazgo 25. B2-g4 no tiene bifurcación.
+**Generación 6 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
+verdict de las generaciones 1 a 5. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
+lease. Con cualquier FAIL: generación 7 con el alcance exacto de los bloqueantes.
 
 Sólo después de la Safe Closure vuelve a la cola el cableado de `register_payment` y
 `sync_review_sales` desde el producto (heredado 11), que sigue siendo lo único que impide que el

@@ -148,6 +148,39 @@ def test_the_screen_names_the_official_one_percent_policy(app, root):
     assert panel.kpis["commission_amount"].cget("text") == "7.750 Gs."
 
 
+def test_the_header_says_whether_the_rate_is_fixed_or_still_provisional(app, root):
+    """El rótulo dice de dónde viene la tasa: fijarla es un hecho económico, no un cálculo."""
+    window, service, sol, ids = app
+    window.show_commissions(); root.update()
+    panel = window.commissions_panel
+    # Nadie aprobó ni pagó nada todavía: el mes sigue siendo corregible y así se rotula.
+    assert "provisional: aún sin aprobación ni pago en el período" in panel.policy_label.cget("text")
+
+    entry_id = entry_of(panel, ids["settled"])
+    service.review(sol, entry_id)
+    service.approve(sol, entry_id, "Sol")
+    window.show_commissions(); root.update()
+    panel = window.commissions_panel
+    assert "fijada al aprobarse o pagarse" in panel.policy_label.cget("text")
+
+
+def test_a_period_without_a_rate_in_force_is_never_labelled_with_the_global_policy(app, root):
+    """`QB1-g5`: la cabecera caía a la política global y la declaraba oficial de ese mes."""
+    window, service, sol, ids = app
+    service.set_general_rate(sol, 1_000, "2099-01-01", "tasa global del 10%")
+    window.show_commissions(); root.update()
+    panel = window.commissions_panel
+    # `2026-07` es anterior a toda vigencia publicada: ahí no rige ninguna tasa.
+    panel.period_var.set("2026-07")
+    panel.apply_button.invoke(); root.update()
+    header = panel.policy_label.cget("text")
+    assert "Sin tasa oficial en vigor para 2026-07" in header
+    assert "se fija cuando una liquidación se aprueba o se paga" in header
+    # Ni el 10% global ni ningún otro porcentaje se declara oficial de este mes.
+    assert "%" not in header
+    assert panel.kpi_captions["commission_amount"].cget("text") == "COMISIÓN OFICIAL — SIN TASA EN VIGOR"
+
+
 def test_full_hd_layout_keeps_every_control_visible(app, root):
     window, _, _, ids = app
     window.show_commissions(); root.deiconify(); root.geometry("1920x1080"); root.update()

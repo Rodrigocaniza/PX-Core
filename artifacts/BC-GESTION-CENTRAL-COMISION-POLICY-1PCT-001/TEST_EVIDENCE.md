@@ -1,22 +1,30 @@
 # Evidencia de pruebas
 
-Regresión completa: **371/371 PASS** (`python -m pytest -q`, 34,33 s).
-Línea base de la misión anterior: 302. Esta misión suma **69**: 67 de dominio y 2 de interfaz.
+Regresión completa: **395/395 PASS** (`python -m pytest -q`, 44,00 s).
+Línea base de la misión anterior: 302. Esta misión suma **93**: 89 de dominio y 4 de interfaz.
 
-Suite del módulo: `tests/gestion_central/` **171/171 PASS**.
-Los dos archivos de comisiones juntos (`test_comisiones.py` + `test_comisiones_ui_interactions.py`):
-51 → **120** pruebas, 114 y 6 respectivamente.
+Suite del módulo: `tests/gestion_central/` **195/195 PASS**.
+Los tres archivos de comisiones juntos (`test_comisiones.py`, `test_comisiones_ui_interactions.py`
+y `test_comision_rate_boundary.py`, este último nuevo en la generación 6): 51 → **144** casos,
+112 + 8 + 24 respectivamente.
 
 Todas las cifras anteriores son **casos ejecutados**, que es lo que cuenta pytest. En funciones:
 `test_comisiones.py` pasa de 47 a 94 —se agregan 48 y se elimina
 `test_policy_is_synthetic_pending_approval_and_optional`, que afirmaba lo contrario de la decisión
-aprobada—, y seis de ellas están parametrizadas, aportando 20 casos extra, de donde salen los 114.
-La de interfaz pasa de 4 a 6 funciones y 6 casos.
+aprobada—, y seis de ellas están parametrizadas, aportando 18 casos extra, de donde salen los 112.
+La de interfaz pasa de 4 a 8 funciones y 8 casos. El archivo dirigido de la generación 6 aporta 24
+funciones sin parametrizar y 24 casos.
 
-De esas 48 funciones nuevas, **13 son de la generación 5** y cierran los dos bloqueantes económicos
-que el Auditor abrió sobre la generación 4. Una de ellas es la matriz de transiciones, parametrizada
-sobre 14 transiciones públicas; con sus 13 casos extra suman los **26** casos nuevos de esta
-generación (345 → 371).
+De las 48 funciones nuevas de `test_comisiones.py`, **13 son de la generación 5** y cierran los dos
+bloqueantes económicos que el Auditor abrió sobre la generación 4. Una de ellas es la matriz de
+transiciones, parametrizada sobre 14 transiciones públicas.
+
+La **generación 6** suma **26 casos** (371 → 395): las 24 pruebas dirigidas de
+`test_comision_rate_boundary.py` y 2 de interfaz. Además reescribe 23 casos de la generación 5 al
+contrato nuevo y retira 2 parametrizaciones —`CALCULADA` y `REVISADA` en
+`test_a_rated_period_is_never_re_rated`— porque esos estados **dejaron de estar protegidos a
+propósito**: son provisionales y deben poder corregirse. Que sigan siendo corregibles se prueba
+ahora explícitamente, no se da por supuesto.
 
 ## Generación 5 — cierre de B1-g4 y B2-g4
 
@@ -52,17 +60,45 @@ evidencia durable en `commission_rated_periods`. Publicar ya no se bloquea.
 | `test_a_source_correction_without_a_previous_amount_records_nothing` | Sin importe anterior el bloque no se inventa. |
 | `test_repeated_source_corrections_keep_every_annulled_amount` | Dos correcciones dejan dos asientos; reaplicar la misma no añade un tercero. |
 | `test_a_correction_that_reopens_the_balance_records_the_previous_amount` | Reabrir el saldo anula la comisión y asienta lo retirado. |
-| `test_a_recalculation_down_to_zero_records_the_previous_amount` | Importe anterior distinto de cero y resultado **cero**: el retirado se asienta igual, y el período queda fijado al 0% que de verdad se aplicó. |
+| `test_a_recalculation_down_to_zero_records_the_previous_amount` | Importe anterior distinto de cero y resultado **cero**: el retirado se asienta igual. Desde la generación 6 el mes sigue **sin fijar**, porque recalcular es provisional. |
 
 La exactitud monetaria no se toca: `comision_policy.py` no cambia, el único `HALF_UP` sigue donde
 estaba, y las pruebas de redondeo de la generación 3 siguen en verde sin retoques.
 
-> **Advertencia añadida al registrar la generación 5.** La tabla de arriba es cierta en lo que
-> afirma, pero el Auditor demostró que no cubre el caso completo: la fecha errónea ya no congela la
-> publicación, pero **fija ese mes para siempre y lo hace pagar mal en silencio**, incluso después
-> de que el propio sistema registre por dos vías que fue un error. Es el bloqueante `AB2-g5`.
-> Ninguna prueba de esta generación cubre lo que ocurre *después* de que un pin se graba mal, ni
-> por la ruta del tipeo ni por la de la siembra de la migración (`AB1-g5`).
+> **Advertencia añadida al registrar la generación 5 — resuelta en la 6.** La tabla de arriba era
+> cierta en lo que afirmaba, pero el Auditor demostró que no cubría el caso completo: la fecha
+> errónea ya no congelaba la publicación, pero **fijaba ese mes para siempre y lo hacía pagar mal
+> en silencio**, incluso después de que el propio sistema registrara por dos vías que fue un error
+> (`AB2-g5`). Ninguna prueba de la generación 5 cubría lo que ocurre *después* de que un pin se
+> graba mal, ni por la ruta del tipeo ni por la de la siembra de la migración (`AB1-g5`).
+>
+> La generación 6 elimina la premisa en vez de tapar el síntoma: **un cálculo ya no graba un pin**,
+> así que no hay «después de que un pin se graba mal» por la ruta del tipeo. Y la siembra de la
+> migración deja de depender del orden de creación. Lo cubre `test_comision_rate_boundary.py`,
+> abajo.
+
+## Generación 6 — cierre de AB1-g5, AB2-g5, QB1-g5 y QB2-g5
+
+`tests/gestion_central/test_comision_rate_boundary.py`, 24 pruebas dirigidas, agrupadas por el
+invariante que defienden y no por el método que llaman.
+
+| Grupo | Qué demuestra | Pruebas |
+|---|---|---|
+| Comisión provisional sin tasa fijada | calcular y revisar no escriben `commission_rated_periods` | 2 |
+| Corrección de estados provisionales | publicar y recalcular corrige un mes sólo calculado; un tipeo de fecha no fija nada; anular tras calcular tampoco (`AB2-g5`) | 3 |
+| Fijación en el boundary oficial | `APROBADA` fija; `PAGADA` fija; una publicación posterior ya no re-tarifa; observar o revertir después no desfija | 4 |
+| Dinero aprobado o pagado no se reinterpreta | recálculo con `changed == 0` sobre una `APROBADA` fijada; `PAGADA` fuera de todo recálculo; una venta nueva del mes cobra la tasa fijada | 3 |
+| Migración segura (`AB1-g5`) | no siembra desde `REVERTIDA`; no siembra desde venta anulada; no inventa tasa para un mes sólo provisional; no desempata evidencia discrepante; no toca importes ni avales; asienta cada período sembrado; es idempotente y no duplica su auditoría | 7 |
+| Reintentos e idempotencia | dos aprobaciones del mismo mes dejan una sola fijación y un solo asiento; aprobar y luego pagar también | 2 |
+| Auditoría | `COMMISSION_PERIOD_RATE_PINNED` con período, tasa, boundary, liquidación y traza de política | 1 |
+| Rotulado (`QB1-g5`, `QB2-g5`) | el export no emite `None%` y distingue tasa fijada de provisional | 2 |
+
+Las dos pruebas de interfaz nuevas viven en `test_comisiones_ui_interactions.py`:
+
+- `test_the_header_says_whether_the_rate_is_fixed_or_still_provisional`.
+- `test_a_period_without_a_rate_in_force_is_never_labelled_with_the_global_policy` — comprueba
+  además que el rótulo **no contiene ningún `%`** cuando no rige tasa alguna, que es la forma
+  directa de negar `QB1-g5`.
 
 ## Validaciones dirigidas exigidas por la misión
 

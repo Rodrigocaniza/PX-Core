@@ -83,25 +83,37 @@ Cambiar el porcentaje es un hecho versionado, no una edición:
 - **Una tasa publicada gobierna hacia adelante, y eso no se sostiene bloqueando la publicación.**
   La única guarda que queda en `set_general_rate` es que la vigencia **no puede retroceder**
   respecto de la última publicada, que ordena el historial.
-- **Un período que alguna vez recibió una tasa queda fijado a ella.** La primera vez que se tarifa
-  un período se graba una fila en `commission_rated_periods` —una por período, escrita una sola vez,
-  nunca actualizada ni borrada— y `decide()` resuelve ese período contra esa fila, no contra el
-  catálogo de versiones. Una versión nueva no lo reescribe aunque su vigencia lo abarque.
+- **La tasa de un período se fija cuando existe un hecho económico oficial, no en el cálculo.**
+  Boundary: la liquidación alcanza `APROBADA` o `PAGADA`. Ahí se graba una fila en
+  `commission_rated_periods` —una por período, escrita una sola vez, nunca actualizada ni
+  borrada— y `decide()` resuelve ese período contra esa fila, no contra el catálogo de versiones.
+  Una versión nueva no lo reescribe aunque su vigencia lo abarque.
+- **Los estados provisionales siguen siendo corregibles y no fijan nada.** `ELEGIBLE`, `CALCULADA`
+  y `REVISADA` son cálculos, no dinero avalado: una publicación posterior más un `recalculate` los
+  corrige. Fijar en el primer cálculo era el defecto de la generación 5, y de ahí salieron sus dos
+  bloqueantes económicos: una fecha tipeada como `2136` fijaba ese mes para siempre aunque el
+  sistema registrara por dos vías que era un error (`AB2-g5`), y la siembra de la migración copiaba
+  la tasa de la liquidación más antigua aunque estuviera revertida (`AB1-g5`).
+- **Fijar deja traza.** Cada fijación asienta `COMMISSION_PERIOD_RATE_PINNED` en `central_audit`
+  con el período, la tasa, el boundary y la liquidación que lo produjo. Fijar un mes compromete
+  dinero hacia adelante, así que tiene que poder reconstruirse.
 - **La protección no depende del estado de la liquidación.** Observar, revertir, anular la venta o
   corregir el origen cambian el estado; la evidencia sigue ahí. Ésa era la falla de la defensa
   anterior, que miraba `CALCULADA/REVISADA/APROBADA/PAGADA` y se desarmaba con `observe()` sobre una
   pagada.
-- **Tampoco hay una frontera global.** La protección es el conjunto de períodos tarifados, no un
-  techo: `2099-07` tarifado no impide publicar para `2099-08` ni para un futuro lejano, y una venta
-  con fecha errónea en `2136` protege sólo `2136-04` sin congelar ningún mes intermedio. La defensa
-  anterior tomaba `MAX(period)` global y bloqueaba todo lo anterior a la fecha equivocada.
-- **Un período liquidado pero sin tasa no protege nada.** Un mes anterior a la vigencia queda
-  `FUERA_DE_VIGENCIA` con la base informada y sin porcentaje: nunca fue tarifado, así que no fija
-  nada y sigue siendo resoluble.
+- **Tampoco hay una frontera global.** La protección es el conjunto de períodos fijados, no un
+  techo: `2099-07` fijado no impide publicar para `2099-08` ni para un futuro lejano, y un mes
+  lejano fijado protege sólo ese mes sin congelar ningún mes intermedio. La defensa anterior
+  tomaba `MAX(period)` global y bloqueaba todo lo anterior a la fecha equivocada.
+- **Un período calculado pero sin tasa no protege nada.** Un mes anterior a la vigencia queda
+  `FUERA_DE_VIGENCIA` con la base informada y sin porcentaje: nunca se fijó, así que sigue siendo
+  resoluble. Se rotula como tal en pantalla y en el export —«sin tasa en vigor»— y **nunca** con la
+  política global, que ahí no rige.
 - Publicar **nunca es silencioso**: cada publicación asienta en `central_audit` la lista de períodos
-  ya tarifados que quedan fuera de su alcance real.
-- Corregir la tasa de un período ya tarifado exige un flujo separado de corrección explícita y
-  auditada, **que hoy no existe**. No es un cambio de política: es otra decisión.
+  ya fijados que quedan fuera de su alcance real.
+- Corregir la tasa de un período ya fijado exige un flujo separado de corrección explícita y
+  auditada, **que hoy no existe**. No es un cambio de política: es otra decisión. Corregir un
+  período **todavía provisional**, en cambio, es la operación normal: publicar y recalcular.
 - La operación es idempotente: repetir el mismo porcentaje y la misma vigencia no crea versión.
 - Cada publicación se asienta en `central_audit` como `COMMISSION_POLICY_VERSION_PUBLISHED`.
 - **Publicar una versión nueva no recalcula nada por sí sola** y jamás toca lo ya pagado.
