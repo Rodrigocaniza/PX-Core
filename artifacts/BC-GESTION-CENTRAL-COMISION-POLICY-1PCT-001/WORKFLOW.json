@@ -4,9 +4,9 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "IMPLEMENTED",
+  "current_state": "REMEDIATION",
   "mission_lease": "HELD",
-  "generation": 4,
+  "generation": 5,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -189,12 +189,44 @@
     },
     {
       "generation": 4,
-      "snapshot_commit": null,
-      "status": "PENDING_REVIEW",
+      "snapshot_commit": "5652e46ce7127060ed50d96e464e732809351550",
+      "status": "INVALIDATED",
       "tests": 345,
-      "verdicts": [],
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-004",
+          "role": "LIBRARIAN",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-18T01:41:45Z"
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-004",
+          "role": "QA",
+          "verdict": "PASS",
+          "timestamp_utc": "2026-08-18T01:40:39Z"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-004",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "timestamp_utc": "2026-08-18T01:45:21Z",
+          "blockers": [
+            "B1-g4",
+            "B2-g4"
+          ]
+        }
+      ],
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-4/",
       "scope": "cierre de B1 y B2, y solo eso"
+    },
+    {
+      "generation": 5,
+      "snapshot_commit": null,
+      "status": "PENDING_REMEDIATION",
+      "tests": null,
+      "verdicts": [],
+      "scope": "cerrar B1-g4 y B2-g4; decision de propietario pendiente sobre el alcance de la guarda",
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-5/"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -220,7 +252,11 @@
     "20. LIBRARIAN-003 obs 1: el checker de consistencia no inspecciona el ZIP ni cuenta observaciones de los verdicts, que es donde sobrevivio L1",
     "21. LIBRARIAN-003 obs 3: el parrafo de cabecera de INDEPENDENCE sigue citando solo el snapshot de la generacion 1",
     "22. LIBRARIAN-003 obs 5: MIGRATION paso 1 atribuye commission_policy_versions a _add_missing_columns; la crea migrate()",
-    "23. MANIFEST.sha256 solo verifica en el worktree donde se genera: con core.autocrlf=true y sin .gitattributes, un checkout limpio devuelve 21 de 33 ficheros con CRLF y el propio manifest llega con CRLF. Heredado de la generacion 1; el ZIP si conserva los bytes exactos."
+    "23. MANIFEST.sha256 solo verifica en el worktree donde se genera: con core.autocrlf=true y sin .gitattributes, un checkout limpio devuelve 21 de 33 ficheros con CRLF y el propio manifest llega con CRLF. Heredado de la generacion 1; el ZIP si conserva los bytes exactos.",
+    "24. QA-004 O3: en la rama de reparacion el bloque replaced se asienta con rate_bp y commission_amount nulos cuando no hubo importe que retirar; ruido en el historial, sin impacto economico",
+    "25. AUDITOR-004 O1 y QA-004 O4: una venta con fecha futura mal tipeada que llegue a CALCULADA fija el suelo de la guarda en ese periodo y congela toda publicacion de tasas durante anios",
+    "26. AUDITOR-004 O2: observar una liquidacion pagada retira su importe del KPI paid_amount, de modo que dinero que salio deja de verse en el reporte del periodo",
+    "27. LIBRARIAN-004 obs 6: SUMMARY declara la comision de la venta con saldo como 0 y verified_examples como null; ninguna es falsa pero el mismo caso se declara de dos formas"
   ],
   "inherited_open_findings": "artifacts/BC-GESTION-CENTRAL-COMISIONES-001/HANDOFF.md",
   "untouched": [
@@ -317,7 +353,7 @@
       "generation": 3,
       "kind": "DOCUMENTAL",
       "summary": "ARTIFACT_CONSISTENCY declaraba 27 miembros del ZIP; eran 31",
-      "status": "CERRADO_EN_COMMIT_DE_REGISTRO"
+      "status": "CERRADO_VERIFICADO_GEN4"
     },
     {
       "id": "L2",
@@ -325,7 +361,7 @@
       "generation": 3,
       "kind": "DOCUMENTAL",
       "summary": "INDEPENDENCE declaraba veinte observaciones no bloqueantes de la generacion 2; son diecisiete",
-      "status": "CERRADO_EN_COMMIT_DE_REGISTRO"
+      "status": "CERRADO_VERIFICADO_GEN4"
     },
     {
       "id": "B1",
@@ -333,7 +369,7 @@
       "generation": 3,
       "kind": "ECONOMICO",
       "summary": "set_general_rate acepta una vigencia IGUAL a la ultima publicada, de modo que un periodo ya liquidado y aprobado se re-tarifa al alza o a cero y se paga; contradice 'no se puede re-tarifar el pasado'",
-      "status": "CERRADO_PENDIENTE_VERIFICACION",
+      "status": "CERRADO_EN_RUTA_DIRECTA_SUCEDIDO_POR_B1-g4",
       "decision_fork": [
         "ENDURECER_GUARDA",
         "RETIRAR_AFIRMACION_Y_DOCUMENTAR_RETARIFADO"
@@ -347,19 +383,51 @@
       "generation": 3,
       "kind": "ECONOMICO",
       "summary": "recalculate no repara la liquidacion legada de un periodo anterior a la vigencia y anula su importe sin asentar 'replaced' fuera de las ramas REVISADA/APROBADA",
-      "status": "CERRADO_PENDIENTE_VERIFICACION",
+      "status": "CERRADO_EN_RECALCULATE_SUCEDIDO_POR_B2-g4",
       "cierre_esperable": "escribir replaced en toda rama que anule un commission_amount previo y corregir COMMISSION_POLICY_1PCT.md:110",
       "closure": "recalculate escribe 'replaced' en toda rama que anule o reemplace un commission_amount o un rate_bp previo, no solo al reparar REVISADA o APROBADA. COMMISSION_POLICY_1PCT.md deja de prometer reparacion donde el periodo es anterior a la vigencia."
+    },
+    {
+      "id": "B1-g4",
+      "role": "AUDITOR",
+      "generation": 4,
+      "kind": "ECONOMICO",
+      "status": "ABIERTO",
+      "summary": "la guarda de periodo liquidado consulta el estado actual, no la evidencia de tarifacion: observe() sobre una PAGADA, void_sale() sobre una venta con comision pagada, revert() o una correccion cosmetica de origen sacan el periodo de SETTLED_STATES y devuelven la fuga entera",
+      "impact": "400.000 Gs pagados por 2026-08 donde el 1% eran 40.000; o el mes completo anulado a cero",
+      "false_claims": [
+        "ARCHITECTURE_DELTA.md:72",
+        "COMMISSION_POLICY_1PCT.md:90",
+        "SUMMARY.md:66-70"
+      ],
+      "proposed_closure": "ampliar el WHERE a status IN (...) OR paid_at IS NOT NULL OR rate_bp IS NOT NULL, o resolver el maximo periodo liquidado contra commission_entry_history",
+      "owner_decision_needed": true
+    },
+    {
+      "id": "B2-g4",
+      "role": "AUDITOR",
+      "generation": 4,
+      "kind": "ECONOMICO",
+      "status": "ABIERTO",
+      "summary": "_apply_source_update anula rate_bp y commission_amount y escribe SOURCE_UPDATED sin el bloque replaced; para un importe heredado de una base migrada, que no tiene asiento previo, el valor desaparece de toda ruta publica",
+      "impact": "80.000 Gs de comision legada perdidos por una correccion cosmetica de sobre",
+      "false_claims": [
+        "ARCHITECTURE_DELTA.md:76",
+        "SUMMARY.md:74-76"
+      ],
+      "proposed_closure": "replicar en SOURCE_UPDATED el bloque replaced que recalculate ya escribe",
+      "owner_decision_needed": false
     }
   ],
   "next_action": {
-    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN4",
-    "state": "PENDING_INDEPENDENT_REVIEW",
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN5",
+    "state": "REMEDIATION",
+    "blocked_on": "decision de propietario sobre el alcance de la guarda en B1-g4",
     "steps": [
-      "1. Publicar el snapshot de la generacion 4.",
-      "2. Lanzar LIBRARIAN, QA y AUDITOR independientes sobre ese snapshot.",
-      "3. No reutilizar verdicts de las generaciones 1, 2 ni 3.",
-      "4. Con 3xPASS: protected commit/push, Safe Closure, liberar Mission Lease y persistir NEXT_ACTION."
+      "1. Resolver B1-g4: decidir si la guarda debe apoyarse en evidencia de tarifacion (paid_at/rate_bp/historial) en lugar del estado actual, y con que alcance temporal.",
+      "2. Cerrar B2-g4: asentar replaced en _apply_source_update cuando haya importe o porcentaje previo.",
+      "3. Considerar el hallazgo 25: la guarda global por MAX(period) congela la publicacion ante una fecha futura erronea.",
+      "4. Publicar snapshot de la generacion 5 y relanzar los tres runners. No reutilizar verdicts de 1, 2, 3 ni 4."
     ],
     "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 sigue sin abrirse."
   },

@@ -97,13 +97,36 @@ Aportados por las observaciones no bloqueantes de la generación 3, abiertos y *
 22. **`MIGRATION.md` paso 1 atribuye `commission_policy_versions` a `_add_missing_columns`.**
     LIBRARIAN-003 obs 5: la crea el `CREATE TABLE IF NOT EXISTS` de `migrate()`. El efecto descrito
     es correcto; la atribución no.
+
+Detectado en la generación 4 sobre el propio paquete:
+
 23. **`MANIFEST.sha256` sólo verifica en el worktree donde se genera.** Detectado en la generación
-    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 21 de los 33
-    ficheros con CRLF —los `.md`, el `.json` y dos `.py`— y sus hashes dejan de coincidir; el propio
+    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 21 de los 36
+    ficheros con CRLF —19 de los 22 `.md`, uno de los dos `.json` y uno `.py`— y sus hashes dejan de
+    coincidir; el propio
     manifest llega con CRLF y `sha256sum -c` no puede analizarlo. Es heredado de cómo se construyó
     el paquete desde la generación 1, no lo introduce esta generación. El ZIP sí conserva los bytes
     exactos. Corrección propuesta, fuera del alcance de B1/B2: fijar `-text` para el paquete con un
     `.gitattributes` acotado, y recalcular el manifest sobre esos bytes.
+
+Aportados por las observaciones no bloqueantes de la generación 4, abiertos y **no**
+corregidos:
+
+24. **En la rama de reparación, `replaced` se asienta con nulos.** QA-004 O3: cuando la liquidación
+    no tenía importe ni porcentaje que retirar, el bloque se escribe igual con `rate_bp: None` y
+    `commission_amount: None`. Registra un dato cierto, pero es ruido: un lector del historial ve un
+    `replaced` donde no hubo retiro de valor.
+25. **Una venta con fecha futura mal tipeada congela toda publicación de tasas.** AUDITOR-004 O1 y
+    QA-004 O4: la guarda usa `MAX(period)` global, así que un `2036` en lugar de `2026` que llegue a
+    `CALCULADA` deja la política inmutable durante diez años, y el mensaje de error nombra un período
+    que el operador no reconoce. Falla del lado seguro; es disponibilidad, no corrección.
+26. **Observar una liquidación pagada retira su importe del KPI `paid_amount`.** AUDITOR-004 O2:
+    `report()` lo calcula sobre `status == "PAGADA"`, de modo que dinero que efectivamente salió deja
+    de verse en el reporte del período. Es además lo que vuelve invisible en pantalla la fuga B1-g4.
+27. **`SUMMARY.md` y `WORKFLOW.json` declaran de dos formas la comisión de la venta con saldo.**
+    LIBRARIAN-004 obs 6: la tabla dice «0 (no pagable)» y `verified_examples` dice `null`. El código
+    escribe `None` y el KPI agrega 0, así que ninguna es falsa; el mismo caso verificado se declara
+    dos veces distinto. Abierta desde la generación 1.
 
 ## Generación 4 — qué se hizo
 
@@ -127,8 +150,35 @@ que exista, un período liquidado con una tasa equivocada no tiene corrección p
 importe heredado de un período anterior a la vigencia tampoco: ambos quedan asentados, no
 recuperables.
 
+## Generación 4 — resultado: INVALIDADA
+
+Librarian **PASS**, QA **PASS**, Auditor **FAIL**. Los tres confirmaron que los cuatro bloqueantes
+de la generación 3 están cerrados y que los diez invariantes económicos pasan; la guarda nueva no
+introdujo regresión. Pero el Auditor encontró que **ninguno de los dos cierres era suficiente**:
+
+- **B1-g4 (abierto).** La guarda decide si un período «ya fue liquidado» mirando el **estado
+  actual** de las entradas. `observe()` sobre una liquidación pagada —operación pública, permitida y
+  no destructiva—, `void_sale()` sobre una venta ya cobrada, `revert()` o una corrección cosmética
+  de origen sacan la entrada de `SETTLED_STATES` y devuelven la fuga entera: **400.000 Gs pagados
+  por un período donde el 1% eran 40.000**, o el mes completo anulado a cero. Cierre propuesto:
+  apoyar la guarda en evidencia de tarifación (`paid_at`, `rate_bp` o el historial) en lugar del
+  estado actual.
+- **B2-g4 (abierto).** La garantía sólo se cumple dentro de `recalculate`. `_apply_source_update`
+  anula `rate_bp` y `commission_amount` y escribe `SOURCE_UPDATED` sin `replaced`: un importe
+  heredado de una base migrada, que no tiene asiento previo, desaparece por una corrección de sobre.
+  Cierre propuesto: replicar ahí el bloque `replaced`.
+
+En consecuencia, el invariante 5 y el invariante 7 de `ARCHITECTURE_DELTA.md` —y sus ecos en
+`COMMISSION_POLICY_1PCT.md` y `SUMMARY.md`— **están demostrados falsos y se conservan sin corregir**
+hasta la generación 5, para que se arreglen con la evidencia a la vista.
+
 ## Siguiente paso propuesto
 
-Con 3×PASS y Safe Closure, vuelve a la cola el cableado de `register_payment` y `sync_review_sales`
-desde el producto (heredado 11), que sigue siendo lo único que impide que el ciclo cobro →
-elegibilidad → 1% → aprobación → pago sea alcanzable sin el capturador sintético.
+**Generación 5: cerrar B1-g4 y B2-g4.** B1-g4 requiere decisión de propietario sobre en qué debe
+apoyarse la guarda y con qué alcance temporal, porque la corrección obvia —proteger todo período
+que alguna vez tuvo un porcentaje aplicado— congela ese mes de forma permanente, y se cruza con el
+hallazgo 25. B2-g4 no tiene bifurcación.
+
+Sólo después de la Safe Closure vuelve a la cola el cableado de `register_payment` y
+`sync_review_sales` desde el producto (heredado 11), que sigue siendo lo único que impide que el
+ciclo cobro → elegibilidad → 1% → aprobación → pago sea alcanzable sin el capturador sintético.

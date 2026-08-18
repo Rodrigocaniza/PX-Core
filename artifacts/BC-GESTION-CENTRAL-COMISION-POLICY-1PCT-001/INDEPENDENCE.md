@@ -102,7 +102,50 @@ observación O1) sin cruzar hasta la vigencia igual, y por eso no llegó al mism
 Auditor. Las **diecisiete** observaciones no bloqueantes de los tres verdicts —seis del Librarian,
 cuatro de QA y siete del Auditor— quedan registradas, no corregidas.
 
-## Generación 4
+## Generación 4 — snapshot `5652e46ce7127060ed50d96e464e732809351550`
 
-Pendiente. Su alcance es cerrar B1 y B2, y reverificar L1 y L2, sobre el snapshot que publique esa
-corrección. Los verdicts de las generaciones 1, 2 y 3 no se reutilizan.
+| Runner | Rol | Verdict |
+|---|---|---|
+| `LIBRARIAN-IND-COMISION-POLICY-1PCT-004` | LIBRARIAN | PASS |
+| `QA-IND-COMISION-POLICY-1PCT-004` | QA | PASS |
+| `AUDITOR-IND-COMISION-POLICY-1PCT-004` | AUDITOR | **FAIL** — B1-g4, B2-g4 |
+
+Evidencia íntegra y sin retocar en `generation-4/`.
+
+Es la primera generación con dos PASS, y la que mejor muestra para qué sirve la independencia. Los
+tres reverificaron por su cuenta el cierre de los cuatro bloqueantes de la generación 3 y los tres
+lo confirmaron: el Librarian ejecutando el exploit del Auditor en vez de leer el diff, QA con 203
+comprobaciones propias, el Auditor con 161.000 casos de aritmética, 1.200 operaciones de fuzz y 80
+rondas de concurrencia. Los diez invariantes económicos pasan. La guarda nueva no introdujo
+regresión alguna.
+
+Y aun así el Auditor volvió a encontrar dinero mal pagado, por cuarta generación consecutiva, en la
+superficie que los otros dos no exploraron:
+
+- **B1-g4.** La guarda decide si un período «ya fue liquidado» mirando el **estado actual** de las
+  entradas. `observe()` sobre una liquidación pagada —operación pública, normal y explícitamente
+  permitida—, `void_sale()` sobre una venta ya cobrada, `revert()`, o incluso una corrección
+  cosmética de origen, sacan la entrada de `SETTLED_STATES` y devuelven la fuga entera: **400.000 Gs
+  pagados por un período donde el 1% eran 40.000**, o el mes completo anulado a cero. La afirmación
+  de que «no tiene ruta pública, ni directa ni indirecta» es falsa.
+- **B2-g4.** La garantía de que «todo importe retirado queda asentado» sólo se cumple dentro de
+  `recalculate`. `_apply_source_update` anula `rate_bp` y `commission_amount` y escribe
+  `SOURCE_UPDATED` sin el bloque `replaced`: un importe heredado de una base migrada, que no tiene
+  asiento previo, desaparece del sistema por una corrección de sobre.
+
+QA había rozado B1-g4 por el flanco de `revert` —su observación O2, con la misma reproducción— y
+decidió no elevarlo a bloqueante porque exige una acción destructiva y auditada y no alcanza dinero
+pagado. El Auditor cruzó donde QA no: `observe()` sobre una **PAGADA**, que no es destructiva, no
+requiere permiso especial y sí alcanza dinero pagado. La diferencia entre una observación y un
+bloqueante estuvo en un solo estado de la máquina.
+
+El Librarian, que dio por ciertos los invariantes 5 y 7 en sus puntos 6 y 12, dejó anotado en su
+propio verdict qué superficie no cubrió, sin retocar el PASS. Las **catorce** observaciones no
+bloqueantes de los tres verdicts —siete del Librarian, cuatro de QA y tres del Auditor— quedan
+registradas, no corregidas.
+
+## Generación 5
+
+Pendiente. Su alcance es cerrar B1-g4 y B2-g4 sobre el snapshot que publique esa corrección. B1-g4
+requiere decisión de propietario sobre en qué debe apoyarse la guarda. Los verdicts de las
+generaciones 1, 2, 3 y 4 no se reutilizan.
