@@ -1,0 +1,5 @@
+sku,name,nature,category,brand,sale_price,location,min_stock,barcode
+ARM-VULK-01,Armazón Vulk metal negro,PRODUCTO_STOCKEABLE,Armazones,Vulk,280000,Góndola 3 / Fila B,2,7790001234567
+ACC-CAD-01,Cadenilla dorada,PRODUCTO_STOCKEABLE,Accesorios,,70000,,,
+CRIS-ORG-01,Cristal orgánico recetado,TRABAJO_BAJO_PEDIDO,Cristales,,250000,,,
+SERV-COMP,Compostura de armazón,SERVICIO_NO_STOCKEABLE,Servicios,,30000,,,

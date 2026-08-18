@@ -201,14 +201,23 @@ def test_ingreso_administrativo_no_crea_una_compra_ficticia(ledger, armazon):
 
 
 def test_los_motivos_de_ingreso_administrativo_estan_sembrados(base):
+    """Los cuatro que siembra la 023 estan, y todos exigen observacion.
+
+    Se afirma inclusion y no igualdad: lo que esta prueba defiende es que la
+    023 los sembro completos, no que no pueda haber un quinto motivo mas
+    adelante. Fijar el conjunto exacto la rompio en cuanto llego uno nuevo.
+    """
     conexion = sqlite3.connect(str(base))
     try:
-        codigos = {fila[0] for fila in conexion.execute(
-            "SELECT code FROM administrative_entry_reasons")}
+        filas = conexion.execute(
+            "SELECT code, requires_note FROM administrative_entry_reasons").fetchall()
     finally:
         conexion.close()
-    assert codigos == {"STOCK_ENCONTRADO", "CORRECCION_INVENTARIO",
-                       "FUERA_DE_CIRCUITO", "OTRO"}
+    codigos = {fila[0] for fila in filas}
+    assert {"STOCK_ENCONTRADO", "CORRECCION_INVENTARIO",
+            "FUERA_DE_CIRCUITO", "OTRO"} <= codigos
+    # Un ingreso sin factura y sin explicacion seria stock aparecido de la nada.
+    assert all(fila[1] == 1 for fila in filas)
 
 
 # --------------------------------------------------------------------------

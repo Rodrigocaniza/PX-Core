@@ -265,6 +265,14 @@ class Article:
     supplier_id: str | None = None
     unit: str = "UNIDAD"
     sale_price: int | None = None
+    #: Donde esta fisicamente en el local. Sin esto, encontrar un armazon en
+    #: una gondola de trescientos es cuestion de suerte.
+    location: str = ""
+    #: Cuando avisar que se esta por acabar. Opcional: la optica no lo tiene
+    #: definido para todo, y ponerle uno por defecto seria inventarlo.
+    min_stock: int | None = None
+    #: El que le puso el proveedor, si le puso alguno. No reemplaza al SKU.
+    barcode: str | None = None
     notes: str = ""
     active: bool = True
     id: str = field(default_factory=new_id)
@@ -293,6 +301,14 @@ class Article:
         if precio is not None:
             if isinstance(precio, bool) or not isinstance(precio, int) or precio < 0:
                 raise ValueError("sale_price debe ser un entero PYG no negativo")
+
+        object.__setattr__(self, "location", _texto(self.location))
+        object.__setattr__(self, "barcode", _texto(self.barcode) or None)
+
+        minimo = self.min_stock
+        if minimo is not None:
+            if isinstance(minimo, bool) or not isinstance(minimo, int) or minimo < 0:
+                raise ValueError("min_stock debe ser un entero no negativo")
 
     @property
     def tracks_stock(self) -> bool:

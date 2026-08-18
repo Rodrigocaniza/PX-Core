@@ -1,0 +1,89 @@
+{
+  "mission": "BC-OPTICA-COMERCIAL-UI-Y-CARGA-INICIAL-V1-005",
+  "current_state": "SAFE_CLOSURE / SLICE 5 CERRADO",
+  "base": "b580e50",
+  "base_branch": "feature/bc-optica-sales-article-link-v1-004",
+  "history": [
+    {
+      "event": "MISSION_STARTED",
+      "from_state": null,
+      "to_state": "ESTADO_CANONICO_VERIFICADO",
+      "timestamp": "2026-08-18T21:20:00-03:00",
+      "reason": "Encadenada por el NEXT_ACTION del slice 4. Verificado sin asumir SHAs: origin/main 7db56a0 y los slices 1 a 4 en ed0dbba, 54f5f06, ecc0c7b y b580e50, identicos en local y origin, con las migraciones 022 a 025 confirmadas commit por commit. Produccion en 21 migraciones, sha256 1c4fcc40...98ec. 0 leases, 0 sesiones ajenas. Headless Executor no disponible sin tocar BC-Core, asi que no se uso",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "EXISTING_ASSETS_INSPECTED",
+      "from_state": "ESTADO_CANONICO_VERIFICADO",
+      "to_state": "REUSO_DECIDIDO",
+      "timestamp": "2026-08-18T21:30:00-03:00",
+      "reason": "Antes de construir se inspecciono que habia. El importador del slice 1 y la tabla import_runs de la 015 ya existian y se reusan. El unico Excel del repositorio es la plantilla de nomina de BC Gestion y no sirve para articulos. Hallazgo que definio el alcance de la carga inicial: NO existe en el repositorio ningun archivo con los articulos reales de la Optica, asi que este slice entrega el mecanismo y el contrato del archivo, no los articulos",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "WORKTREE_CREATED",
+      "from_state": "REUSO_DECIDIDO",
+      "to_state": "AISLADO",
+      "timestamp": "2026-08-18T21:34:00-03:00",
+      "reason": "Worktree .worktrees/comercial-ui-005 y rama feature/bc-optica-comercial-ui-carga-inicial-v1-005 derivados de b580e50: la pantalla necesita los cuatro dominios cerrados",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "TESTS_FIRST",
+      "from_state": "AISLADO",
+      "to_state": "TESTS_ESCRITOS",
+      "timestamp": "2026-08-18T21:55:00-03:00",
+      "reason": "57 pruebas dirigidas escritas antes de la implementacion, cubriendo ABM de articulos, categoria y marca inline, naturaleza stock/no-stock, proveedores, compra desde el controlador, distribucion, confirmacion, stock visible, selector de venta, article_id y lens_article_id, stock insuficiente, articulo inactivo, carga inicial auditada, catalogo distinto de stock, circuito completo, persistencia tras reinicio y migracion",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "IMPLEMENTED",
+      "from_state": "TESTS_ESCRITOS",
+      "to_state": "IMPLEMENTADO",
+      "timestamp": "2026-08-18T22:25:00-03:00",
+      "reason": "Migracion 026 con tres columnas para el ABM y el motivo INVENTARIO_INICIAL. ComercialController como API operable, carga_inicial.py reusando el importador del slice 1, y la ventana comercial con Articulos, Proveedores y Compras. En Caja: buscador de articulo en la linea de venta y entrada a la pantalla, ambos con importacion local para que Caja no dependa del modulo comercial. Decision explicita: el costo NO es columna del articulo, se deriva de la ultima compra; sin compras dice PENDIENTE_DE_CONCILIACION",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "OWN_CONTRACT_FIXED",
+      "from_state": "IMPLEMENTADO",
+      "to_state": "SUITE_VERDE",
+      "timestamp": "2026-08-18T22:40:00-03:00",
+      "reason": "test_los_motivos_de_ingreso_administrativo_estan_sembrados, del slice 2, fijaba el conjunto exacto de motivos y se rompio al llegar INVENTARIO_INICIAL. Su intencion era que la 023 los hubiera sembrado completos, no que no pudiera haber un quinto. Ahora afirma inclusion y verifica que todos exijan observacion. Suite 905 passed, 4 subtests, exit 0",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "E2E_ON_PRODUCTION_COPY",
+      "from_state": "SUITE_VERDE",
+      "to_state": "VERIFICADO",
+      "timestamp": "2026-08-18T22:55:00-03:00",
+      "reason": "La cadena 022..026 y un escenario real de 21 pasos corrieron sobre una COPIA de la base de la Optica: carga de catalogo desde archivo sin generar stock, recuento auditado e idempotente, proveedor, factura a credito con vencimiento derivado, reparto Asuncion/Pilar, confirmacion, venta, venta de puro servicio, venta sin stock rechazada, trazabilidad en los dos sentidos y costo derivado de la factura. 12 cash_entries y 10 sale_items intactos, integrity ok, totales sin cambios. La base real quedo sin tocar, sha256 identico",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "GATES_PASSED",
+      "from_state": "VERIFICADO",
+      "to_state": "3xPASS",
+      "timestamp": "2026-08-18T23:05:00-03:00",
+      "reason": "Librarian PASS: rutas, simbolos y objetos de base existen; la plantilla que la guia describe se lee de verdad y pasa el planificador real; ni la UI ni el controlador reimplementan dominio ni mencionan negative_override; el operador no ve tecnicismos; Caja sigue abriendo si el modulo comercial falta; el costo no es columna del articulo. QA PASS: 905 passed, 4 subtests, exit 0. Auditor PASS: main y las cuatro ramas previas intactas, produccion en 21 migraciones con sha256 identico y sin la tabla articles, 0 leases, 0 sesiones ajenas. Artifact Consistency PASS: 11 fuentes",
+      "gate_id": "librarian+qa+auditor",
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "SAFE_CLOSURE",
+      "from_state": "3xPASS",
+      "to_state": "SAFE_CLOSURE / SLICE 5 CERRADO",
+      "timestamp": "2026-08-18T23:12:00-03:00",
+      "reason": "Slice 5 cerrado y pusheado. Sin PR, sin merge, sin empaquetar, sin instalar. Continua por BC-OPTICA-VENTA-REVERSIBLE-Y-RELEASE-GATE-V1-006: la reversion compensatoria de una venta y el gate de las cinco migraciones acumuladas, en esa orden y en la misma mision. Instalar sin la reversion dejaria a la Optica con ventas que no se pueden corregir",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    }
+  ]
+}

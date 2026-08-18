@@ -1,0 +1,239 @@
+{
+  "mission": "BC-OPTICA-COMERCIAL-UI-Y-CARGA-INICIAL-V1-005",
+  "slice": "5 - Primera vertical operable de UI sobre los dominios 022-025",
+  "branch": "feature/bc-optica-comercial-ui-carga-inicial-v1-005",
+  "worktree": ".worktrees/comercial-ui-005",
+  "base_commit": "b580e50",
+  "base_branch": "feature/bc-optica-sales-article-link-v1-004",
+  "cadena_de_slices": {
+    "origin/main": "7db56a0 = BC Caja 1.0.0-rc.31",
+    "slice_1_catalogo": "ed0dbba (022)",
+    "slice_2_ledger": "54f5f06 (023)",
+    "slice_3_compras": "ecc0c7b (024)",
+    "slice_4_ventas": "b580e50 (025)",
+    "slice_5_ui": "esta mision (026)"
+  },
+  "packaged": false,
+  "installed": false,
+  "promoted": false,
+  "pr": false,
+  "version_unchanged": true,
+  "migrations": 26,
+  "migrations_added": [
+    "026_comercial_ui_carga_inicial.sql"
+  ],
+  "schema_change_shape": "ADITIVA: tres ADD COLUMN sobre articles (location, min_stock, barcode), dos indices y un motivo sembrado. No reconstruye ni reescribe nada",
+  "dominio_agregado": "el minimo indispensable para que la pantalla de articulos exista. Nada mas",
+  "lo_que_NO_se_agrego_y_por_que": {
+    "articles.cost": "el costo de un articulo es lo que dijo la factura con que se compro, y eso ya vive en purchase_lines.unit_cost. Una columna en el maestro seria una segunda verdad que puede contradecir al documento. La pantalla lo muestra DERIVADO de la ultima compra confirmada y, cuando no hay ninguna, dice PENDIENTE_DE_CONCILIACION en vez de inventar un numero",
+    "articles.tax_rate": "el IVA de la optica es 10% para todo y no hay evidencia de una sola excepcion. Una columna por articulo inventaria una variabilidad que el negocio no tiene"
+  },
+  "ui_creada": {
+    "ventana": "modulos/comercial/ui/comercial_window.py, CustomTkinter igual que Caja",
+    "pestanas": [
+      "Artículos",
+      "Proveedores",
+      "Compras"
+    ],
+    "dialogos": [
+      "FormularioDeArticulo",
+      "FormularioDeProveedor",
+      "FormularioDeCompra",
+      "LineaDeCompraDialog",
+      "BuscadorDeArticulos",
+      "CargaInicialDialog"
+    ],
+    "entrada_desde_caja": "boton Comercial en la barra superior, junto a Administrador",
+    "categoria_y_marca_inline": "boton + Crear al lado de cada selector, sin salir del alta del articulo",
+    "aislamiento": "vive en su propia ventana y se importa dentro de la funcion que la abre. Si el modulo comercial faltara, Caja sigue abriendo igual",
+    "logica_en_la_ui": "ninguna. La pantalla pregunta al controlador y el controlador a los servicios de dominio. Verificado mecanicamente: ni la UI ni el controlador nombran PURCHASE_CONFIRMED, SALE_COMPLETED ni escriben en stock_movements, purchases o domain_events"
+  },
+  "controlador": {
+    "modulo": "modulos/comercial/application/comercial_controller.py",
+    "papel": "el mismo que CashDayUIController cumple para Caja",
+    "abm_articulos": [
+      "alta",
+      "edicion auditada",
+      "activar/desactivar",
+      "busqueda por codigo, descripcion o codigo de barras",
+      "filtro por naturaleza y por activo"
+    ],
+    "no_expone": [
+      "borrar_articulo",
+      "eliminar_articulo",
+      "borrar_proveedor"
+    ],
+    "baja_bloqueada": "no se desactiva un articulo que todavia tiene stock: lo sacaria de las busquedas y ese stock quedaria sin nadie que lo mire",
+    "auditoria": "cada alta y cada edicion queda en admin_audit_log con actor, accion y detalle"
+  },
+  "carga_inicial": {
+    "reutilizado": "planificar_importacion() del slice 1 e import_runs de la 015. No se creo un importador nuevo",
+    "formatos": [
+      ".csv",
+      ".xlsx"
+    ],
+    "columnas_obligatorias": [
+      "sku",
+      "name",
+      "nature"
+    ],
+    "columnas_opcionales": [
+      "category",
+      "brand",
+      "sale_price",
+      "location",
+      "min_stock",
+      "barcode",
+      "unit",
+      "notes"
+    ],
+    "naturaleza_se_infiere": false,
+    "por_que": "deducirla del texto pondria a un cristal a descontar stock el dia que alguien escriba 'armazon de cristal'",
+    "dos_pasos": "planificar no escribe nada; aplicar solo se habilita si no hay ninguna fila rechazada",
+    "fail_closed": "un plan con rechazos no se aplica a medias: cargar 1.999 de 2.000 dejaria un catalogo que nadie sabe describir",
+    "vacio_no_es_cero": "un sale_price en blanco queda sin precio; un 0 significa que se regala. El plan reporta cuantas filas quedan pendientes de completar",
+    "categorias_y_marcas": "se escriben por nombre y se crean al aplicar, una sola vez, sin duplicar por mayusculas",
+    "idempotencia": "el mismo archivo no se carga dos veces: se registra con su sha256, quien lo cargo y cuando",
+    "entregables": [
+      "docs/PLANTILLA_ARTICULOS.csv",
+      "docs/CARGA_INICIAL_DE_ARTICULOS.md"
+    ],
+    "por_que_plantilla_y_no_los_3000_articulos": "el archivo real de la optica no existe en el repositorio. Lo que este slice entrega es el mecanismo seguro y el contrato del archivo, para que el dueno lo produzca. Inventar los articulos habria sido exactamente lo que el principio prohibe"
+  },
+  "catalogo_no_es_stock": {
+    "afirmacion": "aplicar el archivo crea articulos y CERO unidades",
+    "verificado": "sobre la copia productiva: 4 articulos cargados, 0 movimientos de stock"
+  },
+  "stock_inicial": {
+    "mecanismo": "INGRESO_ADMINISTRATIVO con motivo INVENTARIO_INICIAL, sembrado por la 026",
+    "queda_registrado": [
+      "articulo",
+      "sucursal",
+      "cantidad",
+      "actor",
+      "fecha",
+      "motivo",
+      "observacion con el recuento del que salio",
+      "document_kind=CARGA_INICIAL y document_id con la corrida"
+    ],
+    "no_finge_una_compra": "verificado: 0 purchases y 0 suppliers creados, y el movimiento no tiene supplier_id",
+    "por_que": "falsear una compra habria dado un stock correcto colgando de un proveedor que nunca facturo eso, y esa mentira no se deshace despues sin borrar historia",
+    "idempotente": "por run_id: volver a apretar el boton no duplica el inventario",
+    "correccion": "movimiento compensatorio. El recuento original queda: es lo que se conto ese dia"
+  },
+  "ui_compras": {
+    "flujo": "Proveedor -> datos factura -> lineas -> distribucion -> revision -> confirmar",
+    "vencimiento": "se muestra derivado de fecha + plazo mientras se escribe; no se carga a mano",
+    "lineas_no_stock": "el reparto fisico ni siquiera se muestra: mostrarselo a un cristal invitaria a llenarlo",
+    "revision_previa": "revisar_compra() devuelve los dos totales y la lista de problemas en castellano. La pantalla no repite las reglas: pregunta",
+    "confirmacion": "llama al dominio del slice 3. No lo reimplementa"
+  },
+  "selector_de_venta": {
+    "donde": "boton 'Buscar artículo' junto a las acciones de la linea, en Caja",
+    "muestra": [
+      "codigo",
+      "descripcion",
+      "categoria",
+      "marca",
+      "precio",
+      "ubicacion",
+      "stock en ESTA sucursal"
+    ],
+    "al_elegir": "completa codigo, descripcion y precio, y guarda el vinculo article_id / lens_article_id",
+    "escribir_a_mano": "sigue funcionando igual que siempre y no descuenta nada",
+    "estructura_de_sale_items": "sin cambios. La venta optica sigue siendo UNA fila con sus dos componentes"
+  },
+  "stock_visible": {
+    "estados": {
+      "DISPONIBLE": "hay unidades en esta sucursal",
+      "SIN_STOCK": "es stockeable y no hay. Se muestra igual: esconderlo haria pensar que el articulo no existe",
+      "NO_LLEVA_STOCK": "servicio o trabajo. Se muestra '—', no '0': no tiene stock cero, no tiene stock",
+      "SUCURSAL_DESCONOCIDA": "la caja no esta vinculada. Se muestra '?', no se finge saber",
+      "INACTIVO": "no se puede elegir"
+    },
+    "dashboard_de_inventario": false,
+    "transferencias": false
+  },
+  "escenario_e2e_sobre_copia_productiva": {
+    "pasos_verificados": 21,
+    "resultado": "PASS",
+    "incluye": [
+      "carga de catalogo desde archivo",
+      "catalogo no crea stock",
+      "naturalezas del archivo y no adivinadas",
+      "stock inicial auditado",
+      "stock inicial no finge compra",
+      "stock inicial idempotente",
+      "vencimiento derivado",
+      "linea no-stock sin reparto",
+      "revision confirmable",
+      "compra distribuida Asuncion/Pilar",
+      "compra de cristal sin stock",
+      "venta descuenta solo lo que corresponde",
+      "venta de puro servicio deja el hecho y cero movimientos",
+      "venta sin stock rechazada",
+      "trazabilidad salida -> venta",
+      "trazabilidad entrada -> factura -> proveedor",
+      "costo derivado de la factura",
+      "articulo sin compra sin costo inventado",
+      "las 10 lineas historicas siguen sin articulo inventado"
+    ]
+  },
+  "tests": {
+    "dirigidas_primero": true,
+    "nuevas": 57,
+    "total": 905,
+    "baseline_slice_4": 848,
+    "subtests": 4,
+    "exit": 0
+  },
+  "contrato_propio_corregido": {
+    "test_los_motivos_de_ingreso_administrativo_estan_sembrados": "era del slice 2 y fijaba el conjunto exacto de motivos. Su intencion era 'la 023 los sembro completos', no 'nunca habra un quinto'. Ahora afirma inclusion y ademas verifica que todos exijan observacion"
+  },
+  "produccion": {
+    "base_tocada": false,
+    "sha256_antes": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "sha256_despues": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "migraciones_en_produccion": 21,
+    "migraciones_no_instaladas": [
+      "022",
+      "023",
+      "024",
+      "025",
+      "026"
+    ],
+    "empaquetado": false,
+    "verificacion": "la cadena 022..026 y el escenario completo corrieron sobre una COPIA de la base real, abierta en modo lectura. 12 cash_entries y 10 sale_items intactos, integrity ok, foreign_key_check 0, totales de Caja sin cambios"
+  },
+  "deudas_no_mezcladas": [
+    "reversion/anulacion compensatoria de venta",
+    "notas de credito",
+    "Cuentas por Pagar",
+    "transferencias",
+    "IVA completo",
+    "cantidad arbitraria por linea",
+    "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001",
+    "rediseno de Gestion Central",
+    "Telegram"
+  ],
+  "gates": {
+    "librarian": "PASS",
+    "qa": "PASS",
+    "auditor": "PASS",
+    "artifact_consistency": "PASS"
+  },
+  "sha256_fuentes": {
+    "modulos/caja_diaria/infrastructure/migrations/026_comercial_ui_carga_inicial.sql": "768699cbc97a3c4d7ce4afbb69de2bbe0186afbf5b1b98b0f37d331bcdf5f9c0",
+    "modulos/comercial/domain/models.py": "36276ed3fb187b8b9915dbda82e545c0ef1d52adfd70b1ba6cb9a0248d30a6bf",
+    "modulos/comercial/application/carga_inicial.py": "4643a9758fbcade6ea599d97249913b8d645e421aefc9254ffb2a0711d7443ff",
+    "modulos/comercial/application/comercial_controller.py": "8c3788676ea0dd978ad30af36c18dd6ddeff0ca568acf26d8c75c276b9990066",
+    "modulos/comercial/infrastructure/sqlite_catalog_repository.py": "8783ffcfb72084ff903f401b7d09d6704fac40dd5006c0f33cee66d1d5a27847",
+    "modulos/comercial/ui/comercial_window.py": "a00d4fb7205dbb968162d40557cfd0bad8a7f84907136120f1439da30f639334",
+    "CajaDiaria.py": "dc73a42df763850c86fa6411558e271f9e64c136268a44bab6aa7e89fac9ce55",
+    "docs/PLANTILLA_ARTICULOS.csv": "57773a6c20590bda148b6c7c2a21f7a765ee727f6f46cfa348ffa82ffbbdae0c",
+    "docs/CARGA_INICIAL_DE_ARTICULOS.md": "3a330b9fcae52f9914f1c8446676cc3dd496c47c2789cea27eca9550ad730041",
+    "tests/comercial/test_comercial_ui_carga_inicial.py": "f9e911f9fde24db55db517c9289afb11dcf00ad34b46dbaf62f80d15db3ef8bc",
+    "tests/comercial/test_inventory_ledger.py": "15727aceaf4fab9caad8b79068b087b8cde73241c9f4e9abf0a3104e18595f24"
+  },
+  "convencion_de_hash": "sha256 con saltos normalizados a LF, igual que los slices 1 a 4"
+}

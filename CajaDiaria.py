@@ -389,11 +389,18 @@ def calcular_saldo_pendiente(total, efectivo, tarjeta_cheque, transferencia, mon
 
 
 def construir_item_producto_visible(valores):
-    """Convierte el producto actualmente visible en el primer item de la venta."""
+    """Convierte el producto actualmente visible en el primer item de la venta.
+
+    `article_id` es el articulo del componente fisico y `lens_article_id` el del
+    trabajo de laboratorio. Vienen del buscador; cuando la linea se escribe a
+    mano quedan en None y la venta se comporta como siempre.
+    """
     item = SaleItem(
         description=valores.get("arm_org") or valores.get("cod") or "Producto",
         code=valores.get("cod", ""), item_type=valores.get("arm_org", ""),
         frame_price=valores.get("armazon", ""), lens_price=valores.get("cristal", ""),
+        article_id=valores.get("article_id") or None,
+        lens_article_id=valores.get("lens_article_id") or None,
         frame_discount_percent=valores.get("descuento_armazon", ""),
         lens_discount_percent=valores.get("descuento_cristal", ""),
         no_cost=str(valores.get("sin_costo", "0")) in {"1", "true", "True"},
@@ -1048,6 +1055,37 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         botones_navegacion[nombre] = boton
     seleccionar_pestaña("Cargar manual")
 
+    def abrir_pantalla_comercial():
+        """Articulos, proveedores y compras, en su propia ventana.
+
+        Vive aparte de Caja a proposito: la operadora que cobra no tiene por que
+        cruzarse con el ABM de articulos, y Caja no tiene por que cargar la
+        pantalla comercial para abrir el dia.
+        """
+        try:
+            from modulos.comercial.application.comercial_controller import (
+                build_comercial_controller,
+            )
+            from modulos.comercial.ui.comercial_window import VentanaComercial
+        except ImportError:
+            messagebox.showinfo(
+                "Comercial", "El módulo comercial no está disponible en esta "
+                "instalación.", parent=ventana)
+            return
+        comercial = build_comercial_controller(resolve_data_paths().ensure().database)
+        VentanaComercial(
+            ventana, comercial,
+            actor=(campos_manual["responsable"].get().strip()
+                   if "responsable" in campos_manual else "admin") or "admin",
+            unidad=campos_manual["unidad"].get().strip())
+
+    boton_comercial = ctk.CTkButton(
+        barra_superior, text="Comercial", width=110, height=26,
+        fg_color="#FFFFFF", text_color="#0F5FB9", hover_color="#DCEBFF",
+        command=abrir_pantalla_comercial,
+    )
+    boton_comercial.pack(side="right", padx=(4, 0))
+
     boton_administrador = ctk.CTkButton(
         barra_superior, text="Administrador", width=125, height=26,
         fg_color="#FFFFFF", text_color="#0F5FB9", hover_color="#DCEBFF",
@@ -1697,6 +1735,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     bloque_kpi_secundario.pack(side="left")
     for clave, titulo, color in KPI_SECUNDARIOS:
         agregar_kpi(bloque_kpi_secundario, clave, titulo, color, False)
+    # Vinculo del articulo canonico de la linea que se esta armando. Vacio
+    # mientras se escriba a mano, que es como se escriben todas hoy.
+    seleccion_articulo = {}
+
     def formatear_campo_monetario(clave):
         campo = campos_manual[clave]
         texto = formatear_importe_ui(campo.get())
@@ -1748,14 +1790,57 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         except (NameError, Exception):
             pass
 
+    def abrir_buscador_de_articulo(destino="frame"):
+        """Elegir el articulo canonico de la linea que se esta armando.
+
+        Busca por codigo, descripcion o codigo de barras, y muestra el stock de
+        ESTA sucursal. Al elegir completa codigo, descripcion y precio, y se
+        queda con el vinculo: sin el vinculo la venta no descuenta nada.
+        """
+        try:
+            from modulos.comercial.application.comercial_controller import (
+                build_comercial_controller,
+            )
+            from modulos.comercial.ui.comercial_window import BuscadorDeArticulos
+        except ImportError:
+            messagebox.showinfo(
+                "Artículos", "El módulo comercial no está disponible en esta "
+                "instalación.", parent=ventana)
+            return
+
+        comercial = build_comercial_controller(resolve_data_paths().ensure().database)
+
+        def elegir(opcion):
+            if destino == "lens":
+                seleccion_articulo["lens_article_id"] = opcion.article_id
+                campos_manual["cristal"].delete(0, "end")
+                if opcion.sale_price:
+                    campos_manual["cristal"].insert(
+                        0, formatear_importe_ui(opcion.sale_price))
+            else:
+                seleccion_articulo["article_id"] = opcion.article_id
+                for clave, valor in (("cod", opcion.sku), ("arm_org", opcion.name)):
+                    campos_manual[clave].delete(0, "end")
+                    campos_manual[clave].insert(0, valor)
+                campos_manual["armazon"].delete(0, "end")
+                if opcion.sale_price:
+                    campos_manual["armazon"].insert(
+                        0, formatear_importe_ui(opcion.sale_price))
+            recalcular_total_visible()
+            comercial.close()
+
+        BuscadorDeArticulos(
+            ventana, comercial,
+            unidad=campos_manual["unidad"].get().strip(), al_elegir=elegir)
+
     def agregar_producto():
         try:
-            item = construir_item_producto_visible(
-                {clave: campos_manual[clave].get() for clave in (
-                    "arm_org", "cod", "armazon", "cristal", "descuento_armazon",
-                    "descuento_cristal", "sin_costo", "laboratorio", "receta_dr"
-                )}
-            )
+            valores = {clave: campos_manual[clave].get() for clave in (
+                "arm_org", "cod", "armazon", "cristal", "descuento_armazon",
+                "descuento_cristal", "sin_costo", "laboratorio", "receta_dr"
+            )}
+            valores.update(seleccion_articulo)
+            item = construir_item_producto_visible(valores)
             if not item.no_cost and item.reference_subtotal <= 0:
                 raise ValueError("El producto debe tener un precio de armazón o cristal.")
         except Exception as exc:
@@ -1772,6 +1857,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                       "laboratorio", "receta_dr"):
             campos_manual[clave].delete(0, "end")
         campos_manual["sin_costo"].deselect()
+        seleccion_articulo.clear()
         refrescar_items()
 
     def editar_item():
@@ -1779,6 +1865,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         if not selected:
             return
         index = int(selected[0]); item = items_venta[index]; item_editando["index"] = index
+        seleccion_articulo.clear()
+        if item.article_id:
+            seleccion_articulo["article_id"] = item.article_id
+        if item.lens_article_id:
+            seleccion_articulo["lens_article_id"] = item.lens_article_id
         values = {"arm_org": item.item_type, "cod": item.code, "armazon": item.frame_price,
                   "cristal": item.lens_price,
                   "descuento_armazon": item.frame_discount_percent,
@@ -1795,6 +1886,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             items_venta.pop(int(selected[0])); item_editando["index"] = None; refrescar_items()
 
     detalle_venta = secciones_widgets["DETALLE DE VENTA"]
+    # Elegir del catalogo es lo que hace que la venta descuente stock. Escribir
+    # a mano sigue funcionando igual que siempre, y no descuenta nada.
     boton_agregar_articulo = ctk.CTkButton(
         detalle_venta, text="+ Agregar artículo", height=perfil["campo_alto"],
         command=agregar_producto, fg_color="#1672E8", hover_color="#0F5FC7",
@@ -1803,6 +1896,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     boton_agregar_articulo.grid(
         row=7, column=0, columnspan=2, sticky="ew", padx=10, pady=(3, 7)
     )
+    # Elegir del catalogo es lo que hace que la venta descuente stock. Escribir
+    # a mano sigue funcionando igual que siempre, y no descuenta nada.
+    boton_buscar_articulo = ctk.CTkButton(
+        acciones_item, text="Buscar artículo", width=120, height=22,
+        command=abrir_buscador_de_articulo, fg_color="#6B7280",
+        hover_color="#4B5563",
+    )
+    boton_buscar_articulo.pack(side="left", padx=(0, 3))
     ctk.CTkButton(
         acciones_item, text="Editar artículo seleccionado", width=165, height=22,
         command=editar_item,

@@ -177,17 +177,21 @@ class SQLiteCatalogRepository:
         with self._connection() as connection:
             connection.execute(
                 "INSERT INTO articles(id, sku, name, nature, category_id, brand_id,"
-                " supplier_id, unit, sale_price, notes, active, created_at, updated_at)"
-                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                " supplier_id, unit, sale_price, location, min_stock, barcode, notes,"
+                " active, created_at, updated_at)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
                 " ON CONFLICT(id) DO UPDATE SET sku=excluded.sku, name=excluded.name,"
                 " nature=excluded.nature, category_id=excluded.category_id,"
                 " brand_id=excluded.brand_id, supplier_id=excluded.supplier_id,"
                 " unit=excluded.unit, sale_price=excluded.sale_price,"
+                " location=excluded.location, min_stock=excluded.min_stock,"
+                " barcode=excluded.barcode,"
                 " notes=excluded.notes, active=excluded.active,"
                 " updated_at=excluded.updated_at",
                 (article.id, article.sku, article.name, article.nature.value,
                  article.category_id, article.brand_id, article.supplier_id,
-                 article.unit, article.sale_price, article.notes,
+                 article.unit, article.sale_price, article.location,
+                 article.min_stock, article.barcode, article.notes,
                  int(article.active), ahora, ahora))
             connection.commit()
         return article
@@ -212,8 +216,9 @@ class SQLiteCatalogRepository:
             sku=fila["sku"], name=fila["name"], nature=ArticleNature(fila["nature"]),
             category_id=fila["category_id"], brand_id=fila["brand_id"],
             supplier_id=fila["supplier_id"], unit=fila["unit"],
-            sale_price=fila["sale_price"], notes=fila["notes"],
-            active=bool(fila["active"]), id=fila["id"])
+            sale_price=fila["sale_price"], location=fila["location"],
+            min_stock=fila["min_stock"], barcode=fila["barcode"],
+            notes=fila["notes"], active=bool(fila["active"]), id=fila["id"])
 
     # -- motivos de salida administrativa -----------------------------------
 
@@ -252,6 +257,25 @@ class SQLiteCatalogRepository:
             code=f["code"], label=f["label"],
             requires_note=bool(f["requires_note"]),
             position=f["position"], active=bool(f["active"])) for f in filas]
+
+    def ultimo_costo_conocido(self, article_id: str) -> sqlite3.Row | None:
+        """La última compra confirmada de este artículo, si la hubo.
+
+        El costo no es un dato del artículo: es lo que dijo la factura con que
+        se compró. Guardarlo en el maestro sería una segunda verdad que puede
+        contradecir al documento, y el documento es el que tiene un papel
+        detrás.
+        """
+        with self._connection() as connection:
+            return connection.execute(
+                "SELECT l.unit_cost, p.document_number, p.document_date, s.name"
+                " AS supplier_name"
+                " FROM purchase_lines l"
+                " JOIN purchases p ON p.id = l.purchase_id"
+                " JOIN suppliers s ON s.id = p.supplier_id"
+                " WHERE l.article_id = ? AND p.status = 'CONFIRMADA'"
+                " ORDER BY p.document_date DESC, p.rowid DESC LIMIT 1",
+                (article_id,)).fetchone()
 
     # -- helpers privados ---------------------------------------------------
 
