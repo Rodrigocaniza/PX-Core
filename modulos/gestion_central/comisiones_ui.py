@@ -238,11 +238,18 @@ class CommissionsPanel(tk.Frame):
         aprobada. Las columnas no: una fila puede arrastrar un importe de una política
         retirada, y encabezarla «Comisión 1,00%» declararía como oficial algo que no lo es.
         """
-        policy = self.service.current_policy(self.principal)
+        # La política del período en pantalla, no la última publicada: si el período ya estaba
+        # tarifado conserva su tasa, y encabezarlo con la vigente declararía oficial aquí un
+        # porcentaje que en este mes no rige.
+        policy = self.service.policy_for_period(self.principal, self.report["period"])
+        if policy["rate_bp"] is None:
+            policy = self.service.current_policy(self.principal)
         percent = rate_percent_text(policy["rate_bp"])
+        fixed = " · fijada al tarifarse" if policy.get("pinned") else ""
         self.policy_label.config(
             text=f"Comisión oficial {percent} de la base · {policy['code']} v{policy['version']} · "
-                 f"vigente desde {policy['effective_from']} · redondeo {policy['rounding']} a Gs. enteros")
+                 f"vigente desde {policy['effective_from']}{fixed} · "
+                 f"redondeo {policy['rounding']} a Gs. enteros")
         self.kpi_captions["commission_amount"].config(text=f"COMISIÓN OFICIAL {percent}")
         kpi = self.report["kpi"]
         if kpi["non_official_amount"]:

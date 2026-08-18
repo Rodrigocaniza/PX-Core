@@ -101,8 +101,8 @@ Aportados por las observaciones no bloqueantes de la generación 3, abiertos y *
 Detectado en la generación 4 sobre el propio paquete:
 
 23. **`MANIFEST.sha256` sólo verifica en el worktree donde se genera.** Detectado en la generación
-    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 21 de los 36
-    ficheros con CRLF —19 de los 22 `.md`, uno de los dos `.json` y uno `.py`— y sus hashes dejan de
+    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 18 de los 36
+    ficheros con CRLF —15 de los 22 `.md`, uno de los dos `.json` y dos `.py`— y sus hashes dejan de
     coincidir; el propio
     manifest llega con CRLF y `sha256sum -c` no puede analizarlo. Es heredado de cómo se construyó
     el paquete desde la generación 1, no lo introduce esta generación. El ZIP sí conserva los bytes
@@ -150,6 +150,18 @@ que exista, un período liquidado con una tasa equivocada no tiene corrección p
 importe heredado de un período anterior a la vigencia tampoco: ambos quedan asentados, no
 recuperables.
 
+Aportados por la generación 5, abiertos y **no** corregidos:
+
+28. **El export sube a `contract_version: 3`.** El bloque `policy` pasa a ser el del período
+    exportado, con la marca `pinned` de si quedó fijado al tarifarse, y la política vigente al
+    exportar viaja aparte en `current_policy`. Rotular un período con la tasa global declararía
+    oficial ahí un porcentaje que en ese mes no rige. Cualquier consumidor del contrato 2 debe
+    adaptarse; dentro del piloto no hay ninguno.
+29. **La cabecera de la pantalla rotula la política del período en curso**, no la última publicada,
+    e indica cuándo el período está fijado. Ningún importe cambia; sí cambia el texto que el
+    operador lee, y `VISUAL_EVIDENCE.md` sigue mostrando la captura de la generación 3, donde el
+    período no estaba fijado y el rótulo coincide.
+
 ## Generación 4 — resultado: INVALIDADA
 
 Librarian **PASS**, QA **PASS**, Auditor **FAIL**. Los tres confirmaron que los cuatro bloqueantes
@@ -172,9 +184,36 @@ En consecuencia, el invariante 5 y el invariante 7 de `ARCHITECTURE_DELTA.md` �
 `COMMISSION_POLICY_1PCT.md` y `SUMMARY.md`— **están demostrados falsos y se conservan sin corregir**
 hasta la generación 5, para que se arreglen con la evidencia a la vista.
 
+## Generación 5 — qué se hizo
+
+Los dos bloqueantes económicos, y **sólo** ellos, por decisión de propietario: no seguir parcheando
+predicados sobre el estado actual, sino adoptar una invariante basada en evidencia durable.
+
+- **Representación elegida: `commission_rated_periods`.** Una fila por período, clave primaria
+  `period`, escrita con `INSERT OR IGNORE` la primera vez que se tarifa y nunca actualizada ni
+  borrada. Guarda la tasa y la traza con la que ese período quedó fijado. Es la representación
+  mínima que responde «este período ya tuvo una tasa aplicada» sin inferirlo del estado de ninguna
+  liquidación. La migración la siembra desde las liquidaciones que ya llevan `rate_bp` **con
+  política canónica**; un importe heredado no oficial no fija nada, porque fijarlo lo volvería
+  incorregible.
+- **B1-g4, cerrado.** `decide()` resuelve el período contra esa fila antes que contra el catálogo,
+  así que `observe`, `revert`, `void_sale` y la corrección de origen ya no lo devuelven al catálogo.
+  `set_general_rate` **deja de bloquear**: publicar siempre es posible y no reescribe lo tarifado.
+- **B2-g4, cerrado.** `_apply_source_update` escribe el mismo bloque `replaced` que `recalculate`
+  cuando la corrección retira una tasa o un importe previo.
+
+**Por qué fijar y no bloquear.** Bloquear la publicación no puede satisfacer a la vez los dos
+requisitos del encargo. Como la vigencia se resuelve por mes, una vigencia para `2027-01` gobierna
+también a `2036-08`: proteger todo período tarifado obliga a bloquear `2027`, que es exactamente la
+congelación que había que evitar. Fijar el período a la tasa con la que fue tarifado satisface los
+dos: nada se re-tarifa y nada se congela.
+
+**Fuera de alcance, por decisión explícita:** el flujo separado de corrección retroactiva. Hasta que
+exista, la tasa de un período ya tarifado no se corrige por ruta pública.
+
 ## Siguiente paso propuesto
 
-**Generación 5: cerrar B1-g4 y B2-g4.** B1-g4 requiere decisión de propietario sobre en qué debe
+**Generación 5 en revisión: cerrar B1-g4 y B2-g4.** B1-g4 requiere decisión de propietario sobre en qué debe
 apoyarse la guarda y con qué alcance temporal, porque la corrección obvia —proteger todo período
 que alguna vez tuvo un porcentaje aplicado— congela ese mes de forma permanente, y se cruza con el
 hallazgo 25. B2-g4 no tiene bifurcación.

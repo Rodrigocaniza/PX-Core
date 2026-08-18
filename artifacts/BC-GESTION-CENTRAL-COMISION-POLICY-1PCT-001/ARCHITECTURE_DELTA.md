@@ -43,6 +43,14 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
   `policy_scope` (todas anulables: una liquidación aún sin recalcular no tiene traza).
 - `commission_policy_versions` **(tabla nueva)** — historial append-only con
   `UNIQUE(policy_id, version)`.
+- `commission_rated_periods` **(tabla nueva, generación 5)** — evidencia durable de que a un período
+  se le aplicó una tasa. `period` es la clave primaria, de modo que hay **una fila por período**;
+  se escribe con `INSERT OR IGNORE` la primera vez que se tarifa y no se actualiza ni se borra
+  nunca. Guarda la tasa y la traza de política con la que ese período quedó fijado, más quién y
+  cuándo. Es la representación mínima que responde «este período ya tuvo una tasa aplicada» sin
+  inferirlo del estado actual de ninguna liquidación. La migración la siembra desde las
+  liquidaciones que ya llevan `rate_bp` **con política canónica**: un importe heredado no oficial no
+  fija nada, porque fijarlo lo volvería incorregible.
 
 ## Invariantes que esta misión agrega
 
@@ -63,19 +71,24 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
    liquidación sin importe, una cuyo `policy_status` no sea `CANONICA_APROBADA`, y una cuyo
    porcentaje y versión grabados no coincidan con la política que rige hoy su período. El sello se
    graba al calcular y puede quedar atrás: comprobar sólo el sello no alcanza.
-5. **Un cambio de política no mueve dinero pasado.** `set_general_rate` no recalcula; su vigencia no
-   puede retroceder **ni gobernar un período ya liquidado** —`CALCULADA`, `REVISADA`, `APROBADA` o
-   `PAGADA`—; y `paid_at IS NULL` cuelga del `WHERE` entero de `recalculate`, de modo que nada que
-   haya movido dinero es alcanzable aunque su estado se hubiera alterado por otra vía. La segunda
-   guarda hace falta porque la vigencia se resuelve por mes: una fecha *igual* a la última publicada
-   gobierna los mismos períodos que ella, y con sólo la primera guarda se re-tarifaba lo ya
-   liquidado. Con las dos, el re-tarifado retroactivo no tiene ruta pública, ni directa ni indirecta.
+5. **Un período tarifado conserva su tasa, y la protección es durable.** La primera vez que se
+   aplica un porcentaje a un período se graba una fila en `commission_rated_periods`, y `decide()`
+   resuelve ese período contra esa fila antes que contra el catálogo. `set_general_rate` ya **no**
+   bloquea: publicar siempre es posible y no reescribe lo tarifado. La protección **no** se apoya en
+   el estado de la liquidación —`observe`, `revert`, `void_sale` y la corrección de origen lo
+   cambian y la evidencia sigue ahí— ni en una frontera global: es el conjunto de períodos
+   tarifados, de modo que una fecha errónea protege su propio mes y no congela ningún otro.
+   `paid_at IS NULL` sigue colgando del `WHERE` entero de `recalculate`, así que nada que haya
+   movido dinero es alcanzable aunque su estado se hubiera alterado por otra vía.
 6. **La resolución es por período, no por «última publicada».** Cada liquidación se calcula con la
    versión de vigencia más reciente que no supera su período. Programar el porcentaje del mes que
    viene no puede reescribir el mes en curso.
-7. **Todo importe retirado queda asentado.** `recalculate` escribe el bloque `replaced` —con
-   `rate_bp`, `commission_amount` y `policy_status` anteriores— en **toda** rama que anule o
-   reemplace un importe previo, no sólo al reparar una `REVISADA` o una `APROBADA`. Importa porque
+7. **Todo importe retirado queda asentado, por cualquiera de las dos rutas que lo retiran.**
+   `recalculate` escribe el bloque `replaced` —con `rate_bp`, `commission_amount` y `policy_status`
+   anteriores— en **toda** rama que anule o reemplace un importe previo, no sólo al reparar una
+   `REVISADA` o una `APROBADA`; y `_apply_source_update` escribe **el mismo bloque, con el mismo
+   nombre**, en su asiento `SOURCE_UPDATED` cuando la corrección de origen retira una tasa o un
+   importe. Auditar no depende de por dónde se anuló. Importa porque
    hay un caso sin reparación posible: si el período es anterior a la vigencia, la liquidación queda
    `FUERA_DE_VIGENCIA` sin porcentaje y el importe heredado se retira sin sustituto. El asiento es
    lo único que lo conserva, y es idempotente: recalcular otra vez no lo repite.

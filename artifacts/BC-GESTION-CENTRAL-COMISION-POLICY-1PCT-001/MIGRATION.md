@@ -78,3 +78,20 @@ posterior trayéndola a 4.750 porque no estaba pagada.
 
 `test_the_official_commission_survives_reopening_the_database` comprueba que reabrir vuelve a
 migrar sin duplicar políticas ni versiones y sin cambiar nada (`changed == 0`).
+
+## Paso 5 — evidencia durable de períodos tarifados (generación 5)
+
+`_backfill_rated_periods` siembra `commission_rated_periods` desde las liquidaciones que ya llevan
+`rate_bp` **y política canónica**, una fila por período, con `INSERT OR IGNORE` sobre la clave
+primaria. Es aditiva e idempotente: no actualiza filas existentes y correr la migración otra vez no
+cambia nada.
+
+Sólo siembran las canónicas. Un importe heredado del piloto anterior lleva `POLITICA_HISTORICA_PREVIA`
+y no es oficial: fijar el período con ese porcentaje lo volvería incorregible, que es lo contrario de
+lo que la misión persigue. Esas liquidaciones siguen siendo reparables por `recalculate`, y al
+repararse fijan el período con la tasa canónica que les corresponda.
+
+Una base migrada puede traer liquidaciones cuyo estado ya cambió —observadas, revertidas— pero que
+conservan su tasa: ésas **sí** siembran su período, que es justamente lo que la protección por estado
+no veía. Las que ya perdieron la tasa por una corrección de origen no pueden sembrarse desde aquí;
+desde la generación 5 su importe retirado queda en el asiento `SOURCE_UPDATED`.

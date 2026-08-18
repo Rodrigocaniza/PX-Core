@@ -118,7 +118,7 @@ def test_observe_revert_recalculate_and_export(app, root, tmp_path):
     target = panel.export()
     assert target.exists()
     exported = target.read_text(encoding="utf-8")
-    assert '"contract_version": 2' in exported
+    assert '"contract_version": 3' in exported
     assert '"code": "COMISION_GENERAL_1PCT"' in exported and '"rate_percent": "1.00"' in exported
     assert '"policy_version": 1' in exported and '"rounding": "HALF_UP"' in exported
     assert target.name.endswith(".local.json")

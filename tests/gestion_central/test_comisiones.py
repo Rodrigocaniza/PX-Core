@@ -46,6 +46,28 @@ def active(service, sale_id, actor=SOL):
                 and row["status"] != "REVERTIDA")
 
 
+def clear_rated_periods(service):
+    """Borra la evidencia durable, simulando una base migrada de una instalación anterior.
+
+    No hay ruta pública que la borre —ése es justamente el punto de `commission_rated_periods`—,
+    así que las pruebas que necesitan un período sin fijar lo hacen por SQL. Sirve para ejercitar
+    las defensas que siguen haciendo falta cuando la evidencia no existe todavía.
+    """
+    import sqlite3
+
+    with sqlite3.connect(service.repository.database_path) as con:
+        con.execute("DELETE FROM commission_rated_periods")
+        con.commit()
+
+
+def rated_periods(service):
+    import sqlite3
+
+    with sqlite3.connect(service.repository.database_path) as con:
+        return {row[0]: row[1] for row in
+                con.execute("SELECT period,rate_bp FROM commission_rated_periods ORDER BY period")}
+
+
 def _inject_policy_version(service, *, version, rate_bp, effective_from):
     """Instala una versión de política por SQL, saltándose la guarda de período liquidado.
 
@@ -1065,11 +1087,14 @@ def test_structured_export_has_stable_contract_and_no_customer_data(service):
     service.register_sale(SOL, agreement())
     service.recalculate(SOL)
     export = service.export_summary(SOL, "2099-04")
-    assert export["contract_version"] == 2 and export["period"] == "2099-04"
+    assert export["contract_version"] == 3 and export["period"] == "2099-04"
+    # `policy` pasa a ser la del período exportado, con la marca de si quedó fijada al tarifarse.
     assert export["policy"] == {
         "code": CANONICAL_CODE, "scope": "GENERAL", "status": POLICY_CANONICAL, "version": 1,
         "effective_from": CANONICAL_EFFECTIVE_FROM, "rate_bp": 100, "rate_percent": "1.00",
-        "rounding": "HALF_UP", "currency": "GS"}
+        "rounding": "HALF_UP", "currency": "GS", "pinned": True}
+    # Y la vigente al exportar viaja aparte, que antes era lo único que había.
+    assert export["current_policy"]["rate_bp"] == CANONICAL_RATE_BP
     assert "1.00%" in export["policy_disclaimer"] and "5%" in export["policy_disclaimer"]
     assert "HALF_UP" in export["policy_disclaimer"]
     entry = export["entries"][0]
@@ -1159,9 +1184,10 @@ def test_a_settlement_calculated_under_an_older_version_is_never_paid(service):
     service.recalculate(SOL)
     entry_id = active(service, sale_id)["id"]
     service.review(SOL, entry_id)
-    # B1: el período 2099-04 ya está liquidado; ninguna vigencia puede alcanzarlo.
-    with pytest.raises(ValueError, match="ya fue liquidado"):
-        service.set_general_rate(SOL, 50, "2099-01-01", "baja pactada")
+    # Desde la generación 5 el período 2099-04 quedó fijado al tarifarse, así que publicar otra
+    # versión ya no puede desfasar su sello. La deriva sólo sobrevive donde no hay evidencia:
+    # una base migrada de una instalación anterior, que es lo que se reconstruye aquí.
+    clear_rated_periods(service)
     _inject_policy_version(service, version=2, rate_bp=50, effective_from="2099-01-01")
     assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_750
     with pytest.raises(ValueError, match="la política del período cambió"):
@@ -1287,21 +1313,24 @@ def test_a_rate_effective_before_the_last_published_one_is_rejected(service):
         service.set_general_rate(SOL, 300, "2099-05-01", "hacia atrás")
 
 
-def test_a_rate_effective_on_the_same_date_as_the_last_one_is_rejected(service):
+def test_a_rate_effective_on_the_same_date_never_re_rates_what_was_already_rated(service):
     """Bloqueante B1: una vigencia *igual* gobierna los mismos períodos que la anterior.
 
-    Rechazar sólo el retroceso estricto dejaba abierta la re-tarifación del pasado: publicar
-    otra vez la fecha vigente imponía la tasa nueva sobre todo lo ya liquidado.
+    Publicar ya no se rechaza. La protección no está en negar la operación sino en que el
+    período tarifado deje de depender de lo que se publique: su tasa viene de
+    `commission_rated_periods`, no del catálogo.
     """
     entry_id = settled_entry(service, "APROBADA")
     before = snapshot(service, entry_id)
-    with pytest.raises(ValueError, match="ya fue liquidado"):
-        service.set_general_rate(SOL, 4_000, CANONICAL_EFFECTIVE_FROM, "40% retroactivo")
-    with pytest.raises(ValueError, match="ya fue liquidado"):
-        service.set_general_rate(SOL, 0, CANONICAL_EFFECTIVE_FROM, "a cero")
+    assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
+    assert service.set_general_rate(SOL, 4_000, CANONICAL_EFFECTIVE_FROM, "40% retroactivo") == (2, True)
+    assert service.set_general_rate(SOL, 0, CANONICAL_EFFECTIVE_FROM, "a cero") == (3, True)
     assert snapshot(service, entry_id) == before
     assert service.recalculate(SOL) == {"evaluated": 1, "changed": 0}
     assert snapshot(service, entry_id) == before
+    # Y sigue siendo pagable al importe con el que se aprobó: el sello no quedó desfasado.
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
 
 
 def test_a_future_rate_that_governs_no_settled_period_is_accepted(service):
@@ -1319,18 +1348,17 @@ def test_a_future_rate_that_governs_no_settled_period_is_accepted(service):
 
 
 @pytest.mark.parametrize("status", ["CALCULADA", "REVISADA", "APROBADA", "PAGADA"])
-def test_a_settled_period_is_never_re_rated(service, status):
+def test_a_rated_period_is_never_re_rated(service, status):
     """Ningún estado liquidado se re-tarifa: ni calculado, ni revisado, ni aprobado, ni pagado."""
     entry_id = settled_entry(service, status)
     before = snapshot(service, entry_id)
     assert before[1] == CANONICAL_RATE_BP and before[2] == 4_000
-    for rate, date_text in ((4_000, CANONICAL_EFFECTIVE_FROM), (0, "2099-04-01"), (9_999, "2099-01-01")):
-        with pytest.raises(ValueError, match="ya fue liquidado"):
-            service.set_general_rate(SOL, rate, date_text, "intento retroactivo")
-    assert snapshot(service, entry_id) == before
-    # Ninguna versión espuria quedó publicada por los intentos fallidos.
-    assert service.current_policy(SOL)["version"] == 1
-    assert service.current_policy(SOL)["rate_bp"] == CANONICAL_RATE_BP
+    for rate, date_text in ((4_000, CANONICAL_EFFECTIVE_FROM), (0, "2099-04-01"), (9_999, "2099-04-20")):
+        service.set_general_rate(SOL, rate, date_text, "intento retroactivo")
+        service.recalculate(SOL)
+        assert snapshot(service, entry_id) == before
+    # La evidencia del período no se movió pese a las tres publicaciones.
+    assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
 
 
 def test_no_indirect_retroactive_re_rating_through_recalculate(service):
@@ -1425,7 +1453,9 @@ def test_a_replaced_amount_is_recorded_when_a_rate_changes_before_review(service
     service.recalculate(SOL)
     entry_id = active(service, sale_id)["id"]
     assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
-    # Una tasa distinta para el mismo período sólo puede llegar por una base migrada.
+    # Una tasa distinta para el mismo período sólo puede llegar por una base migrada: sin
+    # evidencia del período, la resolución vuelve al catálogo.
+    clear_rated_periods(service)
     _inject_policy_version(service, version=2, rate_bp=250, effective_from=CANONICAL_EFFECTIVE_FROM)
     assert service.recalculate(SOL) == {"evaluated": 1, "changed": 1}
     entry = service.get_entry(SOL, entry_id)
@@ -1443,3 +1473,302 @@ def test_recalculate_records_nothing_replaced_when_there_was_no_previous_amount(
     entry_id = active(service, sale_id)["id"]
     assert all("replaced" not in json.loads(row["details_json"])
                for row in service.history(SOL, entry_id))
+
+
+# ============================================================ GENERACIÓN 5
+# B1-g4: la protección de un período tarifado es evidencia durable, no un predicado
+# sobre el estado actual. Ninguna transición posterior puede devolverla al catálogo.
+
+def rate_a_period(service, *, envelope="S-100", source="matriz"):
+    """Deja el período 2099-04 tarifado al 1% y devuelve la liquidación que lo tarifó."""
+    sale_id, _ = service.register_sale(
+        SOL, common(source_sale_id=source, envelope=envelope, initial_paid=400_000))
+    service.recalculate(SOL)
+    assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
+    return sale_id, active(service, sale_id)["id"]
+
+
+def try_to_re_rate(service, *, rate_bp=10_000, effective_from="2099-04-01"):
+    """Intenta imponer otra tasa sobre el período ya tarifado, por las dos vías conocidas."""
+    published = service.set_general_rate(SOL, rate_bp, effective_from, "intento de re-tarifado")
+    outcome = service.recalculate(SOL)
+    return published, outcome
+
+
+def fresh_sale_in_rated_period(service, *, source, envelope):
+    """Una venta nueva del mismo período: es por donde salió el dinero en la fuga B1-g4."""
+    sale_id, _ = service.register_sale(
+        SOL, common(source_sale_id=source, envelope=envelope, initial_paid=400_000))
+    service.recalculate(SOL)
+    return service.get_entry(SOL, active(service, sale_id)["id"])
+
+
+# Transiciones públicas que sacan —o podrían sacar— la liquidación de los estados liquidados.
+# Cada una se aplica desde el estado desde el que es legal; la matriz cubre el producto real,
+# no una lista de casos elegidos a mano.
+TRANSITIONS = (
+    ("observe_desde_CALCULADA", "CALCULADA", lambda s, sale, eid: s.observe(SOL, eid, "control")),
+    ("observe_desde_REVISADA", "REVISADA", lambda s, sale, eid: s.observe(SOL, eid, "control")),
+    ("observe_desde_APROBADA", "APROBADA", lambda s, sale, eid: s.observe(SOL, eid, "control")),
+    ("observe_desde_PAGADA", "PAGADA", lambda s, sale, eid: s.observe(SOL, eid, "control")),
+    ("revert_desde_CALCULADA", "CALCULADA", lambda s, sale, eid: s.revert(SOL, eid, "anulación")),
+    ("revert_desde_REVISADA", "REVISADA", lambda s, sale, eid: s.revert(SOL, eid, "anulación")),
+    ("revert_desde_APROBADA", "APROBADA", lambda s, sale, eid: s.revert(SOL, eid, "anulación")),
+    ("void_sale_desde_CALCULADA", "CALCULADA", lambda s, sale, eid: s.void_sale(SOL, sale, "venta anulada")),
+    ("void_sale_desde_APROBADA", "APROBADA", lambda s, sale, eid: s.void_sale(SOL, sale, "venta anulada")),
+    ("void_sale_desde_PAGADA", "PAGADA", lambda s, sale, eid: s.void_sale(SOL, sale, "venta anulada")),
+    ("correccion_de_sobre", "CALCULADA",
+     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="matriz", envelope="S-NUEVO",
+                                                      initial_paid=400_000))),
+    ("correccion_de_total", "CALCULADA",
+     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="matriz", envelope="S-100",
+                                                      total_amount=900_000, initial_paid=900_000))),
+    ("reapertura_de_saldo", "CALCULADA",
+     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="matriz", envelope="S-100",
+                                                      total_amount=400_000, initial_paid=100_000))),
+    ("cobro_adicional", "CALCULADA",
+     lambda s, sale, eid: s.register_payment(SOL, sale, 50_000, "2099-04-20", "extra")),
+)
+
+
+@pytest.mark.parametrize("name,base_status,transition", TRANSITIONS,
+                         ids=[t[0] for t in TRANSITIONS])
+def test_no_public_transition_reopens_a_rated_period(service, name, base_status, transition):
+    """Matriz de transiciones: cambiar el estado posterior no borra la protección histórica.
+
+    Bloqueante B1-g4: la guarda anterior miraba el estado actual, de modo que `observe()` sobre
+    una PAGADA —o `void_sale`, o `revert`, o una corrección de sobre— devolvía el período al
+    catálogo y con él la fuga entera. La evidencia durable no depende del estado.
+    """
+    sale_id, entry_id = rate_a_period(service)
+    if base_status != "CALCULADA":
+        service.review(SOL, entry_id)
+        if base_status in {"APROBADA", "PAGADA"}:
+            service.approve(SOL, entry_id, "Sol")
+        if base_status == "PAGADA":
+            service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
+
+    try:
+        transition(service, sale_id, entry_id)
+    except ValueError:
+        # La transición no es legal desde ese estado. La protección debe sostenerse igual.
+        pass
+
+    # Con el estado ya movido, se intenta imponer un 100% sobre el mismo período.
+    try_to_re_rate(service)
+
+    # 1. La evidencia sigue diciendo que 2099-04 se tarifó al 1%.
+    assert rated_periods(service)["2099-04"] == CANONICAL_RATE_BP
+    # 2. Y el dinero: una venta nueva de ese mismo período comisiona al 1%, no al 100%.
+    fresh = fresh_sale_in_rated_period(service, source="posterior", envelope="S-POST")
+    assert fresh["period"] == "2099-04"
+    assert fresh["rate_bp"] == CANONICAL_RATE_BP
+    assert fresh["commission_amount"] == 4_000, f"{name}: fuga de re-tarifado reabierta"
+
+
+def test_observing_a_paid_settlement_does_not_reopen_its_period(service):
+    """Reproduce literalmente la fuga del Auditor de la generación 4 y la demuestra cerrada."""
+    _, entry_id = rate_a_period(service, envelope="S-ANA", source="ana")
+    service.review(SOL, entry_id)
+    service.approve(SOL, entry_id, "Sol")
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-ANA")
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
+    # La ruta pública, permitida y no destructiva que desarmaba la guarda anterior.
+    service.observe(SOL, entry_id, "control de pago")
+    assert service.get_entry(SOL, entry_id)["status"] == "OBSERVADA"
+    service.set_general_rate(SOL, 10_000, CANONICAL_EFFECTIVE_FROM, "100% retroactivo")
+    service.recalculate(SOL)
+    # La segunda vendedora del mismo mes ya no cobra 400.000 donde el 1% son 4.000.
+    cyn = fresh_sale_in_rated_period(service, source="cyn", envelope="S-CYN")
+    assert cyn["rate_bp"] == CANONICAL_RATE_BP and cyn["commission_amount"] == 4_000
+    # Y la pagada conserva su importe intacto.
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
+
+
+def test_the_durable_evidence_has_no_public_eraser(service):
+    """La evidencia es append-only: ninguna operación pública la borra ni la reescribe."""
+    _, entry_id = rate_a_period(service)
+    before = rated_periods(service)
+    service.review(SOL, entry_id)
+    service.observe(SOL, entry_id, "control")
+    service.set_general_rate(SOL, 7_500, "2099-04-01", "otra tasa")
+    for _ in range(3):
+        service.recalculate(SOL)
+    assert rated_periods(service) == before
+
+
+# ---------------------------------------- hallazgo 25: sin frontera global por MAX(period)
+def test_a_rated_period_does_not_block_a_later_effective_date(service):
+    """`2026-07` tarifado no impide una vigencia válida para el mes siguiente ni para el futuro."""
+    sale_id, _ = service.register_sale(
+        SOL, common(source_sale_id="jul", envelope="S-JUL", sale_date="2099-07-10",
+                    total_amount=400_000, initial_paid=400_000))
+    service.recalculate(SOL)
+    assert rated_periods(service) == {"2099-07": CANONICAL_RATE_BP}
+    # Publicar para el mes siguiente y para un futuro lejano: ambas válidas.
+    assert service.set_general_rate(SOL, 200, "2099-08-01", "agosto") == (2, True)
+    assert service.set_general_rate(SOL, 300, "2100-01-01", "año próximo") == (3, True)
+    # El mes tarifado conserva su tasa; el siguiente toma la nueva.
+    service.recalculate(SOL)
+    assert service.get_entry(SOL, active(service, sale_id)["id"])["rate_bp"] == CANONICAL_RATE_BP
+    agosto, _ = service.register_sale(
+        SOL, common(source_sale_id="ago", envelope="S-AGO", sale_date="2099-08-10",
+                    total_amount=400_000, initial_paid=400_000))
+    service.recalculate(SOL)
+    entry = service.get_entry(SOL, active(service, agosto)["id"])
+    assert entry["period"] == "2099-08" and entry["rate_bp"] == 200 and entry["commission_amount"] == 8_000
+
+
+def test_a_far_future_typo_does_not_freeze_any_intermediate_period(service):
+    """Hallazgo 25: una venta fechada por error en 2136 no congela una década de publicaciones.
+
+    La guarda anterior tomaba `MAX(period)` global sobre los estados liquidados, así que un
+    `2136` en lugar de `2036` bloqueaba toda vigencia anterior a él. La protección por período
+    tarifado no tiene frontera global: protege 2136 y no toca nada más.
+    """
+    service.register_sale(SOL, common(source_sale_id="tipeo", envelope="S-ERR",
+                                      sale_date="2136-04-10", total_amount=400_000,
+                                      initial_paid=400_000))
+    service.recalculate(SOL)
+    assert "2136-04" in rated_periods(service)
+    # Diez publicaciones intermedias, todas legítimas, todas aceptadas.
+    for index, year in enumerate(range(2100, 2110), start=2):
+        assert service.set_general_rate(SOL, 100 + index, f"{year}-01-01", "programación") == (index, True)
+    # Y un período intermedio cualquiera cobra la tasa que le corresponde, no la del error.
+    sale_id, _ = service.register_sale(SOL, common(source_sale_id="normal", envelope="S-OK",
+                                                   sale_date="2105-06-10", total_amount=400_000,
+                                                   initial_paid=400_000))
+    service.recalculate(SOL)
+    entry = service.get_entry(SOL, active(service, sale_id)["id"])
+    assert entry["period"] == "2105-06" and entry["rate_bp"] == 107
+
+
+def test_protection_is_per_period_and_never_a_global_maximum(service):
+    """No existe dependencia insegura de `MAX(period)`: la protección es un conjunto, no un techo."""
+    for source, envelope, date_text in (("a", "S-A", "2099-04-10"), ("b", "S-B", "2101-09-10")):
+        service.register_sale(SOL, common(source_sale_id=source, envelope=envelope,
+                                          sale_date=date_text, total_amount=400_000,
+                                          initial_paid=400_000))
+    service.recalculate(SOL)
+    assert set(rated_periods(service)) == {"2099-04", "2101-09"}
+    # El hueco entre ambos NO está protegido: se puede publicar y rige de verdad.
+    assert service.set_general_rate(SOL, 400, "2100-01-01", "hueco") == (2, True)
+    sale_id, _ = service.register_sale(SOL, common(source_sale_id="hueco", envelope="S-H",
+                                                   sale_date="2100-06-10", total_amount=400_000,
+                                                   initial_paid=400_000))
+    service.recalculate(SOL)
+    entry = service.get_entry(SOL, active(service, sale_id)["id"])
+    assert entry["period"] == "2100-06" and entry["rate_bp"] == 400
+    # Y los dos períodos tarifados siguen intactos, por encima y por debajo del hueco.
+    assert rated_periods(service)["2099-04"] == CANONICAL_RATE_BP
+    assert rated_periods(service)["2101-09"] == CANONICAL_RATE_BP
+
+
+def test_a_settled_but_unrated_period_protects_nothing(service):
+    """Un período `CALCULADA` sin tasa —anterior a la vigencia— no es un período tarifado."""
+    service.register_sale(SOL, common(source_sale_id="previo", envelope="S-PRE",
+                                      sale_date="2026-07-10", total_amount=400_000,
+                                      initial_paid=400_000))
+    service.recalculate(SOL)
+    entry = service.list_entries(SOL, period="2026-07")[0]
+    assert entry["status"] == "CALCULADA" and entry["rate_bp"] is None
+    assert entry["policy_status"] == POLICY_OUT_OF_EFFECT
+    assert rated_periods(service) == {}
+    # Como no se tarifó, no protege nada: publicar para agosto sigue siendo posible y efectivo.
+    assert service.set_general_rate(SOL, 900, "2026-08-01", "agosto") == (2, True)
+
+
+# ---------------------------------------- B2-g4: la corrección de origen también deja rastro
+def test_a_source_correction_records_the_amount_it_annuls(service):
+    """Bloqueante B2-g4: `_apply_source_update` anulaba el importe sin asentarlo."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
+    # Corrección cosmética: sólo cambia el sobre.
+    service.register_sale(SOL, common(envelope="S-CORREGIDO", initial_paid=400_000))
+    entry = service.get_entry(SOL, entry_id)
+    assert entry["rate_bp"] is None and entry["commission_amount"] is None
+    replaced = [json.loads(row["details_json"])["replaced"] for row in service.history(SOL, entry_id)
+                if row["action"] == "SOURCE_UPDATED" and "replaced" in json.loads(row["details_json"])]
+    assert replaced == [{"rate_bp": CANONICAL_RATE_BP, "commission_amount": 4_000,
+                         "policy_status": POLICY_CANONICAL}]
+
+
+def test_a_source_correction_on_migrated_data_records_the_legacy_amount(tmp_path):
+    """El caso que motivaba B2-g4: un importe heredado no tiene asiento previo que lo conserve."""
+    service, entry_id = legacy_database(tmp_path, "CALCULADA")
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 33_250
+    service.register_sale(SOL, agreement(envelope="S-CORREGIDO"))
+    entry = service.get_entry(SOL, entry_id)
+    assert entry["rate_bp"] is None and entry["commission_amount"] is None
+    replaced = [json.loads(row["details_json"])["replaced"] for row in service.history(SOL, entry_id)
+                if "replaced" in json.loads(row["details_json"])]
+    assert {"rate_bp": 700, "commission_amount": 33_250, "policy_status": POLICY_LEGACY} in replaced
+
+
+def test_a_source_correction_without_a_previous_amount_records_nothing(service):
+    """Sin importe anterior no hay nada que asentar: el bloque no se inventa."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=100_000))
+    entry_id = active(service, sale_id)["id"]
+    assert service.get_entry(SOL, entry_id)["commission_amount"] is None
+    service.register_sale(SOL, common(envelope="S-OTRO", initial_paid=100_000))
+    assert all("replaced" not in json.loads(row["details_json"])
+               for row in service.history(SOL, entry_id) if row["action"] == "SOURCE_UPDATED")
+
+
+def test_repeated_source_corrections_keep_every_annulled_amount(service):
+    """Idempotencia y auditoría completa: cada anulación deja su propio asiento, sin duplicar."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    # Primera corrección: retira 4.000.
+    service.register_sale(SOL, common(envelope="S-DOS", initial_paid=400_000))
+    service.recalculate(SOL)
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
+    # Segunda corrección: retira otra vez 4.000.
+    service.register_sale(SOL, common(envelope="S-TRES", initial_paid=400_000))
+    replaced = [json.loads(row["details_json"])["replaced"] for row in service.history(SOL, entry_id)
+                if row["action"] == "SOURCE_UPDATED" and "replaced" in json.loads(row["details_json"])]
+    assert len(replaced) == 2
+    assert all(item["commission_amount"] == 4_000 for item in replaced)
+    # Reaplicar la misma corrección no cambia nada ni añade asiento.
+    service.register_sale(SOL, common(envelope="S-TRES", initial_paid=400_000))
+    assert len([json.loads(row["details_json"]) for row in service.history(SOL, entry_id)
+                if row["action"] == "SOURCE_UPDATED"
+                and "replaced" in json.loads(row["details_json"])]) == 2
+
+
+def test_a_correction_that_reopens_the_balance_records_the_previous_amount(service):
+    """Una corrección que reabre el saldo anula la comisión y asienta el importe retirado."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
+    service.register_sale(SOL, common(initial_paid=100_000))
+    entry = service.get_entry(SOL, entry_id)
+    assert entry["rate_bp"] is None and entry["commission_amount"] is None
+    replaced = [json.loads(row["details_json"])["replaced"] for row in service.history(SOL, entry_id)
+                if "replaced" in json.loads(row["details_json"])]
+    assert {"rate_bp": CANONICAL_RATE_BP, "commission_amount": 4_000,
+            "policy_status": POLICY_CANONICAL} in replaced
+
+
+def test_a_recalculation_down_to_zero_records_the_previous_amount(service):
+    """Resultado cero con importe anterior distinto de cero: el retirado queda asentado igual."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
+    # Sin evidencia del período —base migrada— la resolución vuelve al catálogo y admite el 0%.
+    clear_rated_periods(service)
+    service.set_general_rate(SOL, 0, CANONICAL_EFFECTIVE_FROM, "a cero")
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 1}
+    entry = service.get_entry(SOL, entry_id)
+    assert entry["rate_bp"] == 0 and entry["commission_amount"] == 0
+    replaced = [json.loads(row["details_json"])["replaced"] for row in service.history(SOL, entry_id)
+                if "replaced" in json.loads(row["details_json"])]
+    assert replaced == [{"rate_bp": CANONICAL_RATE_BP, "commission_amount": 4_000,
+                         "policy_status": POLICY_CANONICAL}]
+    # Y el período queda fijado al 0% que efectivamente se aplicó, no al 1% anterior.
+    assert rated_periods(service) == {"2099-04": 0}

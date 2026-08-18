@@ -40,10 +40,11 @@ RECALCULABLE_STATES = frozenset({"ELEGIBLE", "CALCULADA"})
 OPEN_STATES = frozenset({"ELEGIBLE", "CALCULADA", "REVISADA", "APROBADA"})
 # Ya pasaron por revisión humana: una corrección de origen no puede recalcularlos en silencio.
 REVIEWED_STATES = frozenset({"REVISADA", "APROBADA", "PAGADA"})
-# Un período con alguna de estas ya fue liquidado: se le aplicó un porcentaje y quedó grabado.
-# `ELEGIBLE` no cuenta: es elegible pero todavía no se le calculó comisión alguna.
+# Estados en los que una liquidación ya recibió un porcentaje. Se conservan porque describen el
+# ciclo, pero **no** son la protección de un período: el estado es mutable y cualquier transición
+# posterior lo cambia. La evidencia de que a un período se le aplicó una tasa vive en
+# `commission_rated_periods`, que es durable e independiente del estado.
 SETTLED_STATES = ("CALCULADA", "REVISADA", "APROBADA", "PAGADA")
-SETTLED_STATES_SQL = ",".join(f"'{state}'" for state in SETTLED_STATES)
 
 # La trazabilidad de la política viaja con la liquidación, no se reconstruye después.
 POLICY_TRACE_FIELDS = ("policy_status", "policy_code", "policy_version",
@@ -184,7 +185,31 @@ class CanonicalCommissionPolicy:
         applicable = [row for row in self.catalogue() if is_in_effect(period, row["effective_from"])]
         return applicable[-1] if applicable else None
 
+    def pinned_for(self, period: str) -> dict | None:
+        """Tasa con la que ese período fue tarifado por primera vez, si lo fue.
+
+        Es la evidencia durable: vive en `commission_rated_periods`, se escribe una sola vez y no
+        depende del estado en que haya quedado después la liquidación que la produjo. Observar,
+        revertir, anular o corregir el origen cambian el estado; no cambian esto.
+        """
+        if not period:
+            return None
+        with self.repository.connection() as con:
+            row = con.execute(
+                "SELECT * FROM commission_rated_periods WHERE period=?", (str(period)[:7],)
+            ).fetchone()
+        return None if row is None else dict(row)
+
     def decide(self, *, branch: str, saleswoman: str, period: str) -> PolicyDecision:
+        # Un período ya tarifado conserva su tasa. Publicar una versión nueva no lo reescribe,
+        # y por eso publicar nunca hace falta bloquearlo: la protección no está en negar la
+        # operación sino en que el período ya resuelto deje de depender de lo que se publique.
+        pinned = self.pinned_for(period)
+        if pinned is not None:
+            return PolicyDecision(int(pinned["rate_bp"]), POLICY_CANONICAL,
+                                  int(pinned["policy_version"]), pinned["policy_effective_from"],
+                                  pinned["policy_scope"] or CANONICAL_SCOPE,
+                                  pinned["policy_code"] or CANONICAL_CODE)
         catalogue = self.catalogue()
         if not catalogue:
             # Base sin historial de versiones: se resuelve con la fila vigente.
@@ -398,8 +423,17 @@ class CommissionService:
             (sale.saleswoman, sale.kind, sale.total_amount, discount, base, POLICY_ABSENT, target,
              _now(), entry["id"]),
         )
+        source_details = {**details, "commissionable_base": base, "agreement_discount": discount}
+        # La corrección retira la tasa y el importe anteriores. Si los había, se asientan: es la
+        # única ruta pública por la que un importe heredado —que no tiene asiento previo porque
+        # llegó migrado— podría desaparecer sin dejar rastro. Mismo bloque y mismo nombre que
+        # escribe `recalculate`, para que auditar no dependa de por dónde se anuló.
+        if entry["commission_amount"] is not None or entry["rate_bp"] is not None:
+            source_details["replaced"] = {"rate_bp": entry["rate_bp"],
+                                          "commission_amount": entry["commission_amount"],
+                                          "policy_status": entry["policy_status"]}
         self._history(con, entry["id"], row["id"], entry["status"], target, actor.username,
-                      "SOURCE_UPDATED", {**details, "commissionable_base": base, "agreement_discount": discount})
+                      "SOURCE_UPDATED", source_details)
         if balance == 0 and entry["status"] == "PENDIENTE_SALDO":
             self._promote_to_eligible(con, row["id"], cancelled, actor.username)
         elif balance > 0 and entry["status"] != "PENDIENTE_SALDO":
@@ -673,6 +707,30 @@ class CommissionService:
                                 guard=_reject_paid, observation=reason)
 
     # ------------------------------------------------------------- política
+    def policy_for_period(self, actor: Principal, period: str) -> dict:
+        """Política que gobierna ese período concreto, no la última publicada.
+
+        Un período ya tarifado conserva su tasa, así que la vigente puede ser otra. Rotular un
+        período con la tasa global sería declarar oficial un porcentaje que ahí no rige: es el
+        mismo error que la generación 2 cometió al llamar «oficial» a un importe heredado.
+        """
+        self._read(actor)
+        decision = self.policy.decide(branch="", saleswoman="", period=period)
+        fallback = self.policy.current()
+        rate = decision.rate_bp
+        return {
+            "code": decision.code or fallback["code"] or CANONICAL_CODE,
+            "scope": decision.scope,
+            "status": decision.status,
+            "version": decision.version,
+            "effective_from": decision.effective_from,
+            "rate_bp": None if rate is None else int(rate),
+            "rate_percent": None if rate is None else rate_decimal_text(int(rate)),
+            "rounding": ROUNDING_MODE,
+            "currency": CURRENCY,
+            "pinned": self.policy.pinned_for(period) is not None,
+        }
+
     def current_policy(self, actor: Principal) -> dict:
         """Política oficial vigente, con porcentaje, versión, vigencia y redondeo."""
         self._read(actor)
@@ -696,20 +754,28 @@ class CommissionService:
         `commission_policy_versions` y ninguna liquidación ya calculada se toca aquí. Repetir
         el mismo porcentaje y la misma vigencia no crea versión: la operación es idempotente.
 
-        Una tasa publicada gobierna hacia adelante. Dos guardas lo sostienen, y hacen falta
-        las dos:
+        Una tasa publicada gobierna hacia adelante, y esto **no se sostiene bloqueando la
+        publicación**. La única guarda que queda aquí es que la vigencia no puede retroceder
+        respecto de la última publicada, que ordena el historial.
 
-        1. La vigencia no puede retroceder respecto de la última publicada.
-        2. La vigencia no puede gobernar un período que **ya fue liquidado**. Como
-           `is_in_effect` resuelve por mes, una vigencia *igual* a la última publicada
-           gobierna exactamente los mismos períodos que ella, incluidos los ya calculados:
-           por eso no basta con rechazar el retroceso estricto. Se rechaza toda vigencia
-           cuyo mes no sea posterior al último período con liquidaciones calculadas.
+        La protección de lo ya tarifado vive en otro sitio y es de otra naturaleza: cada
+        período que alguna vez recibió una tasa queda grabado en `commission_rated_periods`,
+        y `decide()` resuelve ese período contra esa evidencia y no contra el catálogo. Una
+        versión nueva no lo reescribe aunque su vigencia lo abarque. Es deliberado que la
+        protección **no** dependa del estado de la liquidación: observar, revertir, anular o
+        corregir el origen cambian el estado, y la evidencia sigue ahí.
 
-        Un período ya liquidado —calculado, revisado, aprobado o pagado— no se re-tarifa por
-        esta vía. Corregir una tasa mal publicada sobre un período ya liquidado exige un
-        flujo separado de corrección explícita y auditada, que hoy no existe: no es un cambio
-        de política, es otra decisión.
+        Bloquear la publicación era la defensa anterior y fallaba por los dos lados. Por
+        abajo, porque cualquier transición que sacara la liquidación de los estados liquidados
+        borraba la marca y devolvía la fuga. Por arriba, porque una venta con fecha errónea
+        —un `2036` en lugar de un `2026`— congelaba la publicación de todos los meses
+        anteriores a ella. Con la evidencia por período no ocurre ninguna de las dos cosas:
+        publicar siempre es posible, y lo tarifado nunca se re-tarifa.
+
+        Corregir la tasa de un período ya tarifado sigue exigiendo un flujo separado de
+        corrección explícita y auditada, que hoy no existe: no es un cambio de política, es
+        otra decisión. Cada publicación deja asentado en `central_audit` qué períodos quedan
+        fuera de su alcance, para que eso sea visible y no una sorpresa.
         """
         self._write(actor)
         if isinstance(rate_bp, bool) or not isinstance(rate_bp, int) or not 0 <= rate_bp <= BASIS_POINTS:
@@ -732,17 +798,16 @@ class CommissionService:
                     and current["approval_status"] == POLICY_CANONICAL):
                 con.rollback()
                 return int(current["version"]), False
-            # Republicar lo idéntico ya salió arriba sin crear versión; lo que sigue publica
-            # de verdad, así que aquí sí importa a qué períodos alcanzaría la tasa nueva.
-            settled = con.execute(
-                "SELECT MAX(substr(period,1,7)) FROM commission_entries"
-                f" WHERE period IS NOT NULL AND status IN ({SETTLED_STATES_SQL})"
-            ).fetchone()[0]
-            if settled and is_in_effect(settled, effective_from):
-                raise ValueError(
-                    f"la vigencia {effective_from} gobernaría el período {settled}, que ya fue"
-                    " liquidado: una tasa publicada rige hacia adelante. Corregir un período ya"
-                    " liquidado exige un flujo de corrección explícito y auditado.")
+            # Publicar no se bloquea. Los períodos ya tarifados están protegidos por su propia
+            # evidencia durable —`commission_rated_periods`—, de modo que la versión nueva no puede
+            # reescribirlos por mucho que su vigencia los abarque. Bloquear la publicación era la
+            # defensa anterior y tenía dos defectos: se apoyaba en el estado actual, que cualquier
+            # transición posterior borraba, y un período con fecha errónea congelaba la publicación
+            # de todos los meses anteriores a él. Se deja constancia de qué períodos quedan fuera
+            # del alcance real de esta versión, para que publicar no sea silencioso.
+            protected = [row[0] for row in con.execute(
+                "SELECT period FROM commission_rated_periods"
+                " WHERE substr(period,1,7)>=substr(?,1,7) ORDER BY period", (effective_from,))]
             version = int(con.execute(
                 "SELECT COALESCE(MAX(version),0) FROM commission_policy_versions WHERE policy_id=?",
                 (CANONICAL_POLICY_ID,),
@@ -766,7 +831,9 @@ class CommissionService:
             self.repository.audit(con, actor.username, "COMMISSION_POLICY_VERSION_PUBLISHED",
                                   f"{CANONICAL_CODE}:v{version}",
                                   details={"rate_bp": rate_bp, "effective_from": effective_from,
-                                           "approval_status": POLICY_CANONICAL, "note": note})
+                                           "approval_status": POLICY_CANONICAL, "note": note,
+                                           "protected_periods": protected,
+                                           "protected_periods_count": len(protected)})
             con.commit()
         return version, True
 
@@ -852,6 +919,17 @@ class CommissionService:
                     (total, discount, base, decision.rate_bp, commission, decision.status, decision.code,
                      decision.version, decision.effective_from, decision.scope, _now(), entry["id"]),
                 )
+                # El período queda tarifado: se graba la evidencia durable una sola vez. A partir
+                # de aquí ese mes conserva esta tasa aunque la liquidación se observe, se revierta
+                # o se corrija, y aunque después se publique otra versión.
+                if decision.rate_bp is not None and decision.status == POLICY_CANONICAL and entry["period"]:
+                    con.execute(
+                        "INSERT OR IGNORE INTO commission_rated_periods(period,rate_bp,policy_code,"
+                        "policy_version,policy_effective_from,policy_scope,first_rated_by,first_rated_at,origin)"
+                        " VALUES(?,?,?,?,?,?,?,?,'RATED')",
+                        (str(entry["period"])[:7], decision.rate_bp, decision.code, decision.version,
+                         decision.effective_from, decision.scope, actor.username, _now()),
+                    )
                 details = {"commissionable_base": base, "agreement_discount": discount,
                            "commission_amount": commission, "policy": decision.as_dict()}
                 # Todo importe anterior que se anula o se reemplaza queda asentado, esté la
@@ -1075,15 +1153,16 @@ class CommissionService:
         entries = []
         for row in data["entries"]:
             entries.append({name: row.get(name if name != "entry_id" else "id") for name in ENTRY_EXPORT_FIELDS})
-        policy = self.current_policy(actor)
+        # Política **de este período**, no la última publicada: si el período ya estaba tarifado,
+        # su tasa es la que quedó fijada y ninguna versión posterior la reemplaza.
+        policy = self.policy_for_period(actor, period)
         return {
-            "contract_version": 2,
+            "contract_version": 3,
             "period": period,
             "generated_at": _now(),
             "filters": data["filters"],
-            # Política vigente al exportar; cada liquidación lleva además la suya propia,
-            # que es la que explica su importe aunque la política haya cambiado después.
             "policy": policy,
+            "current_policy": self.current_policy(actor),
             "kpi": data["kpi"],
             "by_saleswoman": data["by_saleswoman"],
             "entries": entries,

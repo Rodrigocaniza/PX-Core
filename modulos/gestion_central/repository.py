@@ -179,9 +179,21 @@ class CentralRepository:
               note TEXT NOT NULL DEFAULT '', actor TEXT NOT NULL, recorded_at TEXT NOT NULL,
               UNIQUE(policy_id,version)
             );
+            -- Evidencia durable de que a un período se le aplicó una tasa. Una fila por período,
+            -- escrita la primera vez que se tarifa y nunca actualizada ni borrada: es lo que
+            -- protege al período de ser re-tarifado, con independencia de en qué estado quede
+            -- después la liquidación que lo tarifó. El estado es mutable; esto no.
+            CREATE TABLE IF NOT EXISTS commission_rated_periods(
+              period TEXT PRIMARY KEY,
+              rate_bp INTEGER NOT NULL, policy_code TEXT NOT NULL, policy_version INTEGER NOT NULL,
+              policy_effective_from TEXT NOT NULL, policy_scope TEXT NOT NULL,
+              first_rated_by TEXT NOT NULL, first_rated_at TEXT NOT NULL,
+              origin TEXT NOT NULL DEFAULT 'RATED'
+            );
             """)
             self._add_missing_columns(con)
             self._migrate_commission_policy(con)
+            self._backfill_rated_periods(con)
             con.commit()
 
     @staticmethod
@@ -264,6 +276,40 @@ class CentralRepository:
                 "UPDATE commission_entries SET policy_status=? WHERE policy_status=? AND rate_bp IS NULL",
                 (comision_policy.POLICY_ABSENT, status),
             )
+
+    @staticmethod
+    def _backfill_rated_periods(con):
+        """Siembra la evidencia durable desde las liquidaciones que ya llevan una tasa aplicada.
+
+        Idempotente y aditiva: `INSERT OR IGNORE` sobre la clave primaria, y nunca actualiza una
+        fila existente. Sólo mira `rate_bp IS NOT NULL`, que es la marca de que a ese período se le
+        aplicó un porcentaje, no el estado actual de la liquidación.
+
+        Una base migrada puede traer liquidaciones cuyo estado ya cambió —observadas, revertidas—
+        pero que conservan su tasa: ésas también siembran su período, que es justamente lo que la
+        protección por estado no veía. Las que ya perdieron la tasa por una corrección de origen no
+        pueden sembrarse desde aquí; su rastro vive en el historial.
+
+        Sólo siembran las tarifadas con la **política canónica**. Un importe heredado del piloto
+        anterior lleva `POLITICA_HISTORICA_PREVIA` y no es oficial: fijar el período con ese
+        porcentaje lo volvería incorregible, que es lo contrario de lo que la misión persigue.
+        Esas liquidaciones siguen siendo reparables, y al repararse fijan el período con la tasa
+        canónica que les corresponda.
+        """
+        con.execute(
+            "INSERT OR IGNORE INTO commission_rated_periods(period,rate_bp,policy_code,policy_version,"
+            "policy_effective_from,policy_scope,first_rated_by,first_rated_at,origin)"
+            " SELECT period, rate_bp,"
+            "        COALESCE(policy_code,?), COALESCE(policy_version,?),"
+            "        COALESCE(policy_effective_from,?), COALESCE(policy_scope,?),"
+            "        'MIGRACION', MIN(created_at), 'BACKFILL'"
+            "   FROM commission_entries"
+            "  WHERE period IS NOT NULL AND rate_bp IS NOT NULL AND policy_status=?"
+            "  GROUP BY period",
+            (comision_policy.CANONICAL_CODE, comision_policy.CANONICAL_VERSION,
+             comision_policy.CANONICAL_EFFECTIVE_FROM, comision_policy.CANONICAL_SCOPE,
+             comision_policy.POLICY_CANONICAL),
+        )
 
     def audit(self, con, actor, action, target, result="SUCCESS", details=None):
         con.execute(

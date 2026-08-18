@@ -5,11 +5,11 @@ runners separados, con identidad de rol exclusiva, contexto propio, prompt espec
 evaluación concurrente sobre el mismo snapshot inmutable y **sin compartir razonamiento ni
 conclusiones**. Ninguno conoce el verdict de los otros antes de emitir el propio.
 
-En cada generación los tres corrieron en paralelo sobre el snapshot de esa generación —
-`578bf8b7205c857f9032581744f1e5818dab99fa`, `7abc30e6d33eb5dc522be7e43aa3ad3886a65b32` y
-`75f5c5728cf9194b3e4c91a3b1e83c10ea1ec48a` respectivamente— con el worktree limpio, y ninguno
-modificó el árbol: QA y el Auditor escribieron sus escenarios propios en un directorio temporal
-fuera del repositorio.
+En cada generación los tres corrieron en paralelo sobre el snapshot de esa generación —`578bf8b`,
+`7abc30e`, `75f5c57` y `5652e46` respectivamente, y el de la generación 5 queda fijado en su commit
+de registro— con el worktree limpio, y ninguno modificó el árbol: QA y el Auditor escribieron sus
+escenarios propios en un directorio temporal fuera del repositorio. Cada sección de más abajo lleva
+el snapshot completo.
 
 ## Generación 1 — snapshot `578bf8b7205c857f9032581744f1e5818dab99fa`
 
@@ -146,6 +146,10 @@ registradas, no corregidas.
 
 ## Generación 5
 
-Pendiente. Su alcance es cerrar B1-g4 y B2-g4 sobre el snapshot que publique esa corrección. B1-g4
-requiere decisión de propietario sobre en qué debe apoyarse la guarda. Los verdicts de las
-generaciones 1, 2, 3 y 4 no se reutilizan.
+Pendiente de revisión. El propietario decidió no seguir endureciendo predicados sobre el estado
+actual y adoptar una invariante basada en evidencia durable: un período que alguna vez recibió una
+tasa queda fijado a ella, con independencia de las transiciones posteriores.
+
+Los tres runners deben revisar específicamente **la invariante histórica y la matriz de
+transiciones**, no sólo los bloqueantes anteriores. Los verdicts de las generaciones 1 a 4 no se
+reutilizan.

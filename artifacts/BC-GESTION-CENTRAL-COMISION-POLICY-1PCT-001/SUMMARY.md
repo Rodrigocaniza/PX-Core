@@ -22,7 +22,8 @@ encabezado.
   de redondeo explícita en `comision_policy.py` y probada en sus bordes.
 - Cada liquidación graba con qué política se calculó: `policy_code`, `policy_version`,
   `policy_effective_from`, `policy_scope` y `policy_status`.
-- El export estructurado sube a `contract_version: 2` y lleva el bloque `policy` completo.
+- El export estructurado sube a `contract_version: 3`: bloque `policy` del período exportado —con
+  la marca `pinned`— y la política vigente al exportar aparte, en `current_policy`.
 - La pantalla de Sol nombra el porcentaje vigente en el encabezado, el KPI y el desglose, y avisa
   cuando hay importes fuera de la política oficial.
 
@@ -63,12 +64,15 @@ Los dos últimos son medio guaraní hacia arriba: `3.166,66 → 3.167` y `12.345
   `REVISADA`/`APROBADA` ya correcta conserva su aval.
 - **Cada liquidación se resuelve contra la versión de su propio período.** Programar el porcentaje
   del mes que viene no reescribe el mes en curso.
-- **Una tasa publicada gobierna hacia adelante, y hacen falta dos guardas.** La vigencia no puede
-  retroceder respecto de la última publicada **ni gobernar un período ya liquidado** —con alguna
-  liquidación `CALCULADA`, `REVISADA`, `APROBADA` o `PAGADA`—. Como la vigencia se resuelve por mes,
-  una fecha *igual* a la última publicada gobierna los mismos períodos que ella: rechazar sólo el
-  retroceso estricto dejaba re-tarifar el pasado al alza o a cero. Corregir un período ya liquidado
-  exige un flujo de corrección explícita y auditada, que hoy no existe.
+- **Un período tarifado conserva su tasa, y eso no se sostiene bloqueando la publicación.** La
+  primera vez que se aplica un porcentaje a un período queda grabado en `commission_rated_periods`
+  —una fila por período, escrita una sola vez, nunca actualizada ni borrada— y la resolución de ese
+  período pasa por ahí antes que por el catálogo de versiones. Publicar siempre es posible y no
+  reescribe lo tarifado. La protección **no** depende del estado de la liquidación: observar,
+  revertir, anular la venta o corregir el origen cambian el estado y la evidencia sigue ahí.
+  Tampoco hay frontera global: una venta con fecha errónea protege su propio mes y no congela
+  ninguno anterior. Corregir la tasa de un período ya tarifado exige un flujo de corrección
+  explícita y auditada, que hoy no existe.
 - Un período anterior a toda vigencia no aplica el porcentaje hacia atrás: informa la base,
   marca `FUERA_DE_VIGENCIA` y no es revisable ni pagable. Un importe heredado de ese período se
   retira sin sustituto y **no tiene reparación posible**; lo que sí queda garantizado es que el
@@ -82,6 +86,11 @@ Los dos últimos son medio guaraní hacia arriba: `3.166,66 → 3.167` y `12.345
 
 Base exacta: `e7732603d9eb098867a272598e6d30803a4f1ac3`.
 
-Regresión completa **345/345 PASS** (302 de línea base + 43 de esta misión: 41 de dominio y 2 de
-interfaz, de los cuales 14 son de la generación 4). Sin nómina, sin bancos, sin datos de clientes,
+El export estructurado sube a `contract_version: 3`: su bloque `policy` pasa a ser el del período
+exportado —con la marca `pinned` de si quedó fijado al tarifarse— y la política vigente al exportar
+viaja aparte en `current_policy`. Rotular un período con la tasa global declararía oficial ahí un
+porcentaje que en ese mes no rige.
+
+Regresión completa **371/371 PASS** (302 de línea base + 69 de esta misión: 67 de dominio y 2 de
+interfaz, de los cuales 26 son de la generación 5). Sin nómina, sin bancos, sin datos de clientes,
 sin proveedor externo, sin red, sin producción, sin merge a `main`.
