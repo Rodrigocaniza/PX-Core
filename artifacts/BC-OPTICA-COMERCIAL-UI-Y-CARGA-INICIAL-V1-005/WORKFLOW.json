@@ -1,6 +1,6 @@
 {
   "mission": "BC-OPTICA-COMERCIAL-UI-Y-CARGA-INICIAL-V1-005",
-  "current_state": "SAFE_CLOSURE / SLICE 5 CERRADO",
+  "current_state": "SAFE_PAUSE / LISTO PARA RETOMAR DESDE PC CASA",
   "base": "b580e50",
   "base_branch": "feature/bc-optica-sales-article-link-v1-004",
   "history": [
@@ -82,6 +82,15 @@
       "to_state": "SAFE_CLOSURE / SLICE 5 CERRADO",
       "timestamp": "2026-08-18T23:12:00-03:00",
       "reason": "Slice 5 cerrado y pusheado. Sin PR, sin merge, sin empaquetar, sin instalar. Continua por BC-OPTICA-VENTA-REVERSIBLE-Y-RELEASE-GATE-V1-006: la reversion compensatoria de una venta y el gate de las cinco migraciones acumuladas, en esa orden y en la misma mision. Instalar sin la reversion dejaria a la Optica con ventas que no se pueden corregir",
+      "gate_id": null,
+      "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
+    },
+    {
+      "event": "SAFE_PAUSE",
+      "from_state": "SAFE_CLOSURE / SLICE 5 CERRADO",
+      "to_state": "SAFE_PAUSE / LISTO PARA RETOMAR DESDE PC CASA",
+      "timestamp": "2026-08-18T23:40:00-03:00",
+      "reason": "Cierre de salida de la PC de la Optica. Verificado sin asumir nada: origin/main 7db56a0 sin tocar, los cinco slices pusheados y limpios en 0/0 contra su upstream, las migraciones 022-026 existen SOLO en las ramas de desarrollo y cero en main, produccion en 21 migraciones con sha256 1c4fcc40...98ec, 12 cash_entries y 10 sale_items intactos, BC Caja 1.0.0-rc.31 instalada. 0 leases, 0 sesiones activas, 0 commits locales sin publicar. El unico archivo suelto del repositorio (operator-fixes-003-preview.png) resulto byte-identico a uno ya versionado, asi que no habia nada que preservar. No se corrio la suite ni se repitieron gates: no hubo drift que lo justificara. Handoff completo en HANDOFF_PC_CASA.md",
       "gate_id": null,
       "session_id": "bc-optica-comercial-ui-carga-inicial-v1-005"
     }
