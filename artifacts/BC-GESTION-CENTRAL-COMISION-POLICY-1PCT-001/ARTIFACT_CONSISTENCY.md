@@ -8,26 +8,37 @@ Resultado: **consistente**, verificado también por
 
 - `MANIFEST.sha256` fija **33 archivos**: los seis de código y pruebas tocados por la misión, los
   dos de herramientas, el contrato anterior anotado, y los 24 del paquete. `sha256sum -c`:
-  **33/33 OK**.
+  **33/33 OK** ejecutado en el worktree donde se genera el paquete.
+- **Alcance exacto de esa verificación.** Los hashes se toman sobre los bytes del worktree. Este
+  repositorio corre con `core.autocrlf=true` y sin `.gitattributes`, de modo que git reescribe los
+  finales de línea al hacer checkout: en un clon nuevo **21 de los 33 ficheros** —los `.md`, el
+  `.json` y dos `.py`— llegan con CRLF y sus hashes no coinciden, y el propio `MANIFEST.sha256`
+  llega con CRLF, que `sha256sum -c` ni siquiera puede analizar. El manifest acredita integridad
+  **del paquete tal como se produce**, no reproducibilidad byte a byte entre checkouts. Es una
+  propiedad heredada de cómo se construyó el paquete desde la generación 1, no algo que introduzca
+  la generación 4; queda registrada como hallazgo abierto 23 y su corrección —fijar `-text` por
+  `.gitattributes`— excede el alcance de esta generación, que es sólo B1 y B2.
 - Quedan fuera del manifest exactamente dos archivos, por imposibilidad lógica: `MANIFEST.sha256`
   y el ZIP. El ZIP se reconstruyó después de escribir todos los documentos y se verificó miembro a
   miembro contra el worktree: **34 miembros, 34 byte-idénticos, 0 mismatch** — los 33 del manifest
-  más el propio `MANIFEST.sha256`.
+  más el propio `MANIFEST.sha256`. El ZIP guarda los bytes del worktree, así que es el entregable
+  que sí reproduce el paquete exactamente, con independencia de lo que git haga en un checkout.
 - Base idéntica en `SUMMARY.md`, `MISSION_LEASE.json` y `WORKFLOW.json`:
   `e7732603d9eb098867a272598e6d30803a4f1ac3`, que es la raíz de la misión: el padre directo del
   snapshot de la generación 1 y ancestro de los siguientes, uno por generación revisada.
   `WORKFLOW.generations[].snapshot_commit` fija cada snapshot **ya sometido a revisión**; el de la
   generación en curso viaja en `null` hasta el commit de registro posterior, porque un commit no
-  puede contener su propio SHA. Por eso la generación 3 se publicó con `null` y este commit la fija
-  en `75f5c5728cf9194b3e4c91a3b1e83c10ea1ec48a`, y por eso la generación 4 vuelve a figurar en
-  `null`.
+  puede contener su propio SHA. Así quedaron fijadas las generaciones 1, 2 y 3 —esta última en
+  `75f5c5728cf9194b3e4c91a3b1e83c10ea1ec48a`, por el commit de registro `b90a5db`—, y por eso la
+  generación 4, que es la que se somete ahora a revisión, figura todavía en `null`.
 - Cifras coherentes en todos los documentos: **345/345** de regresión, 302 de línea base, **+43**
   casos, **145** en la suite del módulo, **94** casos entre los dos archivos de comisiones. De esos
   43, **14 son de la generación 4** (331 → 345), repartidos en 10 funciones nuevas más 4 casos de
   parametrización.
-- Backlogs idénticos: `HANDOFF.md` y `WORKFLOW.json` comparten los mismos **22** hallazgos abiertos
-  — los 14 de la generación 2 más los **8** que aportan las observaciones no bloqueantes de la
-  generación 3. Los **37** heredados de la misión anterior se citan por referencia, no se recuentan.
+- Backlogs idénticos: `HANDOFF.md` y `WORKFLOW.json` comparten los mismos **23** hallazgos abiertos
+  — los 14 de la generación 2, los **8** que aportan las observaciones no bloqueantes de la
+  generación 3, y el **1** que detecta la generación 4 sobre el alcance del manifest. Los **37**
+  heredados de la misión anterior se citan por referencia, no se recuentan.
 - Los **nueve** verdicts existen en `generation-1/`, `generation-2/` y `generation-3/` y coinciden
   con lo registrado en `WORKFLOW.json` e `INDEPENDENCE.md`: generación 1, LIBRARIAN FAIL (L1, L2,
   L3), QA PASS, AUDITOR FAIL (A1, A2); generación 2, los tres FAIL con cuatro, tres y tres

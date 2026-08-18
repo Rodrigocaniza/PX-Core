@@ -97,6 +97,13 @@ Aportados por las observaciones no bloqueantes de la generación 3, abiertos y *
 22. **`MIGRATION.md` paso 1 atribuye `commission_policy_versions` a `_add_missing_columns`.**
     LIBRARIAN-003 obs 5: la crea el `CREATE TABLE IF NOT EXISTS` de `migrate()`. El efecto descrito
     es correcto; la atribución no.
+23. **`MANIFEST.sha256` sólo verifica en el worktree donde se genera.** Detectado en la generación
+    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 21 de los 33
+    ficheros con CRLF —los `.md`, el `.json` y dos `.py`— y sus hashes dejan de coincidir; el propio
+    manifest llega con CRLF y `sha256sum -c` no puede analizarlo. Es heredado de cómo se construyó
+    el paquete desde la generación 1, no lo introduce esta generación. El ZIP sí conserva los bytes
+    exactos. Corrección propuesta, fuera del alcance de B1/B2: fijar `-text` para el paquete con un
+    `.gitattributes` acotado, y recalcular el manifest sobre esos bytes.
 
 ## Generación 4 — qué se hizo
 
