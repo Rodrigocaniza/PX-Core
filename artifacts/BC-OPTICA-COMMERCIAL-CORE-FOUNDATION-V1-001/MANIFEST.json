@@ -1,0 +1,91 @@
+{
+  "mission": "BC-OPTICA-COMMERCIAL-CORE-FOUNDATION-V1-001",
+  "slice": "1 de 6 — Catalogo canonico de items y naturalezas",
+  "branch": "feature/bc-optica-commercial-core-foundation-v1-001",
+  "worktree": ".worktrees/commercial-core-001",
+  "base_commit": "7db56a0",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.31, instalada y validada en la Optica",
+  "packaged": false,
+  "installed": false,
+  "promoted": false,
+  "version_unchanged": true,
+  "por_que_no_se_promueve": "El slice agrega la migracion 022 y todavia no se empaqueto ni se instalo. Promover a main haria que el proximo empaquetado arrastre un cambio de esquema sin gate de instalacion. Queda en la rama hasta que se decida el release",
+  "migrations": 22,
+  "migrations_added": [
+    "022_commercial_core_catalog.sql"
+  ],
+  "schema_changed": true,
+  "schema_change_shape": "ADITIVA: solo CREATE TABLE/INDEX IF NOT EXISTS y un ALTER TABLE ADD COLUMN nullable. No altera ni reconstruye ninguna tabla existente",
+  "economic_rules_changed": false,
+  "ui_changed": false,
+  "naturalezas": [
+    "PRODUCTO_STOCKEABLE",
+    "SERVICIO_NO_STOCKEABLE",
+    "TRABAJO_BAJO_PEDIDO",
+    "PRODUCCION_INTERNA"
+  ],
+  "tablas_nuevas": [
+    "article_categories",
+    "brands",
+    "suppliers",
+    "articles",
+    "administrative_exit_reasons"
+  ],
+  "columna_nueva": "sale_items.article_id, nullable, REFERENCES articles(id)",
+  "reutilizado_no_duplicado": {
+    "laboratories": "catalogo canonico desde la 016; suppliers.laboratory_id lo referencia",
+    "sucursales": "ASUNCION/PILAR es el vocabulario que ya usan cash_register_branches, tracked_works.origin_branch y orders.branch. Destination lo expresa en el dominio SIN tabla nueva"
+  },
+  "tests": {
+    "total": 714,
+    "subtests": 4,
+    "baseline": 682,
+    "new": 32,
+    "exit_code": 0
+  },
+  "verificacion_sobre_base_productiva": {
+    "metodo": "migracion aplicada sobre una COPIA de la base real, nunca sobre la real",
+    "tablas_perdidas": 0,
+    "filas_perdidas": 0,
+    "sale_items": "10 filas intactas, las 10 con article_id NULL: no se invento ninguno",
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "migraciones": "21 -> 22",
+    "motivos_sembrados": 7,
+    "sum_cash_entries_total": 6400000,
+    "base_productiva_real": "sin tocar, sha256 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "resultado": "PASS"
+  },
+  "source_files": {
+    "modulos/caja_diaria/infrastructure/migrations/022_commercial_core_catalog.sql": "f9fccc9bfe33d27ed884727271af8489900e95351f03645576d1cb1a0e8ffbc2",
+    "modulos/comercial/__init__.py": "d0f8c721f1a9eefef62c39d8ac7cde0d27be2450920b54f2d22eb1b6e0ee5137",
+    "modulos/comercial/domain/__init__.py": "fa634b8c21f849dc62af321bdd69c121e5ea1bd154b033715dc32a46473b6f0e",
+    "modulos/comercial/domain/models.py": "c38629c306abe235cc9de4cff22f00190f15b89e58a4b05040953c7261b9a1de",
+    "modulos/comercial/application/__init__.py": "eb7860ddcc50badb35eeb98d19949958043acd06548498874251ede3d616c7f4",
+    "modulos/comercial/application/ports.py": "1aa46cedbf8337ccc87a3efcd823aac359b24c9b1b6030408217bcb5255c1f54",
+    "modulos/comercial/application/importer.py": "934a6f8bdbe3b6117395b04e15f67b10db677ee44302d178ca7a511bb9e79ebc",
+    "modulos/comercial/infrastructure/__init__.py": "c8c4e08a90fa05193d4346b0e5883cfb9260484ba26ea62086270d25692be468",
+    "modulos/comercial/infrastructure/sqlite_catalog_repository.py": "5de1f92dd10d08b5469feed42f7e556dc01d211fd47107e4b88bbe4374c08017",
+    "tests/comercial/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/comercial/test_commercial_core_foundation.py": "453bc3fe8e1634e97a095ef8c1d9b2dc302fe9b527b6ad81fb27394472f203fd",
+    "tests/migration_chain.py": "85ade6d0cefb3dedef86755da0a0818393eaec0d0ccd723cc34d0665b39a175e"
+  },
+  "contratos_ajenos_actualizados": {
+    "tests/caja_diaria/test_rc11_compact_tables.py": "eb829309a83e281d349a1a30ee9e70d5f5c19cbb65f7a4a2ff5ba5f72fef648a",
+    "tests/caja_diaria/test_rc15_apertura_caja.py": "2aac75b348a540355c7ed75bf2fd569c0aefb259a7b4eda51e61a095530aa7a0",
+    "tests/caja_diaria/test_rc13_admin_counts_email.py": "f27c665e2d51bb8bfa0748af35464737b3d980988fb11922068cd12bedb62cf0",
+    "tests/caja_diaria/test_recovery_drill.py": "6a29ced1c184135f8686b5332327b6a8688b3ae44264e539bbea34e3ac80a340",
+    "tests/caja_diaria/test_sqlite_repository.py": "95427222c0e01b2f72c7ce0ad964522df84e05eeccc351865c3d7a664f090a1f",
+    "tests/caja_diaria/test_sqlite_save_bugfix.py": "74502a1fe699720b34b5d687c6a23c728fdcee39bf769d7d1100eac8e064f2e0"
+  },
+  "por_que_se_tocaron_contratos_ajenos": "Seis contratos fijaban la cadena de migraciones en 21, repitiendo la lista a mano. Su intencion era 'este slice no agrega migraciones', no 'nunca habra una 022'. Se preservo la intencion: los de RC27 y Apertura ahora cuentan la linea de Caja hasta 021, y los que enumeraban versiones derivan la lista de tests/migration_chain.py. test_recovery_drill ademas afirma que las lineas de venta historicas quedan con article_id NULL",
+  "hash_convention": "sha256 con saltos normalizados a LF",
+  "no_implementado_a_proposito": [
+    "ledger de inventario (slice 2)",
+    "compras centralizadas (slice 3)",
+    "enlace venta -> articulo en la UI (slice 4)",
+    "cristales y composturas operativos (slice 5)",
+    "bandeja FactuFacil (slice 6)",
+    "carga masiva de la base real de articulos"
+  ]
+}

@@ -81,10 +81,15 @@ def test_el_datepicker_compartido_y_factufacil_no_se_tocaron():
 def test_el_esquema_no_cambia():
     # El port de Apertura sobre el tronco recuperado no agrega migraciones:
     # se queda con las 21 que ya trae la línea (001-015 + 016-021 de Seguimiento).
+    #
+    # Se cuenta la línea de Caja, no el directorio entero: lo que este contrato
+    # afirma es que Apertura no aportó ninguna, y eso sigue siendo cierto cuando
+    # el núcleo comercial suma las suyas de 022 en adelante.
     migrations = sorted(Path("modulos/caja_diaria/infrastructure/migrations").glob("*.sql"))
-    assert len(migrations) == 21
-    assert migrations[-1].name == "021_queda_a_confirmar.sql"
-    assert "015_admin_counts_notifications.sql" in [ruta.name for ruta in migrations]
+    linea_caja = [ruta for ruta in migrations if ruta.name[:3] <= "021"]
+    assert len(linea_caja) == 21
+    assert linea_caja[-1].name == "021_queda_a_confirmar.sql"
+    assert "015_admin_counts_notifications.sql" in [ruta.name for ruta in linea_caja]
 
 
 def test_la_apertura_registra_hora_automatica_y_la_conserva(tmp_path):

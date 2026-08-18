@@ -8,6 +8,7 @@ import pytest
 
 from modulos.caja_diaria.infrastructure.backup import LocalBackupService
 from modulos.caja_diaria.infrastructure.sqlite_repository import SQLiteCashDayRepository
+from tests.migration_chain import versiones_esperadas_como_filas
 
 
 MIGRATIONS = Path(__file__).parents[2] / "modulos" / "caja_diaria" / "infrastructure" / "migrations"
@@ -106,7 +107,7 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
         assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert connection.execute(
             "SELECT version FROM schema_migrations ORDER BY version"
-        ).fetchall() == [(f"{version:03d}",) for version in range(1, 22)]
+        ).fetchall() == versiones_esperadas_como_filas()
         assert connection.execute(
             "SELECT agreement_amount,balance_text FROM cash_entries WHERE id='sale-anon'"
         ).fetchone() == (0, "999999")
@@ -119,7 +120,11 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
     assert [row[:-2] for row in _rows(restored, "cash_entries")] == before["cash_entries"]
     restored_items = _rows(restored, "sale_items")
     assert [row[:10] for row in restored_items] == before["sale_items"]
-    assert all(row[10:] == (0, 0, row[6] or 0, row[7] or 0, 0) for row in restored_items)
+    # 013 agrega descuentos y "sin costo" con default; 022 agrega el enlace al
+    # catálogo de artículos, que en una fila histórica queda nulo a propósito:
+    # a una venta ya cargada a mano no se le inventa un artículo.
+    assert all(row[10:15] == (0, 0, row[6] or 0, row[7] or 0, 0) for row in restored_items)
+    assert all(row[15] is None for row in restored_items)
     for table in ("cash_counts", "cash_entry_revisions"):
         assert _rows(restored, table) == before[table]
 
@@ -135,4 +140,5 @@ def test_anonymized_backup_restore_migrations_and_interruption_recovery(tmp_path
     retry.close()
     interrupted_items = _rows(interrupted, "sale_items")
     assert [row[:10] for row in interrupted_items] == before["sale_items"]
-    assert all(row[10:] == (0, 0, row[6] or 0, row[7] or 0, 0) for row in interrupted_items)
+    assert all(row[10:15] == (0, 0, row[6] or 0, row[7] or 0, 0) for row in interrupted_items)
+    assert all(row[15] is None for row in interrupted_items)

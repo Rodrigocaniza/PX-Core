@@ -5,6 +5,7 @@ from pathlib import Path
 
 from CajaDiaria import completar_items_para_guardar
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
+from tests.migration_chain import versiones_esperadas
 
 
 class SQLiteSaveBugfixTests(unittest.TestCase):
@@ -54,7 +55,7 @@ class SQLiteSaveBugfixTests(unittest.TestCase):
                 self.assertEqual(
                     [row[0] for row in connection.execute(
                         "SELECT version FROM schema_migrations ORDER BY version"
-                )], ["001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012", "013", "014", "015", "016", "017", "018", "019", "020", "021"]
+                )], versiones_esperadas()
                 )
             finally:
                 connection.close()

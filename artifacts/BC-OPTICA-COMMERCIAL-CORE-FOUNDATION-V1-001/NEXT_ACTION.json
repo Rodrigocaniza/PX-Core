@@ -1,0 +1,64 @@
+{
+  "mission": "BC-OPTICA-COMMERCIAL-CORE-FOUNDATION-V1-001",
+  "state": "SAFE_CLOSURE / SLICE 1 CERRADO",
+  "repository": "PX-Core",
+  "worktree": ".worktrees/commercial-core-001",
+  "branch": "feature/bc-optica-commercial-core-foundation-v1-001",
+  "base_commit": "7db56a0",
+  "baseline": "origin/main = BC Caja 1.0.0-rc.31, instalada y validada en la Optica",
+  "closed_on": "2026-08-18",
+  "blocked_on": null,
+  "next_action": "Continuar por el slice 2, el ledger de inventario auditable, sobre esta misma rama o una derivada de ella. NO empezar por Compras: el ledger es lo que hace que una compra pueda generar stock",
+  "next_role": "COMMAND_CENTER",
+
+  "entregado_en_este_slice": {
+    "migracion": "022_commercial_core_catalog.sql, aditiva, cadena 21 -> 22",
+    "tablas_nuevas": ["article_categories", "brands", "suppliers", "articles", "administrative_exit_reasons"],
+    "columna_nueva": "sale_items.article_id, nullable",
+    "modulo": "modulos/comercial con domain, application (ports + importer) e infrastructure",
+    "naturalezas": ["PRODUCTO_STOCKEABLE", "SERVICIO_NO_STOCKEABLE", "TRABAJO_BAJO_PEDIDO", "PRODUCCION_INTERNA"],
+    "vocabulario_fijado_para_los_proximos": ["StockMovementKind", "CostStatus", "AdministrativeExitReason", "Destination", "CONSUMIDOR_FINAL"]
+  },
+
+  "verification": {
+    "suite": "714 passed, 4 subtests, exit 0 (682 baseline + 32 nuevas)",
+    "pruebas_dirigidas_primero": true,
+    "migracion_sobre_copia_productiva": "PASS: 0 tablas perdidas, 0 filas perdidas, sale_items 10/10 con article_id NULL, integrity ok, foreign_key_check 0, SUM(cash_entries.total) 6.400.000 sin cambios",
+    "base_productiva_real": "sin tocar, sha256 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "artifact_consistency": "PASS, 12 fuentes + 6 contratos ajenos"
+  },
+
+  "no_promovido_a_main": {
+    "decision": "deliberada",
+    "motivo": "El slice agrega la migracion 022 y todavia no se empaqueto ni se instalo. main es lo que se empaqueta: promoverlo ahora haria que la proxima RC arrastre un cambio de esquema que nunca paso por un gate de instalacion",
+    "estado": "rama pusheada a origin, main intacto en 7db56a0",
+    "cuando_promover": "cuando se decida el release que incluya la 022, con su gate de empaquetado e instalacion, backup y rollback, igual que rc.31"
+  },
+
+  "slices_restantes": [
+    {"n": 2, "id": "ledger de inventario auditable", "estado": "SIGUIENTE", "detalle": "stock_movements append-only por articulo y destino. El stock es la suma del ledger, nunca un contador editable. Nunca modificar ni borrar una compra historica para sacar stock: se registra la salida administrativa o el ajuste auditado"},
+    {"n": 3, "id": "compras centralizadas", "estado": "DISENADO", "detalle": "La factura del proveedor pertenece a Gestion Central una sola vez. Productos fisicos: una linea distribuye a Asuncion y Pilar y la suma distribuida debe igualar la comprada. Laboratorio y costos consolidados: se admite factura empresa sin reparto manual"},
+    {"n": 4, "id": "enlace venta -> articulo y consumidor final", "estado": "PREPARADO", "detalle": "La columna y la constante ya existen; falta activarlas en la UI"},
+    {"n": 5, "id": "trabajos: cristales y composturas", "estado": "VOCABULARIO DEFINIDO", "detalle": "Preservar el flujo recibida -> taller -> responsable -> terminada -> vuelve a optica -> entrega/cierre. Costo del cristal en PENDIENTE_DE_CONCILIACION mientras no haya dato real"},
+    {"n": 6, "id": "FactuFacil reducido a bandeja", "estado": "CONTRATO ESCRITO", "detalle": "Ver pendiente de cargar, confirmar cargado, registrar N.o de factura, habilitar comision recien despues. NO modifica ventas. Objetivo final: dejar de depender de FactuFacil"}
+  ],
+
+  "deuda_heredada_sin_tocar": [
+    {"id": "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001", "estado": "SUGERIDA, NO INICIADA"},
+    {"id": "CajaDiaria.py:3253", "estado": "HALLAZGO ANOTADO, NO CORREGIDO"},
+    {"id": "BC-CORE-LOCAL-DESACTUALIZADO", "estado": "PENDIENTE", "detalle": "BC-Core local no tiene Headless Executor. Sincronizar desde su origin/main canonico antes de una mision que lo requiera"},
+    {"id": "ADMIN-USERS-VACIO", "estado": "DECISION DEL DUENO", "detalle": "admin_users = 0 en produccion; por eso la app pide Configuracion inicial administrativa al abrir. Preexistente a rc.31"}
+  ],
+
+  "safe_closure": {
+    "worktree": "limpio tras el commit",
+    "rama": "pusheada a origin",
+    "main": "sin tocar, 7db56a0",
+    "force_push": false,
+    "leases_vivos": 0,
+    "procesos_residuales": 0,
+    "datos_productivos": "sin tocar, sha256 identico",
+    "correo": "sin envios, outbox 0",
+    "instalacion": "BC Caja 1.0.0-rc.31 sigue siendo la vigente; este slice no se empaqueto ni se instalo"
+  }
+}

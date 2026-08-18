@@ -8,6 +8,7 @@ from unittest.mock import patch
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.models import CashEntry
+from tests.migration_chain import versiones_esperadas
 
 
 SOURCE = Path("CajaDiaria.py").read_text(encoding="utf-8")
@@ -45,8 +46,10 @@ class RC13AdminCountsEmailTests(unittest.TestCase):
             journal = connection.execute("PRAGMA journal_mode").fetchone()[0]
             synchronous = connection.execute("PRAGMA synchronous").fetchone()[0]
             integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
-        self.assertEqual(versions[-1], "021")
-        self.assertEqual(len(versions), 21)
+        # La cadena entera, derivada del directorio: lo que este contrato
+        # verifica es que 015 se aplique de forma idempotente sin dejar la
+        # cadena incompleta, no cuantas migraciones hay en total.
+        self.assertEqual(versions, versiones_esperadas())
         self.assertTrue({"admin_users", "admin_audit_log", "cash_count_snapshots", "mail_outbox"} <= tables)
         self.assertEqual(journal.lower(), "wal")
         self.assertEqual(synchronous, 2)
