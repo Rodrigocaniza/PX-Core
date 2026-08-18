@@ -78,3 +78,47 @@ FactuFácil, Composturas y el DatePicker global siguen sin empezar.
 archivo que mencione `headless`. Se continuó con el mecanismo actual, como estaba previsto
 para ese caso. No hay métricas de `interactive_prompts` ni `stdin_waits` que reportar: no
 se inventan.
+
+---
+
+# Cierre en producción — 18-08-2026, PC de la Óptica
+
+**rc.31 quedó instalada y validada. La misión cierra 100% PASS.**
+
+Lo que faltaba no era código: era llegar a la máquina correcta. El paquete se recuperó del
+release privado tal cual se había publicado —**no se reconstruyó**, que era justamente el
+punto: PyInstaller no da binarios reproducibles y un rebuild habría roto la verificación
+con todo en orden— y se instaló sobre rc.30 con backup y rollback armados antes de mover
+nada.
+
+| | |
+| --- | --- |
+| Versión anterior → instalada | 1.0.0-rc.30 → **1.0.0-rc.31** |
+| zip / exe verificados por sha256 | sí, el exe **antes** de tocar la instalación vigente |
+| Backup preinstall | con hash idéntico al original |
+| Rollback | dos copias independientes de rc.30, ambas verificadas |
+| Rollback ejecutado | no hizo falta |
+| Base productiva | **sha256 idéntico antes y después** |
+| `integrity_check` · `foreign_key_check` | ok · 0 |
+| Migraciones | 21, sin agregar ni perder ninguna |
+| Suite en la Óptica | 682 passed, 4 subtests, exit 0 |
+| Artifact Consistency | PASS, 12 sha256 |
+| `main` | promovido por fast-forward, sin force-push |
+
+El punto 10 del gate —el que había quedado observado en la generación 1— se verificó esta
+vez **en producción y no sobre fixtures**: al tocar `Pedidos`, la barra de navegación
+resalta `Pedidos`.
+
+Y la preservación de datos tiene una comprobación que no depende de los mismos scripts que
+hicieron la validación: Historial "Este mes" muestra `2.220.000 + 3.350.000` en ventas más
+una venta `ANULADO` de `830.000`, que suman exactamente los `6.400.000` del
+`SUM(cash_entries.total)` de la línea base. Los datos reales están enteros y la anulación
+histórica sigue siendo una anulación.
+
+## Una cosa que apareció y no se tocó
+
+Al abrir, la app pide `Configuración inicial administrativa`. No es una regresión de rc.31:
+`admin_users` está en 0 y ya lo estaba bajo rc.30. Configurar esa credencial es decisión
+del dueño, no del instalador, así que quedó registrada como deuda y no se creó ninguna.
+
+Detalle completo y hashes en `INSTALL_EVIDENCE.md`.

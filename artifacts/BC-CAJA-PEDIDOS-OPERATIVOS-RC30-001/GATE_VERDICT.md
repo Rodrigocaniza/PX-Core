@@ -24,3 +24,18 @@ se degrado por ejecutarlo fuera de la Optica.
 
 Empaquetar `1.0.0-rc.31`. La instalacion y la validacion post-install siguen pendientes:
 no pueden hacerse en este equipo, ver `INSTALL_READINESS.md`.
+
+## Cierre del gate en el destino real — 18-08-2026
+
+Lo que quedaba pendiente ya se ejecutó, en la PC de la Óptica y sobre la instalación
+productiva de rc.30:
+
+- rc.31 instalada desde el release privado, sin reconstruir, con zip y exe verificados por
+  sha256 antes de mover nada;
+- backup preinstall con hash verificado y rollback de rc.30 apartado y comprobado;
+- validación post-install completa: la base productiva quedó **byte a byte idéntica**;
+- el punto 10 verificado ya no sobre fixtures sino en producción: al tocar `Pedidos`, la
+  barra de navegación resalta `Pedidos`.
+
+Detalle y hashes en `INSTALL_EVIDENCE.md`. El gate queda cerrado: **PASS 11/11, instalado y
+validado.**

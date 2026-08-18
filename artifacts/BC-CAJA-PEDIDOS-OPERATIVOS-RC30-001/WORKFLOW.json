@@ -1,6 +1,6 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "current_state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
+  "current_state": "SAFE_CLOSURE / CERRADA 100% PASS",
   "base": "291fe40",
   "history": [
     {
@@ -165,6 +165,69 @@
       "to_state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
       "timestamp": "2026-08-17T00:00:00Z",
       "reason": "El zip exacto quedo publicado como release asset del repo privado Rodrigocaniza/PX-Core-releases, tag bc-caja-1.0.0-rc.31, fuera del historial Git y sin reconstruirlo. Round-trip verificado desde la PC de casa: vuelve con el mismo sha256, los mismos 34111433 bytes, el exe interno 62e8f1d8 y VERSION.txt en rc.31. Ya no hace falta transporte fisico. PX-Core es publico, asi que el binario NO se publico ahi: el operador eligio un repositorio privado propio para artefactos. Codigo sin modificar, nada instalado, main sin promover",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "AUTO_RESUME",
+      "from_state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
+      "to_state": "RESUMED_ON_TARGET",
+      "timestamp": "2026-08-18T15:45:00Z",
+      "reason": "Reanudada en la PC de la Optica. Canonical state verificado antes de tocar nada: repo y git-common-dir, fetch, origin/main 291fe40, HEAD de la rama adelantado a 529965d desde origin, 20 worktrees, 0 leases vivos, gh autenticado como Rodrigocaniza, instalacion vigente rc.30 con su backup preinstall presente, 0 procesos BC-Caja, sin startup-error.log. Este equipo SI es el destino: la serie de rollbacks local (previous-rc5..previous-rc15) difiere de la del equipo de casa (rollback-rc26-20260816h)",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "ARTIFACT_RECOVERED",
+      "from_state": "RESUMED_ON_TARGET",
+      "to_state": "ARTIFACT_VERIFIED",
+      "timestamp": "2026-08-18T15:45:00Z",
+      "reason": "Descargado del release asset privado Rodrigocaniza/PX-Core-releases tag bc-caja-1.0.0-rc.31. NO reconstruido. zip 34111433 bytes y sha256 95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948 ok. exe 62e8f1d87206b31b428892dc60266dde3394ef30a8b530b41f53563fe892152f ok, verificado en staging temporal ANTES de mover la instalacion vigente",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "BACKUP_AND_ROLLBACK_PREPARED",
+      "from_state": "ARTIFACT_VERIFIED",
+      "to_state": "READY_TO_INSTALL",
+      "timestamp": "2026-08-18T15:45:00Z",
+      "reason": "Backup preinstall bc-caja-preinstall-1.0.0-rc.31-20260818-123848.sqlite3 con hash verificado identico al original (1c4fcc40...98ec). Rollback apartado y verificado: BC-Caja-Pilot.rollback-rc30-20260818-123848, VERSION rc.30, exe a38262a5 identico, 1136 archivos vs 1136 originales. No se borro nada",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "INSTALLED",
+      "from_state": "READY_TO_INSTALL",
+      "to_state": "INSTALLED",
+      "timestamp": "2026-08-18T15:45:00Z",
+      "reason": "Instalacion transaccional por Move-Item + Move-Item: nunca hubo un estado con la instalacion borrada y la nueva sin poner. rc.30 quedo ademas entera como .replaced-rc30-20260818-123848, o sea dos copias independientes. VERSION.txt instalado BC Caja 1.0.0-rc.31, exe 62e8f1d8 verificado en destino",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "POST_INSTALL_VALIDATED",
+      "from_state": "INSTALLED",
+      "to_state": "VALIDATED",
+      "timestamp": "2026-08-18T15:45:00Z",
+      "reason": "Smoke sobre datos reales: Caja diaria, Pedidos, Seguimiento, Laboratorios e Historial. El punto 10 del gate verificado en produccion: al tocar Pedidos el resaltado queda en Pedidos. Cierre limpio, 0 procesos residuales, sin startup-error.log. Validacion: integrity_check ok, foreign_key_check 0, 21 migraciones sin agregar ni perder ninguna, DIFF de filas SIN CAMBIOS, DIFF de montos SIN CAMBIOS, mail_outbox 0, sha256 de la base IDENTICO antes y despues. Comprobacion aritmetica independiente: Historial Este mes da 2.220.000 + 3.350.000 + 830.000 anulado = 6.400.000 = SUM(cash_entries.total) de la linea base. Suite reproducida en la Optica: 682 passed, 4 subtests, exit 0. Artifact Consistency reverificado: 12 sha256 ok. Rollback NO necesario",
+      "gate_id": "HUMAN_GATE-PEDIDOS-RC30-001",
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "PROMOTED_TO_MAIN",
+      "from_state": "VALIDATED",
+      "to_state": "PROMOTED",
+      "timestamp": "2026-08-18T15:45:00Z",
+      "reason": "Promocion protegida por fast-forward desde feature/bc-caja-pedidos-operativos-rc30-001 sobre la base 291fe40. Sin force-push, sin tocar ramas ajenas",
+      "gate_id": null,
+      "session_id": "bc-caja-pedidos-operativos-rc30"
+    },
+    {
+      "event": "SAFE_CLOSURE",
+      "from_state": "PROMOTED",
+      "to_state": "SAFE_CLOSURE / CERRADA 100% PASS",
+      "timestamp": "2026-08-18T15:45:00Z",
+      "reason": "Mision cerrada. rc.31 es la RC vigente en produccion, instalada y validada, sin perdida de datos. Worktree limpio, 0 leases, 0 procesos residuales, outbox 0. Continua BC-OPTICA-COMMERCIAL-CORE-FOUNDATION-V1-001",
       "gate_id": null,
       "session_id": "bc-caja-pedidos-operativos-rc30"
     }

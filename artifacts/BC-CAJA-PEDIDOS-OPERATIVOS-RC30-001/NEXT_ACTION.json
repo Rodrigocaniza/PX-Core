@@ -1,153 +1,84 @@
 {
   "mission": "BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001",
-  "state": "SAFE_PAUSE / AWAITING_INSTALL_ON_TARGET",
+  "state": "SAFE_CLOSURE / CERRADA 100% PASS",
   "repository": "PX-Core",
   "worktree": "pedidos30",
   "branch": "feature/bc-caja-pedidos-operativos-rc30-001",
-  "base_commit": "291fe40",
-  "baseline": "origin/main = BC Caja 1.0.0-rc.30",
-  "blocked_on": "INSTALL_TARGET_IS_ANOTHER_MACHINE",
-  "next_action": "Retomar en la PC de la Optica por auto_resume_en_la_optica, en ese orden. No reconstruir ni reempaquetar rc.31: los artifacts vigentes ya estan verificados",
-  "next_role": "HUMAN",
+  "closed_on": "2026-08-18",
+  "closed_at": "PC de la Optica",
+  "blocked_on": null,
+  "next_action": "Nada pendiente en esta mision. Continuar por BC-OPTICA-COMMERCIAL-CORE-FOUNDATION-V1-001",
+  "next_role": "COMMAND_CENTER",
+  "rc_vigente": "BC Caja 1.0.0-rc.31, instalada y validada en la Optica",
+  "instalacion": {
+    "estado": "INSTALADA Y VALIDADA",
+    "stamp": "20260818-123848",
+    "version_anterior": "1.0.0-rc.30",
+    "version_instalada": "1.0.0-rc.31",
+    "reconstruido": false,
+    "zip_sha256": "95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948",
+    "exe_sha256": "62e8f1d87206b31b428892dc60266dde3394ef30a8b530b41f53563fe892152f",
+    "db_sha256_pre_y_post": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "db_identica": true,
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "migraciones": 21,
+    "mail_outbox": 0,
+    "rollback_ejecutado": false,
+    "evidencia": "INSTALL_EVIDENCE.md + 5 capturas install-rc31-*.png"
+  },
+  "rollback_disponible": {
+    "db": "%LOCALAPPDATA%/BC/Caja/Backups/bc-caja-preinstall-1.0.0-rc.31-20260818-123848.sqlite3",
+    "app": "%LOCALAPPDATA%/Programs/BC-Caja-Pilot.rollback-rc30-20260818-123848",
+    "app_segunda_copia": "%LOCALAPPDATA%/Programs/BC-Caja-Pilot.replaced-rc30-20260818-123848",
+    "procedimiento": "ROLLBACK.md"
+  },
   "verification": {
-    "focused": "13 passed del slice + 3 del contrato visual UX004 = 16 passed",
-    "full_suite": "682 passed. Los 2 fallos de gestion_central de la corrida anterior pasaron en esta: queda confirmado que son dependientes del reloj, no del codigo",
-    "visual": "smoke fail-closed regenerado a 1920x1080 y 1366x768, ahora tambien sobre el resaltado de la barra de navegacion",
-    "migraciones": "21, sin agregar ninguna",
-    "reglas_economicas": "sin cambios"
+    "artifact_consistency": "PASS, 12 sha256 reverificados en la Optica, 0 mismatch",
+    "suite_en_la_optica": "682 passed, 4 subtests, exit 0",
+    "gate": "HUMAN_GATE-PEDIDOS-RC30-001 PASS 11/11, cerrado en el destino real",
+    "smoke": "Caja diaria, Pedidos, Seguimiento, Laboratorios, Historial sobre datos reales",
+    "preservacion_de_datos": "sha256 de la base identico antes y despues; comprobacion aritmetica independiente 2.220.000 + 3.350.000 + 830.000 anulado = 6.400.000"
   },
-  "headless_executor": {
-    "disponible": false,
-    "verificado_en": "BC-Core local: tools/ y arbol completo",
-    "detalle": "BC-Core local esta en recovery/command-center-safe-exit-ops-20260811 (7991df3) y no tiene un solo archivo que mencione headless. Se continuo con el mecanismo actual. No bloquea Pedidos",
-    "accion_pendiente": "Sincronizar BC-Core local desde su origin/main canonico ANTES de la proxima mision de codigo que pretenda usar Headless. No se mezclo con este gate para no tocar superficies ajenas",
-    "metricas": "no aplican: no se inventan interactive_prompts ni stdin_waits"
+  "promocion": {
+    "main": "promovido por fast-forward desde feature/bc-caja-pedidos-operativos-rc30-001",
+    "force_push": false,
+    "base_anterior": "291fe40"
   },
-  "production_untouched": {
-    "main": "origin/main 291fe40, sin tocar",
-    "instalada_en_este_equipo": "serie rc.27, sin tocar",
-    "instalada_en_la_optica": "rc.30 segun el registro; no verificable desde aca",
-    "rc_nueva": "1.0.0-rc.31 empaquetada y verificada, NO instalada",
-    "db_local": "sha256 sin cambios antes y despues del smoke"
-  },
-  "after_gate_pass": [
-    "Empaquetar como rc.31 con backup y rollback",
-    "Instalación transaccional y validación post-install",
-    "Promoción a main por flujo protegido"
-  ],
   "next_block": {
-    "id": "BC-CAJA-TRABAJOS-OPERATIVOS-V1",
-    "estado": "SIGUIENTE, NO INICIADA",
-    "objetivo": "Unificar progresivamente Pedidos/Laboratorios, Envios Pilar y Composturas bajo Caja diaria | Trabajos | FactuFacil | Historial",
-    "preparado_por_este_slice": "Pedidos ya habla el vocabulario de Seguimiento: Accion siguiente, contacto contextual y Mas ▾"
+    "id": "BC-OPTICA-COMMERCIAL-CORE-FOUNDATION-V1-001",
+    "estado": "SIGUIENTE",
+    "objetivo": "Foundation canonica de Articulos -> Compras -> Stock -> Ventas -> Trabajos -> Revision -> Gestion Central, evolucionando la app existente. No es un sistema paralelo"
   },
-  "not_started_yet": [
-    "FactuFacil",
-    "DatePicker global"
-  ],
-  "safe_pause": {
-    "verificado": {
-      "worktree": "pedidos30 limpio",
-      "rama": "feature/bc-caja-pedidos-operativos-rc30-001 sincronizada con origin",
-      "main": "291fe40 sin tocar, sin force-push",
-      "leases_vivos": 0,
-      "procesos_residuales": 0,
-      "instalacion_de_casa": "rc.27 intacta, no se instalo rc.31",
-      "db_local": "sha256 sin cambios, integrity ok, foreign_key_check 0, 21 migraciones",
-      "correo": "sin envios, outbox 0",
-      "paquete": "rc.31 en disco y como release asset privado Rodrigocaniza/PX-Core-releases tag bc-caja-1.0.0-rc.31, round-trip verificado. Fuera del historial Git"
-    },
-    "no_ejecutado_a_proposito": [
-      "instalacion de rc.31",
-      "validacion post-install",
-      "promocion a main",
-      "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001",
-      "correccion de CajaDiaria.py:3253",
-      "sincronizacion de BC-Core local",
-      "BC-CAJA-TRABAJOS-OPERATIVOS-V1",
-      "FactuFacil",
-      "Composturas",
-      "DatePicker global"
-    ]
-  },
-  "next_session": [
-    "1. En la maquina de la Optica: verificar que VERSION.txt diga rc.30. Si no, detenerse",
-    "2. Instalar rc.31 por INSTALL_READINESS.md: backup con hash, rollback apartado, instalacion, verificacion del sha256 del exe",
-    "3. Validacion post-install: integrity_check, foreign_key_check, 21 migraciones, datos y montos contra el backup, Pedidos, Seguimiento, Historial, Arqueo, Administrador, correo y outbox sin envios",
-    "4. Recien con eso validado, promover a main por flujo protegido",
-    "5. Antes de la proxima mision con Headless: sincronizar BC-Core local",
-    "6. Despues iniciar BC-CAJA-TRABAJOS-OPERATIVOS-V1"
-  ],
-  "gate_generation": 2,
   "deuda_registrada": [
     {
       "id": "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001",
       "estado": "SUGERIDA, NO INICIADA",
-      "detalle": "test_refresh_and_filters_have_visible_feedback y test_alert_selection_acknowledgement_and_restart_persistence fallan por alertas LATE_OPEN dependientes del reloj. Reproducidas identicas en 291fe40: ya estan en produccion rc.30. Fuera de esta mision"
+      "detalle": "Alertas LATE_OPEN dependientes del reloj. En la corrida de la Optica los 682 pasaron: confirma una vez mas que no es del codigo"
     },
     {
       "id": "CajaDiaria.py:3253",
       "estado": "HALLAZGO ANOTADO, NO CORREGIDO",
-      "detalle": "Editar desde Historial usa pestanas.set directo y deja el resaltado en Historial: el mismo patron que causaba el falso positivo del punto 10, pero en el producto. Preexistente en 291fe40 y fuera del slice de Pedidos"
-    }
-  ],
-  "gate": "HUMAN_GATE-PEDIDOS-RC30-001 PASS (generacion 2, 11/11)",
-  "equipos": {
-    "casa_desarrollo": {
-      "rol": "donde se implemento, se paso el gate y se empaqueto rc.31",
-      "instalada": "BC Caja 1.0.0-rc.27, intacta",
-      "no_es_destino": true,
-      "confirmado_por": "el operador, mas la verificacion de disco de esta sesion"
+      "detalle": "Editar desde Historial usa pestanas.set directo y deja el resaltado en Historial. Preexistente, fuera del slice de Pedidos"
     },
-    "optica_produccion": {
-      "rol": "destino real de rc.31",
-      "instalada": "BC Caja 1.0.0-rc.30, instalada y validada alli",
-      "confirmado_por": "el operador",
-      "verificar_al_llegar": "VERSION.txt debe seguir diciendo rc.30. Si no, detenerse y reportar antes de tocar nada"
+    {
+      "id": "BC-CORE-LOCAL-DESACTUALIZADO",
+      "estado": "PENDIENTE",
+      "detalle": "BC-Core local no tiene Headless Executor. Sincronizar desde su origin/main canonico antes de una mision que lo requiera"
+    },
+    {
+      "id": "ADMIN-USERS-VACIO",
+      "estado": "DECISION DEL DUENO",
+      "detalle": "admin_users = 0 en produccion, por eso aparece el modal de Configuracion inicial administrativa al abrir. Preexistente a rc.31. Configurar la credencial es decision del dueno, no del instalador"
     }
-  },
-  "paquete_rc31": {
-    "zip": "releases/BC-CAJA-1.0.0-rc.31-win64.zip",
-    "zip_sha256": "95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948",
-    "zip_bytes": 34111433,
-    "exe_sha256": "62e8f1d87206b31b428892dc60266dde3394ef30a8b530b41f53563fe892152f",
-    "ubicacion": "disco de la PC de casa y release asset privado Rodrigocaniza/PX-Core-releases tag bc-caja-1.0.0-rc.31",
-    "en_el_remoto": "no en el historial Git de PX-Core; si como release asset del repo privado de artefactos",
-    "por_que": "los zips de RC estan gitignoreados por convencion: viaja el hash en el MANIFEST, no el binario",
-    "estado": "RESUELTO",
-    "mecanismo": "GitHub release asset en repositorio privado",
-    "repositorio": "Rodrigocaniza/PX-Core-releases",
-    "visibilidad": "PRIVATE",
-    "tag": "bc-caja-1.0.0-rc.31",
-    "asset": "BC-CAJA-1.0.0-rc.31-win64.zip",
-    "fuera_del_historial_git": true,
-    "reconstruido": false,
-    "round_trip_verificado": "subido y vuelto a descargar desde la PC de casa: mismo sha256, mismos 34111433 bytes, exe interno 62e8f1d8 y VERSION.txt en rc.31",
-    "transporte_fisico_necesario": false,
-    "por_que_repo_aparte": "PX-Core es publico. Publicar ahi el ejecutable lo habria dejado descargable por cualquiera y cacheable aun despues de borrarlo. El operador eligio un repositorio privado propio para artefactos",
-    "requisito_en_la_optica": "gh autenticado con acceso al repo privado. Verificar con gh auth status y gh release view antes de descargar. Si no hubiera gh, el mismo asset se baja desde la web del repo privado con la cuenta del dueno",
-    "recuperacion": "gh release download bc-caja-1.0.0-rc.31 --repo Rodrigocaniza/PX-Core-releases --pattern BC-CAJA-1.0.0-rc.31-win64.zip --dir $Z",
-    "verificacion_obligatoria": "(Get-FileHash \"$Z\\BC-CAJA-1.0.0-rc.31-win64.zip\").Hash.ToLower() -eq \"95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948\" -> si no da True, no instalar nada"
-  },
-  "no_rehacer": [
-    "empaquetado de rc.31: hecho y verificado",
-    "HUMAN_GATE-PEDIDOS-RC30-001: PASS generacion 2, 11/11",
-    "Artifact Consistency: PASS, 12 sha256",
-    "Librarian, QA y Auditor: PASS"
   ],
-  "auto_resume_en_la_optica": [
-    "1. Auto-Resume: recuperar esta mision desde este NEXT_ACTION, sin reconstruir contexto a mano",
-    "2. Verificar canonical state de la PC de la Optica: origin/main, HEAD de la rama, version instalada, migraciones, worktrees, leases, artifacts",
-    "3. Confirmar que la instalacion vigente alli sea rc.30. Si no lo es, detenerse",
-    "4. Recuperar el artefacto exacto: gh auth status, y despues el gh release download de paquete_rc31.recuperacion. NO reconstruir rc.31 bajo ninguna circunstancia",
-    "5. Verificar el sha256 del zip descargado contra paquete_rc31.zip_sha256. Si no coincide, detenerse: no instalar nada",
-    "6. Backup preinstall de la base, con hash verificado contra el original",
-    "7. Apartar rc.30 entera como rollback, sin borrarla, y verificar su VERSION.txt",
-    "8. Instalar rc.31 transaccionalmente, verificando el sha256 del exe antes de mover nada. Ante cualquier desvio, ROLLBACK.md",
-    "9. Validacion post-install: integrity_check, foreign_key_check, 21 migraciones, datos y montos contra el backup, Pedidos, Seguimiento, Historial, Arqueo, Administrador, correo y outbox sin envios",
-    "10. Artifact Consistency sobre lo instalado",
-    "11. Librarian, QA y Auditor sobre la instalacion y su evidencia",
-    "12. Promocion protegida a main: git push origin feature/bc-caja-pedidos-operativos-rc30-001:main",
-    "13. Safe Closure"
-  ]
+  "safe_closure": {
+    "worktree": "pedidos30 limpio tras el commit",
+    "main": "promovido por fast-forward, sin force-push",
+    "leases_vivos": 0,
+    "procesos_residuales": 0,
+    "datos_productivos": "sin perdida, sha256 identico",
+    "correo": "sin envios, outbox 0",
+    "ramas_ajenas": "sin tocar"
+  }
 }

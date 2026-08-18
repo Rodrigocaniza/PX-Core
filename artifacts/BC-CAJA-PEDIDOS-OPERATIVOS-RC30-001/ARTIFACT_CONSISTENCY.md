@@ -58,3 +58,41 @@ Funciones nuevas nombradas para no sombrear abrir_menu_mas de Seguimiento
 Headless Executor NO DISPONIBLE en BC-Core: se siguio con el mecanismo actual, sin metricas inventadas
 NO empaquetado y NO instalado: la RC vigente sigue siendo rc.30
 main 291fe40 sin tocar, sin force-push
+
+REVISION 4 (instalacion y validacion en la PC de la Optica, 18-08-2026)
+Ejecutada desde el destino real. Canonical state verificado antes de tocar nada: repo,
+  git-common-dir, fetch, origin/main 291fe40, HEAD de la rama, 20 worktrees, 0 leases
+  vivos, gh autenticado como Rodrigocaniza, instalacion vigente rc.30 con su backup
+  preinstall presente, 0 procesos BC-Caja, sin startup-error.log
+Este equipo SI es el destino: tiene rc.30 y su backup. La serie de rollbacks local
+  (previous-rc5..previous-rc15) difiere de la del equipo de casa (rollback-rc26-20260816h)
+Artefacto recuperado del release privado, NO reconstruido: zip 34111433 bytes y
+  sha256 95e9148a...c2948 ok, exe 62e8f1d8...2152f ok verificado en staging temporal ANTES
+  de mover la instalacion vigente
+Backup preinstall bc-caja-preinstall-1.0.0-rc.31-20260818-123848.sqlite3, hash verificado
+  contra el original: identico
+Rollback apartado y verificado: BC-Caja-Pilot.rollback-rc30-20260818-123848, VERSION rc.30,
+  exe a38262a5 identico al original, 1136 archivos vs 1136. Ademas rc.30 quedo entera como
+  .replaced-rc30-20260818-123848: dos copias independientes, no se borro nada
+Instalacion transaccional por Move-Item + Move-Item: nunca hubo un estado con la
+  instalacion borrada y la nueva sin poner. VERSION.txt instalado rc.31, exe 62e8f1d8 ok
+Smoke sobre datos reales: Caja diaria, Pedidos, Seguimiento, Laboratorios e Historial.
+  El punto 10 del gate verificado en produccion: al tocar Pedidos el resaltado de la barra
+  de navegacion queda en Pedidos. Cierre limpio, 0 procesos residuales, sin startup-error.log
+Validacion post-install: integrity_check ok, foreign_key_check 0, 21 migraciones sin
+  agregar ni perder ninguna, DIFF de filas SIN CAMBIOS, DIFF de montos SIN CAMBIOS,
+  mail_outbox 0. sha256 de la base productiva IDENTICO antes y despues: 1c4fcc40...98ec
+Comprobacion aritmetica independiente: Historial Este mes da 2.220.000 + 3.350.000 mas una
+  venta ANULADA de 830.000 = 6.400.000, exactamente el SUM(cash_entries.total) de la linea
+  base. Datos reales enteros y la anulacion historica conservada como tal
+Modal Configuracion inicial administrativa: aparece porque admin_users = 0, ya era asi bajo
+  rc.30 segun la linea base. NO es regresion de rc.31. No se configuro credencial: es
+  decision del dueno, no del instalador
+Artifact Consistency reverificado en la Optica: 12 sha256 ok (7 fuentes en LF + 5 visuales
+  en byte crudo), 0 mismatch
+Suite completa reproducida en la Optica: 682 passed, 4 subtests, exit 0. Los 2 fallos de
+  gestion_central no aparecieron: confirma una vez mas que dependen del reloj
+Rollback NO necesario: rc.31 no escribio en la base durante el smoke
+Promocion a main por fast-forward desde la rama de la mision, sin force-push
+Evidencia nueva: INSTALL_EVIDENCE.md + 5 capturas install-rc31-*.png, hasheadas en el
+  MANIFEST bajo install_evidence

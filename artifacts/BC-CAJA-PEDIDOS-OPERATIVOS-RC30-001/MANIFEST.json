@@ -5,7 +5,7 @@
   "base_commit": "291fe40",
   "baseline": "origin/main = BC Caja 1.0.0-rc.30",
   "packaged": true,
-  "installed": false,
+  "installed": true,
   "version_unchanged": null,
   "authority_preserved": [
     "Sin chips flotantes: el estado sigue anclado a la fila (RC22/RC23)",
@@ -86,5 +86,46 @@
       "verificacion_obligatoria": "(Get-FileHash \"$Z\\BC-CAJA-1.0.0-rc.31-win64.zip\").Hash.ToLower() -eq \"95e9148a2c712ccb6622f2fb89cc0dcc4e7547c002308ba532988217f95c2948\" -> si no da True, no instalar nada"
     }
   },
-  "install_blocked": "NO instalado. Este equipo no tiene rc.30: la instalacion vigente aca es de la serie rc.27 (VERSION.txt rc.27, exe del 16-08) y no existe ni backup preinstall de rc.30 ni carpeta de rollback de rc.30. La instalacion productiva vive en la maquina de la Optica. Runbook y rollback quedan escritos en INSTALL_READINESS.md y ROLLBACK.md"
+  "install_target": "PC de la Optica",
+  "install": {
+    "estado": "INSTALADA Y VALIDADA",
+    "fecha": "2026-08-18",
+    "stamp": "20260818-123848",
+    "equipo": "PC de la Optica",
+    "desde": "release asset privado Rodrigocaniza/PX-Core-releases tag bc-caja-1.0.0-rc.31",
+    "reconstruido": false,
+    "zip_sha256_verificado": true,
+    "exe_sha256_verificado": true,
+    "version_anterior": "1.0.0-rc.30",
+    "version_instalada": "1.0.0-rc.31",
+    "backup_preinstall": "bc-caja-preinstall-1.0.0-rc.31-20260818-123848.sqlite3, hash verificado contra el original",
+    "rollback_disponible": "BC-Caja-Pilot.rollback-rc30-20260818-123848 (1136 archivos, exe a38262a5, VERSION rc.30) mas BC-Caja-Pilot.replaced-rc30-20260818-123848",
+    "rollback_ejecutado": false,
+    "post_install": {
+      "integrity_check": "ok",
+      "foreign_key_check": 0,
+      "migraciones": 21,
+      "migraciones_nuevas": 0,
+      "diff_filas": "SIN CAMBIOS",
+      "diff_montos": "SIN CAMBIOS",
+      "db_sha256_pre": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+      "db_sha256_post": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+      "db_identica": true,
+      "mail_outbox": 0,
+      "procesos_residuales": 0,
+      "startup_error_log": false
+    },
+    "smoke": "Caja diaria, Pedidos, Seguimiento, Laboratorios e Historial sobre datos reales. Resaltado de navegacion correcto en Pedidos",
+    "suite_en_la_optica": "682 passed, 4 subtests, exit 0",
+    "comprobacion_aritmetica": "Historial Este mes 2.220.000 + 3.350.000 + 830.000 anulado = 6.400.000 = SUM(cash_entries.total) de la linea base",
+    "modal_admin": "Configuracion inicial administrativa aparece porque admin_users = 0, ya era asi bajo rc.30. No es regresion y no se configuro credencial"
+  },
+  "install_evidence": {
+    "install-rc31-caja-1920x1080.png": "463c2292f764c12fb1f8bb170110a3b9c6a2a1e27d74b47353f91a4d79a2255e",
+    "install-rc31-historial-1920x1080.png": "5a74cfe4f60f927ac5d9277b17514b63fffd8b2aaf46c63b18d69403635c9bbf",
+    "install-rc31-laboratorios-1920x1080.png": "8dbc3607976231edccad74ae984a666b2022eef49f9b5f9df6c5e8541e839f1c",
+    "install-rc31-pedidos-1920x1080.png": "934ecafaefffbd2df62fb896c31a5ea8a463818601aa1a9759024347ef13fd74",
+    "install-rc31-seguimiento-1920x1080.png": "dd4459407e6df4f4fbfd988dfbe5e902a4edc8a0b23b7e67c90e9be92611e02d",
+    "INSTALL_EVIDENCE.md": "f4061c90cdfdaced5513240f8354bd140a785f17a23fb0811032e5e31372bf15"
+  }
 }
