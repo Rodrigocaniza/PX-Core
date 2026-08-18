@@ -40,6 +40,10 @@ RECALCULABLE_STATES = frozenset({"ELEGIBLE", "CALCULADA"})
 OPEN_STATES = frozenset({"ELEGIBLE", "CALCULADA", "REVISADA", "APROBADA"})
 # Ya pasaron por revisión humana: una corrección de origen no puede recalcularlos en silencio.
 REVIEWED_STATES = frozenset({"REVISADA", "APROBADA", "PAGADA"})
+# Un período con alguna de estas ya fue liquidado: se le aplicó un porcentaje y quedó grabado.
+# `ELEGIBLE` no cuenta: es elegible pero todavía no se le calculó comisión alguna.
+SETTLED_STATES = ("CALCULADA", "REVISADA", "APROBADA", "PAGADA")
+SETTLED_STATES_SQL = ",".join(f"'{state}'" for state in SETTLED_STATES)
 
 # La trazabilidad de la política viaja con la liquidación, no se reconstruye después.
 POLICY_TRACE_FIELDS = ("policy_status", "policy_code", "policy_version",
@@ -692,9 +696,20 @@ class CommissionService:
         `commission_policy_versions` y ninguna liquidación ya calculada se toca aquí. Repetir
         el mismo porcentaje y la misma vigencia no crea versión: la operación es idempotente.
 
-        La vigencia no puede retroceder respecto de la última publicada. Se puede programar
-        el futuro; no se puede re-tarifar el pasado, que es lo que el versionado existe para
-        impedir. Una corrección hacia atrás no es un cambio de política: es otra decisión.
+        Una tasa publicada gobierna hacia adelante. Dos guardas lo sostienen, y hacen falta
+        las dos:
+
+        1. La vigencia no puede retroceder respecto de la última publicada.
+        2. La vigencia no puede gobernar un período que **ya fue liquidado**. Como
+           `is_in_effect` resuelve por mes, una vigencia *igual* a la última publicada
+           gobierna exactamente los mismos períodos que ella, incluidos los ya calculados:
+           por eso no basta con rechazar el retroceso estricto. Se rechaza toda vigencia
+           cuyo mes no sea posterior al último período con liquidaciones calculadas.
+
+        Un período ya liquidado —calculado, revisado, aprobado o pagado— no se re-tarifa por
+        esta vía. Corregir una tasa mal publicada sobre un período ya liquidado exige un
+        flujo separado de corrección explícita y auditada, que hoy no existe: no es un cambio
+        de política, es otra decisión.
         """
         self._write(actor)
         if isinstance(rate_bp, bool) or not isinstance(rate_bp, int) or not 0 <= rate_bp <= BASIS_POINTS:
@@ -717,6 +732,17 @@ class CommissionService:
                     and current["approval_status"] == POLICY_CANONICAL):
                 con.rollback()
                 return int(current["version"]), False
+            # Republicar lo idéntico ya salió arriba sin crear versión; lo que sigue publica
+            # de verdad, así que aquí sí importa a qué períodos alcanzaría la tasa nueva.
+            settled = con.execute(
+                "SELECT MAX(substr(period,1,7)) FROM commission_entries"
+                f" WHERE period IS NOT NULL AND status IN ({SETTLED_STATES_SQL})"
+            ).fetchone()[0]
+            if settled and is_in_effect(settled, effective_from):
+                raise ValueError(
+                    f"la vigencia {effective_from} gobernaría el período {settled}, que ya fue"
+                    " liquidado: una tasa publicada rige hacia adelante. Corregir un período ya"
+                    " liquidado exige un flujo de corrección explícito y auditado.")
             version = int(con.execute(
                 "SELECT COALESCE(MAX(version),0) FROM commission_policy_versions WHERE policy_id=?",
                 (CANONICAL_POLICY_ID,),
@@ -772,6 +798,12 @@ class CommissionService:
         entero, no de una rama, así que `PAGADA` queda fuera aunque su estado se hubiera
         alterado por otra vía. `OBSERVADA` y `REVERTIDA` también quedan fuera. Repetirlo no
         duplica ni reaplica nada, porque la comparación incluye la traza de política completa.
+
+        Reparar no siempre significa recuperar un importe. Si el período es **anterior a la
+        vigencia**, la decisión es `FUERA_DE_VIGENCIA` y la liquidación queda sin porcentaje:
+        eso retira un importe heredado sin sustituirlo. No es un caso con salida —ninguna
+        ruta pública devuelve ese importe— y por eso todo valor retirado se asienta en
+        `replaced`, en esta rama y en la de reparación, para que quede auditable.
         """
         self._write(actor)
         query = ("SELECT * FROM commission_entries"
@@ -822,7 +854,15 @@ class CommissionService:
                 )
                 details = {"commissionable_base": base, "agreement_discount": discount,
                            "commission_amount": commission, "policy": decision.as_dict()}
-                if repairing:
+                # Todo importe anterior que se anula o se reemplaza queda asentado, esté la
+                # liquidación revisada o no. Una legada en `ELEGIBLE` o `CALCULADA` cuyo período
+                # es anterior a la vigencia pierde su importe igual que una `REVISADA`, y sin
+                # este asiento el valor retirado no sobrevive en ninguna ruta pública.
+                replaces_amount = (
+                    (entry["commission_amount"] is not None and entry["commission_amount"] != commission)
+                    or (entry["rate_bp"] is not None and entry["rate_bp"] != decision.rate_bp)
+                )
+                if repairing or replaces_amount:
                     details["replaced"] = {"rate_bp": entry["rate_bp"],
                                            "commission_amount": entry["commission_amount"],
                                            "policy_status": entry["policy_status"]}

@@ -1,17 +1,47 @@
 # Evidencia de pruebas
 
-Regresión completa: **331/331 PASS** (`python -m pytest -q`, 31,03 s).
-Línea base de la misión anterior: 302. Esta misión suma **29**: 27 de dominio y 2 de interfaz.
+Regresión completa: **345/345 PASS** (`python -m pytest -q`, 29,97 s).
+Línea base de la misión anterior: 302. Esta misión suma **43**: 41 de dominio y 2 de interfaz.
 
-Suite del módulo: `tests/gestion_central/` **131/131 PASS**.
+Suite del módulo: `tests/gestion_central/` **145/145 PASS**.
 Los dos archivos de comisiones juntos (`test_comisiones.py` + `test_comisiones_ui_interactions.py`):
-51 → **80** pruebas, 74 y 6 respectivamente.
+51 → **94** pruebas, 88 y 6 respectivamente.
 
 Todas las cifras anteriores son **casos ejecutados**, que es lo que cuenta pytest. En funciones:
-`test_comisiones.py` pasa de 47 a 71 —se agregan 25 y se elimina
+`test_comisiones.py` pasa de 47 a 81 —se agregan 35 y se elimina
 `test_policy_is_synthetic_pending_approval_and_optional`, que afirmaba lo contrario de la decisión
-aprobada—, y tres de las nuevas están parametrizadas sobre `REVISADA` y `APROBADA`, de donde salen
-los 74 casos. La de interfaz pasa de 4 a 6 funciones y 6 casos.
+aprobada—, y cinco de ellas están parametrizadas, aportando 7 casos extra, de donde salen los 88.
+La de interfaz pasa de 4 a 6 funciones y 6 casos.
+
+De esas 35 funciones nuevas, **10 son de la generación 4** y cierran los dos bloqueantes económicos
+del Auditor: 7 para B1 —una de ellas parametrizada sobre los cuatro estados liquidados— y 3 para B2
+—una parametrizada sobre `ELEGIBLE` y `CALCULADA`—. Con sus 4 casos extra de parametrización suman
+los **14** casos nuevos de esta generación (331 → 345).
+
+## Generación 4 — cierre de B1 y B2
+
+### B1: una tasa publicada rige hacia adelante
+
+| Prueba | Qué demuestra |
+|---|---|
+| `test_a_rate_effective_before_the_last_published_one_is_rejected` | Vigencia **anterior** → rechazada por la guarda de retroceso. |
+| `test_a_rate_effective_on_the_same_date_as_the_last_one_is_rejected` | Vigencia **igual** → rechazada. Reproduce el exploit exacto del Auditor —40% y 0% sobre `2026-08-01`— y comprueba que la liquidación aprobada no se mueve ni al publicar ni al recalcular. |
+| `test_a_future_rate_that_governs_no_settled_period_is_accepted` | Vigencia **futura válida** → aceptada como v2; el período liquidado conserva tasa, importe y aval, y sigue pagable. |
+| `test_a_settled_period_is_never_re_rated[CALCULADA\|REVISADA\|APROBADA\|PAGADA]` | Los **cuatro estados liquidados** resisten tres intentos retroactivos cada uno (40%, 0%, 99,99%); ninguna versión espuria queda publicada. |
+| `test_no_indirect_retroactive_re_rating_through_recalculate` | **No hay re-tarifado indirecto**: publicar hacia adelante y recalcular tres veces no mueve ni la pagada ni la aprobada. |
+| `test_republishing_the_same_rate_stays_idempotent_with_settled_periods` | La guarda **no rompe la idempotencia**: republicar lo idéntico sigue devolviendo `(1, False)`. |
+| `test_a_period_with_only_eligible_entries_is_not_settled_yet` | `ELEGIBLE` **no** es liquidado: sin porcentaje aplicado, publicar sigue permitido. |
+
+La exactitud monetaria no se toca: el cálculo sigue siendo `Decimal` con el único `HALF_UP` de
+`comision_policy.py`, y las pruebas de redondeo de la generación 3 siguen en verde sin retoques.
+
+### B2: todo importe retirado queda asentado
+
+| Prueba | Qué demuestra |
+|---|---|
+| `test_an_annulled_amount_before_effective_date_is_recorded_as_replaced[ELEGIBLE\|CALCULADA]` | Una legada de **período anterior a la vigencia** pierde su importe y el valor retirado queda en `replaced` (33.250 Gs, 700 bp, `POLITICA_HISTORICA_PREVIA`); el asiento es idempotente. |
+| `test_a_replaced_amount_is_recorded_when_a_rate_changes_before_review` | **Cualquier rama** que reemplace un importe previo lo asienta, aunque la liquidación no esté revisada ni aprobada. |
+| `test_recalculate_records_nothing_replaced_when_there_was_no_previous_amount` | Sin importe anterior **no** se inventa el asiento. |
 
 ## Validaciones dirigidas exigidas por la misión
 
@@ -35,7 +65,7 @@ los 74 casos. La de interfaz pasa de 4 a 6 funciones y 6 casos.
 | Ninguna liquidación legada queda varada | `test_a_legacy_settlement_without_any_rate_is_repaired_too` |
 | El KPI oficial no suma importes de otra política | `test_the_official_kpi_never_counts_an_amount_from_a_retired_policy` |
 
-## Pruebas nuevas de dominio (25 funciones, 28 casos)
+## Pruebas nuevas de dominio de las generaciones 1 a 3 (25 funciones, 28 casos)
 
 1. `test_the_official_policy_is_the_approved_general_one_percent` — 1%, alcance único `GENERAL`,
    estado `CANONICA_APROBADA`, versión 1, vigencia, redondeo, moneda, y ninguna etiqueta retirada.
@@ -113,6 +143,16 @@ pagada al 7% en la misma bandeja: el KPI oficial marca 3.000 y no 36.250, el avi
   `policy` completo y los cuatro campos de traza en cada entrada.
 - `test_navigation_filters_and_state_reasons` y `test_observe_revert_recalculate_and_export`: el
   desglose del convenio ahora tiene cuatro líneas y el export lleva la política.
+
+La generación 4 modifica **una sola** prueba, y era propia de esta misión, no heredada:
+
+- `test_a_settlement_calculated_under_an_older_version_is_never_paid` (añadida en la generación 3
+  para el bloqueante G2-A1). Construía la deriva de versión publicando una tasa que gobernaba un
+  período ya liquidado, que es exactamente lo que B1 prohíbe desde ahora. Conserva su intención
+  intacta —una liquidación con sello desfasado no llega al pago— y **gana** una aserción: que la
+  ruta pública está cerrada (`pytest.raises(..., "ya fue liquidado")`). El estado desfasado se
+  reconstruye por SQL mediante el ayudante `_inject_policy_version`, porque una base migrada de
+  otra instalación sí puede traerlo y la guarda de pago debe seguir defendiendo contra él.
 
 Todas las demás pruebas de la misión anterior siguen intactas y en verde: los quince bloqueantes
 financieros históricos y los cinco invariantes económicos continúan cubiertos por sus pruebas

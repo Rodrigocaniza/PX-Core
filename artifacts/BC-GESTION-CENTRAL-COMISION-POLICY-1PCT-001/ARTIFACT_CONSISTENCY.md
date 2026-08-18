@@ -21,8 +21,10 @@ Resultado: **consistente**, verificado también por
   puede contener su propio SHA. Por eso la generación 3 se publicó con `null` y este commit la fija
   en `75f5c5728cf9194b3e4c91a3b1e83c10ea1ec48a`, y por eso la generación 4 vuelve a figurar en
   `null`.
-- Cifras coherentes en todos los documentos: **331/331** de regresión, 302 de línea base, **+29**
-  casos, **131** en la suite del módulo, **80** casos entre los dos archivos de comisiones.
+- Cifras coherentes en todos los documentos: **345/345** de regresión, 302 de línea base, **+43**
+  casos, **145** en la suite del módulo, **94** casos entre los dos archivos de comisiones. De esos
+  43, **14 son de la generación 4** (331 → 345), repartidos en 10 funciones nuevas más 4 casos de
+  parametrización.
 - Backlogs idénticos: `HANDOFF.md` y `WORKFLOW.json` comparten los mismos **22** hallazgos abiertos
   — los 14 de la generación 2 más los **8** que aportan las observaciones no bloqueantes de la
   generación 3. Los **37** heredados de la misión anterior se citan por referencia, no se recuentan.
@@ -36,14 +38,20 @@ Resultado: **consistente**, verificado también por
   `WORKFLOW.blockers_closed`, cada uno con su corrección localizable en código o documento, y todos
   los de código con prueba propia enumerada en `TEST_EVIDENCE.md`. Los tres runners de la
   generación 3 reverificaron ese cierre por su cuenta y los tres lo confirmaron.
-- Los **cuatro** bloqueantes de la generación 3 figuran en `WORKFLOW.blockers_open`. L1 y L2 son
-  documentales y se cierran en este mismo commit de registro —los recuentos del ZIP y de las
-  observaciones de la generación 2—, sujetos a la reverificación del Librarian sobre el snapshot de
-  la generación 4. **B1 y B2 son económicos y siguen abiertos**: ninguna afirmación de este paquete
-  debe leerse como si estuvieran resueltos, y `COMMISSION_POLICY_1PCT.md` conserva sin retocar las
-  dos frases que el Auditor demostró falsas, para que la generación 4 las corrija con su evidencia
-  a la vista.
-- La misión **no** está en Safe Closure. `WORKFLOW.current_state` es `REMEDIATION`, el
+- Los **cuatro** bloqueantes de la generación 3 figuran en `WORKFLOW.blockers_open`, los cuatro
+  como `CERRADO_PENDIENTE_VERIFICACION` o cerrados en el commit de registro. L1 y L2 eran
+  documentales —los recuentos del ZIP y de las observaciones de la generación 2—. **B1 y B2 son
+  económicos y se cierran en la generación 4**: B1 por decisión del propietario (opción (a),
+  endurecer la guarda), B2 asentando `replaced` en toda rama que anule un importe. Las dos frases
+  que el Auditor demostró falsas están corregidas en `COMMISSION_POLICY_1PCT.md`, y ninguna
+  afirmación del paquete debe leerse como verificada hasta que los tres runners se pronuncien sobre
+  el snapshot de la generación 4.
+- La generación 4 toca **dos** ficheros de código y **uno** de pruebas: `comisiones.py` —la guarda
+  de período liquidado, el asiento `replaced` y los dos docstrings— y `test_comisiones.py` —diez
+  funciones nuevas y una modificada—. `comision_policy.py`, `comisiones_ui.py` y `repository.py`
+  quedan **sin un solo cambio**: la exactitud monetaria `Decimal` y el único `HALF_UP` canónico son
+  exactamente los de la generación 3.
+- La misión **no** está en Safe Closure. `WORKFLOW.current_state` es `IMPLEMENTED`, el
   `MISSION_LEASE` sigue `HELD` y `safe_closure` sigue `PENDING`.
 - Captura 1920×1080 RGB, con su SHA-256 y su tamaño declarados en `VISUAL_EVIDENCE.md`, que también
   advierte que el PNG no es reproducible byte a byte porque el historial muestra marcas de tiempo

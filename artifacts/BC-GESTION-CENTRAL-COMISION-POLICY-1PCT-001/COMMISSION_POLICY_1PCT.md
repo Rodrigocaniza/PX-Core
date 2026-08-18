@@ -80,8 +80,16 @@ Cambiar el porcentaje es un hecho versionado, no una edición:
 - `set_general_rate(actor, rate_bp, effective_from, note)` publica una versión nueva.
 - La versión anterior queda íntegra en `commission_policy_versions`, que es append-only, y **sigue
   gobernando los períodos que le corresponden**: el historial se consulta en cada cálculo.
-- **La vigencia no puede retroceder** respecto de la última publicada. Se puede programar el
-  futuro; no se puede re-tarifar el pasado. Una corrección hacia atrás no es un cambio de política.
+- **Una tasa publicada gobierna hacia adelante**, y dos guardas lo sostienen:
+  - la vigencia **no puede retroceder** respecto de la última publicada;
+  - la vigencia **no puede gobernar un período ya liquidado** —con alguna liquidación en
+    `CALCULADA`, `REVISADA`, `APROBADA` o `PAGADA`—. Como la vigencia se resuelve por mes, una
+    fecha *igual* a la última publicada gobierna los mismos períodos que ella: por eso rechazar
+    sólo el retroceso estricto no alcanzaba, y se rechaza toda vigencia cuyo mes no sea posterior
+    al último período liquidado.
+- Un período ya liquidado **no se re-tarifa** por esta vía, ni al alza ni a la baja. Corregir una
+  tasa mal publicada sobre un período ya liquidado exige un flujo separado de corrección explícita
+  y auditada, **que hoy no existe**. No es un cambio de política: es otra decisión.
 - La operación es idempotente: repetir el mismo porcentaje y la misma vigencia no crea versión.
 - Cada publicación se asienta en `central_audit` como `COMMISSION_POLICY_VERSION_PUBLISHED`.
 - **Publicar una versión nueva no recalcula nada por sí sola** y jamás toca lo ya pagado.
@@ -107,12 +115,20 @@ la política que rige hoy el período de esa liquidación**. Lo tercero importa 
 el sello se graba al calcular y puede quedar atrás, así que comprobar sólo el sello dejaría pasar
 al pago un importe que ya no es el oficial.
 
-Cualquier liquidación **no pagada** cuyo importe no sea el oficial tiene salida, y no destruye la
-comisión: `recalculate` la repara, sea cual sea la causa —política retirada, política ausente o
-versión superada—. La lleva al porcentaje vigente con traza completa y la devuelve a `CALCULADA`
-**retirando su revisión y su aprobación** —el importe cambió, así que el aval anterior ya no lo
-respalda—, con el importe reemplazado asentado en el historial como `COMMISSION_POLICY_REPAIRED`.
-Luego se rehace la cadena sobre el importe correcto.
+Una liquidación **no pagada** cuyo importe no sea el oficial, y **cuyo período esté en vigencia**,
+tiene salida y no destruye la comisión: `recalculate` la repara, sea cual sea la causa —política
+retirada, política ausente o versión superada—. La lleva al porcentaje vigente con traza completa y
+la devuelve a `CALCULADA` **retirando su revisión y su aprobación** —el importe cambió, así que el
+aval anterior ya no lo respalda—, con el importe reemplazado asentado en el historial como
+`COMMISSION_POLICY_REPAIRED`. Luego se rehace la cadena sobre el importe correcto.
+
+**Si el período es anterior a la vigencia, no hay reparación posible.** La decisión es
+`FUERA_DE_VIGENCIA` y la liquidación queda con la base informada y sin porcentaje: un importe
+heredado de ese período se retira y no se sustituye, y ninguna ruta pública lo devuelve —publicar
+una vigencia que alcance ese período está prohibido por la guarda de período liquidado. Lo que sí
+está garantizado es que **el importe retirado queda asentado**: `recalculate` escribe el bloque
+`replaced` en toda rama que anule o reemplace un importe anterior, no sólo al reparar una `REVISADA`
+o una `APROBADA`. Recuperar ese importe exigirá el flujo de corrección explícita que hoy no existe.
 
 Una que **sí** movió dinero conserva su importe histórico intacto: `recalculate` no la alcanza —la
 guarda es `paid_at IS NULL` sobre el `WHERE` entero, no sobre una rama— y su nota lo dice. Junto

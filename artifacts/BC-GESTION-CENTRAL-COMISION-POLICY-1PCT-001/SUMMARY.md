@@ -62,10 +62,18 @@ Los dos últimos son medio guaraní hacia arriba: `3.166,66 → 3.167` y `12.345
 - Recalcular es idempotente: la comparación incluye la traza de política completa, y una
   `REVISADA`/`APROBADA` ya correcta conserva su aval.
 - **Cada liquidación se resuelve contra la versión de su propio período.** Programar el porcentaje
-  del mes que viene no reescribe el mes en curso, y la vigencia no puede retroceder: se programa el
-  futuro, no se re-tarifa el pasado.
+  del mes que viene no reescribe el mes en curso.
+- **Una tasa publicada gobierna hacia adelante, y hacen falta dos guardas.** La vigencia no puede
+  retroceder respecto de la última publicada **ni gobernar un período ya liquidado** —con alguna
+  liquidación `CALCULADA`, `REVISADA`, `APROBADA` o `PAGADA`—. Como la vigencia se resuelve por mes,
+  una fecha *igual* a la última publicada gobierna los mismos períodos que ella: rechazar sólo el
+  retroceso estricto dejaba re-tarifar el pasado al alza o a cero. Corregir un período ya liquidado
+  exige un flujo de corrección explícita y auditada, que hoy no existe.
 - Un período anterior a toda vigencia no aplica el porcentaje hacia atrás: informa la base,
-  marca `FUERA_DE_VIGENCIA` y no es revisable ni pagable.
+  marca `FUERA_DE_VIGENCIA` y no es revisable ni pagable. Un importe heredado de ese período se
+  retira sin sustituto y **no tiene reparación posible**; lo que sí queda garantizado es que el
+  valor retirado se asienta en `replaced`, en toda rama de `recalculate` que anule o reemplace un
+  importe anterior, no sólo al reparar una `REVISADA` o una `APROBADA`.
 - **La comisión oficial no se mezcla.** Los agregados separan `commission_amount` —sólo lo
   calculado con la política aprobada— de `non_official_amount`, y la bandeja avisa cuando hay
   importes de la segunda clase. Ningún total rotulado «oficial 1,00%» incluye otra cosa.
@@ -74,6 +82,6 @@ Los dos últimos son medio guaraní hacia arriba: `3.166,66 → 3.167` y `12.345
 
 Base exacta: `e7732603d9eb098867a272598e6d30803a4f1ac3`.
 
-Regresión completa **331/331 PASS** (302 de línea base + 29 de esta misión: 27 de dominio y 2 de
-interfaz). Sin nómina, sin bancos, sin datos de clientes, sin proveedor externo, sin red, sin
-producción, sin merge a `main`.
+Regresión completa **345/345 PASS** (302 de línea base + 43 de esta misión: 41 de dominio y 2 de
+interfaz, de los cuales 14 son de la generación 4). Sin nómina, sin bancos, sin datos de clientes,
+sin proveedor externo, sin red, sin producción, sin merge a `main`.

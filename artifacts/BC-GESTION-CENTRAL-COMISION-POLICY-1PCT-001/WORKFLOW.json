@@ -4,7 +4,7 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "REMEDIATION",
+  "current_state": "IMPLEMENTED",
   "mission_lease": "HELD",
   "generation": 4,
   "autochain": [
@@ -15,11 +15,12 @@
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "PENDING",
   "tests": {
-    "full_regression": 331,
+    "full_regression": 345,
     "baseline": 302,
-    "added_cases": 29,
-    "module_suite": 131,
-    "commissions_cases": 80
+    "added_cases": 43,
+    "module_suite": 145,
+    "commissions_cases": 94,
+    "generation_4_added_cases": 14
   },
   "decision": {
     "code": "COMISION_GENERAL_1PCT",
@@ -189,10 +190,11 @@
     {
       "generation": 4,
       "snapshot_commit": null,
-      "status": "PENDING_REMEDIATION",
-      "tests": null,
+      "status": "PENDING_REVIEW",
+      "tests": 345,
       "verdicts": [],
-      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-4/"
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-4/",
+      "scope": "cierre de B1 y B2, y solo eso"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -330,11 +332,13 @@
       "generation": 3,
       "kind": "ECONOMICO",
       "summary": "set_general_rate acepta una vigencia IGUAL a la ultima publicada, de modo que un periodo ya liquidado y aprobado se re-tarifa al alza o a cero y se paga; contradice 'no se puede re-tarifar el pasado'",
-      "status": "ABIERTO_REQUIERE_DECISION_DE_PROPIETARIO",
+      "status": "CERRADO_PENDIENTE_VERIFICACION",
       "decision_fork": [
         "ENDURECER_GUARDA",
         "RETIRAR_AFIRMACION_Y_DOCUMENTAR_RETARIFADO"
-      ]
+      ],
+      "owner_decision": "OPCION_A_ENDURECER_GUARDA",
+      "closure": "set_general_rate rechaza toda vigencia cuyo mes no sea posterior al ultimo periodo con liquidaciones en CALCULADA, REVISADA, APROBADA o PAGADA. La guarda va despues del corto-circuito de idempotencia, de modo que republicar lo identico sigue sin crear version."
     },
     {
       "id": "B2",
@@ -342,20 +346,31 @@
       "generation": 3,
       "kind": "ECONOMICO",
       "summary": "recalculate no repara la liquidacion legada de un periodo anterior a la vigencia y anula su importe sin asentar 'replaced' fuera de las ramas REVISADA/APROBADA",
-      "status": "ABIERTO",
-      "cierre_esperable": "escribir replaced en toda rama que anule un commission_amount previo y corregir COMMISSION_POLICY_1PCT.md:110"
+      "status": "CERRADO_PENDIENTE_VERIFICACION",
+      "cierre_esperable": "escribir replaced en toda rama que anule un commission_amount previo y corregir COMMISSION_POLICY_1PCT.md:110",
+      "closure": "recalculate escribe 'replaced' en toda rama que anule o reemplace un commission_amount o un rate_bp previo, no solo al reparar REVISADA o APROBADA. COMMISSION_POLICY_1PCT.md deja de prometer reparacion donde el periodo es anterior a la vigencia."
     }
   ],
   "next_action": {
     "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN4",
-    "state": "REMEDIATION",
-    "blocked_on": "decision de propietario sobre B1",
+    "state": "PENDING_INDEPENDENT_REVIEW",
     "steps": [
-      "1. Resolver la bifurcacion de B1: endurecer la guarda de set_general_rate contra periodos ya liquidados, o retirar la afirmacion y documentar el re-tarifado retroactivo con su control explicito.",
-      "2. Cerrar B2: asentar 'replaced' en toda rama de recalculate que anule o modifique un commission_amount previo, y corregir COMMISSION_POLICY_1PCT.md:110 para no prometer reparacion donde el periodo es anterior a la vigencia.",
-      "3. Regenerar evidencia y publicar el snapshot de la generacion 4.",
-      "4. Relanzar los tres runners independientes sobre ese snapshot. No reutilizar verdicts de las generaciones 1, 2 ni 3."
+      "1. Publicar el snapshot de la generacion 4.",
+      "2. Lanzar LIBRARIAN, QA y AUDITOR independientes sobre ese snapshot.",
+      "3. No reutilizar verdicts de las generaciones 1, 2 ni 3.",
+      "4. Con 3xPASS: protected commit/push, Safe Closure, liberar Mission Lease y persistir NEXT_ACTION."
     ],
-    "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 queda condicionado a 3xPASS y a la Safe Closure de esta mision; no se abre todavia."
+    "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 sigue sin abrirse."
+  },
+  "policy_decision_b1": {
+    "option": "A",
+    "decided_by": "propietario del repositorio",
+    "rule": [
+      "una tasa publicada gobierna hacia adelante",
+      "un periodo ya liquidado no puede ser re-tarifado mediante set_general_rate",
+      "no se modifica retroactivamente una liquidacion calculada, revisada, aprobada o pagada",
+      "corregir una tasa mal publicada sobre un periodo ya liquidado exigira un flujo separado de correccion explicita y auditada"
+    ],
+    "out_of_scope": "el flujo de correccion/ajuste explicito no se implementa en esta generacion"
   }
 }

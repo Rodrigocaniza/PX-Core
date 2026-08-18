@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -43,6 +44,34 @@ def agreement(**changes):
 def active(service, sale_id, actor=SOL):
     return next(row for row in service.list_entries(actor) if row["sale_id"] == sale_id
                 and row["status"] != "REVERTIDA")
+
+
+def _inject_policy_version(service, *, version, rate_bp, effective_from):
+    """Instala una versión de política por SQL, saltándose la guarda de período liquidado.
+
+    No es una puerta trasera del producto: es la única forma de reconstruir un sello de
+    política desfasado ahora que `set_general_rate` prohíbe alcanzar un período ya liquidado
+    (bloqueante B1). Sirve para probar la guarda de pago, que debe seguir defendiendo contra
+    un estado que puede llegar migrado desde otra instalación.
+    """
+    import sqlite3
+
+    from modulos.gestion_central.comision_policy import (
+        CANONICAL_POLICY_ID, CANONICAL_SCOPE, POLICY_CANONICAL as CANONICAL,
+    )
+
+    with sqlite3.connect(service.repository.database_path) as con:
+        con.execute(
+            "UPDATE commission_policies SET rate_bp=?,version=?,effective_from=?,approval_status=?"
+            " WHERE scope=? AND scope_value=''",
+            (rate_bp, version, effective_from, CANONICAL, CANONICAL_SCOPE),
+        )
+        con.execute(
+            "INSERT INTO commission_policy_versions(policy_id,code,scope,scope_value,version,rate_bp,"
+            "approval_status,effective_from,note,actor,recorded_at) VALUES(?,?,?,'',?,?,?,?,?,?,?)",
+            (CANONICAL_POLICY_ID, CANONICAL_CODE, CANONICAL_SCOPE, version, rate_bp, CANONICAL,
+             effective_from, "inyectada en prueba", "sol", "2099-01-01T00:00:00+00:00"),
+        )
 
 
 # ------------------------------------------------------------------ reglas económicas
@@ -1118,13 +1147,22 @@ def test_a_policy_version_can_never_re_rate_a_closed_period(service):
 
 
 def test_a_settlement_calculated_under_an_older_version_is_never_paid(service):
-    """Bloqueante Auditor generación 2: el sello CANONICA_APROBADA quedaba desactualizado."""
+    """Bloqueante Auditor generación 2: el sello CANONICA_APROBADA quedaba desactualizado.
+
+    Desde la generación 4 la ruta pública ya no produce esta deriva: publicar una vigencia que
+    gobierne un período ya liquidado está prohibido (bloqueante B1, verificado aquí mismo). La
+    guarda de pago sigue haciendo falta como defensa en profundidad —una base migrada de otra
+    instalación puede traer el sello desfasado—, así que el estado se reconstruye por SQL, que
+    es la única vía que queda.
+    """
     sale_id, _ = service.register_sale(SOL, agreement())
     service.recalculate(SOL)
     entry_id = active(service, sale_id)["id"]
     service.review(SOL, entry_id)
-    # La política del propio período de la liquidación cambia: su importe deja de ser oficial.
-    service.set_general_rate(SOL, 50, "2099-01-01", "baja pactada")
+    # B1: el período 2099-04 ya está liquidado; ninguna vigencia puede alcanzarlo.
+    with pytest.raises(ValueError, match="ya fue liquidado"):
+        service.set_general_rate(SOL, 50, "2099-01-01", "baja pactada")
+    _inject_policy_version(service, version=2, rate_bp=50, effective_from="2099-01-01")
     assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_750
     with pytest.raises(ValueError, match="la política del período cambió"):
         service.approve(SOL, entry_id, "Sol")
@@ -1214,3 +1252,194 @@ def test_the_official_kpi_never_counts_an_amount_from_a_retired_policy(tmp_path)
     export = service.export_summary(SOL, "2099-04")
     assert export["kpi"]["commission_amount"] == 4_000
     assert export["kpi"]["non_official_amount"] == 33_250
+
+
+# ------------------------------------------------ B1: una tasa publicada rige hacia adelante
+def settled_entry(service, status):
+    """Deja una liquidación del período 2099-04 en el estado liquidado pedido."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    if status == "CALCULADA":
+        return entry_id
+    service.review(SOL, entry_id)
+    if status == "REVISADA":
+        return entry_id
+    service.approve(SOL, entry_id, "Sol")
+    if status == "APROBADA":
+        return entry_id
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
+    assert status == "PAGADA"
+    return entry_id
+
+
+def snapshot(service, entry_id):
+    entry = service.get_entry(SOL, entry_id)
+    return (entry["status"], entry["rate_bp"], entry["commission_amount"],
+            entry["policy_version"], entry["policy_status"])
+
+
+def test_a_rate_effective_before_the_last_published_one_is_rejected(service):
+    """Vigencia anterior: la guarda de retroceso sigue en pie."""
+    settled_entry(service, "CALCULADA")
+    assert service.set_general_rate(SOL, 200, "2099-06-01", "programada") == (2, True)
+    with pytest.raises(ValueError, match="la vigencia no puede retroceder"):
+        service.set_general_rate(SOL, 300, "2099-05-01", "hacia atrás")
+
+
+def test_a_rate_effective_on_the_same_date_as_the_last_one_is_rejected(service):
+    """Bloqueante B1: una vigencia *igual* gobierna los mismos períodos que la anterior.
+
+    Rechazar sólo el retroceso estricto dejaba abierta la re-tarifación del pasado: publicar
+    otra vez la fecha vigente imponía la tasa nueva sobre todo lo ya liquidado.
+    """
+    entry_id = settled_entry(service, "APROBADA")
+    before = snapshot(service, entry_id)
+    with pytest.raises(ValueError, match="ya fue liquidado"):
+        service.set_general_rate(SOL, 4_000, CANONICAL_EFFECTIVE_FROM, "40% retroactivo")
+    with pytest.raises(ValueError, match="ya fue liquidado"):
+        service.set_general_rate(SOL, 0, CANONICAL_EFFECTIVE_FROM, "a cero")
+    assert snapshot(service, entry_id) == before
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 0}
+    assert snapshot(service, entry_id) == before
+
+
+def test_a_future_rate_that_governs_no_settled_period_is_accepted(service):
+    """Vigencia futura válida: se puede programar hacia adelante."""
+    entry_id = settled_entry(service, "APROBADA")
+    before = snapshot(service, entry_id)
+    assert service.set_general_rate(SOL, 200, "2099-05-01", "sube en mayo") == (2, True)
+    # El período ya liquidado conserva su tasa: la versión nueva no lo alcanza.
+    assert snapshot(service, entry_id) == before
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 0}
+    assert snapshot(service, entry_id) == before
+    # Y sigue siendo pagable al importe con el que se aprobó.
+    service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
+
+
+@pytest.mark.parametrize("status", ["CALCULADA", "REVISADA", "APROBADA", "PAGADA"])
+def test_a_settled_period_is_never_re_rated(service, status):
+    """Ningún estado liquidado se re-tarifa: ni calculado, ni revisado, ni aprobado, ni pagado."""
+    entry_id = settled_entry(service, status)
+    before = snapshot(service, entry_id)
+    assert before[1] == CANONICAL_RATE_BP and before[2] == 4_000
+    for rate, date_text in ((4_000, CANONICAL_EFFECTIVE_FROM), (0, "2099-04-01"), (9_999, "2099-01-01")):
+        with pytest.raises(ValueError, match="ya fue liquidado"):
+            service.set_general_rate(SOL, rate, date_text, "intento retroactivo")
+    assert snapshot(service, entry_id) == before
+    # Ninguna versión espuria quedó publicada por los intentos fallidos.
+    assert service.current_policy(SOL)["version"] == 1
+    assert service.current_policy(SOL)["rate_bp"] == CANONICAL_RATE_BP
+
+
+def test_no_indirect_retroactive_re_rating_through_recalculate(service):
+    """No existe re-tarifado retroactivo indirecto: publicar y recalcular no mueve lo liquidado."""
+    paid = settled_entry(service, "PAGADA")
+    approved_sale, _ = service.register_sale(SOL, common(source_sale_id="v2", envelope="S-002",
+                                                         initial_paid=400_000))
+    service.recalculate(SOL)
+    approved = active(service, approved_sale)["id"]
+    service.review(SOL, approved)
+    service.approve(SOL, approved, "Sol")
+    before_paid, before_approved = snapshot(service, paid), snapshot(service, approved)
+    # La única publicación admitida es hacia adelante, y no alcanza a 2099-04.
+    service.set_general_rate(SOL, 5_000, "2099-05-01", "sube en mayo")
+    for _ in range(3):
+        service.recalculate(SOL)
+    assert snapshot(service, paid) == before_paid
+    assert snapshot(service, approved) == before_approved
+    assert service.get_entry(SOL, approved)["commission_amount"] == 4_000
+
+
+def test_republishing_the_same_rate_stays_idempotent_with_settled_periods(service):
+    """La guarda no rompe la idempotencia: republicar lo idéntico sigue sin crear versión."""
+    settled_entry(service, "PAGADA")
+    assert service.set_general_rate(SOL, CANONICAL_RATE_BP, CANONICAL_EFFECTIVE_FROM, "igual") == (1, False)
+    assert service.current_policy(SOL)["version"] == 1
+
+
+def test_a_period_with_only_eligible_entries_is_not_settled_yet(service):
+    """`ELEGIBLE` no es liquidado: todavía no se le aplicó porcentaje alguno."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    # Sin recalcular: la liquidación está ELEGIBLE y ningún importe se calculó.
+    assert active(service, sale_id)["status"] == "ELEGIBLE"
+    assert service.set_general_rate(SOL, 250, CANONICAL_EFFECTIVE_FROM, "antes de calcular") == (2, True)
+    service.recalculate(SOL)
+    entry = service.get_entry(SOL, active(service, sale_id)["id"])
+    assert entry["rate_bp"] == 250 and entry["commission_amount"] == 10_000
+
+
+# ---------------------------------- B2: todo importe retirado queda asentado en `replaced`
+def legacy_before_effective(tmp_path, status, rate_bp=700, commission=33_250):
+    """Liquidación heredada de un período anterior a la vigencia, con importe no oficial."""
+    import sqlite3
+
+    database = tmp_path / "pre-vigencia.sqlite3"
+    service = CommissionService(CentralManagementService(CentralRepository(database)))
+    sale_id, _ = service.register_sale(SOL, agreement(sale_date="2026-07-12"))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    with sqlite3.connect(database) as con:
+        con.execute("UPDATE commission_entries SET status=?,rate_bp=?,commission_amount=?,"
+                    "policy_status=?,policy_code=NULL,policy_version=NULL,"
+                    "policy_effective_from=NULL,policy_scope=NULL WHERE id=?",
+                    (status, rate_bp, commission, RETIRED_POLICY_STATUSES[0], entry_id))
+        con.commit()
+    return CommissionService(CentralManagementService(CentralRepository(database))), entry_id
+
+
+@pytest.mark.parametrize("status", ["ELEGIBLE", "CALCULADA"])
+def test_an_annulled_amount_before_effective_date_is_recorded_as_replaced(tmp_path, status):
+    """Bloqueante B2: el importe retirado desaparecía de toda ruta pública.
+
+    El bloque `replaced` sólo se escribía al reparar una `REVISADA` o una `APROBADA`. Una
+    liquidación heredada en `ELEGIBLE` o `CALCULADA` de un período anterior a la vigencia
+    perdía su importe sin dejar rastro auditable de cuánto se retiró.
+    """
+    service, entry_id = legacy_before_effective(tmp_path, status)
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 33_250
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 1}
+    entry = service.get_entry(SOL, entry_id)
+    # El período es anterior a la vigencia: queda sin porcentaje, con la base informada.
+    assert entry["policy_status"] == POLICY_OUT_OF_EFFECT
+    assert entry["rate_bp"] is None and entry["commission_amount"] is None
+    assert entry["commissionable_base"] == 475_000
+    # Y el importe retirado quedó asentado.
+    replaced = [row for row in service.history(SOL, entry_id)
+                if "replaced" in json.loads(row["details_json"])]
+    assert len(replaced) == 1
+    detail = json.loads(replaced[0]["details_json"])["replaced"]
+    assert detail["commission_amount"] == 33_250 and detail["rate_bp"] == 700
+    # La migración ya reetiquetó la marca retirada: lleva importe, así que es una legada.
+    assert detail["policy_status"] == POLICY_LEGACY
+    # Idempotente: repetir no vuelve a asentar ni cambia nada.
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 0}
+    assert len([row for row in service.history(SOL, entry_id)
+                if "replaced" in json.loads(row["details_json"])]) == 1
+
+
+def test_a_replaced_amount_is_recorded_when_a_rate_changes_before_review(service):
+    """Cualquier rama que reemplace un importe previo lo asienta, esté revisada o no."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    assert service.get_entry(SOL, entry_id)["commission_amount"] == 4_000
+    # Una tasa distinta para el mismo período sólo puede llegar por una base migrada.
+    _inject_policy_version(service, version=2, rate_bp=250, effective_from=CANONICAL_EFFECTIVE_FROM)
+    assert service.recalculate(SOL) == {"evaluated": 1, "changed": 1}
+    entry = service.get_entry(SOL, entry_id)
+    assert entry["status"] == "CALCULADA" and entry["commission_amount"] == 10_000
+    replaced = [json.loads(row["details_json"])["replaced"] for row in service.history(SOL, entry_id)
+                if "replaced" in json.loads(row["details_json"])]
+    assert replaced == [{"rate_bp": CANONICAL_RATE_BP, "commission_amount": 4_000,
+                         "policy_status": POLICY_CANONICAL}]
+
+
+def test_recalculate_records_nothing_replaced_when_there_was_no_previous_amount(service):
+    """Sin importe anterior no hay nada que reemplazar: el asiento no se inventa."""
+    sale_id, _ = service.register_sale(SOL, common(initial_paid=400_000))
+    service.recalculate(SOL)
+    entry_id = active(service, sale_id)["id"]
+    assert all("replaced" not in json.loads(row["details_json"])
+               for row in service.history(SOL, entry_id))

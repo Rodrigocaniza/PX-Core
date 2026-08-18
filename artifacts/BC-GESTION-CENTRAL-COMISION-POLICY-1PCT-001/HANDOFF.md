@@ -98,18 +98,30 @@ Aportados por las observaciones no bloqueantes de la generación 3, abiertos y *
     LIBRARIAN-003 obs 5: la crea el `CREATE TABLE IF NOT EXISTS` de `migrate()`. El efecto descrito
     es correcto; la atribución no.
 
+## Generación 4 — qué se hizo
+
+Los dos bloqueantes económicos del Auditor, y **sólo** ellos.
+
+- **B1, cerrado por decisión del propietario: opción (a), endurecer la guarda.** La regla canónica
+  queda: una tasa publicada gobierna hacia adelante; un período ya liquidado no se re-tarifa por
+  `set_general_rate`; no se modifica retroactivamente una liquidación calculada, revisada, aprobada
+  o pagada. `set_general_rate` rechaza ahora toda vigencia cuyo mes no sea posterior al último
+  período con liquidaciones en `CALCULADA`, `REVISADA`, `APROBADA` o `PAGADA` —lo que incluye la
+  vigencia *igual*, que era la puerta abierta—. La guarda va **después** del corto-circuito de
+  idempotencia, para que republicar lo idéntico siga sin crear versión.
+- **B2, cerrado.** `recalculate` escribe `replaced` en toda rama que anule o reemplace un importe o
+  un porcentaje previo, no sólo al reparar una `REVISADA` o una `APROBADA`.
+  `COMMISSION_POLICY_1PCT.md` deja de prometer reparación donde el período es anterior a la
+  vigencia, y dice en su lugar lo que sí está garantizado: que el importe retirado queda asentado.
+
+**Fuera de alcance, por decisión explícita:** el flujo separado de corrección/ajuste auditado para
+una tasa mal publicada sobre un período ya liquidado. No se implementa en esta generación. Hasta
+que exista, un período liquidado con una tasa equivocada no tiene corrección por ruta pública, y un
+importe heredado de un período anterior a la vigencia tampoco: ambos quedan asentados, no
+recuperables.
+
 ## Siguiente paso propuesto
 
-**Cerrar la generación 4.** Los dos bloqueantes económicos del Auditor mandan sobre todo lo demás:
-
-- **B1** — resolver la bifurcación: endurecer la guarda de `set_general_rate` para que rechace una
-  vigencia que gobierne un período ya liquidado, o retirar la afirmación «no se puede re-tarifar el
-  pasado» y documentar el re-tarifado retroactivo con su control explícito. Es una decisión del
-  propietario, no del implementador.
-- **B2** — asentar `replaced` en toda rama de `recalculate` que anule o modifique un
-  `commission_amount` previo, y corregir `COMMISSION_POLICY_1PCT.md:110` para no prometer
-  reparación donde el período es anterior a la vigencia.
-
-Sólo después vuelve a la cola el cableado de `register_payment` y `sync_review_sales` desde el
-producto (heredado 11), que sigue siendo lo único que impide que el ciclo cobro → elegibilidad →
-1% → aprobación → pago sea alcanzable sin el capturador sintético.
+Con 3×PASS y Safe Closure, vuelve a la cola el cableado de `register_payment` y `sync_review_sales`
+desde el producto (heredado 11), que sigue siendo lo único que impide que el ciclo cobro →
+elegibilidad → 1% → aprobación → pago sea alcanzable sin el capturador sintético.
