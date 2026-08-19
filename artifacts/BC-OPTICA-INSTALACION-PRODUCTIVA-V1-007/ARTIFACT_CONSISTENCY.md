@@ -105,3 +105,19 @@ comportamiento contra estos datos.
   esperado: la carga inicial es una misión aparte y no se empezó.
 - **Anular exige que el día esté abierto.** Deuda preexistente heredada del
   slice 6, no introducida aquí.
+
+## Nota sobre la vía canónica de distribución del binario
+
+La convención del proyecto es no reconstruir el binario para otra máquina, sino
+bajar el artefacto exacto del repo privado `Rodrigocaniza/PX-Core-releases` y
+verificar su sha256.
+
+**No se pudo comprobar si rc.32 estaba publicada ahí:** `gh release list --repo
+Rodrigocaniza/PX-Core-releases` fue denegado por permisos en esta sesión, dos
+veces. Lo que sí consta es que el propio MANIFEST del slice 6 declara el zip
+`"zip_en_el_remoto": false` y `"zip_gitignored": true`, y que `releases/` en esta
+PC no lo tiene. Sobre esa base se reconstruyó desde el commit verificado.
+
+Si rc.32 sí estaba publicada como release asset, la instalación sigue siendo
+correcta —es el mismo commit— pero el camino usado no fue el canónico. Queda
+declarado en vez de dado por resuelto.
