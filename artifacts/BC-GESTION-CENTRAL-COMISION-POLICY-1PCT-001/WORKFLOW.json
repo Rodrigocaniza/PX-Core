@@ -4,9 +4,9 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "GENERATION_8_REMEDIATED_PENDING_VERDICTS",
+  "current_state": "GENERATION_9_REMEDIATED_PENDING_VERDICTS",
   "mission_lease": "ACQUIRED",
-  "generation": 8,
+  "generation": 9,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -15,16 +15,17 @@
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "PENDING",
   "tests": {
-    "full_regression": 431,
+    "full_regression": 444,
     "baseline": 302,
-    "added_cases": 129,
-    "module_suite": 231,
-    "commissions_cases": 180,
+    "added_cases": 142,
+    "module_suite": 244,
+    "commissions_cases": 193,
     "generation_5_added_cases": 26,
     "generation_6_added_cases": 26,
     "generation_7_added_cases": 23,
     "generation_8_added_cases": 13,
-    "generation_8_directed_file": "tests/gestion_central/test_comision_legacy_facts.py"
+    "generation_9_added_cases": 13,
+    "generation_9_directed_file": "tests/gestion_central/test_comision_rate_coherence.py"
   },
   "decision": {
     "code": "COMISION_GENERAL_1PCT",
@@ -384,10 +385,33 @@
     },
     {
       "generation": 8,
-      "snapshot_commit": null,
-      "status": "REMEDIATED_PENDING_VERDICTS",
+      "snapshot_commit": "cf4fb258703e266148d7bb7332b79ffdddce926c",
+      "status": "INVALIDATED",
       "tests": 431,
-      "verdicts": [],
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-008",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "blockers": [
+            "L1-g8",
+            "L2-g8"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-008",
+          "role": "QA",
+          "verdict": "PASS"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-008",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "blockers": [
+            "AB1-g8"
+          ]
+        }
+      ],
       "scope": "cerrar AB1-g7 unificando el predicado de hecho vivo, y L1-g7 unificando el escritor del libro",
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-8/",
       "remediation": {
@@ -417,6 +441,45 @@
           "QA-007 obs 1": "export contradictorio en base legada fuera de vigencia, no alcanzable por ruta publica",
           "QA-007 obs 3": "observe por si solo suelta el periodo, mas estricto que el enunciado observe+revert",
           "QA-007 obs 4": "punto decimal en el export y coma en pantalla, deliberado"
+        }
+      },
+      "outcome": "AB1-g7 cerrado en la raiz y verificado por los tres. La generacion queda INVALIDADA por AB1-g8 (economico) y por dos documentales del Librarian, uno de ellos sobre el contrato economico."
+    },
+    {
+      "generation": 9,
+      "snapshot_commit": null,
+      "status": "REMEDIATED_PENDING_VERDICTS",
+      "tests": 444,
+      "verdicts": [],
+      "scope": "cerrar AB1-g8 unificando la regla de decision, y L1-g8 y L2-g8",
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-9/",
+      "remediation": {
+        "root_cause": "la regla que decide que tasa tiene un periodo estaba escrita dos veces: la siembra exigia coherencia de tasa entre los hechos vivos y se abstenia si no la habia; la reconciliacion en caliente no miraba la tasa en absoluto y retenia el pin con cualquier hecho vivo",
+        "fix": [
+          "comision_policy.resolve_period_rate: unica funcion de decision, usada por el runtime y por la apertura de la base",
+          "CentralRepository.reconcile_period_rate: fijar, soltar y refijar son la misma operacion, en un solo sitio",
+          "comision_policy.live_official_facts_sql: la consulta entera, columnas y clave de periodo incluidas",
+          "la apertura de la base reconcilia todos los periodos en vez de sembrar los que no tienen libro",
+          "record_period_rate_event asienta siempre con el mismo nombre de accion; el origin distingue la ruta",
+          "se retira el parametro audit y el nombre de accion propio de la siembra"
+        ],
+        "gen8_observations_addressed": [
+          "AUDITOR-008 obs 1 (tercera copia parcial del predicado, que desaparece)",
+          "AUDITOR-008 obs 2 (la siembra asentaba con otro nombre y sin auditar)",
+          "LIBRARIAN-008 obs 1 (la prueba de escritor unico solo cubria modulos/)",
+          "LIBRARIAN-008 obs 2 (redaccion sobre UPDATE y DELETE)",
+          "LIBRARIAN-008 obs 3 (titular del invariante 11)",
+          "LIBRARIAN-008 obs 4 (period sin normalizar al leer la tabla congelada)",
+          "LIBRARIAN-008 obs 5 y 6 (documentales)",
+          "QA-008 obs 1 (un PINNED heredado sin hecho vivo sobrevivia a la migracion)",
+          "QA-008 obs 4 (el aviso pedia recalcular liquidaciones ya pagadas)"
+        ],
+        "gen8_observations_open": {
+          "AUDITOR-008 obs 3": "decide() resuelve el pin dentro de la transaccion, pero el catalogo abre conexion propia",
+          "AUDITOR-008 obs 4": "recalculate reprecia una APROBADA legada, documentado y asentado en replaced",
+          "AUDITOR-008 obs 5": "recalculate evalua liquidaciones de ventas anuladas, ya no pagables",
+          "QA-008 obs 2": "recalculate puede necesitar dos pasadas cuando la reparacion suelta el propio periodo",
+          "QA-008 obs 3": "el KPI Pagado suma tambien lo legado que la comision oficial excluye"
         }
       }
     }
@@ -773,17 +836,43 @@
       "kind": "DOCUMENTAL",
       "status": "CERRADO_EN_GEN8",
       "summary": "TEST_EVIDENCE describia dos pruebas vivas comprobando la tabla congelada"
+    },
+    {
+      "id": "AB1-g8",
+      "role": "AUDITOR",
+      "generation": 8,
+      "kind": "ECONOMICO",
+      "status": "CERRADO_EN_GEN9_PENDIENTE_DE_VERDICTS",
+      "summary": "la migracion se negaba a desempatar evidencia discrepante y el codigo en caliente si desempataba: un mes migrado nacia sin pin teniendo hechos vivos, y el primer pin que recibia quedaba clavado a una tasa que ninguno de sus hechos llevaba",
+      "impact": "sobrepago de 9.900.000 Gs por venta de 10.000.000 Gs, sin techo; misma cifra de subpago en la direccion contraria",
+      "closure": "resolve_period_rate: una sola funcion de decision, usada por el runtime y por la apertura de la base"
+    },
+    {
+      "id": "L1-g8",
+      "role": "LIBRARIAN",
+      "generation": 8,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_GEN9",
+      "summary": "cuatro documentos, entre ellos el contrato economico, seguian afirmando que paid_at basta por si solo"
+    },
+    {
+      "id": "L2-g8",
+      "role": "LIBRARIAN",
+      "generation": 8,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_GEN9",
+      "summary": "PERIOD_MATCH_SQL tenia un solo usuario: la migracion agrupaba el periodo en Python, fuera del SQL"
     }
   ],
   "next_action": {
-    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN8-VERDICTS",
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN9-VERDICTS",
     "state": "PENDING_INDEPENDENT_VERDICTS",
     "steps": [
-      "1. Publicar el snapshot de la generacion 8 (protected commit y push).",
+      "1. Publicar el snapshot de la generacion 9 (protected commit y push).",
       "2. Relanzar los tres runners independientes sobre ese snapshot.",
-      "3. No reutilizar verdicts de las generaciones 1 a 7.",
+      "3. No reutilizar verdicts de las generaciones 1 a 8.",
       "4. Con 3xPASS: Artifact Consistency, Safe Closure, liberar el lease y persistir el NEXT_ACTION siguiente.",
-      "5. Con cualquier FAIL: abrir la generacion 9 con el alcance exacto."
+      "5. Con cualquier FAIL: abrir la generacion 10 con el alcance exacto."
     ],
     "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 no se abre hasta cerrar esta politica economica."
   },
@@ -877,5 +966,21 @@
       "exit_boundary": "CommissionService._reconcile_period_pin, invocado desde _set_status",
       "live_fact_predicate": "comision_policy.LIVE_OFFICIAL_FACT_SQL y PERIOD_MATCH_SQL: un unico SQL usado por el codigo en caliente y por la migracion"
     }
+  },
+  "policy_decision_gen9": {
+    "decided_by": "propietario del repositorio",
+    "decision": "una PAGADA viva conserva la tasa economica real con la que fue pagada, aunque difiera del 1% vigente",
+    "rules": [
+      "si el periodo posee una PAGADA viva al 7%, ese periodo permanece fijado al 7%",
+      "no reinterpretar ese pago historico como 1%",
+      "no modificar silenciosamente importes ya pagados",
+      "no forzar retroactivamente la politica 1% sobre hechos economicos oficiales anteriores",
+      "el 1% aplica a periodos nuevos o no consolidados que no posean una tasa oficial historica viva que preservar",
+      "resolve_period_rate es la unica funcion que decide la tasa vigente del periodo",
+      "no duplicar esa decision entre migracion, runtime o reconciliacion"
+    ],
+    "closes": [
+      "AB1-g8"
+    ]
   }
 }

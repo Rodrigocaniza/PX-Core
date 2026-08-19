@@ -107,7 +107,7 @@ def test_una_aprobada_fija_el_periodo(service):
     sale_id, _ = service.register_sale(SOL, sale())
     approve_entry(service, sale_id)
     assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
-    assert events(service) == [("PINNED", CANONICAL_RATE_BP, "APROBADA")]
+    assert events(service) == [("PINNED", CANONICAL_RATE_BP, "COMMISSION_APPROVED")]
 
 
 # ------------------------------------ 2 · dos APROBADA, revertir una → sigue fijado
@@ -123,7 +123,7 @@ def test_revertir_una_de_dos_aprobadas_no_suelta_el_periodo(service):
 
     service.revert(SOL, first_entry, "se rehace la primera")
     assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
-    assert events(service) == [("PINNED", CANONICAL_RATE_BP, "APROBADA")]
+    assert events(service) == [("PINNED", CANONICAL_RATE_BP, "COMMISSION_APPROVED")]
 
 
 # ------------------------------------------- 3 · revertir la última APROBADA → unpin
@@ -131,7 +131,7 @@ def test_revertir_la_ultima_aprobada_suelta_el_periodo(service):
     sale_id, entry_id = promotional_typo(service)
     service.revert(SOL, entry_id, "aprobación equivocada: la tasa promocional era un tipeo")
     assert rated_periods(service) == {}
-    assert events(service) == [("PINNED", 10_000, "APROBADA"),
+    assert events(service) == [("PINNED", 10_000, "COMMISSION_APPROVED"),
                                ("UNPINNED", 10_000, "COMMISSION_REVERTED")]
     assert service.policy_for_period(SOL, "2099-04")["pinned"] is False
 
@@ -145,7 +145,7 @@ def test_una_pagada_viva_nunca_suelta_el_periodo(service):
     assert rated_periods(service) == {"2099-04": 10_000}
     service.void_sale(SOL, sale_id, "la venta se anula después de pagada la comisión")
     assert rated_periods(service) == {"2099-04": 10_000}
-    assert events(service) == [("PINNED", 10_000, "APROBADA")]
+    assert events(service) == [("PINNED", 10_000, "COMMISSION_APPROVED")]
 
 
 def test_una_pagada_no_se_puede_revertir_y_por_lo_tanto_no_suelta(service):
@@ -174,7 +174,7 @@ def test_un_cobro_rechazado_despues_de_aprobar_suelta_el_periodo(service):
     service.revert_payment(SOL, payment_id, "cheque rechazado por el banco")
     assert active(service, sale_id)["status"] == "PENDIENTE_SALDO"
     assert rated_periods(service) == {}
-    assert events(service) == [("PINNED", 10_000, "APROBADA"),
+    assert events(service) == [("PINNED", 10_000, "COMMISSION_APPROVED"),
                                ("UNPINNED", 10_000, "PAYMENT_REVERTED")]
 
 
@@ -184,7 +184,7 @@ def test_anular_la_venta_del_ultimo_hecho_suelta_el_periodo(service):
     sale_id, _ = promotional_typo(service)
     service.void_sale(SOL, sale_id, "venta cargada por error")
     assert rated_periods(service) == {}
-    assert events(service) == [("PINNED", 10_000, "APROBADA"),
+    assert events(service) == [("PINNED", 10_000, "COMMISSION_APPROVED"),
                                ("UNPINNED", 10_000, "SALE_VOIDED")]
 
 
@@ -196,7 +196,7 @@ def test_observar_y_luego_revertir_suelta_el_periodo(service):
     assert rated_periods(service) == {}
     service.revert(SOL, entry_id, "se rehace la liquidación")
     # Y revertir después no escribe un segundo UNPINNED: ya no había nada que soltar.
-    assert events(service) == [("PINNED", 10_000, "APROBADA"),
+    assert events(service) == [("PINNED", 10_000, "COMMISSION_APPROVED"),
                                ("UNPINNED", 10_000, "COMMISSION_OBSERVED")]
 
 
@@ -239,9 +239,9 @@ def test_un_hecho_oficial_posterior_vuelve_a_fijar_el_periodo(service):
     real, _ = service.register_sale(SOL, sale(source_sale_id="venta-real", sale_date="2099-04-22"))
     real_entry = approve_entry(service, real)
     assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
-    assert events(service) == [("PINNED", 10_000, "APROBADA"),
+    assert events(service) == [("PINNED", 10_000, "COMMISSION_APPROVED"),
                                ("UNPINNED", 10_000, "COMMISSION_REVERTED"),
-                               ("PINNED", CANONICAL_RATE_BP, "APROBADA")]
+                               ("PINNED", CANONICAL_RATE_BP, "COMMISSION_APPROVED")]
     assert service.get_entry(SOL, real_entry)["commission_amount"] == 100_000
 
 
@@ -274,12 +274,12 @@ def test_el_libro_conserva_toda_la_secuencia_sin_borrar_ni_reescribir(service):
         rows = [dict(row) for row in con.execute(
             "SELECT * FROM commission_period_rate_events WHERE period='2099-04' ORDER BY id")]
     assert [row["event"] for row in rows] == ["PINNED", "UNPINNED", "PINNED"]
-    # El PINNED original no se tocó: conserva su tasa, su origen y la liquidación que lo causó.
-    assert rows[0]["rate_bp"] == 10_000 and rows[0]["origin"] == "APROBADA"
+    # El PINNED original no se tocó: conserva su tasa, su causa y la liquidación que lo produjo.
+    assert rows[0]["rate_bp"] == 10_000 and rows[0]["origin"] == "COMMISSION_APPROVED"
     assert rows[0]["entry_id"] == entry_id
     # El UNPINNED dice qué tasa se retiró, por qué y quién.
     assert rows[1]["rate_bp"] == 10_000 and rows[1]["origin"] == "COMMISSION_REVERTED"
-    assert "sin hechos economicos oficiales vivos" in rows[1]["reason"]
+    assert "ningun hecho economico oficial vivo sostiene esta tasa" in rows[1]["reason"]
     assert all(row["actor"] == "sol" and row["recorded_at"] for row in rows)
     # Y los tres eventos están en `central_audit`, no sólo en el libro.
     assert len(audits(service, "COMMISSION_PERIOD_RATE_PINNED")) == 2
@@ -414,7 +414,7 @@ def test_reabrir_la_base_migrada_es_idempotente(tmp_path):
         service = CommissionService(CentralManagementService(CentralRepository(path)))
     assert rated_periods(service) == {"2099-05": 500}
     assert len(events(service, "2099-05")) == 1
-    assert len(audits(service, "COMMISSION_PERIOD_RATE_SEEDED")) == 1
+    assert len(audits(service, "COMMISSION_PERIOD_RATE_PINNED")) == 1
 
 
 # ---------------------------- 15 · el sobrepago de 9.900.000 Gs queda eliminado

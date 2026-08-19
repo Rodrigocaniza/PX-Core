@@ -283,7 +283,7 @@ def test_la_migracion_nunca_inventa_una_tasa_para_un_mes_solo_provisional(tmp_pa
              total=400_000, created_at="2099-05-01T00:00:00"),
     ])
     assert rated_periods(service) == {}
-    assert audits(service, "COMMISSION_PERIOD_RATE_SEEDED") == []
+    assert audits(service, "COMMISSION_PERIOD_RATE_PINNED") == []
 
 
 def test_la_migracion_no_desempata_evidencia_discrepante(tmp_path):
@@ -315,13 +315,12 @@ def test_la_migracion_asienta_cada_periodo_sembrado(tmp_path):
         dict(period="2099-04", status="PAGADA", rate_bp=500, amount=20_000,
              total=400_000, created_at="2099-04-01T00:00:00"),
     ])
-    seeded = audits(service, "COMMISSION_PERIOD_RATE_SEEDED")
+    seeded = audits(service, "COMMISSION_PERIOD_RATE_PINNED")
     assert len(seeded) == 1 and seeded[0]["target"] == "2099-04"
-    assert '"boundary": "PAGADA"' in seeded[0]["details_json"]
     assert '"rate_bp": 500' in seeded[0]["details_json"]
     assert rate_events(service, "2099-04") == [
-        ("2099-04", "PINNED", 500, "BACKFILL",
-         "hecho economico vivo PAGADA en la base migrada", "MIGRACION")]
+        ("2099-04", "PINNED", 500, "MIGRACION",
+         "hecho economico oficial vivo: PAGADA", "MIGRACION")]
 
 
 def test_la_migracion_es_idempotente_y_no_duplica_su_auditoria(tmp_path):
@@ -340,7 +339,7 @@ def test_la_migracion_es_idempotente_y_no_duplica_su_auditoria(tmp_path):
     for _ in range(3):
         service = CommissionService(CentralManagementService(CentralRepository(path)))
     assert rated_periods(service) == {"2099-04": 500, "2099-05": 100}
-    assert len(audits(service, "COMMISSION_PERIOD_RATE_SEEDED")) == 2
+    assert len(audits(service, "COMMISSION_PERIOD_RATE_PINNED")) == 2
     assert len(audits(service, "COMMISSION_PERIOD_RATE_SEED_SKIPPED")) == 1
 
 
@@ -374,7 +373,7 @@ def test_la_fijacion_deja_trazabilidad_completa(service):
     assert len(pinned) == 1
     row = pinned[0]
     assert row["target"] == "2099-04" and row["actor"] == "sol"
-    for fragment in ('"origin": "APROBADA"', '"rate_bp": 100', f'"entry_id": "{entry_id}"',
+    for fragment in ('"origin": "COMMISSION_APPROVED"', '"rate_bp": 100', f'"entry_id": "{entry_id}"',
                      f'"policy_code": "{CANONICAL_CODE}"'):
         assert fragment in row["details_json"]
 

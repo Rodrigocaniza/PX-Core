@@ -78,9 +78,63 @@ LIVE_OFFICIAL_FACT_SQL = (
     "      OR (e.status IN " + BOUNDARY_SQL_IN + " AND COALESCE(s.voided,0) = 0))"
 )
 # El período de una liquidación es siempre AAAA-MM, pero una base de procedencia externa puede
-# traer una fecha completa. Comparar por prefijo en los dos lados evita que la siembra agrupe por
-# `AAAA-MM` y el código en caliente no encuentre nada.
-PERIOD_MATCH_SQL = "substr(e.period,1,7) = ?"
+# traer una fecha completa. La clave del período se deriva de **una sola expresión**, que es la que
+# usan tanto el filtro por período como el agrupamiento de la migración: agrupar en Python con
+# `str(period)[:7]` era un segundo texto equivalente, y ésos ya fallaron dos veces.
+PERIOD_KEY_SQL = "substr(e.period,1,7)"
+PERIOD_MATCH_SQL = PERIOD_KEY_SQL + " = ?"
+
+# Columnas que describen un hecho vivo. Las necesitan por igual quien resuelve en caliente y quien
+# siembra, así que se declaran una vez.
+LIVE_FACT_COLUMNS = (
+    "e.id, e.sale_id, e.period, e.rate_bp, e.policy_code, e.policy_version,"
+    " e.policy_effective_from, e.policy_scope, e.status, e.paid_at, e.created_at"
+)
+
+
+def live_official_facts_sql(*, by_period: bool) -> str:
+    """Consulta de hechos vivos: una sola, con o sin filtro por período.
+
+    Que la siembra y el código en caliente compartieran el `WHERE` pero no la consulta entera
+    dejaba el agrupamiento duplicado. Aquí no queda nada que separar.
+    """
+    scope = (f"{PERIOD_MATCH_SQL}" if by_period else "e.period IS NOT NULL")
+    return (
+        f"SELECT {LIVE_FACT_COLUMNS}, {PERIOD_KEY_SQL} AS period_key"
+        f"  FROM commission_entries e JOIN commission_sales s ON s.id = e.sale_id"
+        f" WHERE {scope} AND {LIVE_OFFICIAL_FACT_SQL}"
+        f" ORDER BY {PERIOD_KEY_SQL}, e.created_at, e.id"
+    )
+
+
+# Resultado de resolver la tasa de un período. `AMBIGUOUS` no es «no hay tasa»: es «hay más de una
+# y elegir sería decidir por el propietario», que se trata distinto en la auditoría.
+PERIOD_RATE_AMBIGUOUS = "AMBIGUOUS"
+
+
+def resolve_period_rate(facts):
+    """**Única** regla que decide qué tasa tiene un período a partir de sus hechos vivos.
+
+    Devuelve el hecho que la sostiene, `None` si no hay ninguno, o `PERIOD_RATE_AMBIGUOUS` si los
+    hechos vivos llevan tasas distintas.
+
+    Un pago manda sobre una aprobación —es el hecho más fuerte del mes— y a igualdad de fuerza gana
+    el más antiguo, para que el resultado no dependa del orden de lectura.
+
+    Que esta pregunta se contestara con **dos** reglas fue el bloqueante `AB1-g8`: la siembra exigía
+    coherencia de tasa y se abstenía si no la había, mientras que la reconciliación en caliente
+    retenía la fijación con cualquier hecho vivo, llevara la tasa que llevara. El resultado era un
+    pin que ninguno de sus hechos justificaba y que nada podía retirar. La regla del propietario
+    dice que el período sigue fijado mientras exista un hecho vivo **que justifique ese pin**: un
+    hecho a otra tasa no lo justifica.
+    """
+    if not facts:
+        return None
+    if len({int(fact["rate_bp"]) for fact in facts}) > 1:
+        return PERIOD_RATE_AMBIGUOUS
+    return sorted(facts, key=lambda fact: (
+        fact["paid_at"] is None and fact["status"] != "PAGADA",
+        str(fact["created_at"]), str(fact["id"])))[0]
 
 
 def quantize_guarani(value: Decimal) -> int:

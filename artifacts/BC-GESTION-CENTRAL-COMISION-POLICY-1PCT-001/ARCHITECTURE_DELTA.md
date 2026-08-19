@@ -54,12 +54,10 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
   origen, la liquidación causante, la razón, el actor y la fecha. **El estado vigente de un período
   es su último evento**; nada se actualiza y nada se borra, así que volver a fijar es un evento
   más y no una reescritura. Lo escribe un solo método, `CentralRepository.record_period_rate_event`
-  —hay **un único `INSERT`** sobre esta tabla en todo el código, y ningún `UPDATE` ni `DELETE`—,
-  desde tres llamadores: `_pin_rated_period` (`approve`/`mark_paid`), `_reconcile_period_pin` (el
-  boundary de salida) y la siembra de la migración. Vive en el repositorio, y no en el servicio,
-  porque la migración también escribe el libro y no puede importar `comisiones` sin crear un ciclo;
-  tenerlo en el servicio dejaba una segunda ruta de escritura en la migración, que fue el
-  bloqueante `L1-g7`. **Calcular no escribe aquí.**
+  —hay **un único `INSERT`** sobre esta tabla en todo el código de producción, y ningún `UPDATE` ni
+  `DELETE`—, invocado desde un solo sitio, `reconcile_period_rate`. Los fixtures de prueba sí
+  borran, para construir bases legadas; la propiedad append-only es del producto. **Calcular no
+  escribe aquí.**
 
 ## Invariantes que esta misión agrega
 
@@ -110,30 +108,36 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
    publicación, recálculo ni migración reinterpreta su importe. La frontera es un solo predicado
    —`RATING_BOUNDARY_STATES`, en `comision_policy.py` porque la migración necesita exactamente el
    mismo— y el SQL de ambos lados se arma desde `BOUNDARY_SQL_IN`, de modo que no puede divergir.
-10. **La fijación se retira cuando se retira su justificación.** Si un período se queda sin ningún
-    hecho oficial vivo, `_reconcile_period_pin` escribe un `UNPINNED` y el período vuelve a ser
-    resoluble. Se invoca desde `_set_status`, por donde pasa toda transición de estado, así que las
-    cuatro rutas de `AB1-g6` —y cualquiera futura— quedan cubiertas por construcción y no una por
-    una. **Una `PAGADA` viva nunca desfija**: `paid_at` cuenta como hecho vivo aunque la
-    liquidación se observe después o la venta se anule.
-11. **Migrar y operar dan el mismo resultado.** Los dos lados evalúan la vitalidad con **el mismo
-    SQL**, `comision_policy.LIVE_OFFICIAL_FACT_SQL`, y emparejan el período con
-    `PERIOD_MATCH_SQL`: no hay dos textos «equivalentes» que puedan separarse. Un período cuyo
-    último evento es `UNPINNED` vuelve a evaluarse al migrar, de modo que tampoco ahí divergen.
-    Tener el predicado escrito dos veces falló dos generaciones seguidas: en la 6 la migración
-    excluía las `REVERTIDA` y el código no (media `AB1-g6`); en la 7 la migración exigía política
-    canónica y el código no (`AB1-g7`, con una comisión legada del piloto bloqueando el boundary de
-    salida para siempre).
-12. **La migración nunca inventa ni desempata, ni siquiera retiradas.** La siembra sólo lee
-    liquidaciones con un hecho vivo; ante evidencia ausente o discrepante deja el período **sin
-    fijar** y lo asienta. **No escribe un solo `UNPINNED`**: afirmar que una fijación fue retirada
-    sería inventar un hecho que nadie produjo. **La siembra** no escribe una sola vez sobre
-    `commission_entries` —lo que sí hace otro paso de la migración, `_migrate_commission_policy`, es
+10. **La fijación se retira cuando se retira su justificación.** `reconcile_period_rate` lleva el
+    libro del período al estado que sus hechos vivos justifican: fija, suelta o refija a otra tasa,
+    según la diferencia entre lo que el libro dice y lo que la regla dice. Se invoca desde
+    `_set_status` —por donde pasa toda transición de estado— y desde la apertura de la base, así
+    que las cuatro rutas de `AB1-g6` y cualquiera futura quedan cubiertas por construcción.
+    **Una `PAGADA` viva conserva la tasa con la que se pagó**: sostiene su mes a **esa** tasa
+    aunque la liquidación se observe después o la venta se anule, y no se reinterpreta con la
+    política vigente. Lo que no sostiene es una tasa distinta de la suya, que era `AB1-g8`.
+11. **Migrar y operar son la misma operación.** No es que coincidan: la apertura de la base llama a
+    `reconcile_period_rate`, exactamente la misma función que cada transición, sobre cada período
+    con hechos o con libro. La consulta de hechos vivos —columnas, `JOIN`, `WHERE` y clave de
+    período— sale entera de `comision_policy.live_official_facts_sql`, y la decisión de
+    `resolve_period_rate`. No queda ningún texto «equivalente» que pueda separarse, que es lo que
+    falló tres generaciones seguidas: en la 6 la migración excluía las `REVERTIDA` y el código no;
+    en la 7 exigía política canónica y el código no; en la 8 exigía coherencia de tasa y el código
+    no. Cada corrección había unificado la mitad que ya coincidía.
+12. **La migración no inventa hechos, pero sí aplica la regla.** Que un período no tenga ningún
+    hecho vivo, o que su pin no lo lleve ninguno, es **observable**, no fabricado: aplicar la regla
+    a esa observación es lo mismo que hace cada transición, y no hacerlo dejaba a la pantalla
+    declarando fijado un mes que ningún hecho justificaba. Los retiros de la apertura llevan
+    `origin='MIGRACION'` para distinguirse de los operativos. Lo que la migración sigue sin hacer es
+    **elegir**: ante evidencia discrepante no fija nada y lo asienta. Y **no escribe una sola vez
+    sobre `commission_entries`** —lo que sí hace otro paso, `_migrate_commission_policy`, es
     reemplazar la *etiqueta* de política retirada, sin tocar `rate_bp` ni `commission_amount`.
-13. **Fijar y soltar dejan traza.** `COMMISSION_PERIOD_RATE_PINNED` y
-    `COMMISSION_PERIOD_RATE_UNPINNED` en caliente, `COMMISSION_PERIOD_RATE_SEEDED` y
-    `COMMISSION_PERIOD_RATE_SEED_SKIPPED` en la migración. Todos idempotentes: no se re-asientan si
-    su asiento ya existe.
+13. **Fijar y soltar dejan traza, por las dos rutas y con el mismo nombre.**
+    `COMMISSION_PERIOD_RATE_PINNED` y `COMMISSION_PERIOD_RATE_UNPINNED` cubren tanto las
+    transiciones como la apertura de la base, y el `origin` dice cuál fue; la migración usaba antes
+    un nombre propio y desactivaba el asiento, de modo que quien contara fijaciones por la auditoría
+    no veía las suyas. `COMMISSION_PERIOD_RATE_SEED_SKIPPED` registra la evidencia discrepante y la
+    fijación heredada sin respaldo, una sola vez por período.
 14. **Una venta anulada no llega al pago.** `review`, `approve` y `mark_paid` rechazan una
     liquidación cuya venta de origen está anulada. Por ruta pública no se llega ahí —`void_sale`
     mueve la liquidación— pero una base legada de procedencia externa sí puede traer esa fila, y

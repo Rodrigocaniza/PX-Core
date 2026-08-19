@@ -271,9 +271,15 @@ class CommissionsPanel(tk.Frame):
         """Aviso de importes no oficiales. Vale con tasa en vigor y sin ella."""
         kpi = self.report["kpi"]
         if kpi["non_official_amount"]:
+            # El consejo depende de si queda algo que recalcular: una liquidación con política
+            # anterior **ya pagada** no la alcanza `recalculate`, y pedirlo dejaba el aviso
+            # encendido para siempre en toda base migrada del piloto.
+            pendientes = kpi["non_official_entries"] - kpi["non_official_paid_entries"]
+            consejo = ("Recalcule las no pagadas." if pendientes else
+                       "Ya fueron pagadas: se conservan tal cual por auditoría.")
             self.warning.config(
                 text=f"⚠ {kpi['non_official_entries']} liquidación(es) por {pyg(kpi['non_official_amount'])} "
-                     f"con política anterior, fuera de la comisión oficial. Recalcule las no pagadas.")
+                     f"con política anterior, fuera de la comisión oficial. {consejo}")
             self.warning.pack(fill="x", padx=16, pady=(0, 4), before=self.panes)
         else:
             self.warning.pack_forget()

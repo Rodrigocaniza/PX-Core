@@ -26,6 +26,7 @@ from .comision_policy import (
     rate_percent_text,
 )
 from .models import Principal, Role, utc_now
+from .repository import CentralRepository
 from .service import AccessDenied, CentralManagementService
 
 
@@ -740,109 +741,48 @@ class CommissionService:
 
     # ------------------------------------------------- fijación de la tasa del período
     #
-    # Todo lo que fija o desfija un período pasa por aquí. Es deliberado que ningún otro sitio del
-    # módulo escriba `commission_period_rate_events`: la regla económica es una sola y no puede
-    # divergir entre quien aprueba, quien revierte y quien migra.
+    # Fijar y soltar dejaron de ser dos operaciones: son la misma pregunta —«¿qué tasa justifican
+    # hoy los hechos vivos de este período?»— contestada en un solo sitio,
+    # `CentralRepository.reconcile_period_rate`, que a su vez decide con
+    # `comision_policy.resolve_period_rate` y escribe con `record_period_rate_event`.
+    #
+    # Vive en el repositorio porque la migración necesita exactamente la misma decisión y no puede
+    # importar este módulo sin crear un ciclo. Que la pregunta se contestara en dos sitios costó un
+    # bloqueante económico por generación: `AB1-g6` (la migración excluía las revertidas y el código
+    # no), `AB1-g7` (la migración exigía política canónica y el código no) y `AB1-g8` (la migración
+    # exigía coherencia de tasa y el código no). Cada corrección unificaba la mitad que ya coincidía.
 
-    @staticmethod
-    def _live_official_facts(con, period):
-        """Hechos económicos oficiales **vivos** del período, en orden.
+    def _live_official_facts(self, con, period):
+        """Hechos económicos oficiales **vivos** del período.
 
-        Un hecho está vivo si hoy sostiene la tasa de su período: lleva la política **canónica**
-        con una tasa concreta, y o bien conserva `paid_at` —el dinero salió— o bien está en el
-        boundary sobre una venta no anulada. Lo pagado cuenta aunque después se observe la
-        liquidación o se anule la venta: observar no devuelve una transferencia.
+        Un hecho está vivo si hoy sostiene la tasa de su período: lleva la política **canónica** con
+        una tasa concreta, y o bien conserva `paid_at` —el dinero salió— o bien está en el boundary
+        sobre una venta no anulada. Lo pagado cuenta aunque después se observe la liquidación o se
+        anule la venta: observar no devuelve una transferencia.
 
         `ELEGIBLE`, `CALCULADA`, `REVISADA`, `OBSERVADA` sin pago y `REVERTIDA` no son hechos vivos.
-        Una aprobación revertida deja de sostener nada: era el bloqueante `AB1-g6`. Tampoco lo es
-        una liquidación con `POLITICA_HISTORICA_PREVIA`, por mucho que se haya pagado: su importe
-        se conserva intacto por auditoría, pero nunca fue la tasa oficial del mes y el resto del
-        módulo ya la trata así en todas partes. Que este predicado no lo dijera era `AB1-g7`.
+        Tampoco lo es una liquidación con `POLITICA_HISTORICA_PREVIA`, por mucho que se haya pagado:
+        su importe se conserva intacto por auditoría, pero nunca fue la tasa oficial del mes.
 
-        El SQL **es literalmente el mismo** que usa la siembra de la migración —vive en
-        `comision_policy.LIVE_OFFICIAL_FACT_SQL`— para que migrar una base y reconstruirla operando
-        den el mismo resultado. Tenerlo escrito dos veces, aunque fuera «equivalente», ya falló dos
-        generaciones seguidas.
+        La consulta entera —columnas, `JOIN`, `WHERE` y clave de período— vive en
+        `comision_policy.live_official_facts_sql`, y es la misma que usa la migración.
         """
-        return con.execute(
-            "SELECT e.id,e.sale_id,e.status,e.rate_bp,e.paid_at FROM commission_entries e"
-            " JOIN commission_sales s ON s.id=e.sale_id"
-            f" WHERE {PERIOD_MATCH_SQL} AND {LIVE_OFFICIAL_FACT_SQL}"
-            " ORDER BY e.id",
-            (str(period)[:7],),
-        ).fetchall()
-
-    def _pin_rated_period(self, con, entry, actor, boundary):
-        """Fija la tasa del período al alcanzarse un hecho económico oficial.
-
-        Se llama sólo desde `approve` y `mark_paid` —el boundary `RATING_BOUNDARY_STATES`—. El
-        primer cálculo no fija nada: mientras la liquidación es provisional el mes sigue siendo
-        corregible, que es lo que permite deshacer una fecha mal tipeada o una venta que después se
-        anula.
-
-        La tasa que se graba es la de **esta** liquidación, que la guarda de transición ya verificó
-        idéntica a la oficial del período. Es idempotente por el estado del libro: si el período ya
-        está fijado no se escribe nada, así que aprobar una segunda liquidación del mismo mes, o
-        reintentar la misma aprobación, no duplica ni el evento ni el asiento.
-
-        Después de un `UNPINNED` esta misma función vuelve a fijar: refijar no es un caso especial,
-        es el contrato normal aplicado al siguiente hecho oficial.
-        """
-        if boundary not in RATING_BOUNDARY_STATES:
-            # Nadie debería llamar aquí desde otro estado, y si alguien lo intenta el sistema
-            # tiene que decirlo, no fijar un mes en silencio desde un hecho que no lo justifica.
-            raise ValueError(f"solo un hecho economico oficial fija un periodo: {boundary}")
-        period = str(entry["period"] or "")[:7]
-        if not period or entry["rate_bp"] is None or entry["policy_status"] != POLICY_CANONICAL:
-            return False
-        last = _last_period_rate_event(con, period)
-        if last is not None and last["event"] == PERIOD_RATE_PINNED:
-            return False
-        self.repository.record_period_rate_event(
-            con, period, PERIOD_RATE_PINNED, rate_bp=int(entry["rate_bp"]),
-            policy_code=entry["policy_code"], policy_version=entry["policy_version"],
-            policy_effective_from=entry["policy_effective_from"], policy_scope=entry["policy_scope"],
-            origin=boundary, actor=actor, entry_id=entry["id"], sale_id=entry["sale_id"],
-            reason=f"hecho economico oficial: la liquidacion alcanzo {boundary}")
-        return True
+        return self.repository.live_official_facts(con, period)
 
     def _reconcile_period_pin(self, con, period, actor, action, reason="",
                               entry_id=None, sale_id=None):
-        """Retira la fijación cuando desaparece el último hecho oficial vivo que la sostenía.
+        """Lleva el libro del período al estado que sus hechos vivos justifican.
 
-        Es el **boundary de salida**, y el único sitio del sistema que desfija. Se invoca desde
-        `_set_status`, que es por donde pasa toda transición de estado, de modo que las cuatro rutas
-        que retiran un hecho —revertir la aprobación, `void_sale`, la reversa de un cobro que
-        arrastra la liquidación, y `observe` seguido de `revert`— quedan cubiertas por construcción
-        y no una por una. Cualquier ruta futura que mueva un estado queda cubierta también.
-
-        **Una `PAGADA` viva nunca desfija**: `_live_official_facts` cuenta `paid_at`, así que el
-        dinero consolidado sostiene el período aunque la liquidación se observe después o la venta
-        se anule. Un pago sólo deja de sostener si su reversión se completa de verdad.
-
-        No borra ni reescribe el `PINNED` anterior: escribe un `UNPINNED` detrás, con la tasa que se
-        retira, la liquidación que dejó de sostenerla, la causa y el actor. Nombrar el hecho
-        retirado es lo que permite leer la cadena entera sin cruzar la auditoría por fecha. Es
-        idempotente: si el período no está fijado, no hace nada.
+        Se invoca desde `_set_status`, que es por donde pasa **toda** transición de estado, así que
+        aprobar, pagar, observar, revertir, anular la venta y la reversa de un cobro quedan cubiertos
+        por construcción, y cualquier ruta futura también. No hay una función para fijar y otra para
+        soltar: la diferencia entre ambas es sólo qué dicen los hechos.
         """
-        period = str(period or "")[:7]
-        if not period:
-            return False
-        last = _last_period_rate_event(con, period)
-        if last is None or last["event"] != PERIOD_RATE_PINNED:
-            return False
-        if self._live_official_facts(con, period):
-            return False
-        self.repository.record_period_rate_event(
-            con, period, PERIOD_RATE_UNPINNED, rate_bp=int(last["rate_bp"]),
-            policy_code=last["policy_code"], policy_version=last["policy_version"],
-            policy_effective_from=last["policy_effective_from"], policy_scope=last["policy_scope"],
-            origin=action, actor=actor, entry_id=entry_id, sale_id=sale_id,
-            reason=reason or "sin hechos economicos oficiales vivos que sostengan la tasa del periodo")
-        return True
+        return self.repository.reconcile_period_rate(
+            con, period, actor, action, entry_id=entry_id, sale_id=sale_id, reason=reason)
 
     def _transition(self, actor, entry_id, allowed, target, action, details=None, guard=None,
-                    pin_period=False, **columns):
+                    **columns):
         self._write(actor)
         with self.repository.connection() as con:
             con.execute("BEGIN IMMEDIATE")
@@ -856,10 +796,6 @@ class CommissionService:
             if guard is not None:
                 guard(con, entry)
             self._set_status(con, entry, target, actor.username, action, details, **columns)
-            if pin_period:
-                # Sólo aquí se fija un período, y sólo dentro de la misma transacción que
-                # registra el hecho económico: no hay ventana en la que uno exista sin el otro.
-                self._pin_rated_period(con, entry, actor.username, target)
             con.commit()
         return True
 
@@ -877,10 +813,11 @@ class CommissionService:
         responsible = responsible.strip()
         if not responsible:
             raise ValueError("responsable obligatorio")
-        # Aprobar es el primer hecho económico oficial: aquí queda fijada la tasa del período.
+        # Aprobar es el primer hecho económico oficial. No hace falta pedir que se fije el
+        # período: la reconciliación de `_set_status` ve el hecho nuevo y lo fija sola.
         return self._transition(actor, entry_id, {"REVISADA"}, "APROBADA", "COMMISSION_APPROVED",
                                 {"responsible": responsible}, guard=self._require_official_and_live,
-                                pin_period=True, approved_by=responsible, approved_at=_now())
+                                approved_by=responsible, approved_at=_now())
 
     def mark_paid(self, actor: Principal, entry_id: str, payment_date: str, reference: str):
         """Sólo se paga lo revisado y aprobado; nunca se salta la aprobación."""
@@ -888,11 +825,11 @@ class CommissionService:
         if not reference:
             raise ValueError("referencia de pago obligatoria")
         _month(payment_date)
-        # Pagar también fija: una base que llegue migrada sin su aprobación registrada no
-        # puede quedar sin fijar sólo porque el asiento de aprobación no exista.
+        # Pagar también sostiene el período, y por la misma vía: una base que llegue migrada sin
+        # su aprobación registrada no puede quedar sin fijar sólo porque ese asiento no exista.
         return self._transition(actor, entry_id, {"APROBADA"}, "PAGADA", "COMMISSION_PAID",
                                 {"payment_date": payment_date, "reference": reference},
-                                guard=self._require_official_and_live, pin_period=True,
+                                guard=self._require_official_and_live,
                                 paid_at=payment_date, payment_reference=reference)
 
     def observe(self, actor: Principal, entry_id: str, reason: str):
@@ -1332,6 +1269,9 @@ class CommissionService:
             "commission_amount": sum(int(row["commission_amount"] or 0) for row in official),
             "non_official_amount": sum(int(row["commission_amount"] or 0) for row in unofficial),
             "non_official_entries": len(unofficial),
+            # De las no oficiales, cuántas ya movieron dinero: `recalculate` nunca las alcanza, así
+            # que pedir que se recalculen sería pedir algo imposible.
+            "non_official_paid_entries": sum(1 for row in unofficial if row["paid_at"]),
             "pending_approval": sum(1 for row in eligible if row["status"] in {"ELEGIBLE", "CALCULADA", "REVISADA"}),
             "observed": sum(1 for row in countable if row["status"] == "OBSERVADA"),
             "paid_entries": sum(1 for row in eligible if row["status"] == "PAGADA"),

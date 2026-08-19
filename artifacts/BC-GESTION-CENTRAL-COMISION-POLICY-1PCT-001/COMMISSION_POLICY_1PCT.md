@@ -88,15 +88,35 @@ Cambiar el porcentaje es un hecho versionado, no una edición:
   libro `commission_period_rate_events`, y `decide()` resuelve ese período contra el **último**
   evento del libro, no contra el catálogo de versiones. Una versión nueva no lo reescribe aunque
   su vigencia lo abarque.
-- **La fijación dura mientras algún hecho oficial siga vivo.** La tasa de un período **no es
-  inmutable por haber existido alguna vez un hecho que la justificó**. Si se retira el último
-  —revertir la aprobación, anular la venta, un cobro que se cae— se escribe un evento `UNPINNED`
-  y el período vuelve a ser resoluble por catálogo. Mientras quede otro hecho vivo, no pasa nada:
-  con dos aprobaciones en el mes, revertir una no suelta nada.
-- **Una `PAGADA` viva nunca suelta el período.** El dinero efectivamente consolidado está
-  protegido: una liquidación con `paid_at` sostiene su mes aunque después se observe o se anule la
-  venta. Observar no devuelve una transferencia. Sólo una reversión de pago que se complete de
-  verdad cambia qué hechos están vivos.
+- **La fijación dura mientras algún hecho oficial vivo la justifique.** La tasa de un período **no
+  es inmutable por haber existido alguna vez un hecho que la justificó**. Si se retira el último
+  —revertir la aprobación, anular la venta, un cobro que se cae— se escribe un evento `UNPINNED` y
+  el período vuelve a ser resoluble por catálogo. Mientras quede otro hecho vivo **con esa misma
+  tasa**, no pasa nada: con dos aprobaciones al 1% en el mes, revertir una no suelta nada.
+- **Un hecho vivo a otra tasa no justifica el pin.** Si la tasa fijada no la lleva ninguno de los
+  hechos vivos que quedan, el período se suelta y se vuelve a fijar con la que sus hechos sí
+  sostienen. Que la reconciliación no mirara la tasa era el bloqueante `AB1-g8`: un mes podía
+  quedar fijado al 100% sostenido por un pago al 7%, y nada podía retirarlo.
+- **Una `PAGADA` viva conserva la tasa económica real con la que fue pagada.** El dinero
+  efectivamente consolidado está protegido, y protegerlo significa preservar **su** tasa, no
+  sustituirla por la vigente: si un mes tiene una `PAGADA` viva al 7%, ese mes permanece fijado al
+  7%. No se reinterpreta ese pago como 1%, no se modifica su importe, y no se fuerza
+  retroactivamente la política vigente sobre un hecho económico oficial anterior. La liquidación
+  sostiene su mes aunque después se observe o se anule la venta: observar no devuelve una
+  transferencia. Sólo una reversión de pago que se complete de verdad cambia qué hechos están vivos.
+- **El 1% es prospectivo, no retroactivo.** Rige los períodos nuevos o no consolidados, los que no
+  tienen una tasa oficial histórica viva que preservar. El 1% no reescribe historia.
+- **Una sola función decide.** `comision_policy.resolve_period_rate` es el único sitio donde se
+  contesta «¿qué tasa tiene este período?», a partir de sus hechos vivos, su estado económico
+  oficial, la tasa de cada hecho y la coherencia entre ellos. La usan por igual el código en
+  caliente y la reconciliación de la apertura de la base, de modo que fijar, soltar y refijar son
+  la misma decisión y no pueden divergir. Que esta pregunta se contestara en dos sitios costó un
+  bloqueante económico por generación: `AB1-g6`, `AB1-g7` y `AB1-g8`, cada vez en una columna
+  distinta, cada vez porque la corrección anterior había unificado la mitad que ya coincidía.
+- **Evidencia discrepante no se desempata.** Si los hechos vivos de un mes llevan tasas distintas,
+  no se fija nada y el conflicto queda asentado: elegir sería decidir por el propietario cuál de
+  dos importes ya avalados es el bueno. Mientras dure la discrepancia el mes no puede fijarse, ni
+  siquiera aprobando algo nuevo.
 - **Refijar es el contrato normal, no un caso especial.** Después de un `UNPINNED`, la siguiente
   transición oficial a `APROBADA` o `PAGADA` vuelve a fijar el período con la tasa de ese hecho,
   por el mismo camino que la primera vez.

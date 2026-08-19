@@ -1,14 +1,15 @@
 # Evidencia de pruebas
 
-Regresión completa: **431/431 PASS** (`python -m pytest -q`). El tiempo de reloj depende de la
+Regresión completa: **444/444 PASS** (`python -m pytest -q`). El tiempo de reloj depende de la
 máquina y no se declara: no es una propiedad del código.
-Línea base de la misión anterior: 302. Esta misión suma **129**: 125 de dominio y 4 de interfaz.
+Línea base de la misión anterior: 302. Esta misión suma **142**: 138 de dominio y 4 de interfaz.
 
-Suite del módulo: `tests/gestion_central/` **231/231 PASS**.
-Los cinco archivos de comisiones juntos (`test_comisiones.py`,
+Suite del módulo: `tests/gestion_central/` **244/244 PASS**.
+Los seis archivos de comisiones juntos (`test_comisiones.py`,
 `test_comisiones_ui_interactions.py`, `test_comision_rate_boundary.py` —generación 6—,
-`test_comision_period_unpin.py` —generación 7— y `test_comision_legacy_facts.py` —generación 8—):
-51 → **180** casos, 112 + 8 + 24 + 23 + 13 respectivamente.
+`test_comision_period_unpin.py` —generación 7—, `test_comision_legacy_facts.py` —generación 8— y
+`test_comision_rate_coherence.py` —generación 9—): 51 → **193** casos,
+112 + 8 + 24 + 23 + 13 + 13 respectivamente.
 
 Todas las cifras anteriores son **casos ejecutados**, que es lo que cuenta pytest. En funciones:
 `test_comisiones.py` pasa de 47 a 94 —se agregan 48 y se elimina
@@ -30,6 +31,30 @@ propósito**: son provisionales y deben poder corregirse.
 La **generación 7** suma **23 casos** (395 → 418), todos en `test_comision_period_unpin.py`.
 
 La **generación 8** suma **13 casos** (418 → 431), todos en `test_comision_legacy_facts.py`.
+
+La **generación 9** suma **13 casos** (431 → 444), todos en `test_comision_rate_coherence.py`.
+
+## Generación 9 — cierre de AB1-g8
+
+13 pruebas dirigidas. El escenario base es la instalación del piloto con políticas **por vendedora y
+por local** —las que la migración retira por diseño—, que deja dos liquidaciones canónicas del mismo
+mes a tasas distintas: una aprobada al 9% y un pago vivo al 7%.
+
+| Grupo | Qué demuestra | Pruebas |
+|---|---|---|
+| La regla de decisión | `resolve_period_rate` es pura y única: sin hechos no hay tasa, con tasas distintas no elige, a igualdad manda el pago y luego el más antiguo; y un solo sitio decide y un solo sitio escribe | 2 |
+| El pin nunca contradice sus hechos | mientras la evidencia discrepe no se forma pin; el sobrepago queda eliminado; las rutas de `AB1-g6` no reaparecen sobre la base discrepante; un pin sostenido por su misma tasa no se mueve; una `PAGADA` canónica viva no suelta jamás | 7 |
+| La apertura aplica la misma regla | una fijación heredada sin hecho vivo se retira; un pin a una tasa que ningún hecho lleva se corrige; reabrir no escribe nada nuevo; la migración no toca importes | 4 |
+
+**La prueba decisiva se verificó contra la regla anterior.** `test_un_pin_a_una_tasa_que_ningun_hecho_lleva_se_corrige_al_abrir`
+importa el estado exacto que la generación 8 dejaba clavado —libro al 100%, único hecho vivo pagado
+al 7%— y da `10000` con la regla vieja y `700` con la nueva. Una prueba que pasa en los dos sentidos
+no demuestra nada.
+
+**La tasa del escenario es 7%, no 1%, y es correcto.** El mes tiene un pago real vivo al 7%: la
+decisión de propietario dice que una `PAGADA` viva conserva la tasa con la que fue pagada. Tres
+ventas de 10.000.000 Gs liquidan **2.100.000 Gs** —el 7% que ese mes sí pagó— y no los 30.000.000 Gs
+de la generación 8. El 1% gobierna los meses sin tasa histórica viva que preservar.
 
 ## Generación 8 — cierre de AB1-g7 y L1-g7
 

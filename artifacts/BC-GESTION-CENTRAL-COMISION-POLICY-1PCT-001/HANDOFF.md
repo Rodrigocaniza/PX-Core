@@ -422,10 +422,69 @@ desperdiciado, no dinero. La 1 de QA —export contradictorio en una base legada
 no la produce ninguna ruta pública. La 3 —`observe` por sí solo suelta— es correcta bajo la regla y
 queda documentada. La 4 —punto decimal en el export, coma en pantalla— es deliberada.
 
+## Generación 8 — resultado: INVALIDADA
+
+| Runner | Verdict | Bloqueantes |
+|---|---|---|
+| Librarian | **FAIL** | `L1-g8`, `L2-g8` |
+| QA | **PASS** | ninguno |
+| Auditor | **FAIL** | `AB1-g8`, económico |
+
+`AB1-g7` quedó cerrado **en la raíz** y verificado por los tres: sobre la base del piloto con una
+comisión ya pagada, las cuatro rutas de `AB1-g6` dan 0 Gs de sobrepago.
+
+### `AB1-g8` — la regla de decisión, escrita dos veces
+
+La generación 8 unificó el **predicado de vitalidad** —qué cuenta como hecho vivo—. Lo que seguía
+duplicado era la **regla de decisión**: qué tasa tiene el período. La siembra exigía coherencia y se
+abstenía ante tasas distintas; la reconciliación no miraba la tasa en absoluto y retenía el pin con
+cualquier hecho vivo.
+
+La base que lo explota la produce la migración oficial **por diseño**: retirar las políticas por
+vendedora y por local deja liquidaciones del mismo mes a tasas distintas. Ese mes nacía sin pin
+teniendo hechos vivos, y el primer pin que recibía quedaba clavado a una tasa que ninguno de sus
+hechos llevaba. 29.700.000 Gs en el escenario reproducido, sin ruta pública de corrección.
+
+## Generación 9 — qué se hizo
+
+**Decisión de propietario confirmada.** Una `PAGADA` viva conserva **la tasa económica real con la
+que fue pagada**, aunque difiera del 1% vigente: si un mes tiene un pago vivo al 7%, queda fijado al
+7%. Ese pago no se reinterpreta como 1%, su importe no se toca, y la política vigente no se fuerza
+retroactivamente sobre hechos económicos anteriores. **El 1% es prospectivo**: rige los meses nuevos
+o no consolidados, los que no tienen una tasa oficial histórica viva que preservar.
+
+**Una sola función decide.** `comision_policy.resolve_period_rate` contesta «¿qué tasa tiene este
+período?» a partir de sus hechos vivos, su estado económico oficial, la tasa de cada hecho y la
+coherencia entre ellos. `CentralRepository.reconcile_period_rate` la aplica: fijar, soltar y refijar
+dejan de ser tres operaciones con tres criterios y pasan a ser la diferencia entre lo que el libro
+dice y lo que la regla dice. La invocan por igual `_set_status` —toda transición— y la apertura de
+la base. No queda ningún texto equivalente que pueda separarse.
+
+**Por qué importaba tanto.** `AB1-g6`, `AB1-g7` y `AB1-g8` son el mismo defecto tres veces: la misma
+regla en dos sitios, y cada corrección unificando la mitad que ya coincidía. La 6 unificó el
+boundary de entrada, la 7 la lista de estados, la 8 el predicado de vitalidad. La 9 extrae la
+**decisión** entera, que es lo que quedaba.
+
+**Pruebas.** 13 dirigidas nuevas en `test_comision_rate_coherence.py`, incluida la base con políticas
+por alcance del Auditor. La que encierra el estado final de la generación 8 —libro al 100% con un
+solo hecho vivo al 7%— se verificó contra la regla anterior: da 10000 y ahora da 700. Regresión
+**444/444**, módulo **244**.
+
+**Observaciones de la generación 8 atendidas.** Del Auditor: 1 (la tercera copia parcial del
+predicado, que desaparece con `_pin_rated_period`), 2 (la siembra asentaba con otro nombre y sin
+auditar) y 6 (la última división flotante). Del Librarian: las seis. De QA: 1 (un `PINNED` heredado
+sin hecho vivo sobrevivía a la apertura) y 4 (el aviso pedía recalcular liquidaciones ya pagadas).
+
+**Lo que queda abierto y por qué.** La 3 del Auditor —`decide()` resuelve el pin dentro de la
+transacción pero el catálogo abre conexión propia— no es explotable: `BEGIN IMMEDIATE` serializa a
+los escritores. La 4 y la 5 son trabajo desperdiciado, no dinero. La 2 de QA —dos pasadas de
+`recalculate` cuando la reparación suelta el propio período— tampoco mueve dinero mal. La 3 de QA
+—el KPI «Pagado» suma lo legado que «Comisión oficial» excluye— es defendible: el dinero salió.
+
 ## Siguiente paso propuesto
 
-**Generación 8 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
-verdict de las generaciones 1 a 7. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
+**Generación 9 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
+verdict de las generaciones 1 a 8. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
 lease.
 
 Sólo después de la Safe Closure vuelve a la cola el cableado de `register_payment` y

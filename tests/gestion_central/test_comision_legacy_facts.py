@@ -193,7 +193,7 @@ def test_una_pagada_canonica_si_sostiene_su_mes(tmp_path):
     """El contrapunto: lo que distingue a la legada es la política, no el hecho de estar pagada."""
     service = pilot_base(tmp_path, policy_status=POLICY_CANONICAL, rate_bp=500, amount=50_000)
     assert rated_periods(service) == {"2099-04": 500}
-    assert events(service) == [("PINNED", 500, "BACKFILL", "entry-P")]
+    assert events(service) == [("PINNED", 500, "MIGRACION", "entry-P")]
 
 
 # ------------------------------------------------- un solo predicado, un solo escritor
@@ -261,7 +261,7 @@ def test_un_periodo_ya_fijado_no_se_resiembra(tmp_path):
     for _ in range(5):
         service = CommissionService(CentralManagementService(CentralRepository(path)))
     assert len(events(service)) == 1
-    assert len(audits(service, "COMMISSION_PERIOD_RATE_SEEDED")) == 1
+    assert len(audits(service, "COMMISSION_PERIOD_RATE_PINNED")) == 1
 
 
 def test_un_periodo_con_fecha_completa_se_empareja_igual(tmp_path):
@@ -276,7 +276,7 @@ def test_un_periodo_con_fecha_completa_se_empareja_igual(tmp_path):
     assert rated_periods(service) == {"2099-04": 900}
     with sqlite3.connect(service.repository.database_path) as con:
         con.row_factory = sqlite3.Row
-        live = CommissionService._live_official_facts(con, "2099-04")
+        live = service.repository.live_official_facts(con, "2099-04")
     assert [row["id"] for row in live] == ["entry-P"]
 
 
@@ -289,7 +289,7 @@ def test_el_unpinned_nombra_la_liquidacion_que_dejo_de_sostener_el_mes(tmp_path)
     entry_id = approve_entry(service, sale_id)
     service.revert(SOL, entry_id, "aprobación equivocada")
 
-    assert events(service) == [("PINNED", CANONICAL_RATE_BP, "APROBADA", entry_id),
+    assert events(service) == [("PINNED", CANONICAL_RATE_BP, "COMMISSION_APPROVED", entry_id),
                                ("UNPINNED", CANONICAL_RATE_BP, "COMMISSION_REVERTED", entry_id)]
     unpinned = audits(service, "COMMISSION_PERIOD_RATE_UNPINNED")
     assert len(unpinned) == 1
@@ -300,14 +300,18 @@ def test_el_unpinned_nombra_la_liquidacion_que_dejo_de_sostener_el_mes(tmp_path)
 def test_el_libro_tiene_un_solo_escritor(tmp_path):
     """`L1-g7`: había dos rutas de escritura, en dos clases, con dos formatos de asiento."""
     from pathlib import Path
-    modules = Path(__file__).resolve().parents[2] / "modulos" / "gestion_central"
-    inserts = sum(source.read_text(encoding="utf-8").count(
-        "INSERT INTO commission_period_rate_events") for source in modules.glob("*.py"))
-    assert inserts == 1
+    root = Path(__file__).resolve().parents[2]
+    produccion = [source for source in root.rglob("*.py")
+                  if source.relative_to(root).parts[0] not in ("tests", ".worktrees")]
+    textos = {source: source.read_text(encoding="utf-8", errors="ignore") for source in produccion}
+    assert sum(text.count("INSERT INTO commission_period_rate_events")
+               for text in textos.values()) == 1
+    # Y ninguna ruta de producción lo actualiza ni lo borra: el libro es append-only de verdad.
+    # Los fixtures de prueba sí borran, para construir bases legadas; por eso se excluyen aquí y
+    # se dice explícitamente que la propiedad es del código de producción.
     for forbidden in ("UPDATE commission_period_rate_events",
                       "DELETE FROM commission_period_rate_events"):
-        assert all(forbidden not in source.read_text(encoding="utf-8")
-                   for source in modules.glob("*.py"))
+        assert all(forbidden not in text for text in textos.values())
 
 
 # ------------------------------------- coherencia del recálculo dentro de una sola pasada

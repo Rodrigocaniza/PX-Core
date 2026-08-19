@@ -79,11 +79,15 @@ posterior trayéndola a 4.750 porque no estaba pagada.
 `test_the_official_commission_survives_reopening_the_database` comprueba que reabrir vuelve a
 migrar sin duplicar políticas ni versiones y sin cambiar nada (`changed == 0`).
 
-## Paso 5 — siembra del libro de tasas por período (generación 7)
+## Paso 5 — reconciliación del libro de tasas por período (generación 9)
 
-`_backfill_period_rate_events` siembra `commission_period_rate_events` con un evento `PINNED` por
-período. Es aditiva e idempotente: sólo toca períodos que no tienen ningún evento todavía, y correr
-la migración otra vez no cambia nada.
+`_backfill_period_rate_events` ya no es una siembra aparte: recorre cada período que tenga hechos
+vivos o que ya tenga libro y llama a `reconcile_period_rate`, **exactamente la misma función que
+corre en cada transición**. Es idempotente: si el libro ya dice lo que la regla dice, no escribe
+nada, y reabrir la base mil veces deja lo mismo que abrirla una.
+
+Que la apertura y el runtime tuvieran reglas distintas costó un bloqueante económico por
+generación: `AB1-g6`, `AB1-g7` y `AB1-g8`. Aquí no hay dos reglas que puedan separarse.
 
 **Una migración no puede inventar una tasa.** Por eso sólo cuenta como evidencia una liquidación
 que reúne las tres condiciones a la vez:
@@ -97,9 +101,12 @@ que reúne las tres condiciones a la vez:
   —en la 6 la migración excluía las `REVERTIDA` y el código no; en la 7 la migración exigía política
   canónica y el código no, que fue `AB1-g7`—.
 
-Un período cuyo último evento es `UNPINNED` **vuelve a evaluarse**: si la base trae evidencia viva
-para él, se fija. No es inventar nada, es aplicar la misma regla que el código en caliente, y era
-el último punto en el que migrar y operar no coincidían.
+**Todo período vuelve a evaluarse**, tenga el libro que tenga. Uno cuyo último evento es `UNPINNED`
+se fija si la base trae evidencia viva; uno fijado a una tasa que ninguno de sus hechos vivos lleva
+—el estado que dejaba la generación 8— se suelta y se vuelve a fijar con la que sus hechos sí
+sostienen. No es inventar nada: que un pin no esté respaldado es **observable**, y aplicar la regla
+a una observación es lo mismo que hace cada transición. Los retiros escritos aquí llevan
+`origin='MIGRACION'` para distinguirse de los operativos.
 
 Las reglas que la siembra respeta sin excepción:
 

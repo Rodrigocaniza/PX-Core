@@ -1639,7 +1639,7 @@ def test_the_durable_evidence_has_no_public_eraser(service):
         rows = [tuple(row) for row in con.execute(
             "SELECT event,rate_bp,origin FROM commission_period_rate_events"
             " WHERE period='2099-04' ORDER BY id")]
-    assert rows == [("PINNED", CANONICAL_RATE_BP, "APROBADA"),
+    assert rows == [("PINNED", CANONICAL_RATE_BP, "COMMISSION_APPROVED"),
                     ("UNPINNED", CANONICAL_RATE_BP, "COMMISSION_OBSERVED")]
     # El período vuelve a ser resoluble, que es lo que se decidió; el rastro no se pierde.
     assert rated_periods(service) == {}

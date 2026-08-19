@@ -283,6 +283,52 @@ entero a un único literal compartido, de modo que no queden dos textos que pued
 
 Los verdicts de las generaciones 1 a 7 **no se reutilizan**.
 
+## Generación 8 — snapshot `cf4fb258703e266148d7bb7332b79ffdddce926c`
+
+| Runner | Rol | Verdict | Bloqueantes |
+|---|---|---|---|
+| `LIBRARIAN-IND-COMISION-POLICY-1PCT-008` | Librarian | **FAIL** | `L1-g8`, `L2-g8` |
+| `QA-IND-COMISION-POLICY-1PCT-008` | QA | **PASS** | ninguno |
+| `AUDITOR-IND-COMISION-POLICY-1PCT-008` | Auditor | **FAIL** | `AB1-g8`, económico |
+
+**Resultado: INVALIDADA.** `AB1-g7` cerrado en la raíz y verificado por los tres.
+
+**Lo que esta generación enseña.** El Auditor hizo lo que su propio verdict anterior le pedía:
+arrancó el arnés desde bases migradas, once formas, con el invariante en tres direcciones desde el
+paso 0. Ocho de las nueve formas del fuzz salieron limpias; la novena falló en el paso 0 de las doce
+corridas. **Cambiar el punto de partida del arnés fue lo que encontró el defecto**, no aumentar los
+pasos: 8.640 pasos desde bases migradas valieron más que 32.000 desde bases frescas.
+
+QA volvió a dar PASS y volvió a declarar con precisión qué no cubría. Su observación 1 describía,
+sin llamarlo bloqueante, la misma familia de incoherencia que el Auditor encontró: un `PINNED`
+heredado que ningún hecho sostiene. Las dos observaciones se cierran en la generación 9.
+
+El Librarian encontró que el **contrato económico** —`COMMISSION_POLICY_1PCT.md`— no se había tocado
+en toda la generación, pese a que la generación cambiaba la definición de hecho oficial vivo. Es el
+riesgo específico de un ciclo largo: el documento que fija la regla deja de leerse porque el trabajo
+está en el código.
+
+Los verdicts de las generaciones 1 a 8 **no se reutilizan**.
+
+## Generación 9
+
+**Remediada, pendiente de los tres verdicts.** Alcance ejecutado: `AB1-g8`, `L1-g8`, `L2-g8` y las
+observaciones de la 8 que pertenecen a su familia.
+
+**Qué superficie debe cubrir cada rol:**
+
+- **Auditor.** El patrón se repitió tres veces: la misma regla en dos sitios, y cada corrección
+  unificó la mitad que ya coincidía. La 9 extrae la decisión entera. La pregunta es si queda alguna
+  cuarta forma del patrón, y si `reconcile_period_rate` —que ahora también refija a otra tasa— abre
+  alguna secuencia nueva bajo concurrencia. El arnés debe seguir arrancando desde bases migradas, e
+  incluir la forma con políticas por alcance que destapó `AB1-g8`.
+- **QA.** El eje nuevo es la **preservación de la tasa histórica**: que un mes con un pago vivo al
+  7% se quede al 7%, que su importe no se toque, y que el 1% gobierne sólo los meses sin tasa
+  histórica viva. Y la secuencia `PINNED → UNPINNED → PINNED a otra tasa`, que es nueva.
+- **Librarian.** El contrato económico cambió en esta generación: cada afirmación sobre qué sostiene
+  un pin y sobre qué tasa rige un mes es sospechosa por defecto. Y la pregunta de siempre: qué
+  afirmación de unicidad no sostiene el código.
+
 ## Generación 8
 
 **Remediada, pendiente de los tres verdicts.** Alcance ejecutado: `AB1-g7` y `L1-g7`, más las
