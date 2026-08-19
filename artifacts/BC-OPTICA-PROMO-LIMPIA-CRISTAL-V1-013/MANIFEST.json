@@ -1,0 +1,172 @@
+{
+  "mission": "BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013",
+  "tipo": "retiro del obsequio ficticio y promocion sobre el articulo real. NO escribe produccion",
+  "pc": "Optica",
+  "branch": "feature/bc-optica-promo-limpia-cristal-v1-013",
+  "worktree": ".worktrees/optica-promo-013",
+  "base_commit": "09532f7d7f2a28933d824d221d8f2d086b03e9c1",
+  "base_branch": "feature/bc-optica-conciliacion-inventario-corregido-v1-010",
+  "origin_main": "7db56a082d06c735583a2717da3ad273f4d41a84",
+  "main_tocado": false,
+  "pr": false,
+  "merge_to_main": false,
+  "force_push": false,
+  "estado": "HUMAN_GATE",
+  "base_canonica": {
+    "elegida": "09532f7",
+    "por_que_no_origin_main": "main = rc.31 sin Commercial Core. Produccion corre rc.32 con el catalogo cargado y conciliado",
+    "contiene_el_codigo_de_rc32": true,
+    "produccion_por_delante_de_main": true
+  },
+  "estado_productivo_verificado": {
+    "articulos": 3595,
+    "activos": 2829,
+    "movimientos": 4439,
+    "ASUNCION": 6376,
+    "PILAR": 2776,
+    "total": 9152,
+    "cash_entries": 12,
+    "suma_total": 6400000,
+    "sale_items": 10,
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "sha256": "d307e017c86b985b10ba6cb3b72f6d6e355edb75aed52fa4c6f7f0bb4668687c"
+  },
+  "hallazgo_principal": {
+    "el_mecanismo_ya_existia": true,
+    "detalle": [
+      "SaleItem.subtotal devuelve 0 cuando no_cost esta marcado",
+      "_lineas_con_stock decide que descuenta por la NATURALEZA del articulo, no por no_cost: una linea bonificada con article_id SI descuenta",
+      "buscar_para_venta ya excluye articulos inactivos",
+      "_verificar_stock ya impide que un obsequio deje el deposito en negativo",
+      "la UI ya tenia la casilla «Articulo sin costo»"
+    ],
+    "codigo_de_producto_cambiado": "casi nada: un boton en CajaDiaria.py, dos constantes, y un metodo publico destino_de_unidad en el controlador para no meter la mano en un privado"
+  },
+  "investigacion_fase_1": {
+    "000010": {
+      "nature": "PRODUCTO_STOCKEABLE",
+      "activo": true,
+      "stock": {
+        "ASUNCION": 100,
+        "PILAR": 10
+      },
+      "nota": "las 100 de ASUNCION son la estimacion de V1-010, no un conteo"
+    },
+    "000037": {
+      "nature": "PRODUCTO_STOCKEABLE",
+      "activo": true,
+      "stock": {
+        "ASUNCION": 210,
+        "PILAR": 516,
+        "total": 726
+      },
+      "movimientos": "2, los dos de la carga inicial de V1-008",
+      "ventas_historicas_que_lo_referencian": 0,
+      "precio_en_el_catalogo": "None en produccion; el archivo corregido lo traia en 0"
+    },
+    "lineas_de_venta_con_no_cost_hoy": 0,
+    "lineas_de_venta_con_article_id_hoy": 0,
+    "motor_promocional_existente": "no hay. Tampoco se construyo: excede el slice",
+    "retirarlo_rompe_historia": "NO. Cero ventas lo referencian"
+  },
+  "plan": {
+    "compensaciones": {
+      "ASUNCION": 210,
+      "PILAR": 516,
+      "total": 726,
+      "kind": "AJUSTE_NEGATIVO",
+      "reason_code": "ERROR_INVENTARIO",
+      "causa_en_la_nota": "RECONCILIACION_STOCK_FICTICIO / PROMO_OBSEQUIO_LEGACY"
+    },
+    "no_se_trasladan_a": "000010 ni a ningun otro articulo",
+    "orden": "stock a cero -> verificar -> retirar. Nunca un inactivo con unidades",
+    "retiro": "active = 0, mas una entrada PROMO_OBSEQUIO_LEGACY_RETIRED en admin_audit_log",
+    "hard_delete": "NO",
+    "historia_vieja": "se conserva apuntando a 000037. NO se reemplaza retroactivamente por 000010",
+    "impacto": {
+      "articulos": "3595, sin cambios",
+      "activos": "2829 -> 2828",
+      "movimientos": "4439 -> 4441",
+      "ASUNCION": "6376 -> 6166",
+      "PILAR": "2776 -> 2260",
+      "total": "9152 -> 8426",
+      "nota": "las 726 unidades que desaparecen nunca fueron frascos"
+    }
+  },
+  "promocion": {
+    "motivo": "PROMO_CRISTAL_ARMAZON_LIMPIA",
+    "como_se_representa": "linea de venta con article_id = 000010, no_cost = true, precio cobrado 0 y el motivo escrito en la descripcion",
+    "trazabilidad": "la descripcion de la linea viaja como nota del movimiento VENTA, asi que el motivo queda en el ledger sin necesidad de migracion",
+    "stock": "-1 real de la sucursal de esa caja",
+    "automatismo": "NINGUNO. El obsequio se agrega a mano; no se asume que toda venta de armazon + cristal lo lleve",
+    "ui": "un boton «Limpia-cristal de regalo» que busca 000010, verifica stock en la sucursal, avisa si ya hay un obsequio en la misma venta, y agrega la linea con no_cost, precio 0 y el articulo real vinculado"
+  },
+  "pruebas_dirigidas": {
+    "archivo": "tests/comercial/test_promo_limpia_cristal.py",
+    "escritas_antes_de_tocar_nada": true,
+    "resultado": "14 passed",
+    "cubren": [
+      "el regalo descuenta una unidad del articulo real",
+      "el regalo no cobra nada y no suma al total",
+      "el movimiento dice que fue obsequio",
+      "la linea queda marcada sin costo",
+      "una venta sin promocion no regala nada",
+      "vender el limpia-cristal cobrando sigue funcionando",
+      "no se regala si no hay stock",
+      "dos regalos piden dos unidades",
+      "anular devuelve el frasco",
+      "al anular el movimiento original no se borra",
+      "el obsequio retirado no aparece para vender",
+      "retirar no borra su historia",
+      "no se puede retirar con stock encima"
+    ]
+  },
+  "dry_run": {
+    "artefacto": "DRY_RUN.txt",
+    "base": "copia consistente de la base productiva",
+    "veredicto": "PASS, 0 fallas",
+    "escenarios": 10,
+    "demostrado_sobre_datos_reales": {
+      "venta_bonificada": "total cobrado 530.000, 000010 ASUNCION 100 -> 99, PILAR 10 sin cambios",
+      "anulacion": "000010 vuelve a 100 por AJUSTE_POSITIVO; el VENTA original no se borra",
+      "venta_sin_promocion": "el limpia-cristal no se mueve",
+      "retirado_no_vendible": "000037 no aparece en el buscador; 000010 si",
+      "regalar_sin_stock": "rechazado con StockInsuficiente"
+    },
+    "idempotencia": "un segundo retiro se rechaza en las guardas y no escribe nada",
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "stock_en_retirados": 0,
+    "caja_historica": "intacta",
+    "V1_008": "intacta, 3.583 movimientos",
+    "V1_010": "sus movimientos de conciliacion siguen ahi",
+    "base_productiva_intacta": "sha256 d307e017... antes y despues"
+  },
+  "verification": {
+    "pruebas_dirigidas": "14 passed",
+    "suite_comercial": "268 passed",
+    "ciclo_de_ventana_de_Caja": "BC_CAJA_WINDOW_LIFECYCLE_OK, 2 ciclos, sin ventanas fantasma ni lock"
+  },
+  "fuera_de_scope": {
+    "Delivery": "slice 011",
+    "laboratorio_por_defecto": "slice 012",
+    "motor_general_de_promociones": "no se construyo",
+    "Gestion_Central": "no",
+    "Telegram": "no",
+    "rediseno_de_Caja": "no. Un boton"
+  },
+  "no_ejecutado_a_proposito": {
+    "escritura_en_produccion": "NO",
+    "hard_delete_de_000037": "NO",
+    "trasladar_las_726_unidades_a_000010": "NO",
+    "reemplazar_retroactivamente_000037_por_000010_en_ventas_viejas": "NO",
+    "regalo_automatico_en_toda_venta_de_armazon_mas_cristal": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO"
+  }
+}

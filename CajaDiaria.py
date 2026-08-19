@@ -342,6 +342,13 @@ COBRO_PAGO = (
     ("cuotas", "Cuotas", 75), ("total", "Total de la venta", 150),
     ("saldo", "Saldo cliente", 125),
 )
+#: El limpia-cristal que se regala es el mismo que se vende. Antes había un SKU
+#: aparte, «LIMPIA CRISTAL OBSEQUIO», con precio cero y stock propio: un producto
+#: que no existía y un depósito que no cerraba. El obsequio se marca en la línea,
+#: no se inventa un artículo.
+SKU_LIMPIA_CRISTAL = "000010"
+PROMO_LIMPIA_CRISTAL = "PROMO_CRISTAL_ARMAZON_LIMPIA"
+
 CAMPOS_MONETARIOS_UI = (
     "caja_inicial", "armazon", "cristal", "total", "efectivo",
     "tarjeta_cheque", "transferencia", "monto_convenio", "saldo", "salida_monto",
@@ -1833,6 +1840,68 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             ventana, comercial,
             unidad=campos_manual["unidad"].get().strip(), al_elegir=elegir)
 
+    def agregar_limpia_cristal_de_regalo():
+        """El obsequio sobre el frasco real, no sobre un artículo inventado.
+
+        Antes esto se representaba con «LIMPIA CRISTAL OBSEQUIO», un SKU con
+        precio cero clavado y su propio stock. Regalar un frasco que no existe
+        deja el depósito diciendo una cosa y el mostrador otra. Acá sale el
+        mismo artículo que se vende, se descuenta una unidad de verdad, y lo
+        único que cambia es que no se cobra.
+        """
+        try:
+            from modulos.comercial.application.comercial_controller import (
+                build_comercial_controller,
+            )
+        except ImportError:
+            messagebox.showinfo(
+                "Artículos", "El módulo comercial no está disponible en esta "
+                "instalación.", parent=ventana)
+            return
+
+        unidad = campos_manual["unidad"].get().strip()
+        comercial = build_comercial_controller(resolve_data_paths().ensure().database)
+        try:
+            articulo = comercial.articulo_por_sku(SKU_LIMPIA_CRISTAL)
+            if articulo is None or not articulo.active:
+                messagebox.showwarning(
+                    "Limpia-cristal", f"No hay un artículo activo con el código "
+                    f"{SKU_LIMPIA_CRISTAL}. Cargalo en el catálogo antes de regalarlo.",
+                    parent=ventana)
+                return
+            destino = comercial.destino_de_unidad(unidad)
+            if destino is None:
+                messagebox.showwarning(
+                    "Limpia-cristal", f"La caja «{unidad}» no está ligada a una sucursal, "
+                    "así que no se sabe de qué depósito saldría el frasco.", parent=ventana)
+                return
+            # Se cuenta lo que ya se está por regalar en esta misma venta: dos
+            # obsequios piden dos frascos, y el depósito tiene que poder darlos.
+            ya_en_la_venta = sum(
+                1 for i in items_venta
+                if i.no_cost and i.article_id == articulo.id)
+            disponible = comercial.stock(articulo.id, destino)
+            if disponible <= ya_en_la_venta:
+                messagebox.showwarning(
+                    "Sin stock", f"«{articulo.name}» tiene {disponible} en {destino.value} "
+                    f"y esta venta ya lleva {ya_en_la_venta} de regalo. No se puede regalar "
+                    "lo que no hay.", parent=ventana)
+                return
+            if ya_en_la_venta and not messagebox.askyesno(
+                    "Otro más", f"Esta venta ya lleva {ya_en_la_venta} limpia-cristal de "
+                    "regalo. ¿Agregar otro?", parent=ventana):
+                return
+            precio = articulo.sale_price or 0
+            nombre = articulo.name
+        finally:
+            comercial.close()
+
+        items_venta.append(SaleItem(
+            description=f"{nombre} — obsequio {PROMO_LIMPIA_CRISTAL}",
+            item_type="OBSEQUIO", code=SKU_LIMPIA_CRISTAL,
+            frame_price=precio, no_cost=True, article_id=articulo.id))
+        refrescar_items()
+
     def agregar_producto():
         try:
             valores = {clave: campos_manual[clave].get() for clave in (
@@ -1896,6 +1965,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     boton_agregar_articulo.grid(
         row=7, column=0, columnspan=2, sticky="ew", padx=10, pady=(3, 7)
     )
+    boton_regalo_limpia = ctk.CTkButton(
+        acciones_item, text="Limpia-cristal de regalo", width=170, height=22,
+        command=agregar_limpia_cristal_de_regalo, fg_color="#1D8A4E",
+        hover_color="#166B3C",
+    )
+    boton_regalo_limpia.pack(side="left", padx=(0, 3))
     # Elegir del catalogo es lo que hace que la venta descuente stock. Escribir
     # a mano sigue funcionando igual que siempre, y no descuenta nada.
     boton_buscar_articulo = ctk.CTkButton(

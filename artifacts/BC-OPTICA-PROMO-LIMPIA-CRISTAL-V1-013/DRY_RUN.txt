@@ -1,0 +1,106 @@
+DRY RUN V1-013 -- sobre copia de la base productiva
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 antes    : d307e017c86b985b10ba6cb3b72f6d6e355edb75aed52fa4c6f7f0bb4668687c
+antes           : 3595 articulos (2829 activos), 4439 movimientos, ASU 6376 / PIL 2776
+  000037 ficticio: ASU 210 / PIL 516
+  000010 real    : ASU 100 / PIL 10
+
+== 1-2. compensacion y retiro de 000037 ==
+    RETIRO DEL OBSEQUIO FICTICIO
+    base   : C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\55fef905-3b6d-44f0-bf35-8b120350484f\scratchpad\m013\dryrun013.sqlite3
+    sha256 : 3e92ba652c211841b0f2b737f7b70a63484690e5090ed34b6e53c5309d514329
+    
+      000037 LIMPIA CRISTAL OBSEQUIO -- stock ficticio: {'ASUNCION': 210, 'PILAR': 516} (total 726)
+      000010 Limpia Cristal          -- stock real     : {'ASUNCION': 100, 'PILAR': 10} (total 110)
+    
+    == guardas ==
+      OK   000037 existe en el catalogo
+      OK   000037 no fue retirado antes
+      OK   000037 sigue activo, hay algo que hacer
+      ---  ventas historicas que lo referencian: 0
+    
+    == backup verificable ==
+      archivo: C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\55fef905-3b6d-44f0-bf35-8b120350484f\scratchpad\m013\Backups\bc-caja-preretiro-obsequio-20260819-162018.sqlite3
+      sha256 : 3e92ba652c211841b0f2b737f7b70a63484690e5090ed34b6e53c5309d514329
+      OK   el backup tiene el mismo contenido que la base
+    
+    == 1. compensacion del stock ficticio ==
+      ASUNCION: -210 unidades
+      PILAR: -516 unidades
+    
+    == 2. verificar cero antes de retirar ==
+      OK   000037 quedo en cero en todas las sucursales: {'ASUNCION': 0, 'PILAR': 0}
+    
+    == 3. retiro del catalogo activo ==
+      000037 desactivado
+    
+    == verificacion ==
+      OK   000037 en cero: {'ASUNCION': 0, 'PILAR': 0}
+      OK   000010 intacto: {'ASUNCION': 100, 'PILAR': 10}. Las unidades ficticias NO se le trasladaron
+      OK   activos: 2829 -> 2828
+      OK   no se borro ningun articulo: 3595
+      OK   movimientos: 4439 -> 4441
+      OK   stock ASUNCION: 6376 -> 6166
+      OK   stock PILAR: 2776 -> 2260
+      OK   stock operativo en articulos retirados: 0
+      OK   integrity_check: ok
+      OK   foreign_key_check: 0
+      OK   stock negativo: 0
+      OK   huerfanos: 0
+      OK   efectos sin hecho: 0
+      OK   Caja, entradas: 12
+      OK   Caja, suma_caja: 6400000
+      OK   Caja, sale_items: 10
+      OK   V1-008 intacta: 3.583 movimientos
+      OK   los movimientos originales de 000037 siguen ahi
+    
+    sha256 despues: 9f4e879afb08bec9cd82a8ef93275ed1001e214a3e53d8432f77b6dd213fc6ee
+    VEREDICTO: PASS (0 fallas)
+  OK   el retiro corrio sin fallas
+  OK   000037 quedo en cero en las dos sucursales
+  OK   000010 intacto: las unidades ficticias NO se le trasladaron
+
+== 3-6. venta con 000010 bonificado ==
+    armazon de prueba: ASU-107836 .AC PAT FLEX GRIS K9853 53-17-
+  OK   la linea del regalo vale 0
+  OK   la venta cobra 530.000, sin el regalo (530000)
+  OK   000010 en ASUNCION: 100 -> 99 (bajo 1 por el regalo)
+  OK   000010 en PILAR sigue en 10
+  OK   el movimiento dice que fue obsequio: Limpia Cristal — obsequio PROMO_CRISTAL_ARMAZON_LIMPIA
+  OK   la linea quedo marcada sin costo
+
+== 7. anulacion de la venta bonificada ==
+  OK   el frasco regalado volvio: 100
+  OK   la devolucion es un hecho nuevo, el original no se borro: ['INGRESO_ADMINISTRATIVO', 'INGRESO_ADMINISTRATIVO', 'VENTA', 'AJUSTE_POSITIVO']
+
+== 8. venta sin promocion ==
+  OK   sin obsequio, el limpia-cristal no se mueve
+
+== 9. el retirado no se puede usar ==
+  OK   000037 no aparece en el buscador de la linea de venta
+  OK   000010 si aparece
+
+== control: no se regala lo que no hay ==
+  OK   regalar «.AC PAT FLEX GRIS K985» sin stock se rechaza
+
+== 10. idempotencia del retiro ==
+  OK   un segundo retiro se rechaza en las guardas
+  OK   el replay no escribio nada
+
+== invariantes ==
+  OK   integrity_check: ok
+  OK   foreign_key_check: 0
+  OK   stock negativo: 0
+  OK   huerfanos: 0
+  OK   efectos sin hecho: 0
+  OK   stock en retirados: 0
+
+== Caja historica y misiones anteriores ==
+  OK   las 12 entradas historicas siguen
+  OK   V1-008 intacta: 3.583 movimientos
+  OK   los movimientos de V1-010 siguen ahi
+
+sha256 base productiva despues: d307e017c86b985b10ba6cb3b72f6d6e355edb75aed52fa4c6f7f0bb4668687c
+  OK   la base productiva quedo intacta
+
+VEREDICTO: PASS (0 fallas)

@@ -1,0 +1,79 @@
+{
+  "mission": "BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013",
+  "state": "HUMAN_GATE",
+  "repository": "PX-Core",
+  "worktree": ".worktrees/optica-promo-013",
+  "branch": "feature/bc-optica-promo-limpia-cristal-v1-013",
+  "base_commit": "09532f7d7f2a28933d824d221d8f2d086b03e9c1",
+  "opened_on": "2026-08-19",
+  "opened_at": "PC Optica",
+  "blocked_on": "una autorizacion: retirar 000037",
+  "produccion": "INTACTA. sha256 d307e017... sin cambios",
+  "next_action": "Esperar la autorizacion y correr tools/retirar_obsequio_ficticio_optica.py --confirmar, que hace backup verificable, compensa las 726 unidades ficticias (210 ASUNCION + 516 PILAR), verifica que quede en cero y recien entonces desactiva 000037, dejando su historia y una entrada PROMO_OBSEQUIO_LEGACY_RETIRED en la bitacora. Despues quedan los slices 011 (Delivery) y 012 (laboratorio por defecto), en ese orden",
+  "next_role": "COMMAND_CENTER",
+  "next_pc": "Optica",
+  "autorizacion_requerida": true,
+  "por_que_este_next_action_y_no_otro": {
+    "evaluado_trasladar_las_726_a_000010": "NO. No eran frascos: eran la ficcion de un articulo con precio cero. Sumarlas al real seria inventar stock",
+    "evaluado_hard_delete_de_000037": "NO. Aunque hoy no lo referencie ninguna venta, borrarlo dejaria sin explicacion los dos movimientos de la carga inicial",
+    "evaluado_reemplazar_000037_por_000010_en_la_historia": "NO. La historia vieja dice lo que paso; reescribirla la volveria inutil",
+    "evaluado_regalo_automatico": "NO. La politica no esta definida como «siempre», asi que el mecanismo permite agregarlo rapido, no lo impone",
+    "evaluado_motor_de_promociones": "NO. Excede el slice y no hace falta para esta regla"
+  },
+  "deudas_explicitas_no_mezcladas": [
+    {
+      "id": "000010-ASUNCION-ES-UNA-ESTIMACION",
+      "estado": "ABIERTA, no bloqueante",
+      "detalle": "las 100 unidades vienen de V1-010 como ESTIMATED_INITIAL_STOCK. El regalo las descuenta igual; el dia que se cuente, la diferencia se compensa"
+    },
+    {
+      "id": "DELIVERY-NO-EXISTE",
+      "estado": "PENDIENTE, slice 011"
+    },
+    {
+      "id": "LABORATORIO-POR-DEFECTO",
+      "estado": "PENDIENTE, slice 012"
+    },
+    {
+      "id": "MOTOR-PROMOCIONAL-GENERAL",
+      "estado": "NO PEDIDO",
+      "detalle": "esta mision resuelve una promocion concreta con el modelo que ya existe"
+    },
+    {
+      "id": "CENTINELAS-EN-LA-FUENTE",
+      "estado": "ACEPTADO"
+    },
+    {
+      "id": "SEIS-SLICES-FUERA-DE-MAIN",
+      "estado": "PENDIENTE, no bloqueante"
+    },
+    {
+      "id": "ANULACION-EN-DIA-CERRADO",
+      "estado": "PENDIENTE, no bloqueante"
+    }
+  ],
+  "verification": {
+    "estado_canonico": "verificado, sin drift",
+    "pruebas_dirigidas": "14 passed",
+    "suite_comercial": "268 passed",
+    "ciclo_de_ventana_de_Caja": "OK",
+    "dry_run": "PASS, 0 fallas, 10 escenarios",
+    "idempotencia": "PASS",
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "stock_en_retirados": 0,
+    "caja_historica": "intacta",
+    "V1_008": "intacta",
+    "V1_010": "intacta",
+    "produccion_intacta": "sha256 sin cambios",
+    "gates": {
+      "librarian": "PASS",
+      "qa": "PASS",
+      "auditor": "PASS",
+      "artifact_consistency": "PASS"
+    }
+  }
+}

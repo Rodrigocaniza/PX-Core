@@ -542,6 +542,15 @@ class ComercialController:
 
     # -- stock --------------------------------------------------------------
 
+    def destino_de_unidad(self, unidad: str) -> Destination | None:
+        """A qué depósito le pega una caja, o None si nadie lo ligó todavía.
+
+        Existe para que quien pregunta no tenga que meter la mano en el
+        integrador: la ligadura vive en `cash_register_branches` y esto es
+        sólo la puerta de lectura.
+        """
+        return self._integrador._destino_opcional(unidad)
+
     def stock(self, article_id: str, destino: Destination | str) -> int:
         return self.ledger.stock(article_id, destino)
 
