@@ -1,7 +1,7 @@
 {
   "mission": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
   "engine": "BC Command Center / Workflow Engine",
-  "state": "SAFE_PAUSE",
+  "state": "SAFE_CLOSURE",
   "pc": "Optica",
   "headless_executor": "NO USADO: la simulacion levanta el controlador comercial contra una copia de la base productiva",
   "lease": {
@@ -65,13 +65,13 @@
     },
     {
       "step": "conteo fisico",
-      "state": "SAFE_PAUSE",
-      "detalle": "se pidieron los cinco numeros. Llego uno con el marcador literal [CANTIDAD REAL CONTADA] sin completar, asi que no se aplico nada. Despues el dueno pauso la mision por los inventarios corregidos"
+      "state": "RESUELTO FUERA DE LA MISION",
+      "detalle": "los cinco se resolvieron en V1-010: cuatro por NATURE_CORRECTION -dejaron de ser inventario- y 000010 por ESTIMATED_INITIAL_STOCK. Ninguno hizo falta contarlo a mano"
     },
     {
       "step": "escritura productiva",
       "state": "NO EJECUTADA",
-      "detalle": "nunca ejecutada. Produccion quedo con el mismo sha256"
+      "detalle": "esta mision nunca escribio en produccion"
     },
     {
       "step": "merge a main",
@@ -87,6 +87,11 @@
       "step": "Safe Pause",
       "state": "DONE",
       "detalle": "evidencia conservada, nada descartado, produccion intacta"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE",
+      "detalle": "sin pendientes abiertos. La herramienta queda en el repo para el proximo conteo real"
     }
   ],
   "no_ejecutado_a_proposito": {

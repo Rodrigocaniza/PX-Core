@@ -1,15 +1,15 @@
 {
   "mission": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
-  "state": "SAFE_PAUSE",
+  "state": "SAFE_CLOSURE",
   "repository": "PX-Core",
   "worktree": ".worktrees/optica-recuento-009",
   "branch": "feature/bc-optica-recuento-fisico-pendientes-v1-009",
   "base_commit": "f5a55b7cbcdd41cfb961ba35a79ad61e4ee8e62d",
   "opened_on": "2026-08-19",
   "opened_at": "PC Optica",
-  "blocked_on": "suspendida por decision del dueno: aparecieron dos inventarios corregidos posteriores a las fuentes de la 008, y hay que conciliarlos antes de seguir contando a mano",
+  "blocked_on": null,
   "produccion": "INTACTA en esta mision. 3.554 articulos, 3.583 movimientos, 8.748 unidades, sha256 sin cambios",
-  "next_action": "NO continuar con los conteos manuales. Retomar solo si la 010 concluye que algun articulo sigue necesitando conteo fisico. Todo lo preparado -herramienta, planilla, dry run y backup- sigue valido y reutilizable",
+  "next_action": "Ninguna. Si algun dia se cuentan fisicamente los limpia-cristales de Asuncion, la diferencia contra las 100 estimadas se corrige con un movimiento compensatorio, y la herramienta de esta mision sirve para eso",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
@@ -76,5 +76,19 @@
     "pendientes_cerrados": 0,
     "sha256": "25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658",
     "escrito_por_esta_mision": "NADA"
+  },
+  "closed_on": "2026-08-19",
+  "cierre": {
+    "por_que": "los cinco pendientes que esta mision iba a contar quedaron resueltos fuera de ella, y ninguno hizo falta contarlo a mano",
+    "como_se_resolvio_cada_uno": {
+      "2000056 Par de patillas": "NATURE_CORRECTION en V1-010: es un servicio, no inventario",
+      "2000070 Hilo": "NATURE_CORRECTION en V1-010",
+      "2000071 Tornillo": "NATURE_CORRECTION en V1-010",
+      "2000072 Plaqueta": "NATURE_CORRECTION en V1-010",
+      "000010 Limpia Cristal ASUNCION": "ESTIMATED_INITIAL_STOCK, 100 unidades por decision del dueno. No es un conteo y esta marcado como tal"
+    },
+    "pendientes_abiertos": 0,
+    "lo_que_esta_mision_dejo_util": "tools/recuento_pendientes_optica.py sigue en el repo y sirve para el proximo conteo real: lista lo pendiente desde la base, registra el conteo con su fecha, distingue 'se conto y dio cero' de 'nunca se conto', y no duplica al repetirse",
+    "escrito_en_produccion_por_esta_mision": "NADA"
   }
 }

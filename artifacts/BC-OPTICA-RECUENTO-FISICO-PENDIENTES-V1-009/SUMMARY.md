@@ -86,3 +86,27 @@ conciliación puede invalidar.
 reevalúa los cinco con los archivos nuevos. Uno de ellos ya se resuelve sin
 contar: `2000056 Par de patillas` pasa a servicio por definición operativa del
 negocio.
+
+---
+
+## SAFE CLOSURE — 2026-08-19
+
+La misión cierra **sin haber escrito nunca en producción**, y sin que haya hecho
+falta contar nada a mano.
+
+Los cinco pendientes que venía a resolver se resolvieron fuera de ella:
+
+- `2000056` **Par de patillas**, `2000070` **Hilo**, `2000071` **Tornillo** y
+  `2000072` **Plaqueta** — cerrados en V1-010 por `NATURE_CORRECTION`. Dejaron de
+  ser inventario: son conceptos de compostura. No había nada que contar.
+- `000010` **Limpia Cristal** en Asunción — cerrado como
+  `ESTIMATED_INITIAL_STOCK` con 100 unidades, por decisión del dueño. **No es un
+  conteo**, y el registro lo dice de sí mismo.
+
+**Pendientes abiertos: 0.**
+
+Lo que esta misión deja útil es `tools/recuento_pendientes_optica.py`: lista lo
+pendiente leyéndolo de la base, registra un conteo con su fecha real, distingue
+«se contó y dio cero» de «nunca se contó», y no duplica al repetirse. Sirve tal
+cual el día que alguien cuente los limpia-cristales de verdad — la diferencia
+contra las 100 estimadas se corregirá con un movimiento compensatorio.
