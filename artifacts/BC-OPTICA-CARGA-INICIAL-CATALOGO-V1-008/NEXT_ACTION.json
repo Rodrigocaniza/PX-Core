@@ -1,7 +1,7 @@
 {
   "mission": "BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008",
-  "generacion": 3,
-  "state": "HUMAN_GATE_FINAL",
+  "generacion": 4,
+  "state": "SAFE_CLOSURE",
   "repository": "PX-Core",
   "worktree": ".worktrees/optica-carga-catalogo-008",
   "branch": "feature/bc-optica-carga-inicial-catalogo-v1-008",
@@ -9,9 +9,9 @@
   "generacion_1_commit": "a21c3046ba444dc6157a767fc76314638ab822ef",
   "closed_on": "2026-08-19",
   "closed_at": "PC Optica",
-  "blocked_on": "una sola autorizacion: AUTORIZAR IMPORTACION PRODUCTIVA",
-  "produccion": "INTACTA. rc.32, 27 migraciones, 0 articulos, 0 movimientos, sha256 sin cambios",
-  "next_action": "Esperar la autorizacion. Con ella se corre tools/carga_inicial_optica_importar.py --entrada artifacts/BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008 --confirmar, que hace backup verificable, aplica el catalogo (3.554 articulos, cero unidades), carga el inventario inicial por sucursal con la fecha de cada recuento y run_id fijo, anota los 5 articulos con cantidad pendiente en admin_audit_log, y verifica todo post-import. Si algo falla se detiene y dice como volver atras. Despues de eso la mision cierra con Safe Closure, y la deuda que queda es el recuento fisico de los 5 pendientes",
+  "blocked_on": null,
+  "produccion": "CARGADA. rc.32, 27 migraciones, 3.554 articulos, 3.583 movimientos INVENTARIO_INICIAL, 8.748 unidades. Caja historica intacta",
+  "next_action": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009, en la Optica y sin apuro. Son cinco articulos que existen en el catalogo y no tienen unidades porque nadie los conto: 000010 Limpia Cristal en Asuncion, y 2000056 Par de patillas, 2000070 Hilo, 2000071 Tornillo y 2000072 Plaqueta en Pilar. Se resuelven contando, y entran por el mismo camino INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL con la fecha del recuento real. La consulta que los lista ya existe: admin_audit_log con action = STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION. No es bloqueante para operar: la Optica ya puede vender los otros 3.549 articulos",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
@@ -43,8 +43,8 @@
   "deudas_explicitas_no_mezcladas": [
     {
       "id": "RECUENTO-FISICO-DE-LOS-CINCO-PENDIENTES",
-      "estado": "PENDIENTE, no bloqueante",
-      "detalle": "Limpia Cristal en Asuncion, Par de patillas, Hilo, Tornillo y Plaqueta en Pilar. Entran cuando alguien los cuente, por el mismo camino INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL. Su cifra declarada quedo guardada como evidencia"
+      "estado": "PENDIENTE, no bloqueante, es el NEXT_ACTION",
+      "detalle": "consultables en produccion por admin_audit_log.action = STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION"
     },
     {
       "id": "CATEGORIA-VACIA-EN-DOS-ARTICULOS",
@@ -76,7 +76,7 @@
     "stock_negativo": 0,
     "articulos_huerfanos": 0,
     "efectos_sin_hecho": 0,
-    "produccion_intacta": "sha256 aa13f36e... antes y despues del dry run y del backup",
+    "produccion_intacta": "ya no aplica: la mision escribio en produccion, autorizada. Caja historica si quedo intacta",
     "backup_pre_importacion": "hecho y verificado, sha256 eec36a5d...",
     "trazabilidad": "COMPLETA. Cada excepcion lleva escrito en el articulo si fue decision humana o evidencia, y cada cantidad pendiente conserva la cifra que declaro la fuente, su archivo, su fila y su corte",
     "desglose_exigido_por_la_orden": {
@@ -93,7 +93,12 @@
       "qa": "PASS",
       "auditor": "PASS",
       "artifact_consistency": "PASS"
-    }
+    },
+    "importacion_productiva": "PASS, 0 fallas",
+    "verificacion_post_import": "PASS, 0 fallas",
+    "idempotencia_sobre_produccion": "PASS, base byte a byte igual",
+    "smoke_app_y_ui": "PASS",
+    "rollback_usado": "NO"
   },
   "resuelto_en_generacion_2": {
     "compostura_9_servicios": "SERVICIO_NO_STOCKEABLE, decision humana",
@@ -106,5 +111,10 @@
   "resuelto_en_generacion_3": {
     "2000056 Par de patillas": "PRODUCTO_STOCKEABLE, cantidad PENDIENTE",
     "000010 Limpia Cristal": "PRODUCTO_STOCKEABLE, 2.860 de Asuncion PENDIENTE, 10 de Pilar confirmados"
+  },
+  "resuelto_en_generacion_4": {
+    "importacion_productiva": "EJECUTADA con PASS",
+    "rollback_usado": "NO",
+    "las_5_cantidades_prohibidas": "efectivamente excluidas del ledger y auditadas como pendientes"
   }
 }

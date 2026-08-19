@@ -1,6 +1,6 @@
 {
   "mission": "BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008",
-  "tipo": "analisis, normalizacion y simulacion. NO carga productiva",
+  "tipo": "analisis, normalizacion, simulacion e IMPORTACION PRODUCTIVA EJECUTADA",
   "pc": "Optica",
   "branch": "feature/bc-optica-carga-inicial-catalogo-v1-008",
   "worktree": ".worktrees/optica-carga-catalogo-008",
@@ -224,7 +224,7 @@
     "merge_a_main": "NO",
     "pr": "NO"
   },
-  "generacion": 3,
+  "generacion": 4,
   "generacion_1": "analisis, normalizacion y dry run con 25 filas en REQUIRES_POLICY_DECISION. Commit a21c304",
   "generacion_2": "decision humana de Compostura aplicada, las dos excepciones restantes investigadas con evidencia, 4 filas sin categoria resueltas, cantidades centinela puestas en suspenso, dry run vuelto a correr",
   "decisiones_incorporadas": {
@@ -311,7 +311,8 @@
       "artifacts/pendientes_de_verificacion.json"
     ],
     "articulos": 5,
-    "unidades_declaradas_que_no_entran": 212185
+    "unidades_declaradas_que_no_entran": 212185,
+    "verificado_en_produccion": "los 5 no tienen movimiento en su sucursal, no figuran en stock_actual, existen en el catalogo, conservan SOURCE_REPORTED_QUANTITY en las notas y tienen su fila en admin_audit_log. 000010 conserva ademas sus 10 unidades confirmadas en PILAR"
   },
   "seguridad_productiva": {
     "backup_hecho": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-preimport-catalogo-20260819-135805.sqlite3",
@@ -323,5 +324,96 @@
     "probada_en_modo_previsualizacion": true,
     "rollback": "cerrar BC Caja, borrar bc_caja.sqlite3 con su -wal y -shm, copiar el backup encima",
     "repetible_sin_duplicar": "catalogo por sha256 del archivo, recuentos por run_id fijo"
+  },
+  "generacion_4": "autorizacion humana recibida. Pre-guard PASS, importacion ejecutada, verificacion post-import PASS, idempotencia sobre produccion PASS, smoke de la app y de la UI Comercial PASS. Safe Closure",
+  "importacion_productiva": {
+    "ejecutada": true,
+    "autorizada_por": "el dueno, 2026-08-19, limitada al plan exacto del dry run 3",
+    "herramienta": "tools/carga_inicial_optica_importar.py --confirmar",
+    "veredicto": "PASS, 0 fallas",
+    "pre_guard": {
+      "base_sha256_esperado": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
+      "base_sha256_encontrado": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
+      "backup_sha256_esperado": "eec36a5d62ed5a375d74291bcb359351a746bfb11ddeb5a720f59ecb7d80a139",
+      "backup_sha256_encontrado": "eec36a5d62ed5a375d74291bcb359351a746bfb11ddeb5a720f59ecb7d80a139",
+      "HEAD": "e64c180",
+      "artefactos_sin_drift": true,
+      "plan_coincide_con_dry_run_3": "verificado campo por campo, incluidos los 5 prohibidos",
+      "BC_Caja_corriendo": false,
+      "veredicto": "PASS en los 6 puntos"
+    },
+    "backup_de_la_corrida": {
+      "archivo": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-preimport-catalogo-20260819-140624.sqlite3",
+      "sha256": "eec36a5d62ed5a375d74291bcb359351a746bfb11ddeb5a720f59ecb7d80a139",
+      "nota": "identico al backup preparado en la generacion 3: la base no habia cambiado entre uno y otro"
+    },
+    "base_sha256_antes": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
+    "base_sha256_despues": "25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658",
+    "rollback_usado": "NO",
+    "corridas": {
+      "CATALOGO": "c7115507-3fdc-48d3-aebb-f9563b430626, 3554 filas, APLICADA",
+      "INVENTARIO_INICIAL ASUNCION": "inventario-inicial-asuncion-20260803, 2575 filas, APLICADA",
+      "INVENTARIO_INICIAL PILAR": "inventario-inicial-pilar-20260810, 1008 filas, APLICADA"
+    },
+    "resultado": {
+      "articulos": 3554,
+      "PRODUCTO_STOCKEABLE": 3515,
+      "TRABAJO_BAJO_PEDIDO": 30,
+      "SERVICIO_NO_STOCKEABLE": 9,
+      "globales": 247,
+      "ASU": 2425,
+      "PIL": 882,
+      "categorias": 14,
+      "marcas": 136,
+      "movimientos": 3583,
+      "unidades_ASUNCION": 5849,
+      "unidades_PILAR": 2899,
+      "unidades_totales": 8748,
+      "cortes": {
+        "ASUNCION": "2026-08-03",
+        "PILAR": "2026-08-10"
+      },
+      "filas_rechazadas_que_siguen_fuera": 11,
+      "cantidades_pendientes_excluidas": 5,
+      "unidades_declaradas_excluidas": 212185
+    },
+    "caja_historica": {
+      "antes": {
+        "entradas": 12,
+        "suma": 6400000,
+        "sale_items": 10,
+        "dias": 2,
+        "pedidos": 8
+      },
+      "despues": {
+        "entradas": 12,
+        "suma": 6400000,
+        "sale_items": 10,
+        "dias": 2,
+        "pedidos": 8
+      },
+      "ventas_historicas_integradas_al_stock": 0
+    },
+    "verificacion_post_import": {
+      "artefacto": "VERIFICACION_POST_IMPORT.txt",
+      "veredicto": "PASS, 0 fallas",
+      "integrity_check": "ok",
+      "foreign_key_check": 0,
+      "stock_negativo": 0,
+      "movimientos_huerfanos": 0,
+      "efectos_sin_hecho": 0,
+      "lineas_de_venta_huerfanas": 0,
+      "SKU_duplicados": 0
+    },
+    "idempotencia_sobre_produccion": {
+      "artefacto": "IDEMPOTENCIA_PRODUCTIVA.txt",
+      "veredicto": "PASS",
+      "detalle": "reaplicar el catalogo se rechaza por sha256; los dos recuentos con el mismo run_id devuelven la misma corrida; la base quedo byte a byte igual"
+    },
+    "smoke": {
+      "app": "BC Caja abre sobre la base ya cargada, ventana 'Caja diaria - Optica'",
+      "ui_comercial": "PASS sobre copia de la base productiva ya cargada",
+      "base_tras_el_smoke": "sha256 25cd7d04... sin cambios"
+    }
   }
 }

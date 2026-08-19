@@ -1,0 +1,9 @@
+base migrada  : C:\Users\Striker\AppData\Local\Temp\bc-smoke-006\ui_post_import.sqlite3
+  OK   la ventana Comercial abre
+  OK   la pestaña Artículos se arma y se pinta
+  OK   la pestaña Proveedores se arma y se pinta
+  OK   la pestaña Compras se arma y se pinta
+  OK   refrescar artículos y proveedores no rompe
+  OK   el buscador de artículos de la línea de venta abre
+
+VEREDICTO: PASS (0 fallas)

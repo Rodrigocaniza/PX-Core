@@ -1,0 +1,24 @@
+IDEMPOTENCIA / REPLAY SOBRE LA BASE PRODUCTIVA
+antes: {'art': 3554, 'mov': 3583, 'asu': 5849, 'pil': 2899, 'runs': 3, 'audit': 155}
+sha256 antes: 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658
+
+== reintentar el catalogo con el mismo archivo ==
+  el plan ahora ve: 0 altas, 3554 actualizaciones, 0 rechazadas
+  OK   los 3554 ya existen: serian actualizaciones, no altas
+  OK   rechazado por sha256: este archivo ya se cargó (catalogo_canonico.csv). Volver a aplic
+
+== reintentar los dos recuentos con el mismo run_id ==
+  OK   ASUNCION: devuelve la misma corrida inventario-inicial-asuncion-20260803
+  OK   PILAR: devuelve la misma corrida inventario-inicial-pilar-20260810
+
+despues: {'art': 3554, 'mov': 3583, 'asu': 5849, 'pil': 2899, 'runs': 3, 'audit': 155}
+  OK   articulos sin cambios: 3554
+  OK   movimientos sin cambios: 3583
+  OK   unidades ASUNCION sin cambios: 5849
+  OK   unidades PILAR sin cambios: 2899
+  OK   corridas sin cambios: 3
+  OK   bitacora sin cambios: 155
+sha256 despues: 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658
+  OK   el archivo de base quedo byte a byte igual
+
+VEREDICTO: PASS (0 fallas)

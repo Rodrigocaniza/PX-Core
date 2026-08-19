@@ -12,7 +12,8 @@ las corridas dicen. Lo que no se verificó está declarado como tal.
 > | --- | ---: | ---: | --- |
 > | 1 | 3.529 | 3.579 | 25 filas en `REQUIRES_POLICY_DECISION` |
 > | 2 | 3.553 | 3.583 | 1 fila y 4 cantidades sin resolver |
-> | **3 (vigente)** | **3.554** | **3.583** | **todo resuelto, 5 cantidades pendientes de conteo** |
+> | 3 | 3.554 | 3.583 | todo resuelto, 5 cantidades pendientes de conteo |
+> | **4 (vigente)** | **3.554** | **3.583** | **importado en producción, PASS, sin rollback** |
 
 # Generación 1 — análisis, normalización y primer dry-run
 
@@ -282,3 +283,100 @@ consecuencia. Los tres vuelven a `Compostura`, que es la categoría del archivo.
   decisión del normalizador y agrega el script de import, que no toca código de
   producto. El dry-run ejercita ese camino entero. Vale la corrida de la
   generación 1: **254 passed**.
+
+---
+
+# Generación 4 — la importación productiva, ejecutada
+
+## Pre-guard
+
+| Afirmación | Verificación | Resultado |
+| --- | --- | --- |
+| La base es la misma que aprobó el gate | sha256 `aa13f36e…` esperado y encontrado | ✔ |
+| El backup sigue disponible e íntegro | archivo presente, 733.184 bytes | ✔ |
+| El backup tiene el sha256 declarado | `eec36a5d…` | ✔ |
+| El backup es recuperable | abre y da 12 entradas, 6.400.000, 10 líneas, integridad ok, 0 FK | ✔ |
+| Branch, HEAD y artefactos sin drift | `e64c180`, worktree limpio, 4 sha256 coinciden | ✔ |
+| El plan es el del dry-run 3 | 12 cifras comparadas una por una | ✔ |
+| Los 5 prohibidos siguen fuera del recuento | comprobado archivo por archivo | ✔ |
+| `000010` conserva sus 10 de PILAR | está en `recuento_PILAR.json` | ✔ |
+| BC Caja no estaba corriendo | conteo de procesos = 0 | ✔ |
+
+## Importación
+
+| Afirmación | Verificación | Resultado |
+| --- | --- | --- |
+| Se usó el mecanismo probado, sin SQL manual | `carga_inicial_optica_importar.py --confirmar` | ✔ |
+| El catálogo no creó stock | 3.554 artículos y 0 movimientos entre paso y paso | ✔ |
+| 3.583 movimientos | conteo | ✔ |
+| 5.849 + 2.899 unidades | suma por `destination` | ✔ |
+| Rollback | no hizo falta | ✔ **NO** |
+| `sha256` cambió sólo por la importación | `aa13f36e…` → `25cd7d04…` | ✔ |
+
+## Verificación post-import, hecha por separado
+
+Corrió un verificador independiente del script que importó, contra la base real
+en modo `ro`: Caja histórica, catálogo, filas rechazadas, ledger, pendientes,
+integridad, trazabilidad y corridas. **PASS, 0 fallas.**
+
+| Afirmación | Verificación | Resultado |
+| --- | --- | --- |
+| Caja histórica intacta | 12 / 6.400.000 / 10 / 2 / 8 | ✔ |
+| Ninguna venta histórica quedó integrada al stock | `sale_stock_integrations` | ✔ 0 |
+| Catálogo exacto y sin duplicados | conteos por `nature`, por prefijo, `group by sku` | ✔ |
+| Las 11 rechazadas siguen fuera | por procedencia, no por nombre | ✔ |
+| Todo el ledger es `INGRESO_ADMINISTRATIVO`/`INVENTARIO_INICIAL` | `group by` | ✔ |
+| Cortes 2026-08-03 y 2026-08-10 | `group by substr(occurred_at,1,10)` | ✔ 2.575 / 1.008 |
+| Los 5 pendientes sin movimiento en su sucursal | consulta por artículo y destino | ✔ |
+| …y ausentes de `stock_actual` | ídem | ✔ 0 filas |
+| …y auditados y consultables | `admin_audit_log`, acción `STOCK_INITIAL_…` | ✔ 5 |
+| `000010` conserva sus 10 en PILAR | suma por destino | ✔ |
+| 3 corridas registradas | `import_runs` | ✔ |
+
+## Un falso positivo del verificador, y por qué importa
+
+La primera pasada marcó **una falla**: «las 9 filas sin código no crearon
+artículo — 1 encontrada». Era del verificador, no de los datos. Buscaba por
+**nombre**, y `AC PAT FLEX AZUL` es una descripción que se repite en 8 filas que
+**sí** traen código (`90863`, `79055`, `78825`, `90836`, `100744`, `100756`,
+`100708`, `100665`). Ninguna de las ocho viene de la fila 4241, que es la
+rechazada.
+
+Se corrigió el verificador para comprobar por **procedencia** —la nota de origen
+de cada artículo cita su archivo y su fila— y volvió a dar PASS. El dato estaba
+bien; la pregunta estaba mal formulada. Queda escrito porque una falla que se
+resuelve cambiando el verificador merece más explicación, no menos.
+
+## Idempotencia sobre producción
+
+| Afirmación | Verificación | Resultado |
+| --- | --- | --- |
+| Reaplicar el catálogo se rechaza | excepción por sha256 ya cargado | ✔ |
+| El plan ahora ve 0 altas | 3.554 pasarían a ser actualizaciones | ✔ |
+| Los recuentos devuelven la misma corrida | mismo `run_id` | ✔ |
+| Nada se duplicó | artículos, movimientos, unidades, corridas y bitácora iguales | ✔ |
+| La base quedó **byte a byte** igual | sha256 `25cd7d04…` antes y después del replay | ✔ |
+
+## Smoke
+
+BC Caja abre sobre la base cargada, ventana `Caja diaria - Óptica`. La UI
+Comercial pasa sus seis comprobaciones contra una copia de la base ya cargada.
+Abrir y cerrar la app no cambió el sha256.
+
+## Lo que NO se verificó, y hay que decirlo
+
+- **Las cinco cantidades pendientes siguen sin conteo físico.** Es exactamente lo
+  que se decidió: existen en el catálogo y esperan que alguien cuente.
+- **No hubo operación real con la operadora.** Vender de verdad para probar
+  crearía un hecho sin causa. El circuito completo ya se ejercitó en el gate de la
+  misión 007 sobre copia.
+- **No se verificó que los 3.549 artículos con stock correspondan a lo que hay
+  físicamente en el local.** Se verificó que lo que entró es exactamente lo que
+  declararon las planillas, con su fecha y su fila de origen. Que la planilla
+  diga la verdad es otra cosa, y es la razón por la que las cinco dudosas
+  quedaron afuera.
+- **La UI Comercial se abrió desde el árbol de código**, no desde el ejecutable
+  congelado, igual que en las misiones anteriores. Del ejecutable se verificó que
+  arranca sobre la base cargada.
+- **La suite completa no se re-corrió.** Esta generación no toca código de
+  producto. Vale la corrida de la generación 1: **254 passed**.

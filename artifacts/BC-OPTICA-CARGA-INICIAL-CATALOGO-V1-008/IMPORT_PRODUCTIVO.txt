@@ -1,0 +1,42 @@
+IMPORTACION PRODUCTIVA -- CATALOGO E INVENTARIO INICIAL DE LA OPTICA
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+antes           : 0 articulos, 0 movimientos, 12 entradas de Caja
+
+== backup verificable, antes de tocar nada ==
+  base sha256 antes : aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de
+  backup            : C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-preimport-catalogo-20260819-140624.sqlite3
+  backup sha256     : eec36a5d62ed5a375d74291bcb359351a746bfb11ddeb5a720f59ecb7d80a139
+  OK   el backup tiene los mismos datos que la base
+  OK   el backup pasa integrity_check
+
+== paso 1b -- catalogo (crea articulos, ni una unidad) ==
+  OK   plan aplicable: 3554 altas, 0 actualizaciones, 0 rechazadas
+  corrida: c7115507-3fdc-48d3-aebb-f9563b430626 (APLICADA), 3554 articulos
+  OK   el catalogo no creo una sola unidad de stock
+
+== paso 2 -- inventario inicial por sucursal ==
+  OK   ASUNCION: todas las lineas resuelven a un articulo
+  ASUNCION : 2575 lineas, corte 2026-08-03
+  OK   PILAR: todas las lineas resuelven a un articulo
+  PILAR    : 1008 lineas, corte 2026-08-10
+
+== cantidad pendiente de verificacion fisica ==
+  5 articulos anotados; sus 212185 unidades declaradas NO entraron al ledger
+
+== verificacion post-import ==
+  OK   ASUNCION: 5849 unidades (esperado 5849)
+  OK   PILAR: 2899 unidades (esperado 2899)
+  OK   3583 movimientos, uno por linea
+  OK   integrity_check ok
+  OK   foreign_key_check sin violaciones
+  OK   sin stock negativo
+  OK   sin movimientos huerfanos
+  OK   sin efectos sin hecho
+  OK   entradas de Caja sin cambios: 12
+  OK   dinero sin cambios: 6400000
+  OK   lineas de venta sin cambios: 10
+  OK   dias sin cambios: 2
+  OK   pedidos sin cambios: 8
+
+base sha256 despues: 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658
+VEREDICTO: PASS (0 fallas)

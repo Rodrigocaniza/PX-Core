@@ -138,10 +138,46 @@ arregló el verificador, no el dato.
 cantidad pendiente (212.185 unidades declaradas que no se convierten en ledger) ·
 producción con el mismo sha256 · backup pre-importación hecho y verificado.
 
-## Lo que falta
+## Generación 4 — importado
 
-**Una sola autorización.** Está todo preparado: el catálogo, los recuentos, el
-backup verificable, la herramienta de importación —que no escribe sin
-`--confirmar`— y el rollback. El gate está en `HUMAN_GATE.md`.
+Autorizado, y hecho. **PASS, 0 fallas, sin rollback.**
 
-**No se importa nada hasta que lo autorices.**
+El pre-guard pasó en los seis puntos: la base tenía el sha256 que el gate había
+declarado, el backup seguía ahí con el suyo y abría bien, el HEAD y los cuatro
+artefactos no se habían movido, y el plan coincidía con el dry-run 3 campo por
+campo, incluidos los cinco valores prohibidos.
+
+| | ASUNCION | PILAR | total |
+| --- | ---: | ---: | ---: |
+| líneas | 2.575 | 1.008 | 3.583 |
+| **unidades** | **5.849** | **2.899** | **8.748** |
+
+3.554 artículos, 14 categorías, 136 marcas. Los 3.583 movimientos son
+`INGRESO_ADMINISTRATIVO` / `INVENTARIO_INICIAL`, con la fecha de cada recuento —
+2026-08-03 y 2026-08-10, no la de hoy—, ninguno sin actor y ninguno sin
+explicación escrita. `sha256` de la base: `aa13f36e…` → `25cd7d04…`.
+
+**Las cinco cantidades dudosas no entraron.** Ni un movimiento por los 2.860
+limpia-cristales, ni por los 526 pares de patillas, ni por los 99.981 hilos, los
+99.425 tornillos o las 9.393 plaquetas. No figuran en `stock_actual` para su
+sucursal: el sistema no dice que hay cero, no dice nada. Los cinco existen en el
+catálogo, conservan la cifra que declaró la fuente y están en la bitácora, así
+que la pregunta «¿qué falta contar?» tiene respuesta en una consulta. Y los 10
+limpia-cristales que Pilar sí contó están donde deben.
+
+**Caja histórica intacta:** 12 entradas, 6.400.000, 10 líneas, 2 días, 8 pedidos,
+y cero ventas viejas integradas al stock.
+
+Repetir la importación entera no cambia nada: el catálogo se rechaza por sha256,
+los recuentos devuelven la misma corrida, y la base queda **byte a byte igual**.
+
+**Un falso positivo que vale contar.** La primera pasada del verificador marcó
+una falla: creía que una fila rechazada había creado un artículo. Buscaba por
+nombre, y `AC PAT FLEX AZUL` es una descripción que se repite en ocho armazones
+que sí traen código. Se corrigió la pregunta —ahora verifica por procedencia— y
+dio PASS. El dato estaba bien desde el principio.
+
+## Lo que queda
+
+Cinco artículos esperando que alguien los cuente. No bloquean nada: la Óptica ya
+puede vender los otros 3.549.
