@@ -239,7 +239,12 @@ class ComercialController:
         active: bool = True,
         article_id: str | None = None,
     ) -> Article:
-        """Alta o edición administrativa. Siempre queda registrada."""
+        """Alta o reemplazo completo. Siempre queda registrada.
+
+        Reemplaza: lo que no se le pase queda en su valor por defecto, no en
+        el que tenía. Para tocar unos pocos campos de un artículo que ya
+        existe va `actualizar_articulo`, que conserva el resto.
+        """
         anterior = self.obtener_articulo(article_id) if article_id else None
         articulo = Article(
             sku=sku, name=name, nature=nature, category_id=category_id,
@@ -257,6 +262,34 @@ class ComercialController:
                      "location": guardado.location,
                      "active": guardado.active})
         return guardado
+
+    def actualizar_articulo(self, article_id: str, *, actor: str, **campos) -> Article:
+        """Modificación parcial: toca lo que se le pasa y deja el resto quieto.
+
+        `guardar_articulo` reemplaza el artículo entero, que es lo correcto
+        cuando el formulario trae todos los campos. Pero llamarlo con un
+        subconjunto borra en silencio lo que no se nombró: así se perdieron la
+        categoría y la marca de cinco artículos durante V1-010 y V1-013. Un
+        cambio de naturaleza no tiene por qué olvidar de qué marca era el
+        armazón.
+
+        Pasar `None` explícitamente sí vacía el campo: la diferencia está entre
+        no nombrarlo y nombrarlo en blanco.
+        """
+        anterior = self.obtener_articulo(article_id)
+        if anterior is None:
+            raise ComercialError(f"no existe el artículo {article_id}")
+        editables = {
+            "sku", "name", "nature", "category_id", "brand_id", "supplier_id",
+            "unit", "sale_price", "location", "min_stock", "barcode", "notes",
+            "active"}
+        ajenos = set(campos) - editables
+        if ajenos:
+            raise ComercialError(
+                f"el artículo no tiene {', '.join(sorted(ajenos))}")
+        actual = {campo: getattr(anterior, campo) for campo in editables}
+        actual.update(campos)
+        return self.guardar_articulo(actor=actor, article_id=article_id, **actual)
 
     def obtener_articulo(self, article_id: str) -> Article | None:
         return self._catalogo.get_article(article_id)
@@ -296,15 +329,9 @@ class ComercialController:
                         f"{self.ledger.stock(article_id, destino)} en "
                         f"{destino.value}. Desactivarlo lo sacaría de las búsquedas "
                         "y ese stock quedaría sin nadie que lo mire")
-        from dataclasses import replace
-        return self.guardar_articulo(
-            sku=articulo.sku, name=articulo.name, nature=articulo.nature,
-            category_id=articulo.category_id, brand_id=articulo.brand_id,
-            supplier_id=articulo.supplier_id, unit=articulo.unit,
-            sale_price=articulo.sale_price, location=articulo.location,
-            min_stock=articulo.min_stock, barcode=articulo.barcode,
-            notes=(f"{articulo.notes}\n[baja] {motivo}".strip()),
-            active=False, article_id=articulo.id, actor=actor)
+        return self.actualizar_articulo(
+            articulo.id, actor=actor, active=False,
+            notes=(f"{articulo.notes}\n[baja] {motivo}".strip()))
 
     def historial_de_articulo(self, article_id: str) -> tuple[CambioDeArticulo, ...]:
         with self._conexion() as conexion:

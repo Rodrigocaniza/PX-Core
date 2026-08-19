@@ -445,20 +445,24 @@ class FormularioDeArticulo(ctk.CTkToplevel):
     def guardar(self) -> None:
         etiqueta = self.naturaleza.get()
         naturaleza = next(v for e, v in NATURALEZAS if e == etiqueta)
+        # El formulario no muestra proveedor ni unidad. Al editar se toca sólo lo
+        # que está en pantalla: lo que no se ve tampoco se pisa.
+        editado = dict(
+            sku=self.campos["sku"].get(), name=self.campos["name"].get(),
+            nature=naturaleza,
+            category_id=self._categorias.get(self.categoria.get()),
+            brand_id=self._marcas.get(self.marca.get()),
+            sale_price=_entero(self.campos["sale_price"].get()),
+            location=self.campos["location"].get(),
+            min_stock=_entero(self.campos["min_stock"].get()),
+            barcode=self.campos["barcode"].get() or None,
+            notes=self.campos["notes"].get())
         try:
-            self.controller.guardar_articulo(
-                sku=self.campos["sku"].get(), name=self.campos["name"].get(),
-                nature=naturaleza,
-                category_id=self._categorias.get(self.categoria.get()),
-                brand_id=self._marcas.get(self.marca.get()),
-                sale_price=_entero(self.campos["sale_price"].get()),
-                location=self.campos["location"].get(),
-                min_stock=_entero(self.campos["min_stock"].get()),
-                barcode=self.campos["barcode"].get() or None,
-                notes=self.campos["notes"].get(),
-                active=self.articulo.active if self.articulo else True,
-                article_id=self.articulo.id if self.articulo else None,
-                actor=self.actor)
+            if self.articulo is not None:
+                self.controller.actualizar_articulo(
+                    self.articulo.id, actor=self.actor, **editado)
+            else:
+                self.controller.guardar_articulo(actor=self.actor, **editado)
         except Exception as error:
             messagebox.showwarning("No se pudo guardar", str(error), parent=self)
             return
