@@ -1,0 +1,108 @@
+APLICACION PRODUCTIVA -- salida literal de la corrida
+comando: python tools/restaurar_metadatos_articulos_optica.py --confirmar
+fecha  : 2026-08-19 17:06
+
+RESTAURACION DE CATEGORIA Y MARCA
+base   : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 : ff6b2b6a2ec9d28a17ff51f2d9485877cecf646a854c9315fcecec572da37ae9
+fuente : C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-prerecuento-20260819-142306.sqlite3
+sha256 : 71580fc835301902ca9c81eb38c0ddea41c386ee1ca1af47801942c80ea73f6c
+
+== diff exacto de los cinco ==
+  000010 «LIMPIA CRISTAL»
+      naturaleza : PRODUCTO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : None <- 'Limpia Cristales'
+      marca      : None <- 'Óptica Puppilent`s'
+  2000056 «Par de patillas»
+      naturaleza : SERVICIO_NO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : None <- 'Compostura'
+      marca      : None <- 'Optica San Cayetano'
+  2000070 «Hilo»
+      naturaleza : SERVICIO_NO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : None <- 'Compostura'
+      marca      : None <- 'Laboratorio Optilab'
+  2000071 «Tornillo»
+      naturaleza : SERVICIO_NO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : None <- 'Compostura'
+      marca      : None <- 'Optica San Cayetano'
+  2000072 «Plaqueta»
+      naturaleza : SERVICIO_NO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : None <- 'Compostura'
+      marca      : None <- 'Optica San Cayetano'
+
+== guardas ==
+  OK   000010: category_id d147197b-af17-44f9-8b74-2370ce71d888 existe en produccion
+  OK   000010: «Limpia Cristales» esta activa
+  OK   000010: brand_id 5a5cdfaf-c4e1-4468-85b6-ae313ae65656 existe en produccion
+  OK   000010: «Óptica Puppilent`s» esta activa
+  OK   2000056: category_id 8cbbf0dd-f0ea-409e-9853-e58203ab673e existe en produccion
+  OK   2000056: «Compostura» esta activa
+  OK   2000056: brand_id 9ffed687-d205-4a20-aae5-4d8344e03574 existe en produccion
+  OK   2000056: «Optica San Cayetano» esta activa
+  OK   2000070: category_id 8cbbf0dd-f0ea-409e-9853-e58203ab673e existe en produccion
+  OK   2000070: «Compostura» esta activa
+  OK   2000070: brand_id 0d119ac1-8e8f-421d-8cb9-7c3828a04e3a existe en produccion
+  OK   2000070: «Laboratorio Optilab» esta activa
+  OK   2000071: category_id 8cbbf0dd-f0ea-409e-9853-e58203ab673e existe en produccion
+  OK   2000071: «Compostura» esta activa
+  OK   2000071: brand_id 9ffed687-d205-4a20-aae5-4d8344e03574 existe en produccion
+  OK   2000071: «Optica San Cayetano» esta activa
+  OK   2000072: category_id 8cbbf0dd-f0ea-409e-9853-e58203ab673e existe en produccion
+  OK   2000072: «Compostura» esta activa
+  OK   2000072: brand_id 9ffed687-d205-4a20-aae5-4d8344e03574 existe en produccion
+  OK   2000072: «Optica San Cayetano» esta activa
+
+== backup verificable ==
+  archivo: C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-premetadatos-20260819-170642.sqlite3
+  sha256 : 2a100d5557d0b54a9a83f80d4745ef2c65092319b2df00ca6593263cbe3d42bc
+  OK   el backup tiene el mismo contenido que la base
+
+== restauracion ==
+  000010 -> categoria 'Limpia Cristales', marca 'Óptica Puppilent`s', naturaleza PRODUCTO_STOCKEABLE
+  2000056 -> categoria 'Compostura', marca 'Optica San Cayetano', naturaleza SERVICIO_NO_STOCKEABLE
+  2000070 -> categoria 'Compostura', marca 'Laboratorio Optilab', naturaleza SERVICIO_NO_STOCKEABLE
+  2000071 -> categoria 'Compostura', marca 'Optica San Cayetano', naturaleza SERVICIO_NO_STOCKEABLE
+  2000072 -> categoria 'Compostura', marca 'Optica San Cayetano', naturaleza SERVICIO_NO_STOCKEABLE
+
+== verificacion ==
+  OK   solo cambiaron los campos autorizados ([])
+  OK   cambios: 10, esperados 10
+  OK   000010: categoria 'Limpia Cristales', marca 'Óptica Puppilent`s'
+  OK   2000056: categoria 'Compostura', marca 'Optica San Cayetano'
+  OK   2000070: categoria 'Compostura', marca 'Laboratorio Optilab'
+  OK   2000071: categoria 'Compostura', marca 'Optica San Cayetano'
+  OK   2000072: categoria 'Compostura', marca 'Optica San Cayetano'
+  OK   000010 sigue siendo PRODUCTO_STOCKEABLE
+  OK   000010 stock: {'ASUNCION': 100, 'PILAR': 10}
+  OK   2000056 sigue siendo SERVICIO_NO_STOCKEABLE
+  OK   2000070 sigue siendo SERVICIO_NO_STOCKEABLE
+  OK   2000071 sigue siendo SERVICIO_NO_STOCKEABLE
+  OK   2000072 sigue siendo SERVICIO_NO_STOCKEABLE
+  OK   bitacora ALTA_ARTICULO: 42 -> 42 (esperado 42)
+  OK   bitacora ALTA_CATEGORIA: 15 -> 15 (esperado 15)
+  OK   bitacora ALTA_MARCA: 136 -> 136 (esperado 136)
+  OK   bitacora DELIVERY_SERVICE_CREATED: 1 -> 1 (esperado 1)
+  OK   bitacora EDITA_ARTICULO: 772 -> 777 (esperado 777)
+  OK   bitacora ESTIMATED_INITIAL_STOCK: 1 -> 1 (esperado 1)
+  OK   bitacora NATURE_CORRECTION: 4 -> 4 (esperado 4)
+  OK   bitacora PROMO_OBSEQUIO_LEGACY_RETIRED: 1 -> 1 (esperado 1)
+  OK   bitacora STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION: 5 -> 5 (esperado 5)
+  OK   acciones nuevas en la bitacora: ['ARTICLE_METADATA_RESTORED']
+  OK   bitacora ARTICLE_METADATA_RESTORED: 5 entradas nuevas
+  OK   movimientos sin cambios: 4441
+  OK   stock sin cambios: ASU 6166 / PIL 2260
+  OK   articulos sin cambios: 3596
+  OK   activos sin cambios: 2829
+  OK   categorias sin cambios: 15
+  OK   marcas sin cambios: 136
+  OK   entradas sin cambios: 12
+  OK   suma_caja sin cambios: 6400000
+  OK   sale_items sin cambios: 10
+  OK   integrity_check: ok
+  OK   foreign_key_check: 0
+  OK   stock negativo: 0
+  OK   huerfanos: 0
+  OK   efectos sin hecho: 0
+
+sha256 despues: ffafb5c624af07e036f5a86d3348b6e0412eeb855b22883f64f862534386f7b2
+VEREDICTO: PASS (0 fallas)

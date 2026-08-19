@@ -1,0 +1,56 @@
+﻿== las notas y todo lo demas sobreviven intactos ==
+  OK   000010: cambiaron ['brand_id', 'category_id']
+  OK   000010: notas identicas (536 caracteres)
+  OK   000010: naturaleza PRODUCTO_STOCKEABLE
+  OK   000010: activo 1
+  OK   2000056: cambiaron ['brand_id', 'category_id']
+  OK   2000056: notas identicas (621 caracteres)
+  OK   2000056: naturaleza SERVICIO_NO_STOCKEABLE
+  OK   2000056: activo 1
+  OK   2000070: cambiaron ['brand_id', 'category_id']
+  OK   2000070: notas identicas (513 caracteres)
+  OK   2000070: naturaleza SERVICIO_NO_STOCKEABLE
+  OK   2000070: activo 1
+  OK   2000071: cambiaron ['brand_id', 'category_id']
+  OK   2000071: notas identicas (513 caracteres)
+  OK   2000071: naturaleza SERVICIO_NO_STOCKEABLE
+  OK   2000071: activo 1
+  OK   2000072: cambiaron ['brand_id', 'category_id']
+  OK   2000072: notas identicas (511 caracteres)
+  OK   2000072: naturaleza SERVICIO_NO_STOCKEABLE
+  OK   2000072: activo 1
+
+== la evidencia de 2.860 y 2.857 sigue en las notas de 000010 ==
+  OK   la nota menciona 2860
+  OK   la nota menciona 2857
+  nota completa:
+      STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION en ASUNCION: SOURCE_REPORTED_QUANTITY=2860 (2.860 declarados. Decisión humana: las fuentes que lo repiten comparten origen, así que no son confirmación física independiente. La cantidad espera un conteo) || origen: ASUNCION=PC - Inventario.xlsx#8397@2026-08-03 | PILAR=P2 - Inventario.xlsx#1021@2026-08-10 || ESTIMATED_INITIAL_STOCK en ASUNCION: 100 unidades el 2026-08-19, estimacion operativa autorizada por el dueno, NO un conteo fisico. Fuentes anteriores: 2.860 y 2.857, ninguna aceptada
+
+== los cuatro de Compostura siguen sin mover stock ==
+  OK   2000056: 0 movimientos, 0 filas en stock_actual
+  OK   2000070: 0 movimientos, 0 filas en stock_actual
+  OK   2000071: 0 movimientos, 0 filas en stock_actual
+  OK   2000072: 0 movimientos, 0 filas en stock_actual
+
+== y ninguna cifra centinela se convirtio en stock ==
+  OK   no hay ningun movimiento con cantidad centinela
+
+== V1-008 / V1-010 / V1-013 intactas ==
+  OK   V1-008/010: INVENTARIO_INICIAL sin cambios, (3629, 9912)
+  OK   V1-010: 767 articulos dados de baja siguen de baja
+  OK   V1-013: 000037 sigue retirado
+  OK   V1-011: Delivery {'nature': 'SERVICIO_NO_STOCKEABLE', 'sale_price': 20000, 'active': 1}
+
+== Caja historica ==
+  OK   12 entradas y 6.400.000 guaranies: (12, 6400000)
+  OK   10 lineas de venta
+
+== y ahora aparecen donde tienen que aparecer ==
+      000010    LIMPIA CRISTAL       | Limpia Cristales   | Óptica Puppilent`s
+      2000056   Par de patillas      | Compostura         | Optica San Cayetano
+      2000070   Hilo                 | Compostura         | Laboratorio Optilab
+      2000071   Tornillo             | Compostura         | Optica San Cayetano
+      2000072   Plaqueta             | Compostura         | Optica San Cayetano
+  OK   la categoria Compostura vuelve a tener 13 articulos
+
+VEREDICTO: PASS (0 fallas)
