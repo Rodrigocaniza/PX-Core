@@ -1,0 +1,33 @@
+{
+  "mision": "BC-OPTICA-SEGUIMIENTO-ATRASADO-TRANSICION-V1-017",
+  "nota": "los cuatro adyacentes que se pidio registrar sin absorber estan YA resueltos en el codigo. Se verificaron uno por uno contra CajaDiaria.py. No hay slice pendiente para ellos salvo que la Optica corra un build anterior",
+  "adyacentes": [
+    {
+      "id": "TELEFONO-EN-SEGUIMIENTO",
+      "estado": "RESUELTO",
+      "detalle": "la columna telefono existe en la grilla; entro en 551f68c, resuelta desde el pedido o la venta de origen para no duplicar el dato"
+    },
+    {
+      "id": "BOTONES-LLAMAR-MENSAJE",
+      "estado": "RESUELTO",
+      "detalle": "linea y WhatsApp del laboratorio estan en la ficha del trabajo"
+    },
+    {
+      "id": "SELECTOR-DE-FECHA",
+      "estado": "RESUELTO",
+      "detalle": "abrir_selector_fecha_entrega existe y tiene su propia prueba en test_rc15_apertura_caja.py"
+    },
+    {
+      "id": "PARPADEO",
+      "estado": "RESUELTO",
+      "detalle": "551f68c lo diagnostico midiendo la ventana en reposo y descarto el sospechoso habitual: la causa era que cada refresco destruia y recreaba los 440 widgets de la tabla. Se reusan las filas"
+    }
+  ],
+  "nuevo_de_esta_mision": [
+    {
+      "id": "CIERRE-SOLO-POR-EXCEPCION",
+      "estado": "ABIERTO, no bloqueante",
+      "detalle": "un trabajo RECIBIDO EN PILAR solo llega a CERRADO por close_by_exception, que pide motivo. Para el cierre normal -entregado al cliente- el motivo es un tramite. Puede que convenga un cierre normal sin motivo, o que CERRADO sobre. No se toco: no tiene relacion con el atraso y decidirlo es una conversacion, no un fix"
+    }
+  ]
+}

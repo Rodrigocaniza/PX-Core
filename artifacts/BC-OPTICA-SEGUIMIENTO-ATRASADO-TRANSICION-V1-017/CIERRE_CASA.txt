@@ -1,0 +1,45 @@
+==============================================================================
+SAFE CLOSURE -- V1-017
+==============================================================================
+
+  branch  : feature/bc-optica-seguimiento-atrasado-transicion-v1-017
+  parte de: origin/feature/bc-optica-factufacil-caja-v1-016 @ 108ad5b
+  worktree: .worktrees/optica-seguimiento-017
+
+QUE PASO
+  El bloqueo reportado existio y ya estaba corregido desde el 16/08 (551f68c,
+  regresion RC26). Esta en rc.31 y en rc.32, la instalada en la Optica. Se
+  verifico empiricamente con 13 escenarios escritos desde cero, no leyendo.
+
+  Buscando esa evidencia aparecio un defecto distinto y todavia abierto: al
+  llegar el trabajo se borraba el plazo comprometido, asi que despues no habia
+  forma de demostrar que habia estado atrasado. Eso es lo que corrige V1-017.
+
+GATES
+  pruebas dirigidas .......... PASS  24 verdes
+  suite de Caja .............. PASS  723 verdes, 0 rojas
+  suite del repo ............. 1093 verdes, 2 rojas PREEXISTING_OUT_OF_SCOPE
+  Librarian .................. PASS  artifacts completos y con procedencia
+  QA ......................... PASS  los 13 casos pedidos, y 11 mas
+  Auditor .................... PASS  cada afirmacion rastreada a una corrida o
+                               a un comando de git
+  Artifact Consistency ....... PASS  ARTIFACT_CONSISTENCY.md
+  main ....................... intacto en 7db56a0, no se toco
+  force-push ................. no se uso
+  produccion ................. no se toco nada
+
+ALCANCE
+  Un archivo de dominio y un test. Sin migracion.
+  No se toco ventas, stock, movimientos, arqueos, FactuFacil, Delivery,
+  laboratorios ni Caja historica.
+
+ESTADO
+  COMPLETADA_EN_CASA. No requiere migracion ni apply productivo: es codigo y
+  entra con el proximo empaquetado de BC Caja.
+
+  Lease liberada.
+
+NEXT_ACTION
+  Nada que aplicar sobre la base por esta mision. Siguen pendientes de la
+  Optica, de misiones anteriores: V1-015 (marcas-laboratorio) y V1-016
+  (migracion 029 de FactuFacil).

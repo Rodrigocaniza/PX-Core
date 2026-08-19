@@ -1,0 +1,78 @@
+{
+  "mision": "BC-OPTICA-SEGUIMIENTO-ATRASADO-TRANSICION-V1-017",
+  "estado": "COMPLETADA_EN_CASA — no requiere migracion ni apply productivo sobre la base",
+  "base_git": {
+    "branch": "feature/bc-optica-seguimiento-atrasado-transicion-v1-017",
+    "parte_de": "origin/feature/bc-optica-factufacil-caja-v1-016 @ 108ad5b",
+    "por_que": "tip funcional mas reciente y lineal: contiene toda la cadena Optica (v1-012 a0bd4da, v1-014 c838f10, v1-015 1b07bf3) verificado con merge-base --is-ancestor. Sin divergencias",
+    "origin_main_intacto": "7db56a082d06c735583a2717da3ad273f4d41a84"
+  },
+  "defecto_reportado": {
+    "sintoma": "EN LABORATORIO + ATRASADO dejaba solo la accion Contactar y trababa el circuito",
+    "existio": true,
+    "ya_estaba_corregido": true,
+    "commit_del_fix": "551f68c, 2026-08-16, 'fix(caja): el atraso deja de trabar el circuito, telefono y parpadeo'",
+    "regresion_existente": "tests/caja_diaria/test_rc26_flujo_no_se_traba.py, 26 casos",
+    "presente_en_builds": {
+      "rc.31 (origin/main 7db56a0)": "SI, 551f68c es ancestro",
+      "rc.32 (0906ffc, instalada en la Optica el 19/08)": "SI, 551f68c es ancestro"
+    },
+    "conclusion": "lo observado corresponde a una version anterior al 16/08 -la prueba manual de rc.24-. La version instalada hoy no tiene el bloqueo. Verificado empiricamente con 13 escenarios escritos desde cero contra SQLite real"
+  },
+  "causa_raiz_original": "next_action decidia mirando el atraso y devolvia CONTACT_LABORATORY en vez de RECEIVE_FROM_LABORATORY. Contactar no transiciona, asi que no habia salida",
+  "naturaleza_de_ATRASADO": {
+    "es": "condicion derivada del plazo comprometido",
+    "no_es": "estado persistido, flag ni columna",
+    "verificado": "PRAGMA table_info(tracked_works): ninguna columna overdue/atras",
+    "formula": "status in LATENESS_APPLIES_TO and ahora >= deadline",
+    "se_apaga": "al salir de EN_LABORATORIO, porque el plazo pertenece a esa estadia"
+  },
+  "defecto_que_si_quedaba": {
+    "id": "ATRASO-SIN-EVIDENCIA",
+    "detalle": "al salir del laboratorio se borran expected_date y expected_time -correcto, si no el trabajo seguiria figurando atrasado despues de llegar- pero con eso se perdia la unica evidencia de que hubo plazo. Media hora despues de recibirlo, un trabajo que llego cuatro dias tarde era indistinguible de uno puntual",
+    "contradecia": "el requisito de trazabilidad de esta misma mision",
+    "corregido": true
+  },
+  "cambio": {
+    "archivos": [
+      "modulos/caja_diaria/domain/tracking.py"
+    ],
+    "migracion": false,
+    "por_que_no_hace_falta": "tracked_work_transitions.note ya existia y ya se persistia",
+    "1_sello": "la transicion que termina el plazo lo deja escrito: 'Plazo comprometido 18/08 17:00 · llego 1 dia tarde' o '· llego dentro del plazo'. No pisa la nota de la operadora: se agrega detras",
+    "2_visible": "last_news() incluye la nota de la ultima transicion, asi la ficha del trabajo lo muestra. Una evidencia que nadie puede mirar no demuestra nada",
+    "prioridad_conservada": "una novedad registrada a mano sigue ganandole al sello"
+  },
+  "revisado_y_sin_cambios": {
+    "matriz_de_transiciones": "intacta; el unico retroceso admitido -volver al laboratorio si el trabajo vino mal- sigue siendo el unico",
+    "RECIBIDO_EN_PILAR_sin_accion_siguiente": "correcto y deliberado: ahi termina el circuito fisico. CERRADO es el archivado posterior, con motivo y responsable, por close_by_exception",
+    "CajaDiaria.py": "no se toco una linea: la barra de acciones ya decidia por la accion y no por el atraso"
+  },
+  "pruebas": {
+    "dirigidas": 24,
+    "suite_caja": "723 passed, 0 failed",
+    "suite_repo": "1093 passed, 2 failed",
+    "rojos": "PREEXISTING_OUT_OF_SCOPE, gestion_central, clasificados en V1-015"
+  },
+  "invariantes": {
+    "ventas": "sin cambio",
+    "stock": "sin cambio",
+    "movimientos_inventario": "sin cambio",
+    "arqueos": "sin cambio",
+    "factufacil": "sin cambio",
+    "delivery": "sin cambio",
+    "catalogo_laboratorios": "sin cambio",
+    "caja_historica": "sin cambio",
+    "evidencia": "el slice toca un archivo de dominio y agrega un test; git diff --stat lo confirma"
+  },
+  "codigo": {
+    "modulos/caja_diaria/domain/tracking.py": {
+      "sha256": "14775c0143b3562c7efa6df91a269d3260f5a54cc2a6b205e2df7901177b25b7",
+      "bytes": 33859
+    },
+    "tests/caja_diaria/test_v1017_atrasado_no_traba.py": {
+      "sha256": "a4e8d54ac123b9a3e9c33cc2f356e160743a81483e715bf57f5d28129bd222d0",
+      "bytes": 17939
+    }
+  }
+}
