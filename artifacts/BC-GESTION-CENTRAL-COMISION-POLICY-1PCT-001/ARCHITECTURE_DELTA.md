@@ -44,17 +44,22 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
 - `commission_policy_versions` **(tabla nueva)** — historial append-only con
   `UNIQUE(policy_id, version)`.
 - `commission_rated_periods` **(tabla de la generación 5, congelada en la 7)** — guardaba el
-  *estado* de la fijación, una fila por período. Ya no se lee ni se escribe. No se borra —nada de
-  lo que el sistema afirmó alguna vez se borra— pero un estado de una sola fila no puede expresar
-  que una fijación se retiró, y eso es justamente lo que hacía falta.
+  *estado* de la fijación, una fila por período. **No se escribe ni se borra.** Sí se lee, en un
+  único sitio: la migración la consulta para asentar como descartada toda fijación heredada que hoy
+  no tenga un hecho vivo detrás. Un estado de una sola fila no podía expresar que una fijación se
+  retiró, y eso es justamente lo que hacía falta.
 - `commission_period_rate_events` **(tabla nueva, generación 7)** — libro append-only de la tasa de
   cada período. Dos eventos: `PINNED` cuando un hecho económico oficial la fija, `UNPINNED` cuando
   desaparece el último hecho vivo que la justificaba. Guarda la tasa, la traza de política, el
   origen, la liquidación causante, la razón, el actor y la fecha. **El estado vigente de un período
   es su último evento**; nada se actualiza y nada se borra, así que volver a fijar es un evento
-  más y no una reescritura. Lo escribe un solo método —`_record_period_rate_event`— desde tres
-  llamadores: `_pin_rated_period` (`approve`/`mark_paid`), `_reconcile_period_pin` (el boundary de
-  salida) y la siembra de la migración. **Calcular no escribe aquí.**
+  más y no una reescritura. Lo escribe un solo método, `CentralRepository.record_period_rate_event`
+  —hay **un único `INSERT`** sobre esta tabla en todo el código, y ningún `UPDATE` ni `DELETE`—,
+  desde tres llamadores: `_pin_rated_period` (`approve`/`mark_paid`), `_reconcile_period_pin` (el
+  boundary de salida) y la siembra de la migración. Vive en el repositorio, y no en el servicio,
+  porque la migración también escribe el libro y no puede importar `comisiones` sin crear un ciclo;
+  tenerlo en el servicio dejaba una segunda ruta de escritura en la migración, que fue el
+  bloqueante `L1-g7`. **Calcular no escribe aquí.**
 
 ## Invariantes que esta misión agrega
 
@@ -111,15 +116,20 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
     cuatro rutas de `AB1-g6` —y cualquiera futura— quedan cubiertas por construcción y no una por
     una. **Una `PAGADA` viva nunca desfija**: `paid_at` cuenta como hecho vivo aunque la
     liquidación se observe después o la venta se anule.
-11. **Migrar y operar dan el mismo resultado.** La siembra usa la misma definición de hecho vivo
-    que el código en caliente. En la generación 6 no era así —la migración excluía las `REVERTIDA`
-    y el código conservaba el pin de una aprobación revertida— y esa divergencia era media
-    `AB1-g6`.
+11. **Migrar y operar dan el mismo resultado.** Los dos lados evalúan la vitalidad con **el mismo
+    SQL**, `comision_policy.LIVE_OFFICIAL_FACT_SQL`, y emparejan el período con
+    `PERIOD_MATCH_SQL`: no hay dos textos «equivalentes» que puedan separarse. Un período cuyo
+    último evento es `UNPINNED` vuelve a evaluarse al migrar, de modo que tampoco ahí divergen.
+    Tener el predicado escrito dos veces falló dos generaciones seguidas: en la 6 la migración
+    excluía las `REVERTIDA` y el código no (media `AB1-g6`); en la 7 la migración exigía política
+    canónica y el código no (`AB1-g7`, con una comisión legada del piloto bloqueando el boundary de
+    salida para siempre).
 12. **La migración nunca inventa ni desempata, ni siquiera retiradas.** La siembra sólo lee
-    liquidaciones con un hecho vivo y política canónica; ante evidencia ausente o discrepante deja
-    el período **sin fijar** y lo asienta. **No escribe un solo `UNPINNED`**: afirmar que una
-    fijación fue retirada sería inventar un hecho que nadie produjo. No escribe una sola vez sobre
-    `commission_entries`.
+    liquidaciones con un hecho vivo; ante evidencia ausente o discrepante deja el período **sin
+    fijar** y lo asienta. **No escribe un solo `UNPINNED`**: afirmar que una fijación fue retirada
+    sería inventar un hecho que nadie produjo. **La siembra** no escribe una sola vez sobre
+    `commission_entries` —lo que sí hace otro paso de la migración, `_migrate_commission_policy`, es
+    reemplazar la *etiqueta* de política retirada, sin tocar `rate_bp` ni `commission_amount`.
 13. **Fijar y soltar dejan traza.** `COMMISSION_PERIOD_RATE_PINNED` y
     `COMMISSION_PERIOD_RATE_UNPINNED` en caliente, `COMMISSION_PERIOD_RATE_SEEDED` y
     `COMMISSION_PERIOD_RATE_SEED_SKIPPED` en la migración. Todos idempotentes: no se re-asientan si

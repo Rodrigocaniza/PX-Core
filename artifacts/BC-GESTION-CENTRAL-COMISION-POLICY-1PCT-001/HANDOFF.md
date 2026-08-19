@@ -101,12 +101,12 @@ Aportados por las observaciones no bloqueantes de la generación 3, abiertos y *
 Detectado en la generación 4 sobre el propio paquete:
 
 23. **`MANIFEST.sha256` sólo verifica en el worktree donde se genera.** Detectado en la generación
-    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio reescribe los **34** de
-    los **41** ficheros que hoy llevan LF —25 `.md`, 7 `.py` y los 2 `.json`— y sus hashes dejan de
-    coincidir. Sólo se salvan siete: los seis que ya traen CRLF en el worktree
-    —`COMMISSION_RULES.md`, los tres `PROMPT_*.txt` y las dos herramientas de `tools/`— y el PNG,
-    que es binario. **Estas cifras se recalculan en cada generación que toque el paquete**: quedaron
-    desfasadas en la 5 y otra vez en la 6, y por eso el bloqueante `L4-g6` volvió a abrirse. El propio
+    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio reescribe todos los
+    ficheros del paquete que hoy llevan LF y sus hashes dejan de coincidir; sólo se salvan los que
+    ya traen CRLF en el worktree —`COMMISSION_RULES.md`, los tres `PROMPT_*.txt` y las dos
+    herramientas de `tools/`— y el PNG, que es binario. **El recuento exacto vive en un solo sitio,
+    `ARTIFACT_CONSISTENCY.md`, y se recalcula en cada generación que toque el paquete**: repetirlo
+    aquí lo dejó desfasado en la 5, en la 6 y en la 7, y abrió `L4-g6` y `L4-g7`. El propio
     manifest llega con CRLF y `sha256sum -c` no puede analizarlo. Es heredado de cómo se construyó
     el paquete desde la generación 1, no lo introduce esta generación. El ZIP sí conserva los bytes
     exactos. Corrección propuesta, fuera del alcance de B1/B2: fijar `-text` para el paquete con un
@@ -124,9 +124,10 @@ corregidos:
     global. Esa forma quedó cerrada en la generación 5, que retiró la guarda. La generación 5 lo
     empeoró por otra vía —la fecha errónea fijaba ese mes para siempre, `AB2-g5`— y **la generación
     6 lo cierra por la raíz**: un cálculo provisional ya no fija nada, de modo que un tipeo que
-    nadie aprueba deja el mes corregible. Verificado de forma independiente por los tres runners de
-    la generación 6. Queda una forma distinta y **abierta**, `AB1-g6`: un tipeo que **sí** se
-    aprueba y después se anula fija el mes igual de para siempre.
+    nadie aprueba deja el mes corregible. La forma que quedó abierta entonces —`AB1-g6`: un tipeo
+    que **sí** se aprueba y después se anula— la cierra la generación 7 con el boundary de salida,
+    y `AB1-g7` cierra en la 8 el caso en que una comisión legada del piloto lo inhibía. **Este
+    hallazgo queda cerrado**, sujeto a los verdicts de la generación 8.
 26. **Observar una liquidación pagada retira su importe del KPI `paid_amount`.** AUDITOR-004 O2:
     `report()` lo calcula sobre `status == "PAGADA"`, de modo que dinero que efectivamente salió deja
     de verse en el reporte del período. Es además lo que vuelve invisible en pantalla la fuga B1-g4.
@@ -359,10 +360,72 @@ tiene** un hecho vivo detrás: sigue sin existir y sigue siendo otra decisión. 
 sólo gana el boundary compartido: la aritmética `Decimal` y el único `HALF_UP` siguen intactos
 desde la generación 3.
 
+## Generación 7 — resultado: INVALIDADA
+
+| Runner | Verdict | Bloqueantes |
+|---|---|---|
+| Librarian | **FAIL** | `L1-g7` … `L5-g7`; `L1-g7` es de código |
+| QA | **PASS** | ninguno |
+| Auditor | **FAIL** | `AB1-g7`, económico |
+
+`AB1-g6` quedó **cerrado y verificado por los tres** en sus cuatro rutas: el Auditor midió los
+29.700.000 Gs de sobrepago desapareciendo, y QA lo confirmó con su propia matriz temporal.
+
+### `AB1-g7` — el predicado escrito dos veces
+
+El boundary de salida estaba bien puesto. Lo que no estaba unificado era **qué cuenta como hecho
+vivo**: la siembra exigía política canónica y la reconciliación no. `BOUNDARY_SQL_IN` había
+unificado la lista de estados —la parte que ya coincidía— y dejó divergente la que decide.
+
+La consecuencia es que **toda comisión ya pagada del piloto**, que la migración deja por diseño y
+para siempre con `POLITICA_HISTORICA_PREVIA`, era invisible para sembrar y a la vez un hecho vivo
+para retener. Su mes no podía soltarse jamás, y `AB1-g6` reaparecía completo por sus cuatro rutas,
+con la misma cifra: 9.900.000 Gs de sobrepago por venta de 10.000.000 Gs.
+
+## Generación 8 — qué se hizo
+
+**No hizo falta una decisión de propietario, y conviene decir por qué.** El Auditor planteó dos
+opciones —que la liquidación legada cuente como hecho vivo, o que no cuente— pero el módulo ya había
+respondido en todas partes menos en esa línea: el reporte excluye `POLITICA_HISTORICA_PREVIA` de
+`commission_amount` y la cuenta en `non_official_amount`, el desglose escribe «no es pagable con
+este importe», y la migración nunca sembró desde ella. La regla del propietario dice «hecho
+económico **oficial** vivo». `_live_official_facts` era el único sitio que no aplicaba el
+calificativo: es un defecto contra el vocabulario del propio paquete, no una bifurcación.
+
+**Código.**
+
+- `comision_policy.LIVE_OFFICIAL_FACT_SQL` y `PERIOD_MATCH_SQL`: **un solo SQL** para los dos
+  lados. No dos textos equivalentes —eso falló en la 6 y en la 7— sino uno.
+- `CentralRepository.record_period_rate_event`: **un solo `INSERT`** sobre el libro en todo el
+  código. Vive en el repositorio porque la migración también escribe y no puede importar
+  `comisiones` sin ciclo; tenerlo en el servicio dejaba una segunda ruta, que era `L1-g7`.
+- El `UNPINNED` nombra la liquidación que dejó de sostener el período (`entry_id`, `sale_id`).
+- La migración reevalúa un período cuyo último evento es `UNPINNED` si hay evidencia viva.
+- `decide()` y las guardas de la cadena de pago resuelven **dentro** de la transacción del
+  llamador: `recalculate` converge en una pasada y no deja un rechazo intermedio sin explicación.
+- `substr(period,1,7)` en los dos lados, y la última división en coma flotante del módulo retirada.
+
+**Pruebas.** 13 dirigidas nuevas en `test_comision_legacy_facts.py`. Cuatro de ellas fallan contra
+el predicado de la generación 7 y pasan contra el de la 8: se comprobó explícitamente, porque una
+prueba que pasa en los dos sentidos no demuestra nada. Regresión **431/431**, módulo **231**.
+
+**Observaciones de la generación 7 atendidas.** Del Auditor: 1 (`decide` fuera de la transacción),
+2 (período por prefijo contra exacto), 4 (redacción del invariante 12), 6 (la última división
+flotante) y 7 (`_reject_voided_sale` abría conexión propia). De QA: 2 (la migración no reevaluaba
+un período suelto) y 5 (el `UNPINNED` no nombraba el hecho). Del Librarian: las cuatro
+documentales, 3 a 6.
+
+**Observaciones que quedan abiertas, y por qué.** La 3 del Auditor —evidencia discrepante deja
+períodos sin pin— pierde casi todo su filo al cerrarse `AB1-g7`, y elegir por el propietario sigue
+sin ser aceptable. La 5 —`recalculate` evalúa liquidaciones de ventas anuladas— es trabajo
+desperdiciado, no dinero. La 1 de QA —export contradictorio en una base legada fuera de vigencia—
+no la produce ninguna ruta pública. La 3 —`observe` por sí solo suelta— es correcta bajo la regla y
+queda documentada. La 4 —punto decimal en el export, coma en pantalla— es deliberada.
+
 ## Siguiente paso propuesto
 
-**Generación 7 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
-verdict de las generaciones 1 a 6. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
+**Generación 8 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
+verdict de las generaciones 1 a 7. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
 lease.
 
 Sólo después de la Safe Closure vuelve a la cola el cableado de `register_payment` y

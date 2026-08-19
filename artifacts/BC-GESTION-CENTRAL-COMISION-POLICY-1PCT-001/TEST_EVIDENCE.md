@@ -1,13 +1,14 @@
 # Evidencia de pruebas
 
-Regresión completa: **418/418 PASS** (`python -m pytest -q`, 39,93 s).
-Línea base de la misión anterior: 302. Esta misión suma **116**: 112 de dominio y 4 de interfaz.
+Regresión completa: **431/431 PASS** (`python -m pytest -q`). El tiempo de reloj depende de la
+máquina y no se declara: no es una propiedad del código.
+Línea base de la misión anterior: 302. Esta misión suma **129**: 125 de dominio y 4 de interfaz.
 
-Suite del módulo: `tests/gestion_central/` **218/218 PASS**.
-Los cuatro archivos de comisiones juntos (`test_comisiones.py`,
-`test_comisiones_ui_interactions.py`, `test_comision_rate_boundary.py` —generación 6— y
-`test_comision_period_unpin.py` —generación 7—): 51 → **167** casos, 112 + 8 + 24 + 23
-respectivamente.
+Suite del módulo: `tests/gestion_central/` **231/231 PASS**.
+Los cinco archivos de comisiones juntos (`test_comisiones.py`,
+`test_comisiones_ui_interactions.py`, `test_comision_rate_boundary.py` —generación 6—,
+`test_comision_period_unpin.py` —generación 7— y `test_comision_legacy_facts.py` —generación 8—):
+51 → **180** casos, 112 + 8 + 24 + 23 + 13 respectivamente.
 
 Todas las cifras anteriores son **casos ejecutados**, que es lo que cuenta pytest. En funciones:
 `test_comisiones.py` pasa de 47 a 94 —se agregan 48 y se elimina
@@ -27,6 +28,26 @@ contrato nuevo y retira 2 parametrizaciones —`CALCULADA` y `REVISADA` en
 propósito**: son provisionales y deben poder corregirse.
 
 La **generación 7** suma **23 casos** (395 → 418), todos en `test_comision_period_unpin.py`.
+
+La **generación 8** suma **13 casos** (418 → 431), todos en `test_comision_legacy_facts.py`.
+
+## Generación 8 — cierre de AB1-g7 y L1-g7
+
+`tests/gestion_central/test_comision_legacy_facts.py`, 13 pruebas dirigidas. El escenario base es
+una base del piloto con **una comisión ya pagada** antes de la política aprobada: la forma mínima
+que produce la migración oficial sobre cualquier instalación que haya pagado alguna vez.
+
+| Grupo | Qué demuestra | Pruebas |
+|---|---|---|
+| La comisión legada no es un hecho oficial | ni al migrar ni en caliente; el sobrepago reaparecido queda eliminado; su importe no se toca nunca; una base migrada no nace violando el invariante; y una `PAGADA` **canónica** sí sostiene su mes | 6 |
+| Un solo predicado | migrar y operar coinciden; la migración reevalúa un período suelto; un período ya fijado no se resiembra; un `period` de diez caracteres se empareja igual | 4 |
+| Un solo escritor | el `UNPINNED` nombra la liquidación retirada; hay un único `INSERT` y ningún `UPDATE` ni `DELETE` sobre el libro en todo el código | 2 |
+| Coherencia del recálculo | `recalculate` converge en una sola pasada y no deja un rechazo intermedio | 1 |
+
+**Las cuatro pruebas del primer grupo que cubren `AB1-g7` se verificaron contra el predicado
+anterior**: fallan con el `LIVE_OFFICIAL_FACT_SQL` de la generación 7 y pasan con el de la 8. Una
+prueba que pasa en los dos sentidos no demuestra nada, y esta suite existe precisamente porque el
+fuzz desde bases frescas no podía ver el defecto.
 
 ## Generación 7 — cierre de AB1-g6
 
@@ -115,7 +136,7 @@ invariante que defienden y no por el método que llaman.
 
 | Grupo | Qué demuestra | Pruebas |
 |---|---|---|
-| Comisión provisional sin tasa fijada | calcular y revisar no escriben `commission_rated_periods` | 2 |
+| Comisión provisional sin tasa fijada | calcular y revisar no fijan el período: no escriben ningún evento | 2 |
 | Corrección de estados provisionales | publicar y recalcular corrige un mes sólo calculado; un tipeo de fecha no fija nada; anular tras calcular tampoco (`AB2-g5`) | 3 |
 | Fijación en el boundary oficial | `APROBADA` fija; `PAGADA` fija; una publicación posterior ya no re-tarifa; observar o revertir después no desfija | 4 |
 | Dinero aprobado o pagado no se reinterpreta | recálculo con `changed == 0` sobre una `APROBADA` fijada; `PAGADA` fuera de todo recálculo; una venta nueva del mes cobra la tasa fijada | 3 |

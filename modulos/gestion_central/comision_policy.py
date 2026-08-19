@@ -53,6 +53,35 @@ POLICY_STATUSES = (POLICY_CANONICAL, POLICY_OUT_OF_EFFECT, POLICY_LEGACY, POLICY
 # Etiquetas del piloto anterior que la migración retira. Ya no las produce ningún código.
 RETIRED_POLICY_STATUSES = ("SINTETICA_PENDIENTE_APROBACION", "SIN_POLITICA_CONFIGURADA")
 
+# ------------------------------------------------------- hecho económico oficial vivo
+# Predicado **completo** de vitalidad, en un solo sitio. Espera los alias `e` para
+# `commission_entries` y `s` para `commission_sales`.
+#
+# Un hecho está vivo si hoy sostiene la tasa de su período: lleva la política canónica con una
+# tasa concreta, y o bien conserva `paid_at` —el dinero salió— o bien está en el boundary sobre
+# una venta que no fue anulada.
+#
+# El filtro de política **no es opcional ni decorativo**. Una liquidación con
+# `POLITICA_HISTORICA_PREVIA` no es un hecho oficial en ninguna otra parte del módulo: el reporte
+# la excluye de `commission_amount` y la cuenta aparte en `non_official_amount`, el desglose
+# escribe «no es pagable con este importe», y la migración jamás la usa para sembrar. Su importe
+# se conserva intacto por auditoría, pero nunca fue la tasa oficial de su mes y no puede sostenerla.
+#
+# Que este predicado viviera repartido en dos SQL —uno con el filtro de política y otro sin él—
+# fue el bloqueante `AB1-g7`: una comisión ya pagada del piloto era invisible para la siembra y
+# a la vez sostenía el pin en caliente, de modo que el mes no podía soltarse nunca y volvía a
+# pagar mal por las mismas cuatro rutas de `AB1-g6`. Unificar la lista de estados no bastaba,
+# porque la parte que decidía era justamente la que no coincidía.
+LIVE_OFFICIAL_FACT_SQL = (
+    "e.rate_bp IS NOT NULL AND e.policy_status = '" + POLICY_CANONICAL + "'"
+    " AND (e.paid_at IS NOT NULL"
+    "      OR (e.status IN " + BOUNDARY_SQL_IN + " AND COALESCE(s.voided,0) = 0))"
+)
+# El período de una liquidación es siempre AAAA-MM, pero una base de procedencia externa puede
+# traer una fecha completa. Comparar por prefijo en los dos lados evita que la siembra agrupe por
+# `AAAA-MM` y el código en caliente no encuentre nada.
+PERIOD_MATCH_SQL = "substr(e.period,1,7) = ?"
+
 
 def quantize_guarani(value: Decimal) -> int:
     """Redondea a guaraní entero con HALF_UP: la política de redondeo es explícita."""

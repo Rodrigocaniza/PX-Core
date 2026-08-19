@@ -91,10 +91,15 @@ que reúne las tres condiciones a la vez:
 * sostiene un **hecho económico vivo**: está en `APROBADA` o `PAGADA` sobre una venta no anulada,
   o conserva `paid_at`, que significa que el dinero salió de verdad;
 * lleva política canónica y una tasa concreta;
-* y se evalúa con **el mismo predicado que el código en caliente** —`BOUNDARY_SQL_IN`, derivado de
-  `RATING_BOUNDARY_STATES`—, de modo que migrar una base y reconstruirla operando dan el mismo
-  resultado. En la generación 6 no era así: la migración excluía las `REVERTIDA` pero el código en
-  caliente conservaba el pin de una aprobación revertida, y esa divergencia era media `AB1-g6`.
+* y se evalúa con **exactamente el mismo SQL que el código en caliente**,
+  `comision_policy.LIVE_OFFICIAL_FACT_SQL`, emparejando el período con `PERIOD_MATCH_SQL`. No son
+  dos textos equivalentes: es uno solo. Tenerlo escrito dos veces falló dos generaciones seguidas
+  —en la 6 la migración excluía las `REVERTIDA` y el código no; en la 7 la migración exigía política
+  canónica y el código no, que fue `AB1-g7`—.
+
+Un período cuyo último evento es `UNPINNED` **vuelve a evaluarse**: si la base trae evidencia viva
+para él, se fija. No es inventar nada, es aplicar la misma regla que el código en caliente, y era
+el último punto en el que migrar y operar no coincidían.
 
 Las reglas que la siembra respeta sin excepción:
 
@@ -104,17 +109,17 @@ Las reglas que la siembra respeta sin excepción:
 | **No inventa retiradas** | **no escribe un solo `UNPINNED`**. Una fijación de la generación 5 o 6 que hoy no tiene evidencia viva simplemente no se siembra, y queda asentada como descartada con motivo `SIN_HECHO_ECONOMICO_VIVO`. Afirmar que fue «retirada» sería inventar un hecho que nadie produjo |
 | **No desempata a ciegas** | si el mismo período muestra tasas oficiales distintas, la evidencia es discrepante y no se fija nada: elegir una sería decidir por el propietario cuál de dos importes ya avalados es el bueno |
 | **No toca dinero** | no escribe una sola vez sobre `commission_entries`: ni importes, ni tasas, ni aprobaciones, ni pagos |
-| **Es idempotente** | `INSERT OR IGNORE` por período; ni la siembra ni el descarte se re-asientan si su asiento ya existe |
+| **Es idempotente** | sólo mira períodos cuyo último evento no sea ya `PINNED`, y ni la siembra ni el descarte se re-asientan si su asiento ya existe. No hay `INSERT OR IGNORE`: el libro usa `INSERT` normal y la idempotencia sale de consultar el estado, que además no oculta violaciones de esquema |
 | **Es auditable** | todo período sembrado deja `COMMISSION_PERIOD_RATE_SEEDED` y todo período descartado deja `COMMISSION_PERIOD_RATE_SEED_SKIPPED` con su motivo, en `central_audit` |
 
 A igualdad de evidencia, un pago manda sobre una aprobación —es el hecho más fuerte del mes— y a
 igualdad de fuerza gana el más antiguo, para que el resultado no dependa del orden de lectura.
 
-La tabla `commission_rated_periods` de la generación 5 queda **congelada**: no se lee ni se
-escribe, y no se borra. Sus filas sin evidencia viva no se arrastran, y cada descarte queda
-asentado, de modo que una base que venía con una fijación injustificada la pierde al migrar —que es
-exactamente la corrección de `AB1-g6` aplicada hacia atrás— sin que nada de lo que el sistema
-afirmó alguna vez desaparezca.
+La tabla `commission_rated_periods` de la generación 5 queda **congelada**: no se escribe y no se
+borra. Sí se lee, en un único sitio y para un único fin: asentar como descartada toda fijación
+heredada que hoy no tenga un hecho vivo detrás. Así una base que venía con una fijación
+injustificada la pierde al migrar —que es la corrección de `AB1-g6` aplicada hacia atrás— sin que
+nada de lo que el sistema afirmó alguna vez desaparezca.
 
 **Qué cambió respecto de la generación 5 y por qué.** La siembra de entonces miraba `rate_bp IS NOT
 NULL` y agrupaba por período tomando la liquidación **más antigua**, sin mirar su estado ni su

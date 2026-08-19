@@ -103,6 +103,6 @@ viaja aparte en `current_policy`. Rotular un período con la tasa global declara
 porcentaje que en ese mes no rige, y un período sin tasa en vigor se dice como tal —en pantalla, en
 el KPI y en el `policy_disclaimer`— en vez de emitir un porcentaje inexistente.
 
-Regresión completa **418/418 PASS** (302 de línea base + 116 de esta misión: 112 de dominio y 4 de
-interfaz, de los cuales 26 son de la generación 5, 26 de la 6 y 23 de la 7). Sin nómina, sin bancos,
+Regresión completa **431/431 PASS** (302 de línea base + 129 de esta misión: 125 de dominio y 4 de
+interfaz, de los cuales 26 son de la generación 5, 26 de la 6, 23 de la 7 y 13 de la 8). Sin nómina, sin bancos,
 sin datos de clientes, sin proveedor externo, sin red, sin producción, sin merge a `main`.

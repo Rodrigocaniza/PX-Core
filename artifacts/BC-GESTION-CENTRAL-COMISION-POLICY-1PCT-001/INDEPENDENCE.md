@@ -248,3 +248,53 @@ generación 6 que pertenecen a su misma familia.
   otra vez.
 
 Los verdicts de las generaciones 1 a 6 **no se reutilizan**.
+
+## Generación 7 — snapshot `41131a6a111be6e33ad1d47497bf22b128faf6e3`
+
+| Runner | Rol | Verdict | Bloqueantes |
+|---|---|---|---|
+| `LIBRARIAN-IND-COMISION-POLICY-1PCT-007` | Librarian | **FAIL** | `L1-g7` … `L5-g7` |
+| `QA-IND-COMISION-POLICY-1PCT-007` | QA | **PASS** | ninguno |
+| `AUDITOR-IND-COMISION-POLICY-1PCT-007` | Auditor | **FAIL** | `AB1-g7`, económico |
+
+**Resultado: INVALIDADA.** Los tres confirmaron que `AB1-g6` está cerrado en sus cuatro rutas.
+
+**Lo que esta generación enseña sobre los propios revisores.**
+
+- **QA corrigió su punto ciego y sirvió.** En la 6 dio PASS sobre un defecto real porque su matriz
+  no tenía el eje del tiempo; en la 7 lo añadió, y sus 91 comprobaciones cubrieron la secuencia
+  completa. No encontró `AB1-g7` porque su superficie declarada no incluye bases migradas del
+  piloto —lo dijo— pero sí encontró dos defectos reales que la 8 corrige.
+- **El Auditor volvió a encontrar el bloqueante leyendo, no fuzzeando**, y volvió a decirlo: sus
+  32.000 pasos de fuzz arrancaban de bases frescas, donde toda liquidación nace canónica, así que
+  el defecto era invisible para su arnés. Cuando reescribió el arnés para arrancar de una base
+  migrada, la violación aparecía en el paso 0 de 25 de 25 corridas. **Dos generaciones seguidas, el
+  hallazgo decisivo salió de comparar dos trozos de código, no de ejecutarlos.**
+- **El Librarian encontró un bloqueante de código, no documental.** `L1-g7` empieza como una frase
+  falsa —«un solo escritor con tres llamadores»— y termina siendo la misma clase de divergencia
+  estructural que ya costó `AB1-g6` y `AB1-g7`. Verificar que la documentación dice la verdad
+  encontró un defecto que ni QA ni el Auditor buscaban.
+
+**El patrón que se repite en las generaciones 6, 7 y 8.** Las tres fallaron por lo mismo: **la
+misma regla escrita en dos sitios**. En la 6, la migración excluía las `REVERTIDA` y el código no.
+En la 7, la migración exigía política canónica y el código no. En las dos, la unificación anterior
+había tocado la parte que ya coincidía. La generación 8 no unifica «mejor»: extrae el predicado
+entero a un único literal compartido, de modo que no queden dos textos que puedan separarse.
+
+Los verdicts de las generaciones 1 a 7 **no se reutilizan**.
+
+## Generación 8
+
+**Remediada, pendiente de los tres verdicts.** Alcance ejecutado: `AB1-g7` y `L1-g7`, más las
+observaciones de la 7 que pertenecen a su misma familia.
+
+**Qué superficie debe cubrir cada rol:**
+
+- **Auditor.** Su propio verdict dice que el fuzz desde bases frescas no puede encontrar defectos
+  que sólo existen en bases migradas. El arnés de esta generación debe **arrancar de bases
+  migradas** —piloto con comisiones pagadas, políticas legadas, evidencia discrepante— y correr
+  desde ahí. Y la pregunta nueva: ¿queda algún otro predicado, guarda o regla escrita dos veces?
+- **QA.** Cubrir el eje que le falta según su propia declaración: bases migradas del piloto y su
+  interacción con la secuencia fijar/soltar/refijar.
+- **Librarian.** Buscar la tercera aparición del patrón: afirmaciones de unicidad —«un solo
+  escritor», «un solo predicado», «un solo sitio»— que el código no sostenga.

@@ -179,7 +179,7 @@ class CentralRepository:
               note TEXT NOT NULL DEFAULT '', actor TEXT NOT NULL, recorded_at TEXT NOT NULL,
               UNIQUE(policy_id,version)
             );
-            -- Tabla de la generación 5, congelada en la 6: guardaba **el estado** de la fijación,
+            -- Tabla de la generación 5, congelada en la 7: guardaba **el estado** de la fijación,
             -- una fila por período. Ya no se lee ni se escribe. No se borra —nada de lo que el
             -- sistema afirmó alguna vez se borra— pero la verdad vive ahora en el libro de eventos
             -- de abajo, que sí puede expresar que una fijación se retiró.
@@ -340,19 +340,23 @@ class CentralRepository:
             "SELECT e.id,e.sale_id,e.period,e.rate_bp,e.policy_code,e.policy_version,"
             "       e.policy_effective_from,e.policy_scope,e.status,e.paid_at,e.created_at"
             "  FROM commission_entries e JOIN commission_sales s ON s.id=e.sale_id"
-            " WHERE e.period IS NOT NULL AND e.rate_bp IS NOT NULL AND e.policy_status=?"
-            "   AND (e.paid_at IS NOT NULL"
-            f"        OR (e.status IN {comision_policy.BOUNDARY_SQL_IN} AND COALESCE(s.voided,0)=0))"
-            " ORDER BY e.period,e.created_at,e.id",
-            (comision_policy.POLICY_CANONICAL,),
+            f" WHERE e.period IS NOT NULL AND {comision_policy.LIVE_OFFICIAL_FACT_SQL}"
+            " ORDER BY e.period,e.created_at,e.id"
         ).fetchall()
 
         official: dict[str, list] = {}
         for row in rows:
             official.setdefault(str(row["period"])[:7], []).append(row)
 
+        # Un período cuyo **último** evento es `PINNED` ya está resuelto y no se toca. Uno cuyo
+        # último evento es `UNPINNED` sí vuelve a mirarse: si la base trae evidencia viva para él,
+        # fijarlo no es inventar nada, es aplicar la misma regla que el código en caliente. Era el
+        # único punto donde migrar y operar seguían sin coincidir.
         seeded = {row[0] for row in con.execute(
-            "SELECT DISTINCT period FROM commission_period_rate_events")}
+            "SELECT e.period FROM commission_period_rate_events e"
+            " JOIN (SELECT period, MAX(id) AS newest FROM commission_period_rate_events GROUP BY period)"
+            "   last ON last.period=e.period AND last.newest=e.id"
+            " WHERE e.event='PINNED'")}
         legacy = {row[0] for row in con.execute("SELECT period FROM commission_rated_periods")}
 
         for period, evidence in sorted(official.items()):
@@ -375,28 +379,59 @@ class CentralRepository:
         # por qué, con el mismo mecanismo que el resto de los descartes: la fila vieja sigue en
         # `commission_rated_periods`, intacta, y el período queda resoluble hasta que aparezca un
         # hecho económico real.
-        for period in sorted(legacy - seeded - set(official)):
+        known = {row[0] for row in con.execute(
+            "SELECT DISTINCT period FROM commission_period_rate_events")}
+        for period in sorted(legacy - known - set(official)):
             self._audit_seed_once(
                 con, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period,
                 {"reason": "SIN_HECHO_ECONOMICO_VIVO",
                  "note": "fijacion heredada de la generacion 5 sin APROBADA ni PAGADA viva que la justifique"})
 
-    def _record_seed_event(self, con, period, chosen):
-        """Escribe el `PINNED` de la migración y lo asienta. Un solo sitio, un solo formato."""
-        boundary = "PAGADA" if (chosen["paid_at"] is not None or chosen["status"] == "PAGADA") else "APROBADA"
+    def record_period_rate_event(self, con, period, event, *, rate_bp, policy_code, policy_version,
+                                 policy_effective_from, policy_scope, origin, actor, reason,
+                                 entry_id=None, sale_id=None, recorded_at=None, audit=True):
+        """**Único escritor** del libro de tasas por período. Append-only: nunca actualiza ni borra.
+
+        Vive en el repositorio, y no en el servicio, porque la migración también tiene que escribir
+        el libro y no puede importar `comisiones` sin crear un ciclo. Que hubiera dos rutas de
+        escritura —una en cada clase, con dos formatos de asiento— fue el bloqueante `L1-g7`: la
+        propiedad «la secuencia `PINNED → UNPINNED → PINNED` está completa» no la garantizaba un
+        escritor único sino dos que casualmente coincidían, y cualquier guarda añadida a uno no
+        habría alcanzado al otro. Es exactamente la clase de divergencia que ya costó `AB1-g6`.
+
+        Escribe el evento y su asiento en `central_audit` en la misma transacción, de modo que no
+        existe un estado en el que uno esté sin el otro.
+        """
         con.execute(
             "INSERT INTO commission_period_rate_events(period,event,rate_bp,policy_code,policy_version,"
             "policy_effective_from,policy_scope,origin,entry_id,sale_id,reason,actor,recorded_at)"
-            " VALUES(?,'PINNED',?,?,?,?,?,'BACKFILL',?,?,?,'MIGRACION',?)",
-            (period, int(chosen["rate_bp"]),
-             chosen["policy_code"] or comision_policy.CANONICAL_CODE,
-             chosen["policy_version"] if chosen["policy_version"] is not None
-             else comision_policy.CANONICAL_VERSION,
-             chosen["policy_effective_from"] or comision_policy.CANONICAL_EFFECTIVE_FROM,
-             chosen["policy_scope"] or comision_policy.CANONICAL_SCOPE,
-             chosen["id"], chosen["sale_id"], f"hecho economico vivo {boundary} en la base migrada",
-             chosen["created_at"]),
+            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (period, event, int(rate_bp), policy_code or comision_policy.CANONICAL_CODE,
+             policy_version if policy_version is not None else comision_policy.CANONICAL_VERSION,
+             policy_effective_from or comision_policy.CANONICAL_EFFECTIVE_FROM,
+             policy_scope or comision_policy.CANONICAL_SCOPE, origin, entry_id, sale_id, reason,
+             actor, recorded_at or datetime.now().astimezone().isoformat()),
         )
+        if not audit:
+            return
+        action = ("COMMISSION_PERIOD_RATE_PINNED" if event == "PINNED"
+                  else "COMMISSION_PERIOD_RATE_UNPINNED")
+        self.audit(con, actor, action, period, details={
+            "rate_bp": int(rate_bp), "origin": origin, "reason": reason, "entry_id": entry_id,
+            "sale_id": sale_id, "policy_code": policy_code, "policy_version": policy_version,
+            "policy_effective_from": policy_effective_from})
+
+    def _record_seed_event(self, con, period, chosen):
+        """Siembra un `PINNED` por el mismo escritor que usa el código en caliente."""
+        boundary = "PAGADA" if (chosen["paid_at"] is not None or chosen["status"] == "PAGADA") else "APROBADA"
+        self.record_period_rate_event(
+            con, period, "PINNED", rate_bp=int(chosen["rate_bp"]),
+            policy_code=chosen["policy_code"], policy_version=chosen["policy_version"],
+            policy_effective_from=chosen["policy_effective_from"],
+            policy_scope=chosen["policy_scope"], origin="BACKFILL", actor="MIGRACION",
+            reason=f"hecho economico vivo {boundary} en la base migrada",
+            entry_id=chosen["id"], sale_id=chosen["sale_id"],
+            recorded_at=chosen["created_at"], audit=False)
         self._audit_seed_once(
             con, "COMMISSION_PERIOD_RATE_SEEDED", period,
             {"rate_bp": int(chosen["rate_bp"]), "boundary": boundary, "entry_id": chosen["id"],

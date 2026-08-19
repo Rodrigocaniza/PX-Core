@@ -19,10 +19,11 @@ from typing import Protocol
 from .comision_policy import (
     AGREEMENT_DISCOUNT_BP, BASIS_POINTS, BOUNDARY_SQL_IN, CANONICAL_CODE,
     CANONICAL_EFFECTIVE_FROM, CANONICAL_POLICY_ID, CANONICAL_RATE_BP, CANONICAL_SCOPE,
-    CANONICAL_VERSION, CURRENCY, POLICY_ABSENT, POLICY_CANONICAL, POLICY_LEGACY,
-    POLICY_OUT_OF_EFFECT, POLICY_STATUSES, RATING_BOUNDARY_STATES, ROUNDING_MODE, PolicyDecision,
-    agreement_discount, apply_basis_points, commission_for, commissionable_base, is_in_effect,
-    normalize_effective_from, rate_decimal_text, rate_percent_text,
+    CANONICAL_VERSION, CURRENCY, LIVE_OFFICIAL_FACT_SQL, PERIOD_MATCH_SQL, POLICY_ABSENT,
+    POLICY_CANONICAL, POLICY_LEGACY, POLICY_OUT_OF_EFFECT, POLICY_STATUSES,
+    RATING_BOUNDARY_STATES, ROUNDING_MODE, PolicyDecision, agreement_discount, apply_basis_points,
+    commission_for, commissionable_base, is_in_effect, normalize_effective_from, rate_decimal_text,
+    rate_percent_text,
 )
 from .models import Principal, Role, utc_now
 from .service import AccessDenied, CentralManagementService
@@ -179,9 +180,14 @@ class CommissionSaleInput:
 
 
 class CommissionPolicyPort(Protocol):
-    """Puerto de resolución de la política oficial de comisión."""
+    """Puerto de resolución de la política oficial de comisión.
 
-    def decide(self, *, branch: str, saleswoman: str, period: str) -> PolicyDecision: ...
+    `con` es opcional y sirve para resolver **dentro** de la transacción del llamador: sin él, un
+    evento escrito por esa misma transacción todavía no confirmada es invisible, y la resolución
+    contesta con un estado que ya no es el vigente.
+    """
+
+    def decide(self, *, branch: str, saleswoman: str, period: str, con=None) -> PolicyDecision: ...
 
 
 class CanonicalCommissionPolicy:
@@ -225,7 +231,7 @@ class CanonicalCommissionPolicy:
         applicable = [row for row in self.catalogue() if is_in_effect(period, row["effective_from"])]
         return applicable[-1] if applicable else None
 
-    def pinned_for(self, period: str) -> dict | None:
+    def pinned_for(self, period: str, con=None) -> dict | None:
         """Tasa con la que ese período está fijado **ahora**, si un hecho económico vivo la sostiene.
 
         Se resuelve por el **último evento** del libro `commission_period_rate_events`: si es
@@ -241,22 +247,30 @@ class CanonicalCommissionPolicy:
 
         Un período que sólo tiene cálculos provisionales nunca tuvo evento, y por eso sigue siendo
         corregible: es la diferencia entre un número todavía en revisión y dinero avalado.
+
+        Cuando el llamador pasa su propia `con`, se resuelve dentro de su transacción. Hace falta:
+        `recalculate` puede soltar un período al reparar una liquidación, y las que evalúa después
+        en el mismo bucle tienen que ver ese `UNPINNED`. Sin esto el recálculo necesitaba dos
+        pasadas para converger y dejaba un rechazo inexplicable en medio.
         """
         if not period:
             return None
-        with self.repository.connection() as con:
+        if con is not None:
             row = _last_period_rate_event(con, str(period)[:7])
+        else:
+            with self.repository.connection() as own:
+                row = _last_period_rate_event(own, str(period)[:7])
         if row is None or row["event"] != "PINNED":
             return None
         return dict(row)
 
-    def decide(self, *, branch: str, saleswoman: str, period: str) -> PolicyDecision:
+    def decide(self, *, branch: str, saleswoman: str, period: str, con=None) -> PolicyDecision:
         # Un período ya **fijado** conserva su tasa. Publicar una versión nueva no lo reescribe,
         # y por eso publicar nunca hace falta bloquearlo: la protección no está en negar la
         # operación sino en que el período ya comprometido deje de depender de lo que se publique.
         # Un período con sólo cálculos provisionales no está fijado y sí se resuelve por catálogo:
         # eso es lo que lo mantiene corregible.
-        pinned = self.pinned_for(period)
+        pinned = self.pinned_for(period, con=con)
         if pinned is not None:
             return PolicyDecision(int(pinned["rate_bp"]), POLICY_CANONICAL,
                                   int(pinned["policy_version"]), pinned["policy_effective_from"],
@@ -304,7 +318,7 @@ class CommissionService:
         self.core._require(actor, "reviews.manage")
 
     # -------------------------------------------------------------- guardas
-    def _reject_voided_sale(self, entry) -> None:
+    def _reject_voided_sale(self, con, entry) -> None:
         """Regla aprobada 8, defendida también donde sale el dinero.
 
         `void_sale` mueve la liquidación a `REVERTIDA` u `OBSERVADA`, así que por ruta pública no
@@ -312,18 +326,21 @@ class CommissionService:
         esa fila, y hasta la generación 7 el sistema la revisaba, la aprobaba y la pagaba. Una venta
         anulada no genera comisión: tampoco cuando la incoherencia llega de fuera.
         """
-        with self.repository.connection() as con:
-            voided = con.execute("SELECT voided FROM commission_sales WHERE id=?",
-                                 (entry["sale_id"],)).fetchone()
+        voided = con.execute("SELECT voided FROM commission_sales WHERE id=?",
+                             (entry["sale_id"],)).fetchone()
         if voided is not None and voided[0]:
             raise ValueError("la venta de origen está anulada: no genera comisión")
 
-    def _require_official_and_live(self, entry) -> None:
-        """Guarda de la cadena de pago: la venta existe de verdad y el importe es el oficial."""
-        self._reject_voided_sale(entry)
-        self._require_current_policy(entry)
+    def _require_official_and_live(self, con, entry) -> None:
+        """Guarda de la cadena de pago: la venta existe de verdad y el importe es el oficial.
 
-    def _require_current_policy(self, entry) -> None:
+        Corre con la conexión del llamador, dentro de su `BEGIN IMMEDIATE`: una guarda que decide
+        si se paga no puede leer por fuera de la transacción que va a escribir.
+        """
+        self._reject_voided_sale(con, entry)
+        self._require_current_policy(con, entry)
+
+    def _require_current_policy(self, con, entry) -> None:
         """Nadie revisa, aprueba ni paga un importe que no sea el oficial vigente hoy.
 
         No alcanza con que haya un importe, ni con que lleve el sello `CANONICA_APROBADA`:
@@ -339,7 +356,7 @@ class CommissionService:
                 f"la liquidación no lleva la política oficial vigente ({entry['policy_status']}): "
                 f"{POLICY_STALE_MESSAGE}")
         decision = self.policy.decide(branch=entry["branch"], saleswoman=entry["saleswoman"],
-                                      period=entry["period"] or "")
+                                      period=entry["period"] or "", con=con)
         if (decision.rate_bp, decision.version) != (int(entry["rate_bp"]), entry["policy_version"]):
             raise ValueError(
                 f"la política del período cambió desde el cálculo "
@@ -718,7 +735,8 @@ class CommissionService:
         # se quedó sin hechos económicos vivos. Ponerlo en el choke point y no en cada operación es
         # lo que hace que las cuatro rutas de `AB1-g6` —y cualquiera futura— queden cubiertas por
         # construcción en vez de una por una.
-        self._reconcile_period_pin(con, entry["period"], actor, action)
+        self._reconcile_period_pin(con, entry["period"], actor, action,
+                                   entry_id=entry["id"], sale_id=entry["sale_id"])
 
     # ------------------------------------------------- fijación de la tasa del período
     #
@@ -730,50 +748,29 @@ class CommissionService:
     def _live_official_facts(con, period):
         """Hechos económicos oficiales **vivos** del período, en orden.
 
-        Un hecho está vivo si hoy sostiene dinero: la liquidación está `APROBADA` o `PAGADA` sobre
-        una venta que no fue anulada, **o** conserva `paid_at`, que significa que el dinero salió de
-        verdad. Lo pagado cuenta aunque después se observe o se anule la venta: observar no devuelve
-        una transferencia.
+        Un hecho está vivo si hoy sostiene la tasa de su período: lleva la política **canónica**
+        con una tasa concreta, y o bien conserva `paid_at` —el dinero salió— o bien está en el
+        boundary sobre una venta no anulada. Lo pagado cuenta aunque después se observe la
+        liquidación o se anule la venta: observar no devuelve una transferencia.
 
         `ELEGIBLE`, `CALCULADA`, `REVISADA`, `OBSERVADA` sin pago y `REVERTIDA` no son hechos vivos.
-        Una aprobación revertida deja de sostener nada, y ése es exactamente el punto: era el
-        bloqueante `AB1-g6`.
+        Una aprobación revertida deja de sostener nada: era el bloqueante `AB1-g6`. Tampoco lo es
+        una liquidación con `POLITICA_HISTORICA_PREVIA`, por mucho que se haya pagado: su importe
+        se conserva intacto por auditoría, pero nunca fue la tasa oficial del mes y el resto del
+        módulo ya la trata así en todas partes. Que este predicado no lo dijera era `AB1-g7`.
 
-        La migración usa esta misma definición, en SQL equivalente, para que migrar una base y
-        reconstruirla operando den el mismo resultado.
+        El SQL **es literalmente el mismo** que usa la siembra de la migración —vive en
+        `comision_policy.LIVE_OFFICIAL_FACT_SQL`— para que migrar una base y reconstruirla operando
+        den el mismo resultado. Tenerlo escrito dos veces, aunque fuera «equivalente», ya falló dos
+        generaciones seguidas.
         """
         return con.execute(
-            "SELECT e.id,e.status,e.rate_bp,e.paid_at FROM commission_entries e"
+            "SELECT e.id,e.sale_id,e.status,e.rate_bp,e.paid_at FROM commission_entries e"
             " JOIN commission_sales s ON s.id=e.sale_id"
-            " WHERE e.period=? AND (e.paid_at IS NOT NULL"
-            f"        OR (e.status IN {BOUNDARY_SQL_IN} AND COALESCE(s.voided,0)=0))"
+            f" WHERE {PERIOD_MATCH_SQL} AND {LIVE_OFFICIAL_FACT_SQL}"
             " ORDER BY e.id",
             (str(period)[:7],),
         ).fetchall()
-
-    def _record_period_rate_event(self, con, period, event, *, rate_bp, policy_code, policy_version,
-                                  policy_effective_from, policy_scope, origin, actor, reason,
-                                  entry_id=None, sale_id=None):
-        """Único escritor del libro de tasas. Append-only: nunca actualiza ni borra.
-
-        Escribe el evento y su asiento en `central_audit` en la misma transacción, de modo que no
-        existe un estado en el que uno esté sin el otro. Que sea el único escritor es lo que permite
-        afirmar que la secuencia `PINNED` → `UNPINNED` → `PINNED` de un período está completa.
-        """
-        action = ("COMMISSION_PERIOD_RATE_PINNED" if event == PERIOD_RATE_PINNED
-                  else "COMMISSION_PERIOD_RATE_UNPINNED")
-        con.execute(
-            "INSERT INTO commission_period_rate_events(period,event,rate_bp,policy_code,policy_version,"
-            "policy_effective_from,policy_scope,origin,entry_id,sale_id,reason,actor,recorded_at)"
-            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            (period, event, int(rate_bp), policy_code or CANONICAL_CODE, policy_version,
-             policy_effective_from or CANONICAL_EFFECTIVE_FROM, policy_scope or CANONICAL_SCOPE,
-             origin, entry_id, sale_id, reason, actor, _now()),
-        )
-        self.repository.audit(con, actor, action, period, details={
-            "rate_bp": int(rate_bp), "origin": origin, "reason": reason, "entry_id": entry_id,
-            "sale_id": sale_id, "policy_code": policy_code, "policy_version": policy_version,
-            "policy_effective_from": policy_effective_from})
 
     def _pin_rated_period(self, con, entry, actor, boundary):
         """Fija la tasa del período al alcanzarse un hecho económico oficial.
@@ -801,7 +798,7 @@ class CommissionService:
         last = _last_period_rate_event(con, period)
         if last is not None and last["event"] == PERIOD_RATE_PINNED:
             return False
-        self._record_period_rate_event(
+        self.repository.record_period_rate_event(
             con, period, PERIOD_RATE_PINNED, rate_bp=int(entry["rate_bp"]),
             policy_code=entry["policy_code"], policy_version=entry["policy_version"],
             policy_effective_from=entry["policy_effective_from"], policy_scope=entry["policy_scope"],
@@ -809,7 +806,8 @@ class CommissionService:
             reason=f"hecho economico oficial: la liquidacion alcanzo {boundary}")
         return True
 
-    def _reconcile_period_pin(self, con, period, actor, action, reason=""):
+    def _reconcile_period_pin(self, con, period, actor, action, reason="",
+                              entry_id=None, sale_id=None):
         """Retira la fijación cuando desaparece el último hecho oficial vivo que la sostenía.
 
         Es el **boundary de salida**, y el único sitio del sistema que desfija. Se invoca desde
@@ -823,7 +821,9 @@ class CommissionService:
         se anule. Un pago sólo deja de sostener si su reversión se completa de verdad.
 
         No borra ni reescribe el `PINNED` anterior: escribe un `UNPINNED` detrás, con la tasa que se
-        retira, la causa y el actor. Es idempotente: si el período no está fijado, no hace nada.
+        retira, la liquidación que dejó de sostenerla, la causa y el actor. Nombrar el hecho
+        retirado es lo que permite leer la cadena entera sin cruzar la auditoría por fecha. Es
+        idempotente: si el período no está fijado, no hace nada.
         """
         period = str(period or "")[:7]
         if not period:
@@ -833,11 +833,11 @@ class CommissionService:
             return False
         if self._live_official_facts(con, period):
             return False
-        self._record_period_rate_event(
+        self.repository.record_period_rate_event(
             con, period, PERIOD_RATE_UNPINNED, rate_bp=int(last["rate_bp"]),
             policy_code=last["policy_code"], policy_version=last["policy_version"],
             policy_effective_from=last["policy_effective_from"], policy_scope=last["policy_scope"],
-            origin=action, actor=actor,
+            origin=action, actor=actor, entry_id=entry_id, sale_id=sale_id,
             reason=reason or "sin hechos economicos oficiales vivos que sostengan la tasa del periodo")
         return True
 
@@ -854,7 +854,7 @@ class CommissionService:
                     f"transición inválida: {entry['status']} → {target}; requiere {'/'.join(sorted(allowed))}"
                 )
             if guard is not None:
-                guard(entry)
+                guard(con, entry)
             self._set_status(con, entry, target, actor.username, action, details, **columns)
             if pin_period:
                 # Sólo aquí se fija un período, y sólo dentro de la misma transacción que
@@ -909,7 +909,7 @@ class CommissionService:
             raise ValueError("motivo obligatorio")
         return self._transition(actor, entry_id, OPEN_STATES | {"OBSERVADA"}, "REVERTIDA",
                                 "COMMISSION_REVERTED", {"reason": reason},
-                                guard=_reject_paid, observation=reason)
+                                guard=lambda con, entry: _reject_paid(entry), observation=reason)
 
     # ------------------------------------------------------------- política
     def policy_for_period(self, actor: Principal, period: str) -> dict:
@@ -1110,7 +1110,8 @@ class CommissionService:
                 discount = agreement_discount(total) if sale["sale_kind"] == "CONVENIO" else 0
                 base = commissionable_base(sale["sale_kind"], total)
                 decision = self.policy.decide(
-                    branch=sale["branch"], saleswoman=sale["saleswoman"], period=entry["period"] or "")
+                    branch=sale["branch"], saleswoman=sale["saleswoman"],
+                    period=entry["period"] or "", con=con)
                 commission = None if decision.rate_bp is None else commission_for(base, decision.rate_bp)
                 current = (int(entry["gross_amount"]), int(entry["agreement_discount"]),
                            int(entry["commissionable_base"]), entry["rate_bp"], entry["commission_amount"],
@@ -1164,7 +1165,8 @@ class CommissionService:
                     # la oficial y no se tocaría—, pero la reconciliación se hace igual, porque la
                     # regla no puede depender de qué rama nos trajo hasta aquí.
                     self._reconcile_period_pin(con, entry["period"], actor.username,
-                                               "COMMISSION_POLICY_REPAIRED")
+                                               "COMMISSION_POLICY_REPAIRED",
+                                               entry_id=entry["id"], sale_id=entry["sale_id"])
             con.commit()
         return {"evaluated": evaluated, "changed": changed}
 
@@ -1212,7 +1214,7 @@ class CommissionService:
             {"label": "Total de la venta", "amount": int(entry["gross_amount"]), "sign": ""},
         ]
         if entry["sale_kind"] == "CONVENIO":
-            lines.append({"label": f"Descuento de convenio ({AGREEMENT_DISCOUNT_BP / 100:.0f}%)",
+            lines.append({"label": f"Descuento de convenio ({AGREEMENT_DISCOUNT_BP // 100}%)",
                           "amount": int(entry["agreement_discount"]), "sign": "−"})
         lines.append({"label": "Base comisionable", "amount": int(entry["commissionable_base"]), "sign": "="})
         if entry["rate_bp"] is not None:
