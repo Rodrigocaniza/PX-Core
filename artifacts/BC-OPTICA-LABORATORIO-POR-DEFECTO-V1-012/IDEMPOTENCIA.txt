@@ -1,0 +1,71 @@
+﻿LABORATORIOS Y LABORATORIO POR DEFECTO DE CADA CRISTAL
+base   : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 : a335805eb83cce46454e36eda1fdb25a567be1ad534427af687ef0fa8b225d13
+antes  : 3596 articulos, 4441 movimientos, ASU 6166 / PIL 2260
+
+== el catalogo del brief, contra produccion ==
+  2000125   «FUTUREX STEEL» | TRABAJO_BAJO_PEDIDO | cat Cristales -> ServiOptica
+  2000066   «Solamax» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000067   «Bifocal (ST)» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000124   NO EXISTE en produccion -- «Foto Sunsenso». No se le puede poner laboratorio a algo que no esta
+  2000073   «Multiblue» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000075   «Futurex Protec» | TRABAJO_BAJO_PEDIDO | cat Cristales -> ServiOptica
+  2000076   «Blue Protec» | TRABAJO_BAJO_PEDIDO | cat Cristales -> ServiOptica
+  2000074   «Progresivo OP» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000086   «Foto Sunactive» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000060   «Organico UVX» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000061   «Fotocromático (AR)» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000062   «Multifocal (OP)» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000063   «Kripto (Kto) Organico UVX» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000064   «Blue Ar» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000139   NO EXISTE en produccion -- «Blue Light 1.60». No se le puede poner laboratorio a algo que no esta
+  2000213   «Org AR» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000214   «Kto.Foto.AR» | TRABAJO_BAJO_PEDIDO | cat Cristales -> ServiOptica
+  2000215   «Kto.Foto» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000216   «Kto.Foto Blue AR» | TRABAJO_BAJO_PEDIDO | cat Cristales -> ServiOptica
+  2000217   «Policarbonato Blanco» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000218   «Policarbonato AR» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000206   «Kto.Invisible» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000207   «Kto.AR» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Optilab
+  2000208   «Kto.Blue AR» | TRABAJO_BAJO_PEDIDO | cat Cristales -> ServiOptica
+  2000209   «Blue Fotocromatico AR» | TRABAJO_BAJO_PEDIDO | cat Cristales -> ServiOptica
+  2000212   «ST Fotocromatico» -- SIN LABORATORIO POR DEFECTO, a proposito
+  2000077   NO EXISTE en produccion -- «Fotocromatico Blue Ar». No se le puede poner laboratorio a algo que no esta
+  2000078   NO EXISTE en produccion -- «Multiblue Foto Ar». No se le puede poner laboratorio a algo que no esta
+  2000090   NO EXISTE en produccion -- «Fotocromatico AR». No se le puede poner laboratorio a algo que no esta
+  2000231   NO EXISTE en produccion -- «Multifocal Futurex». No se le puede poner laboratorio a algo que no esta
+  2000235   NO EXISTE en produccion -- «Ultradelgado 1.67 AR». No se le puede poner laboratorio a algo que no esta
+  2000126   «FUTUREX G2» | TRABAJO_BAJO_PEDIDO | cat Cristales -> Laboratorio Cristal
+
+== el codigo coincide pero el nombre no ==
+  2000125: brief «Futurex Still» / produccion «FUTUREX STEEL»
+  2000066: brief «Multifocal Solamax» / produccion «Solamax»
+  2000060: brief «Orgánico UVX» / produccion «Organico UVX»
+  2000062: brief «Multifocal OP o Eclipse» / produccion «Multifocal (OP)»
+  2000063: brief «Kripto (Kto) Orgánico UVX» / produccion «Kripto (Kto) Organico UVX»
+  Se asigna igual: el codigo es la identidad del catalogo y son
+  todos cristales activos. Quedan reportados uno por uno.
+
+== cristales de produccion que el brief no menciona ==
+  2000127   «Green AR» -- se queda sin default
+  2000210   «Multifocal Foto AR» -- se queda sin default
+  2000211   «Multifocal AR» -- se queda sin default
+  2000219   «Multiblue Foto Ar» -- se queda sin default
+  2000227   «Progresivo Rodensto» -- se queda sin default
+  2000239   «POLIBLUE» -- se queda sin default
+
+== guardas ==
+  OK   todos los que reciben default son TRABAJO_BAJO_PEDIDO
+  OK   todos estan en la categoria Cristales
+  ---  ya tenian laboratorio: 24 de 24
+
+== resumen del plan ==
+  Laboratorio Optilab: 16 cristales
+  ServiOptica: 7 cristales
+  Laboratorio Cristal: 1 cristales
+  sin default a proposito: 1
+  del brief pero ausentes de produccion: 7
+  cristales de produccion fuera del brief: 6
+
+NO SE ESCRIBIO NADA: falta --confirmar.
+Esto crearia o reusaria 3 laboratorios y pondria el default en 24 cristales. Cero movimientos de stock.

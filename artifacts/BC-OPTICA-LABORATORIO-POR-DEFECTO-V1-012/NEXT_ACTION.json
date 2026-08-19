@@ -1,0 +1,68 @@
+{
+  "mision": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012",
+  "generacion": 1,
+  "state": "SAFE_CLOSURE",
+  "blocked_on": null,
+  "produccion": "3.596 articulos (2.829 activos), 4.441 movimientos, ASU 6.166 / PIL 2.260, total 8.426. 3 laboratorios, 24 cristales con laboratorio por defecto, 28 migraciones. Caja historica intacta",
+  "next_action": "No iniciar nada automaticamente. Lo que queda abierto esta en el HUMAN_GATE de esta mision y son decisiones de catalogo, no de codigo: que hacer con los 7 codigos que el brief lista y produccion no tiene, si 2000078 y 2000219 son el mismo cristal, si los 6 cristales restantes llevan laboratorio, y si las marcas que en realidad son laboratorios se limpian",
+  "verification": {
+    "migracion": "PASS",
+    "dry_run": "PASS, 0 fallas",
+    "aplicacion_productiva": "PASS, 0 fallas",
+    "verificacion_post": "PASS, 0 fallas",
+    "pruebas_dirigidas": "22 PASS",
+    "suite_completa": "1.003 PASS",
+    "circuito_sobre_copia": "PASS",
+    "smoke_ui": "PASS",
+    "idempotencia": "PASS",
+    "rollback_usado": "NO"
+  },
+  "deudas_explicitas_no_mezcladas": [
+    {
+      "id": "SIETE-CODIGOS-DEL-BRIEF-NO-EXISTEN",
+      "estado": "ABIERTA, HUMAN_GATE",
+      "detalle": "2000124, 2000139, 2000077, 2000078, 2000090, 2000231, 2000235"
+    },
+    {
+      "id": "2000078-VS-2000219",
+      "estado": "ABIERTA, HUMAN_GATE",
+      "detalle": "mismo nombre «Multiblue Foto Ar», distinto codigo"
+    },
+    {
+      "id": "SEIS-CRISTALES-SIN-DEFAULT",
+      "estado": "ABIERTA, HUMAN_GATE",
+      "detalle": "2000127, 2000210, 2000211, 2000219, 2000227, 2000239: activos, y el brief no dice a donde van"
+    },
+    {
+      "id": "2000212-ES-UN-ARMAZON",
+      "estado": "ABIERTA, no bloqueante",
+      "detalle": "PRODUCTO_STOCKEABLE en Armazones, pero el brief lo trata como cristal. Sin laboratorio en cualquier caso"
+    },
+    {
+      "id": "MARCAS-QUE-SON-LABORATORIOS",
+      "estado": "ABIERTA, HUMAN_GATE",
+      "detalle": "20 cristales tienen «Laboratorio Optilab» o «Laboratorio Servi Optical» como marca, y 2 de Compostura tambien, entre ellos 2000070 Hilo. Ahora que el laboratorio tiene su lugar propio, la marca se puede limpiar; las fuentes corregidas del 19/08 dicen «Óptica Puppilent`s» para todo Compostura"
+    },
+    {
+      "id": "TELEFONOS-DE-LOS-LABORATORIOS",
+      "estado": "ABIERTA, no bloqueante",
+      "detalle": "los tres quedaron sin linea ni WhatsApp. El seguimiento los usa para reclamar trabajos atrasados; se cargan desde el ABM"
+    },
+    {
+      "id": "000010-ASUNCION-ES-UNA-ESTIMACION",
+      "estado": "ABIERTA, no bloqueante"
+    },
+    {
+      "id": "CUATRO-RECUENTOS-DE-PILAR-PENDIENTES",
+      "estado": "ABIERTA, V1-009 en pausa"
+    },
+    {
+      "id": "OCHO-SLICES-FUERA-DE-MAIN",
+      "estado": "PENDIENTE, no bloqueante"
+    },
+    {
+      "id": "ANULACION-EN-DIA-CERRADO",
+      "estado": "PENDIENTE, no bloqueante"
+    }
+  ]
+}

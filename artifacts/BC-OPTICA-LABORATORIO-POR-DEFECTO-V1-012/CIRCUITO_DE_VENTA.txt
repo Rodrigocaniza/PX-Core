@@ -1,0 +1,26 @@
+﻿== la sugerencia, articulo por articulo real ==
+  OK   2000075 «Futurex Protec» sugiere 'ServiOptica'
+  OK   2000073 «Multiblue» sugiere 'Laboratorio Optilab'
+  OK   2000126 «FUTUREX G2» sugiere 'Laboratorio Cristal'
+  OK   2000212 «ST Fotocromatico» sugiere None
+
+== una venta con armazon y cristal, sobre la copia ==
+  OK   la linea guardo el laboratorio: 'ServiOptica'
+  OK   el armazon descuenta: 100 -> 99
+  OK   el cristal no movio una sola unidad, ni creo fila en stock_actual
+
+== la Optica cambia de laboratorio para ese cristal ==
+  OK   la venta de ayer sigue diciendo ServiOptica
+  OK   y de ahora en mas sugiere Laboratorio Optilab
+
+== y las 10 lineas historicas ==
+      '': 5
+      'Optilab': 2
+      'SI': 1
+      'ServiOptica': 1
+      'asasa': 1
+      'asd': 1
+      'optilab': 1
+  OK   las tres lineas con texto sin sentido siguen ahi, sin corregir
+
+VEREDICTO: PASS (0 fallas)

@@ -1,0 +1,363 @@
+{
+  "mision": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012",
+  "generacion": 1,
+  "estado": "APLICADA EN PRODUCCION",
+  "tipo": "catalogo canonico de laboratorios y laboratorio por defecto por cristal",
+  "fecha": "2026-08-19",
+  "base_git": {
+    "commit": "c838f10",
+    "de": "feature/bc-optica-article-metadata-restore-v1-014",
+    "por_que_no_main": "origin/main esta en 7db56a0, rc.31 con 21 migraciones. Produccion corre rc.32 con 27 y ahora 28. Ramificar desde main perderia Commercial Core entero"
+  },
+  "branch": "feature/bc-optica-laboratorio-por-defecto-v1-012",
+  "modelo": {
+    "decision": "articles.default_laboratory_id, FK nulable a laboratories(id)",
+    "catalogo_reutilizado": "`laboratories`, la tabla que la migracion 003 creo para el circuito de seguimiento. No se creo un segundo catalogo: el laboratorio al que se le pide un cristal y al que se le reclama un trabajo atrasado son el mismo",
+    "sale_items_laboratory": "intacto, texto libre. Sigue guardando el laboratorio que realmente hizo cada trabajo",
+    "por_que_asi": "el default es una preferencia, no identidad. Vive en el articulo; el hecho vive en la linea. Por eso cambiar la preferencia manana no puede reescribir una venta de agosto",
+    "no_se_uso_brand": "un laboratorio no es una marca. No se copio ni se creo ninguna marca nueva"
+  },
+  "migracion": {
+    "version": "028",
+    "archivo": "028_default_laboratory.sql",
+    "tipo": "aditiva: una columna nulable y un indice",
+    "rc32_intacta": true,
+    "registros_preservados": "todos: 3.596 articulos, 4.441 movimientos, 10 lineas",
+    "defaults_aplican_hacia_adelante": true,
+    "probada_sobre_copia_real": "PASS, y una segunda pasada no hace nada",
+    "no_inventa_datos": "despues de migrar, cero articulos con laboratorio"
+  },
+  "laboratorios": {
+    "creados": [
+      "Laboratorio Optilab",
+      "ServiOptica",
+      "Laboratorio Cristal"
+    ],
+    "reutilizados": "ninguno: la tabla estaba vacia. Si Optilab ya hubiera existido con su telefono, se reusaba esa fila",
+    "duplicacion": "imposible por dos vias: laboratories.name es UNIQUE COLLATE NOCASE, y la busqueda ignora ademas los espacios de mas",
+    "total_en_produccion": 3
+  },
+  "asignaciones": {
+    "total": 24,
+    "por_laboratorio": {
+      "Laboratorio Optilab": 16,
+      "ServiOptica": 7,
+      "Laboratorio Cristal": 1
+    },
+    "detalle": [
+      {
+        "sku": "2000060",
+        "nombre": "Organico UVX",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000061",
+        "nombre": "Fotocromático (AR)",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000062",
+        "nombre": "Multifocal (OP)",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000063",
+        "nombre": "Kripto (Kto) Organico UVX",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000064",
+        "nombre": "Blue Ar",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000066",
+        "nombre": "Solamax",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000067",
+        "nombre": "Bifocal (ST)",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000073",
+        "nombre": "Multiblue",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000074",
+        "nombre": "Progresivo OP",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000075",
+        "nombre": "Futurex Protec",
+        "laboratorio": "ServiOptica"
+      },
+      {
+        "sku": "2000076",
+        "nombre": "Blue Protec",
+        "laboratorio": "ServiOptica"
+      },
+      {
+        "sku": "2000086",
+        "nombre": "Foto Sunactive",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000125",
+        "nombre": "FUTUREX STEEL",
+        "laboratorio": "ServiOptica"
+      },
+      {
+        "sku": "2000126",
+        "nombre": "FUTUREX G2",
+        "laboratorio": "Laboratorio Cristal"
+      },
+      {
+        "sku": "2000206",
+        "nombre": "Kto.Invisible",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000207",
+        "nombre": "Kto.AR",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000208",
+        "nombre": "Kto.Blue AR",
+        "laboratorio": "ServiOptica"
+      },
+      {
+        "sku": "2000209",
+        "nombre": "Blue Fotocromatico AR",
+        "laboratorio": "ServiOptica"
+      },
+      {
+        "sku": "2000213",
+        "nombre": "Org AR",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000214",
+        "nombre": "Kto.Foto.AR",
+        "laboratorio": "ServiOptica"
+      },
+      {
+        "sku": "2000215",
+        "nombre": "Kto.Foto",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000216",
+        "nombre": "Kto.Foto Blue AR",
+        "laboratorio": "ServiOptica"
+      },
+      {
+        "sku": "2000217",
+        "nombre": "Policarbonato Blanco",
+        "laboratorio": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000218",
+        "nombre": "Policarbonato AR",
+        "laboratorio": "Laboratorio Optilab"
+      }
+    ],
+    "todos_son": "TRABAJO_BAJO_PEDIDO, categoria Cristales, activos"
+  },
+  "2000212": {
+    "sku": "2000212",
+    "nombre": "ST Fotocromatico",
+    "default_laboratory_id": null,
+    "cumplido": "no se le autocompleta laboratorio y no se le invento uno",
+    "hallazgo": "en produccion NO es un cristal: es PRODUCTO_STOCKEABLE en la categoria Armazones, con marca «Laboratorio Optilab». El brief lo lista entre los tipos de cristal. Sea lo que sea, el resultado pedido es el mismo: sin laboratorio por defecto"
+  },
+  "divergencias_brief_vs_produccion": {
+    "ausentes": [
+      {
+        "sku": "2000124",
+        "nombre": "Foto Sunsenso",
+        "laboratorio_pedido": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000139",
+        "nombre": "Blue Light 1.60",
+        "laboratorio_pedido": "ServiOptica"
+      },
+      {
+        "sku": "2000077",
+        "nombre": "Fotocromatico Blue Ar",
+        "laboratorio_pedido": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000078",
+        "nombre": "Multiblue Foto Ar",
+        "laboratorio_pedido": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000090",
+        "nombre": "Fotocromatico AR",
+        "laboratorio_pedido": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000231",
+        "nombre": "Multifocal Futurex",
+        "laboratorio_pedido": "Laboratorio Optilab"
+      },
+      {
+        "sku": "2000235",
+        "nombre": "Ultradelgado 1.67 AR",
+        "laboratorio_pedido": "Laboratorio Optilab"
+      }
+    ],
+    "ausentes_detalle": "los 7 no existen en produccion ni en ningun backup, ni activos ni inactivos. No se les puede poner laboratorio a articulos que no estan, y no se los creo",
+    "un_caso_con_gemelo": "«Multiblue Foto Ar» del brief es 2000078, que no existe; en produccion ese nombre exacto es 2000219. No se asigno por nombre: el codigo es la identidad",
+    "nombres_distintos": [
+      {
+        "sku": "2000125",
+        "brief": "Futurex Still",
+        "produccion": "FUTUREX STEEL"
+      },
+      {
+        "sku": "2000066",
+        "brief": "Multifocal Solamax",
+        "produccion": "Solamax"
+      },
+      {
+        "sku": "2000060",
+        "brief": "Orgánico UVX",
+        "produccion": "Organico UVX"
+      },
+      {
+        "sku": "2000062",
+        "brief": "Multifocal OP o Eclipse",
+        "produccion": "Multifocal (OP)"
+      },
+      {
+        "sku": "2000063",
+        "brief": "Kripto (Kto) Orgánico UVX",
+        "produccion": "Kripto (Kto) Organico UVX"
+      }
+    ],
+    "nombres_distintos_decision": "se asignaron igual: mismo codigo, misma categoria, misma naturaleza, activos. Son variantes de tilde, mayuscula o abreviatura",
+    "cristales_sin_default": [
+      {
+        "sku": "2000127",
+        "nombre": "Green AR"
+      },
+      {
+        "sku": "2000210",
+        "nombre": "Multifocal Foto AR"
+      },
+      {
+        "sku": "2000211",
+        "nombre": "Multifocal AR"
+      },
+      {
+        "sku": "2000219",
+        "nombre": "Multiblue Foto Ar"
+      },
+      {
+        "sku": "2000227",
+        "nombre": "Progresivo Rodensto"
+      },
+      {
+        "sku": "2000239",
+        "nombre": "POLIBLUE"
+      }
+    ],
+    "cristales_sin_default_detalle": "6 cristales activos de produccion que el brief no menciona. Quedan sin default: la pantalla no les sugiere nada"
+  },
+  "hilo_2000070": {
+    "estado": "NO SE TOCO. Finding separado, no bloquea 012",
+    "marca_actual": "Laboratorio Optilab",
+    "es_arrastre": true,
+    "evidencia": [
+      "en la fuente original P2 - Inventario.xlsx, fila 854, la columna «Marca» dice «Laboratorio Optilab»",
+      "esa columna, para los cristales, trae el laboratorio: es como la Optica lleva sus planillas, y el normalizador de V1-008 ya lo documentaba",
+      "Hilo cae en un bloque de filas de cristales dentro de la categoria Compostura, que en esa planilla mezcla servicios, tipos de cristal y repuestos fisicos",
+      "en las fuentes CORREGIDAS del 19/08, las dos sucursales le dan a Hilo la marca «Óptica Puppilent`s», no un laboratorio"
+    ],
+    "por_que_no_se_limpio_a_NULL": "la orden dice limpiar a NULL «si no existe marca real». Existe: las fuentes corregidas de ambas sucursales dicen «Óptica Puppilent`s». Poner NULL descartaria un dato que el dueno ya corrigio, y poner «Óptica Puppilent`s» es una decision de catalogo que nadie autorizo",
+    "alcance_real": "no es un caso aislado. En las fuentes corregidas las 21 filas de Compostura pasaron a «Óptica Puppilent`s», y produccion todavia tiene las marcas viejas porque V1-010 no tocaba marcas. Y en Cristales la «Marca» sigue siendo el laboratorio: 20 articulos con Optilab o Servi Optical",
+    "va_al_HUMAN_GATE": true
+  },
+  "aplicacion_productiva": {
+    "ejecutada": true,
+    "autorizada_por": "la propia orden: aplicar si el dry-run demuestra que el cambio se limita a lo previsto",
+    "herramienta": "tools/laboratorios_por_defecto_optica.py --confirmar",
+    "veredicto": "PASS, 0 fallas",
+    "rollback_usado": "NO",
+    "pre_guard": {
+      "base_sha256": "ffafb5c624af07e036f5a86d3348b6e0412eeb855b22883f64f862534386f7b2",
+      "coincide_con_el_cierre_de_014": true,
+      "BC_Caja_corriendo": false,
+      "WAL": "0 bytes",
+      "HEAD": "61e4763"
+    },
+    "backup": {
+      "archivo": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-prelaboratorios-20260819-173134.sqlite3",
+      "sha256": "cebf6b56c130bf6fc308fad8ef376171adf8e75f6a21606a658df7539464f712",
+      "verificado": "contenido identico a la base"
+    },
+    "base_sha256_antes": "ffafb5c624af07e036f5a86d3348b6e0412eeb855b22883f64f862534386f7b2",
+    "base_sha256_despues": "a335805eb83cce46454e36eda1fdb25a567be1ad534427af687ef0fa8b225d13"
+  },
+  "invariantes": {
+    "stock_antes": {
+      "ASUNCION": 6166,
+      "PILAR": 2260,
+      "total": 8426
+    },
+    "stock_despues": {
+      "ASUNCION": 6166,
+      "PILAR": 2260,
+      "total": 8426
+    },
+    "movimientos_antes": 4441,
+    "movimientos_despues": 4441,
+    "articulos": 3596,
+    "activos": 2829,
+    "categorias": 15,
+    "marcas": 136,
+    "caja_historica": {
+      "entradas": 12,
+      "dinero": 6400000,
+      "sale_items": 10,
+      "dias": 2,
+      "pedidos": 8
+    },
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "unico_campo_cambiado": "default_laboratory_id, en 24 articulos",
+    "lineas_de_venta": "las 10, identicas al caracter",
+    "ningun_cristal_con_default_tiene_stock": true,
+    "V1_010": "767 bajas siguen de baja",
+    "V1_011": "Delivery intacto",
+    "V1_013": "000037 sigue retirado",
+    "V1_014": "los cinco conservan categoria y marca"
+  },
+  "pruebas": {
+    "dirigidas": "22, en tests/comercial/test_laboratorio_por_defecto.py",
+    "suite_completa": "1.003 pruebas y 4 subtests, todo pasa",
+    "los_12_escenarios_obligatorios": "cubiertos, mas 10 propios",
+    "migracion_sobre_copia_real": "PASS",
+    "dry_run": "PASS sobre copia consistente de produccion",
+    "idempotencia": "segunda corrida: mismo sha256, cero entradas nuevas en la bitacora, cero EDITA_ARTICULO",
+    "circuito_sobre_copia": "venta real con armazon y cristal: cobra 530.000, el armazon baja de 100 a 99, el cristal no mueve nada ni crea fila en stock_actual, y la linea guarda ServiOptica. Despues se cambia el default a Optilab y la venta sigue diciendo ServiOptica",
+    "smoke_ui": "PASS: el campo Laboratorio se llena solo con los tres laboratorios, 2000212 no autocompleta y no pisa lo que la operadora escribio, y las dos pantallas abren",
+    "por_que_no_se_probo_en_produccion": "crear una venta de prueba en produccion seria un hecho sin causa"
+  },
+  "bitacora": {
+    "LABORATORY_CATALOG_CREATED": 3,
+    "DEFAULT_LABORATORY_ASSIGNED": 24,
+    "EDITA_ARTICULO": "777 -> 801, las 24 del propio guardado",
+    "ninguna_otra_accion_cambio": true
+  }
+}

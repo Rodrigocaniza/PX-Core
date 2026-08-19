@@ -1,0 +1,89 @@
+﻿sha256 produccion: a335805eb83cce46454e36eda1fdb25a567be1ad534427af687ef0fa8b225d13
+
+== migracion ==
+  OK   migraciones: 28
+  OK   la 028 registrada una sola vez
+
+== laboratorios ==
+  OK   son 3
+      Laboratorio Cristal    tel '' wa '' activo 1
+      Laboratorio Optilab    tel '' wa '' activo 1
+      ServiOptica            tel '' wa '' activo 1
+  OK   son los tres del brief
+
+== cristales activos, por laboratorio ==
+      Laboratorio Optilab    16
+      ServiOptica            7
+      None                   6
+      Laboratorio Cristal    1
+
+== 2000212 ==
+      «ST Fotocromatico» | PRODUCTO_STOCKEABLE | cat Armazones | marca Laboratorio Optilab
+  OK   sigue sin laboratorio por defecto
+
+== los 24 asignados ==
+      2000060   Organico UVX                 -> Laboratorio Optilab
+      2000061   Fotocromático (AR)           -> Laboratorio Optilab
+      2000062   Multifocal (OP)              -> Laboratorio Optilab
+      2000063   Kripto (Kto) Organico UVX    -> Laboratorio Optilab
+      2000064   Blue Ar                      -> Laboratorio Optilab
+      2000066   Solamax                      -> Laboratorio Optilab
+      2000067   Bifocal (ST)                 -> Laboratorio Optilab
+      2000073   Multiblue                    -> Laboratorio Optilab
+      2000074   Progresivo OP                -> Laboratorio Optilab
+      2000075   Futurex Protec               -> ServiOptica
+      2000076   Blue Protec                  -> ServiOptica
+      2000086   Foto Sunactive               -> Laboratorio Optilab
+      2000125   FUTUREX STEEL                -> ServiOptica
+      2000126   FUTUREX G2                   -> Laboratorio Cristal
+      2000206   Kto.Invisible                -> Laboratorio Optilab
+      2000207   Kto.AR                       -> Laboratorio Optilab
+      2000208   Kto.Blue AR                  -> ServiOptica
+      2000209   Blue Fotocromatico AR        -> ServiOptica
+      2000213   Org AR                       -> Laboratorio Optilab
+      2000214   Kto.Foto.AR                  -> ServiOptica
+      2000215   Kto.Foto                     -> Laboratorio Optilab
+      2000216   Kto.Foto Blue AR             -> ServiOptica
+      2000217   Policarbonato Blanco         -> Laboratorio Optilab
+      2000218   Policarbonato AR             -> Laboratorio Optilab
+  OK   son 24
+  OK   los 24 son TRABAJO_BAJO_PEDIDO
+
+== nada de esto movio stock ==
+  OK   ningun cristal con default tiene fila en stock_actual (0)
+
+== las lineas historicas ==
+      '': 4
+      'Optilab': 2
+      'SI': 1
+      'asasa': 1
+      'asd': 1
+      'optilab': 1
+  OK   siguen siendo 10
+
+== contra el backup previo: que cambio exactamente ==
+      default_laboratory_id: 24
+  OK   solo default_laboratory_id, en 24 articulos: {'default_laboratory_id': 24}
+  OK   las 10 lineas de venta, idénticas al caracter
+  OK   cash_entries: 12
+  OK   cash_days: 2
+  OK   orders: 8
+  OK   stock_movements: 4441
+  OK   brands: 136
+  OK   article_categories: 15
+  OK   tracked_works: 0
+
+== invariantes ==
+  OK   integrity_check
+  OK   foreign_key_check
+  OK   stock negativo
+  OK   huerfanos
+  OK   efectos sin hecho
+
+== misiones anteriores ==
+  OK   V1-013: 000037 sigue retirado
+  OK   V1-011: Delivery intacto
+  OK   V1-014: los cinco conservan categoria y marca
+  OK   V1-010: 767 bajas siguen de baja
+
+VEREDICTO: PASS (0 fallas)

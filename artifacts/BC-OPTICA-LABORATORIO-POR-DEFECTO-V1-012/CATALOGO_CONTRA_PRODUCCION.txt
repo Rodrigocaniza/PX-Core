@@ -1,0 +1,98 @@
+﻿== los 32 del brief contra produccion ==
+  2000125   != «FUTUREX STEEL» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Servi Optical -> ServiOptica
+  2000066   != «Solamax» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Optica San Cayetano -> Laboratorio Optilab
+  2000067   == «Bifocal (ST)» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000124   NO EXISTE  (brief decia «Foto Sunsenso»)
+  2000073   == «Multiblue» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000075   == «Futurex Protec» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Servi Optical -> ServiOptica
+  2000076   == «Blue Protec» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Servi Optical -> ServiOptica
+  2000074   == «Progresivo OP» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000086   == «Foto Sunactive» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Servi Optical -> Laboratorio Optilab
+  2000060   != «Organico UVX» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000061   == «Fotocromático (AR)» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000062   != «Multifocal (OP)» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000063   != «Kripto (Kto) Organico UVX» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000064   == «Blue Ar» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000139   NO EXISTE  (brief decia «Blue Light 1.60»)
+  2000213   == «Org AR» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000214   == «Kto.Foto.AR» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Servi Optical -> ServiOptica
+  2000215   == «Kto.Foto» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000216   == «Kto.Foto Blue AR» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Servi Optical -> ServiOptica
+  2000217   == «Policarbonato Blanco» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Servi Optical -> Laboratorio Optilab
+  2000218   == «Policarbonato AR» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000206   == «Kto.Invisible» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000207   == «Kto.AR» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> Laboratorio Optilab
+  2000208   == «Kto.Blue AR» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> ServiOptica
+  2000209   == «Blue Fotocromatico AR» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Optilab -> ServiOptica
+  2000212   == «ST Fotocromatico» | PRODUCTO_STOCKEABLE    | cat Armazones | activo 1 | marca Laboratorio Optilab -> SIN DEFAULT
+  2000077   NO EXISTE  (brief decia «Fotocromatico Blue Ar»)
+  2000078   NO EXISTE  (brief decia «Multiblue Foto Ar»)
+  2000090   NO EXISTE  (brief decia «Fotocromatico AR»)
+  2000231   NO EXISTE  (brief decia «Multifocal Futurex»)
+  2000235   NO EXISTE  (brief decia «Ultradelgado 1.67 AR»)
+  2000126   == «FUTUREX G2» | TRABAJO_BAJO_PEDIDO    | cat Cristales | activo 1 | marca Laboratorio Servi Optical -> Laboratorio Cristal
+
+== todos los TRABAJO_BAJO_PEDIDO de produccion ==
+  son 30
+  en produccion y no en el brief: 6
+      2000127   «Green AR» | cat Cristales | activo 1
+      2000210   «Multifocal Foto AR» | cat Cristales | activo 1
+      2000211   «Multifocal AR» | cat Cristales | activo 1
+      2000219   «Multiblue Foto Ar» | cat Cristales | activo 1
+      2000227   «Progresivo Rodensto» | cat Cristales | activo 1
+      2000239   «POLIBLUE» | cat Cristales | activo 1
+
+== que hay hoy en sale_items.laboratory ==
+  '': 4
+  'Optilab': 2
+  'SI': 1
+  'asasa': 1
+  'asd': 1
+  'optilab': 1
+  lineas con lens_article_id: 0
+
+== laboratorios escritos en otros lados ==
+  brands: [{'id': '0d119ac1-8e8f-421d-8cb9-7c3828a04e3a', 'name': 'Laboratorio Optilab'}, {'id': 'c77ec8a0-4b4b-4393-98de-abd59d45f320', 'name': 'Laboratorio Servi Optical'}]
+  suppliers: []
+
+== quien mas usa esas marcas ==
+  'Laboratorio Optilab': 23 articulos
+  'Laboratorio Servi Optical': 8 articulos
+      2000060   «Organico UVX» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000061   «Fotocromático (AR)» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000062   «Multifocal (OP)» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000063   «Kripto (Kto) Organico UVX» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000064   «Blue Ar» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000065   «Adaptacion de cristal» | SERVICIO_NO_STOCKEABLE | cat Compostura
+      2000067   «Bifocal (ST)» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000070   «Hilo» | SERVICIO_NO_STOCKEABLE | cat Compostura
+      2000073   «Multiblue» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000074   «Progresivo OP» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000127   «Green AR» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000206   «Kto.Invisible» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000207   «Kto.AR» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000208   «Kto.Blue AR» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000209   «Blue Fotocromatico AR» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000210   «Multifocal Foto AR» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000211   «Multifocal AR» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000212   «ST Fotocromatico» | PRODUCTO_STOCKEABLE | cat Armazones
+      2000213   «Org AR» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000215   «Kto.Foto» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000218   «Policarbonato AR» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000219   «Multiblue Foto Ar» | TRABAJO_BAJO_PEDIDO | cat Cristales
+      2000227   «Progresivo Rodensto» | TRABAJO_BAJO_PEDIDO | cat Cristales
+
+== problemas ==
+  2000125: nombre: brief «Futurex Still» vs produccion «FUTUREX STEEL»
+  2000066: nombre: brief «Multifocal Solamax» vs produccion «Solamax»
+  2000124: no existe
+  2000060: nombre: brief «Orgánico UVX» vs produccion «Organico UVX»
+  2000062: nombre: brief «Multifocal OP o Eclipse» vs produccion «Multifocal (OP)»
+  2000063: nombre: brief «Kripto (Kto) Orgánico UVX» vs produccion «Kripto (Kto) Organico UVX»
+  2000139: no existe
+  2000212: naturaleza PRODUCTO_STOCKEABLE
+  2000077: no existe
+  2000078: no existe
+  2000090: no existe
+  2000231: no existe
+  2000235: no existe
