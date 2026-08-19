@@ -284,6 +284,11 @@ class Article:
     #: El que le puso el proveedor, si le puso alguno. No reemplaza al SKU.
     barcode: str | None = None
     notes: str = ""
+    #: A que laboratorio se le suele pedir este trabajo. Es una preferencia, no
+    #: parte de lo que el articulo es: el cristal no «es» de Optilab, se le
+    #: suele pedir a Optilab. Nulo significa que nadie lo definio todavia, que
+    #: es distinto de que no vaya a ningun lado.
+    default_laboratory_id: str | None = None
     active: bool = True
     id: str = field(default_factory=new_id)
 
@@ -314,6 +319,8 @@ class Article:
 
         object.__setattr__(self, "location", _texto(self.location))
         object.__setattr__(self, "barcode", _texto(self.barcode) or None)
+        object.__setattr__(
+            self, "default_laboratory_id", _texto(self.default_laboratory_id) or None)
 
         minimo = self.min_stock
         if minimo is not None:

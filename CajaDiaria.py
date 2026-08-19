@@ -1830,6 +1830,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 if opcion.sale_price:
                     campos_manual["cristal"].insert(
                         0, formatear_importe_ui(opcion.sale_price))
+                # A donde se suele mandar este cristal. Es una sugerencia: queda
+                # escrita en el campo y la operadora la cambia si esta vez va a
+                # otro lado. Si el cristal no tiene preferencia no se inventa
+                # ninguna, y tampoco se borra lo que ya haya escrito a mano.
+                sugerido = comercial.laboratorio_por_defecto(opcion.article_id)
+                if sugerido is not None:
+                    campos_manual["laboratorio"].delete(0, "end")
+                    campos_manual["laboratorio"].insert(0, sugerido.name)
             else:
                 seleccion_articulo["article_id"] = opcion.article_id
                 for clave, valor in (("cod", opcion.sku), ("arm_org", opcion.name)):

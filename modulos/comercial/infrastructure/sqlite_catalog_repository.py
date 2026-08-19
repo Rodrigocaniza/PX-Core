@@ -178,21 +178,22 @@ class SQLiteCatalogRepository:
             connection.execute(
                 "INSERT INTO articles(id, sku, name, nature, category_id, brand_id,"
                 " supplier_id, unit, sale_price, location, min_stock, barcode, notes,"
-                " active, created_at, updated_at)"
-                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                " default_laboratory_id, active, created_at, updated_at)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
                 " ON CONFLICT(id) DO UPDATE SET sku=excluded.sku, name=excluded.name,"
                 " nature=excluded.nature, category_id=excluded.category_id,"
                 " brand_id=excluded.brand_id, supplier_id=excluded.supplier_id,"
                 " unit=excluded.unit, sale_price=excluded.sale_price,"
                 " location=excluded.location, min_stock=excluded.min_stock,"
                 " barcode=excluded.barcode,"
-                " notes=excluded.notes, active=excluded.active,"
-                " updated_at=excluded.updated_at",
+                " notes=excluded.notes,"
+                " default_laboratory_id=excluded.default_laboratory_id,"
+                " active=excluded.active, updated_at=excluded.updated_at",
                 (article.id, article.sku, article.name, article.nature.value,
                  article.category_id, article.brand_id, article.supplier_id,
                  article.unit, article.sale_price, article.location,
                  article.min_stock, article.barcode, article.notes,
-                 int(article.active), ahora, ahora))
+                 article.default_laboratory_id, int(article.active), ahora, ahora))
             connection.commit()
         return article
 
@@ -218,7 +219,9 @@ class SQLiteCatalogRepository:
             supplier_id=fila["supplier_id"], unit=fila["unit"],
             sale_price=fila["sale_price"], location=fila["location"],
             min_stock=fila["min_stock"], barcode=fila["barcode"],
-            notes=fila["notes"], active=bool(fila["active"]), id=fila["id"])
+            notes=fila["notes"],
+            default_laboratory_id=fila["default_laboratory_id"],
+            active=bool(fila["active"]), id=fila["id"])
 
     # -- motivos de salida administrativa -----------------------------------
 

@@ -236,6 +236,7 @@ class ComercialController:
         min_stock: int | None = None,
         barcode: str | None = None,
         notes: str = "",
+        default_laboratory_id: str | None = None,
         active: bool = True,
         article_id: str | None = None,
     ) -> Article:
@@ -250,7 +251,8 @@ class ComercialController:
             sku=sku, name=name, nature=nature, category_id=category_id,
             brand_id=brand_id, supplier_id=supplier_id, unit=unit,
             sale_price=sale_price, location=location, min_stock=min_stock,
-            barcode=barcode, notes=notes, active=active,
+            barcode=barcode, notes=notes,
+            default_laboratory_id=default_laboratory_id, active=active,
             **({"id": article_id} if article_id else {}))
         guardado = self._catalogo.save_article(articulo)
         self._auditar(
@@ -282,7 +284,7 @@ class ComercialController:
         editables = {
             "sku", "name", "nature", "category_id", "brand_id", "supplier_id",
             "unit", "sale_price", "location", "min_stock", "barcode", "notes",
-            "active"}
+            "default_laboratory_id", "active"}
         ajenos = set(campos) - editables
         if ajenos:
             raise ComercialError(
@@ -385,6 +387,58 @@ class ComercialController:
 
     def listar_marcas(self, *, solo_activas: bool = True) -> Sequence[Brand]:
         return self._catalogo.list_brands(only_active=solo_activas)
+
+    # -- laboratorios -------------------------------------------------------
+    #
+    # El catalogo de laboratorios ya existe: lo creo la migracion 003 para el
+    # circuito de seguimiento, y es donde estan los telefonos a los que se llama
+    # cuando un trabajo se atrasa. No se hace uno nuevo. El laboratorio al que
+    # se le pide un cristal y el laboratorio al que se le reclama son el mismo.
+
+    def listar_laboratorios(self, *, solo_activos: bool = True):
+        return self._caja.list_laboratories(only_active=solo_activos)
+
+    def laboratorio_por_nombre(self, nombre: str):
+        """Ya existente o recien creado, pero uno solo.
+
+        `laboratories.name` es UNIQUE COLLATE NOCASE, asi que la base ya impide
+        el duplicado por mayusculas. Esto ademas ignora los espacios de mas, que
+        la base no ve.
+        """
+        from modulos.caja_diaria.domain.tracking import Laboratory
+        buscado = (nombre or "").strip()
+        if not buscado:
+            raise ComercialError("el laboratorio necesita nombre")
+        existente = self._buscar_por_nombre(self.listar_laboratorios(solo_activos=False),
+                                            buscado)
+        if existente is not None:
+            return existente
+        return self._caja.save_laboratory(Laboratory(name=buscado))
+
+    def laboratorio_por_defecto(self, article_id: str):
+        """El laboratorio sugerido para este articulo, o nada.
+
+        Devolver `None` no es un error ni un cero: es que nadie definio todavia
+        a donde va este trabajo, y en ese caso la pantalla no inventa uno.
+        """
+        articulo = self.obtener_articulo(article_id)
+        if articulo is None or not articulo.default_laboratory_id:
+            return None
+        return self._caja.get_laboratory(articulo.default_laboratory_id)
+
+    def asignar_laboratorio_por_defecto(
+        self, article_id: str, laboratory_id: str | None, *, actor: str
+    ) -> Article:
+        """Cambia la preferencia y nada mas.
+
+        No reescribe una sola venta: lo que se mando ya se mando, y el nombre
+        del laboratorio que lo hizo vive en la linea. Pasar `None` la borra, que
+        es como se dice «esto vuelve a no tener destino definido».
+        """
+        if laboratory_id is not None and self._caja.get_laboratory(laboratory_id) is None:
+            raise ComercialError(f"no existe el laboratorio {laboratory_id}")
+        return self.actualizar_articulo(
+            article_id, actor=actor, default_laboratory_id=laboratory_id)
 
     @staticmethod
     def _buscar_por_nombre(coleccion, nombre: str):
