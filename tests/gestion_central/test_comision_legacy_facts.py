@@ -336,3 +336,35 @@ def test_un_solo_recalculo_converge(tmp_path):
     # Y la segunda pasada ya no cambia nada: convergió en una.
     assert service.recalculate(SOL)["changed"] == 0
     service.review(SOL, nueva["id"])          # no hay rechazo intermedio que explicar
+
+
+# ------------------- O8-g10 · el importe tiene que ser el que la tasa produce
+def test_un_importe_inventado_no_llega_al_pago(tmp_path):
+    """Quinto disfraz del patrón, hallado por el Auditor de la generación 10.
+
+    «¿El importe de esta liquidación es el oficial de hoy?» se contestaba en dos sitios con dos
+    criterios: `recalculate` comparaba diez campos, y la guarda de la cadena de pago sólo la tasa y
+    la versión. Nunca comprobaba que el importe fuera el que esa tasa produce sobre esa base.
+
+    Una fila de procedencia externa con la tasa correcta y un importe inventado pasaba `review`,
+    `approve` y `mark_paid`, y se pagaban 9.000.000 Gs donde lo oficial eran 100.000: **8.900.000 Gs
+    de sobrepago**. No es alcanzable por ninguna ruta pública —el importe siempre se escribe con
+    `commission_for`— pero la guarda existe precisamente para lo que llega de fuera, igual que la
+    de la venta anulada.
+    """
+    service = pilot_base(tmp_path, policy_status=POLICY_CANONICAL, status="CALCULADA",
+                         paid_at=None, rate_bp=CANONICAL_RATE_BP, amount=9_000_000,
+                         total=10_000_000)
+    entry = service.get_entry(SOL, "entry-P")
+    assert (entry["rate_bp"], entry["commission_amount"]) == (CANONICAL_RATE_BP, 9_000_000)
+
+    with pytest.raises(ValueError, match="el importe no es el que produce la tasa aplicada"):
+        service.review(SOL, "entry-P")
+
+    # Y el camino correcto sigue abierto: recalcular lo repara y entonces sí entra a la cadena.
+    service.recalculate(SOL)
+    reparada = service.get_entry(SOL, "entry-P")
+    assert reparada["commission_amount"] == 100_000
+    service.review(SOL, "entry-P")
+    service.approve(SOL, "entry-P", "Sol")
+    assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}

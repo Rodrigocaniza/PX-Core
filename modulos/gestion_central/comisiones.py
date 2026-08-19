@@ -20,13 +20,13 @@ from .comision_policy import (
     AGREEMENT_DISCOUNT_BP, BASIS_POINTS, BOUNDARY_SQL_IN, CANONICAL_CODE,
     CANONICAL_EFFECTIVE_FROM, CANONICAL_POLICY_ID, CANONICAL_RATE_BP, CANONICAL_SCOPE,
     CANONICAL_VERSION, CURRENCY, LIVE_OFFICIAL_FACT_SQL, PERIOD_MATCH_SQL, POLICY_ABSENT,
+    period_key,
     POLICY_CANONICAL, POLICY_LEGACY, POLICY_OUT_OF_EFFECT, POLICY_STATUSES,
     RATING_BOUNDARY_STATES, ROUNDING_MODE, PolicyDecision, agreement_discount, apply_basis_points,
     commission_for, commissionable_base, is_in_effect, normalize_effective_from, rate_decimal_text,
     rate_percent_text,
 )
 from .models import Principal, Role, utc_now
-from .repository import CentralRepository
 from .repository import CentralRepository
 from .service import AccessDenied, CentralManagementService
 
@@ -246,10 +246,10 @@ class CanonicalCommissionPolicy:
         if not period:
             return None
         if con is not None:
-            row = _last_period_rate_event(con, str(period)[:7])
+            row = _last_period_rate_event(con, period_key(period))
         else:
             with self.repository.connection() as own:
-                row = _last_period_rate_event(own, str(period)[:7])
+                row = _last_period_rate_event(own, period_key(period))
         if row is None or row["event"] != "PINNED":
             return None
         return dict(row)
@@ -341,6 +341,18 @@ class CommissionService:
         if entry["rate_bp"] is None or entry["commission_amount"] is None:
             raise ValueError(
                 f"la liquidación no tiene la política oficial aplicada: {POLICY_STALE_MESSAGE}")
+        # El importe tiene que ser el que la tasa produce sobre la base. Comprobar sólo la tasa y
+        # la versión dejaba pasar una fila incoherente de procedencia externa —tasa correcta,
+        # importe inventado— por las tres puertas de la cadena de pago. No es alcanzable desde
+        # ninguna ruta pública, porque `recalculate` y `_apply_source_update` escriben siempre el
+        # importe con `commission_for`; pero la guarda existe justamente para lo que llega de fuera,
+        # igual que la de la venta anulada.
+        esperado = commission_for(int(entry["commissionable_base"]), int(entry["rate_bp"]))
+        if int(entry["commission_amount"]) != esperado:
+            raise ValueError(
+                f"el importe no es el que produce la tasa aplicada "
+                f"({entry['commission_amount']} Gs. donde {rate_percent_text(int(entry['rate_bp']))} "
+                f"de {entry['commissionable_base']} son {esperado} Gs.): {POLICY_STALE_MESSAGE}")
         if entry["policy_status"] != POLICY_CANONICAL:
             raise ValueError(
                 f"la liquidación no lleva la política oficial vigente ({entry['policy_status']}): "
@@ -776,10 +788,14 @@ class CommissionService:
                               entry_id=None, sale_id=None):
         """Lleva el libro del período al estado que sus hechos vivos justifican.
 
-        Se invoca desde `_set_status`, que es por donde pasa **toda** transición de estado, así que
-        aprobar, pagar, observar, revertir, anular la venta y la reversa de un cobro quedan cubiertos
-        por construcción, y cualquier ruta futura también. No hay una función para fijar y otra para
-        soltar: la diferencia entre ambas es sólo qué dicen los hechos.
+        La invocan **los cuatro sitios que escriben un estado**: éste —`_set_status`, por donde pasan
+        las transiciones— y los tres `UPDATE` directos de `recalculate`, `_apply_source_update` y
+        `_promote_to_eligible`. Afirmar que `_set_status` era el único punto de paso fue el
+        bloqueante `L3-g9`: no lo es. Que ninguna ruta futura se lo salte no lo garantiza esta
+        frase, lo garantiza una prueba estructural que recorre el árbol sintáctico del módulo.
+
+        No hay una función para fijar y otra para soltar: la diferencia entre ambas es sólo qué
+        dicen los hechos.
         """
         return self.repository.reconcile_period_rate(
             con, period, actor, action, entry_id=entry_id, sale_id=sale_id, reason=reason)
@@ -1039,7 +1055,7 @@ class CommissionService:
             # procedencia externa puede traer `period` en fecha completa, y un filtro literal
             # dejaba esas filas fuera del recálculo.
             query += " AND substr(period,1,7)=?"
-            params.append(period)
+            params.append(period_key(period))
         if branch:
             query += " AND branch=?"
             params.append(branch)
@@ -1126,7 +1142,7 @@ class CommissionService:
         params: list = []
         if period:
             query += f" AND ({PERIOD_MATCH_SQL} OR (e.period IS NULL AND substr(s.sale_date,1,7)=?))"
-            params += [period, period]
+            params += [period_key(period), period_key(period)]
         for clause, value in (("e.branch=?", branch), ("e.saleswoman=?", saleswoman),
                               ("e.status=?", status), ("e.sale_kind=?", kind)):
             if value:

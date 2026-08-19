@@ -533,10 +533,66 @@ cuando la tasa fijada es histórica, y el pin hereda el `scope` del hecho legado
 al admitir tasas distintas del 1%, el nombre del contrato se quedó corto. No mueven dinero y su
 corrección toca el identificador canónico de la política, que es una decisión aparte.
 
+## Generación 10 — resultado: INVALIDADA por el Librarian
+
+| Runner | Verdict | Bloqueantes |
+|---|---|---|
+| Librarian | **FAIL** | `L1-g10`, `L2-g10` |
+| QA | **PASS** | ninguno |
+| Auditor | **PASS** | ninguno |
+
+Segundo `PASS` consecutivo del Auditor y tercero de QA. El Auditor demostró **por dos vías
+independientes** que cerrar `L3-g9`, `O2`, `O3`, `O4`, `O5` y `O7` no cambió ningún comportamiento:
+4.952 comparaciones diferenciales contra una reconstrucción de la generación 9 con **0 diferencias**,
+y 1.177 llamadas nuevas a la reconciliación con **0 escrituras**. QA hizo lo propio por su cuenta:
+corrió sus escenarios contra los dos árboles y trece de quince salieron idénticas carácter a
+carácter, con las dos diferencias esperadas.
+
+Los dos bloqueantes del Librarian tienen la misma forma, y es incómoda: **afirmé haber cerrado
+`L3-g9` por los dos lados y sólo cerré uno**. La frase falsa —«`_set_status`, por donde pasa toda
+transición»— seguía viva en las docstrings de las dos funciones del arreglo, mientras el invariante
+del documento decía lo contrario. Y la prueba escrita para sostener la garantía **no comprobaba lo
+que yo declaraba**: el Librarian exhibió una función que escribía estado, no reconciliaba, y la
+guarda pasaba.
+
+## Generación 11 — qué se hizo
+
+**`L1-g10`.** Las dos docstrings enumeran ahora los cuatro escritores y remiten a la prueba
+estructural en vez de afirmar la cobertura por sí solas.
+
+**`L2-g10`.** La guarda se reescribió sobre el **árbol sintáctico**: Python une los literales
+adyacentes, los comentarios no existen en el árbol y una llamada es un nodo `Call`, no un trozo de
+texto. Cubre `UPDATE` **e** `INSERT`, recorre todos los módulos, declara sus dos exenciones con
+motivo —quien las discuta tiene dónde—, y **se autocomprueba**: los tres casos que evadían la
+versión anterior tienen que ser detectados para que la suite pase. Verificado además contra el
+módulo real: inyectar `cierre_masivo` con el literal partido y sin reconciliar hace que la guarda lo
+reporte por nombre.
+
+**`O8-g10`, el quinto disfraz del patrón.** El Auditor lo halló y lo declaró **no bloqueante** por no
+ser alcanzable desde ninguna ruta pública, dejando por escrito sus tres razones «para que el
+propietario pueda discrepar». Se cerró igual. «¿El importe de esta liquidación es el oficial de hoy?»
+se contestaba en dos sitios con dos criterios: `recalculate` comparaba diez campos y la guarda de la
+cadena de pago sólo tasa y versión, sin comprobar nunca que el importe fuera el que esa tasa produce.
+Una fila externa con tasa correcta e importe inventado pagaba **9.000.000 Gs donde lo oficial eran
+100.000**. La guarda existe para lo que llega de fuera, igual que la de la venta anulada; ahora
+comprueba la aritmética.
+
+**Las seis observaciones estructurales.** `known` se calcula sobre el estado alcanzable y no sobre
+claves normalizadas, que había suprimido una nota de auditoría (`O9`). El argumento del filtro por
+período se normaliza igual que el dato (`O10`). `comision_policy.period_key` da nombre a la
+normalización que estaba escrita ocho veces (`O11`). La guarda cubre `INSERT` (`O12`). La huella del
+conflicto incluye los hechos y se compara por igualdad, no con un `LIKE` sobre un JSON (`O13`). Y el
+import duplicado (`O14`).
+
+**Lo que sigue abierto.** `O1` es la decisión del propietario. `O6-g9` y la observación 4 de QA
+—recalcular puede necesitar dos pasadas, y desempata un mes discrepante como efecto colateral— son
+idénticas en la generación 9, no las abrió ésta, y no mueven dinero. Las observaciones 3 y 4 de QA
+sobre el vocabulario del contrato siguen abiertas a propósito.
+
 ## Siguiente paso propuesto
 
-**Generación 10 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
-verdict de las generaciones 1 a 9. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
+**Generación 11 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
+verdict de las generaciones 1 a 10. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
 lease.
 
 Sólo después de la Safe Closure vuelve a la cola el cableado de `register_payment` y

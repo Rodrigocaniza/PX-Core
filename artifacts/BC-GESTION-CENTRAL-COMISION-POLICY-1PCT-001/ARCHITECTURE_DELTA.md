@@ -74,10 +74,15 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
 3. **Idempotencia con traza.** La comparación de `recalculate` incluye los cinco campos de política,
    así que el primer recálculo tras migrar corrige la traza y el siguiente ya no cambia nada. Una
    `REVISADA` o `APROBADA` cuyo importe ya es el oficial no se toca y conserva su aval.
-4. **Sólo la política vigente llega al pago.** `review`, `approve` y `mark_paid` rechazan una
-   liquidación sin importe, una cuyo `policy_status` no sea `CANONICA_APROBADA`, y una cuyo
-   porcentaje y versión grabados no coincidan con la política que rige hoy su período. El sello se
-   graba al calcular y puede quedar atrás: comprobar sólo el sello no alcanza.
+4. **Sólo la política vigente llega al pago, y sólo con el importe que esa política produce.**
+   `review`, `approve` y `mark_paid` rechazan una liquidación sin importe, una cuyo `policy_status`
+   no sea `CANONICA_APROBADA`, una cuyo porcentaje y versión no coincidan con la política que rige
+   hoy su período, y una **cuyo importe no sea el que esa tasa produce sobre esa base**. El sello se
+   graba al calcular y puede quedar atrás: comprobar sólo el sello no alcanza. Comprobar tasa y
+   versión tampoco: una fila de procedencia externa con la tasa correcta y el importe inventado
+   pasaba las tres puertas, y eran 8.900.000 Gs. Lo halló el Auditor de la generación 10 como
+   `O8-g10` y lo declaró no bloqueante por no ser alcanzable desde ninguna ruta pública; se cerró
+   igual, porque esta guarda existe justamente para lo que llega de fuera.
 5. **Un período fijado conserva su tasa mientras algún hecho oficial la sostenga.** La tasa se
    fija cuando una liquidación alcanza `APROBADA` o `PAGADA` —el boundary económico oficial—: ahí
    se escribe un `PINNED`, y `decide()` resuelve ese período contra el último evento del libro
@@ -113,9 +118,13 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
     según la diferencia entre lo que el libro dice y lo que la regla dice. La invocan **los cuatro
     sitios que escriben un estado** —`_set_status`, `recalculate`, `_apply_source_update` y la
     promoción a elegible— y la apertura de la base. `_set_status` **no** es el único punto de paso:
-    afirmarlo era falso, y una prueba estructural comprueba ahora que ninguna función que escriba
-    `commission_entries.status` se olvide de reconciliar, que es lo que sostiene la garantía sobre
-    las rutas futuras.
+    afirmarlo era falso (`L3-g9`), y decirlo bien en el documento mientras las docstrings lo seguían
+    afirmando era `L1-g10`. Lo que sostiene la garantía sobre las rutas futuras no es esta frase
+    sino una prueba estructural que recorre el **árbol sintáctico** de todos los módulos y falla si
+    una función que escribe `commission_entries` —con `UPDATE` o con `INSERT`— no reconcilia. Las
+    dos únicas exenciones están declaradas con su motivo, y la prueba **se autocomprueba**: los
+    tres casos que evadían la versión textual —el literal SQL partido en dos, la mención en un
+    comentario y el `INSERT`— tienen que ser detectados para que la suite pase.
     **Una `PAGADA` viva conserva la tasa con la que se pagó**: sostiene su mes a **esa** tasa
     aunque la liquidación se observe después o la venta se anule, y no se reinterpreta con la
     política vigente. Lo que no sostiene es una tasa distinta de la suya, que era `AB1-g8`.

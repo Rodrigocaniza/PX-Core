@@ -1,15 +1,15 @@
 # Evidencia de pruebas
 
-Regresión completa: **453/453 PASS** (`python -m pytest -q`). El tiempo de reloj depende de la
+Regresión completa: **456/456 PASS** (`python -m pytest -q`). El tiempo de reloj depende de la
 máquina y no se declara: no es una propiedad del código.
-Línea base de la misión anterior: 302. Esta misión suma **151**: 147 de dominio y 4 de interfaz.
+Línea base de la misión anterior: 302. Esta misión suma **154**: 150 de dominio y 4 de interfaz.
 
-Suite del módulo: `tests/gestion_central/` **253/253 PASS**.
+Suite del módulo: `tests/gestion_central/` **256/256 PASS**.
 Los siete archivos de comisiones juntos (`test_comisiones.py`,
 `test_comisiones_ui_interactions.py`, `test_comision_rate_boundary.py` —generación 6—,
 `test_comision_period_unpin.py` —generación 7—, `test_comision_legacy_facts.py` —generación 8—,
 `test_comision_rate_coherence.py` —generación 9— y `test_comision_reconcile_reach.py`
-—generación 10—): 51 → **202** casos, 112 + 8 + 24 + 23 + 13 + 13 + 9 respectivamente.
+—generación 10—): 51 → **205** casos, 112 + 8 + 24 + 23 + 14 + 13 + 11 respectivamente.
 
 Todas las cifras anteriores son **casos ejecutados**, que es lo que cuenta pytest. En funciones:
 `test_comisiones.py` pasa de 47 a 94 —se agregan 48 y se elimina
@@ -50,6 +50,17 @@ invariante 10 afirmaba sin poder cumplir.
 | Las tres rutas que no pasan por `_set_status` | `recalculate`, la corrección de origen y la promoción a elegible reconcilian de verdad | 3 |
 | Claves normalizadas | una clave con fecha completa no deja un período fantasma en la auditoría; `recalculate(period=…)` alcanza esas filas | 2 |
 | Auditoría del conflicto | un conflicto nuevo del mismo mes sí se asienta; uno provocado en caliente lleva el nombre de quien lo provocó | 2 |
+
+La **generación 11** suma **3 casos** (453 → 456): la guarda estructural reescrita sobre el árbol
+sintáctico, su **autocomprobación** —los tres casos que evadían la versión textual deben ser
+detectados— y el importe inventado que ya no llega al pago.
+
+La guarda de la generación 10 era textual y el Librarian la desarmó: buscaba una cadena exacta, de
+modo que partir el literal SQL en dos la evadía; comprobaba el nombre del reconciliador como
+subcadena, de modo que un comentario bastaba; y leía un solo fichero. La de la 11 recorre el árbol
+sintáctico de todos los módulos, cubre `UPDATE` e `INSERT`, exige una llamada real y declara sus dos
+exenciones con motivo. **Verificada contra el módulo real**: inyectar un escritor con el literal
+partido y sin reconciliar hace que la reporte por nombre.
 
 ## Generación 9 — cierre de AB1-g8
 

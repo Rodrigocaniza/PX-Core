@@ -6,19 +6,18 @@
 Resultado: **consistente**, verificado también por
 `python tools/check_mission_package_consistency.py artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001`.
 
-- `MANIFEST.sha256` fija **57 archivos**: los once de código y pruebas tocados por la misión —uno
-  más que en la generación 9, el archivo dirigido `test_comision_reconcile_reach.py`—, los dos de
-  herramientas, el contrato anterior anotado, y los 43 del paquete, que incluyen los doce verdicts
-  de `generation-6/` a `generation-9/`. `sha256sum -c`: **57/57 OK**. Los briefs de
+- `MANIFEST.sha256` fija **60 archivos**: los once de código y pruebas tocados por la misión, los
+  dos de herramientas, el contrato anterior anotado, y los 46 del paquete, que incluyen los quince
+  verdicts de `generation-6/` a `generation-10/`. `sha256sum -c`: **60/60 OK**. Los briefs de
   los runners se escriben **antes** de empaquetar desde la generación 9: hacerlo después desajustaba
   el manifest en el propio worktree, y los Librarian de la 7 y la 8 tuvieron que explicarlo.
 - **Alcance exacto de esa verificación.** Los hashes se toman sobre los bytes del worktree. Este
   repositorio corre con `core.autocrlf=true` y sin `.gitattributes`, de modo que git reescribe los
-  finales de línea al hacer checkout: en un clon nuevo **50 de los 57 ficheros** —37 de los 38
+  finales de línea al hacer checkout: en un clon nuevo **53 de los 60 ficheros** —40 de los 41
   `.md`, once `.py` y los dos `.json`— llegan con CRLF y sus hashes no coinciden. Los siete
   restantes no cambian: seis ya traen CRLF en el worktree —`COMMISSION_RULES.md`, los tres
   `PROMPT_*.txt` y las dos herramientas de `tools/`— y el séptimo es el PNG, que es binario.
-  **`ARTIFACT_CONSISTENCY.md` es uno de los 50, no uno de los siete**: se reescribe con finales LF,
+  **`ARTIFACT_CONSISTENCY.md` es uno de los 53, no uno de los siete**: se reescribe con finales LF,
   y en la generación 6 su redacción se clasificó a sí misma al revés, que fue el bloqueante
   `L1-g6`. **Este recuento vive sólo aquí**: repetirlo en el backlog lo dejó desfasado tres veces
   seguidas y abrió `L4-g6` y `L4-g7`. El propio `MANIFEST.sha256` llega con
@@ -30,7 +29,7 @@ Resultado: **consistente**, verificado también por
   comisión y no el empaquetado.
 - Quedan fuera del manifest exactamente dos archivos, por imposibilidad lógica: `MANIFEST.sha256`
   y el ZIP. El ZIP se reconstruyó después de escribir todos los documentos y se verificó miembro a
-  miembro contra el worktree: **58 miembros, 58 byte-idénticos, 0 mismatch** — los 57 del manifest
+  miembro contra el worktree: **61 miembros, 61 byte-idénticos, 0 mismatch** — los 60 del manifest
   más el propio `MANIFEST.sha256`. El ZIP guarda los bytes del worktree, así que es el entregable
   que sí reproduce el paquete exactamente, con independencia de lo que git haga en un checkout.
 - Base idéntica en `SUMMARY.md`, `MISSION_LEASE.json` y `WORKFLOW.json`:
@@ -41,14 +40,15 @@ Resultado: **consistente**, verificado también por
   puede contener su propio SHA. Así quedaron fijadas las generaciones 1 a 5 —la 5 en
   `2ac9f5c93ec99ed506133310ee6cd19f6779b971`, la 6 en `a5d6955828850b322c7ea00f5b46e3b5e7f3d7e4` y
   la 7 en `41131a6a111be6e33ad1d47497bf22b128faf6e3`, la 8 en
-  `cf4fb258703e266148d7bb7332b79ffdddce926c` y la 9 en
-  `f284b6c5fc2d0f31ffce7567146cce9371e9502a`—, y por eso la generación 10, que es la que queda en
+  `cf4fb258703e266148d7bb7332b79ffdddce926c`, la 9 en
+  `f284b6c5fc2d0f31ffce7567146cce9371e9502a` y la 10 en
+  `bdc4f53fb8b3095ead16fbeadcc3d23ca6f2f2d8`—, y por eso la generación 11, que es la que queda en
   revisión, figura en `null` hasta su propio commit de registro.
-- Cifras coherentes en todos los documentos: **453/453** de regresión, 302 de línea base, **+151**
-  casos, **253** en la suite del módulo, **202** casos entre los siete archivos de comisiones
-  (112 + 8 + 24 + 23 + 13 + 13 + 9). De esos 151, **26 son de la generación 5** (345 → 371), **26 de
-  la 6** (371 → 395), **23 de la 7** (395 → 418), **13 de la 8** (418 → 431), **13 de la 9**
-  (431 → 444) y **9 de la 10** (444 → 453). La 6 reescribió 23 casos de la 5 y retiró 2 parametrizaciones; la 7 reescribió 5 de
+- Cifras coherentes en todos los documentos: **456/456** de regresión, 302 de línea base, **+154**
+  casos, **256** en la suite del módulo, **205** casos entre los siete archivos de comisiones
+  (112 + 8 + 24 + 23 + 14 + 13 + 11). De esos 154, **26 son de la generación 5** (345 → 371), **26
+  de la 6** (371 → 395), **23 de la 7** (395 → 418), **13 de la 8** (418 → 431), **13 de la 9**
+  (431 → 444), **9 de la 10** (444 → 453) y **3 de la 11** (453 → 456). La 6 reescribió 23 casos de la 5 y retiró 2 parametrizaciones; la 7 reescribió 5 de
   la 6; la 9 reescribió los que nombraban el `origin` de un evento, que pasó a ser la causa de la
   reconciliación en vez del boundary.
 - Backlogs idénticos: `HANDOFF.md` y `WORKFLOW.json` comparten los mismos **29** hallazgos abiertos
@@ -96,9 +96,9 @@ Resultado: **consistente**, verificado también por
   período ya no queda fijado para siempre por un hecho que después se anula, así que el caso que la
   refutaba no produce daño. `SAFE_PAUSE.md` conserva la frase porque es un acta fechada en la
   pausa. Este paquete **no conserva ninguna afirmación vigente demostrada falsa**.
-- La generación 6 tocó **seis ficheros** fuera de `artifacts/`, la 7 ocho, la 8 nueve y la 9 diez.
-  La generación 10 toca **cinco**: `comisiones.py`, `repository.py` y tres de pruebas, uno nuevo.
-  Los de la 7 fueron:
+- La generación 6 tocó **seis ficheros** fuera de `artifacts/`, la 7 ocho, la 8 nueve, la 9 diez y
+  la 10 cinco. La generación 11 toca **cinco**: los tres de `modulos/gestion_central/` y dos de
+  pruebas. Los de la 7 fueron:
   `comision_policy.py` —que recibe `RATING_BOUNDARY_STATES` y `BOUNDARY_SQL_IN`, porque el
   repositorio y el cálculo necesitan el mismo predicado—, `comisiones.py` —el libro de eventos,
   `CentralRepository.record_period_rate_event` como único escritor real —un solo `INSERT` en todo
@@ -108,7 +108,7 @@ Resultado: **consistente**, verificado también por
   nuevo. **La aritmética de `comision_policy.py` no cambia**: el `Decimal` y el único `HALF_UP`
   canónico son exactamente los de la generación 3; lo único que se le añade es el boundary
   compartido, que no calcula dinero.
-- Las generaciones **6, 7, 8 y 9 fueron INVALIDADAS**. Las tres primeras por el mismo defecto
+- Las generaciones **6 a 10 fueron INVALIDADAS**. Las tres primeras por el mismo defecto
   estructural en una columna distinta: la misma regla escrita en dos sitios, y cada corrección unificando la mitad
   que ya coincidía. La 6 dejó el boundary de salida sin cerrar (`AB1-g6`); la 7 unificó la lista de
   estados y dejó divergente el filtro de política (`AB1-g7`); la 8 unificó el predicado de vitalidad
@@ -122,12 +122,12 @@ Resultado: **consistente**, verificado también por
   desapareciendo en los dos escenarios exactos de la generación 5. Lo que invalida la generación es
   el boundary de **salida**, que esta generación no tocó: la evidencia se crea con un hecho
   económico y no se retira cuando el hecho se retira.
-- Los **veintisiete** verdicts existen en `generation-1/` … `generation-9/` y coinciden con
+- Los **treinta** verdicts existen en `generation-1/` … `generation-10/` y coinciden con
   `WORKFLOW.generations[]` y con `INDEPENDENCE.md`; los quince anteriores se conservan sin retocar y
   **no se reutilizan** como aprobación de ninguna generación posterior.
 - La misión **no** está en Safe Closure y **no** está cerrada. `WORKFLOW.current_state` es
-  `GENERATION_10_REMEDIATED_PENDING_VERDICTS`, `safe_closure` sigue `PENDING` y el `MISSION_LEASE`
-  está `ACQUIRED` en PC Casa. La generación 10 no requirió decisión nueva; la 9 **sí llevó decisión
+  `GENERATION_11_REMEDIATED_PENDING_VERDICTS`, `safe_closure` sigue `PENDING` y el `MISSION_LEASE`
+  está `ACQUIRED` en PC Casa. Las generaciones 10 y 11 no requirieron decisión nueva; la 9 **sí llevó decisión
   de propietario**, registrada en
   `WORKFLOW.policy_decision_gen9`: una `PAGADA` viva conserva la tasa económica real con la que fue
   pagada, y el 1% es prospectivo. La 8 no la había requerido, porque el módulo ya trataba una

@@ -337,9 +337,14 @@ class CentralRepository:
         # La fila vieja no se toca; sólo se deja dicho por qué no se arrastró.
         known = {row[0] for row in con.execute(
             "SELECT DISTINCT period FROM commission_period_rate_events")}
-        known = {str(row)[:7] for row in known}
-        legacy = {str(row[0])[:7] for row in con.execute(
+        # `known` son los períodos con estado **alcanzable**, no las claves normalizadas de las
+        # filas del libro: una fila con clave cruda —`2026-08-15`— no la lee nadie, y contarla
+        # como conocida suprimía el asiento que explica por qué una fijación heredada no se
+        # arrastró. Normalizar el dato y normalizar el argumento no son lo mismo.
+        legacy = {comision_policy.period_key(row[0]) for row in con.execute(
             "SELECT period FROM commission_rated_periods")}
+        known = {period for period in legacy
+                 if self.last_period_rate_event(con, period) is not None}
         for period in sorted(legacy - known):
             self._audit_seed_once(
                 con, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period,
@@ -379,7 +384,7 @@ class CentralRepository:
 
     def live_official_facts(self, con, period):
         """Hechos económicos oficiales vivos de un período. Una sola consulta para todo el sistema."""
-        return con.execute(comision_policy.live_official_facts_sql(by_period=True),
+        return con.execute(comision_policy.live_official_facts_sql(),
                            (str(period)[:7],)).fetchall()
 
     def reconcile_period_rate(self, con, period, actor, origin, *, entry_id=None, sale_id=None,
@@ -397,8 +402,12 @@ class CentralRepository:
         * ya coincide → no escribe nada, que es lo que la hace idempotente.
 
         Fijar y soltar dejan de ser dos operaciones con dos criterios: son la misma pregunta
-        contestada en un sitio. Se invoca desde `_set_status` —por donde pasa toda transición— y
-        desde la apertura de la base, de modo que ninguna ruta puede saltársela.
+        contestada en un sitio. La invocan **los cuatro sitios que escriben un estado** —
+        `_set_status`, `recalculate`, `_apply_source_update` y la promoción a elegible— y la
+        apertura de la base. `_set_status` **no** es el único punto de paso: los otros tres escriben
+        con un `UPDATE` directo, y afirmar lo contrario era el bloqueante `L3-g9`. Lo que sostiene
+        la cobertura no es esa afirmación sino una prueba estructural que recorre el árbol
+        sintáctico y falla si una función que escribe `commission_entries` no reconcilia.
         """
         period = str(period or "")[:7]
         if not period:
@@ -491,12 +500,20 @@ class CentralRepository:
         conflicto, así que un conflicto nuevo sí se asienta, y el actor es el que lo provocó y no
         siempre la migración.
         """
-        huella = json.dumps(details.get("rates_bp"), sort_keys=True)
-        ya = con.execute(
-            "SELECT 1 FROM central_audit WHERE action=? AND target=? AND details_json LIKE ?",
-            ("COMMISSION_PERIOD_RATE_SEED_SKIPPED", period, f'%"rates_bp": {huella}%')).fetchone()
-        if ya:
-            return
+        # La huella incluye **las liquidaciones** en conflicto, no sólo sus tasas: dos conflictos
+        # con las mismas tasas pero distintos hechos son hechos distintos. Se compara con igualdad
+        # sobre el JSON serializado, no con `LIKE`, para que ningún comodín ni ninguna coincidencia
+        # parcial decida si algo se asienta.
+        huella = json.dumps({"rates_bp": details.get("rates_bp"), "entries": details.get("entries")},
+                            ensure_ascii=False, sort_keys=True)
+        previos = con.execute(
+            "SELECT details_json FROM central_audit WHERE action=? AND target=?",
+            ("COMMISSION_PERIOD_RATE_SEED_SKIPPED", period)).fetchall()
+        for fila in previos:
+            anterior = json.loads(fila[0])
+            if json.dumps({"rates_bp": anterior.get("rates_bp"), "entries": anterior.get("entries")},
+                          ensure_ascii=False, sort_keys=True) == huella:
+                return
         self.audit(con, actor, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period, details=details)
 
     def _audit_seed_once(self, con, action, target, details):

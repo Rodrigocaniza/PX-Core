@@ -84,6 +84,17 @@ LIVE_OFFICIAL_FACT_SQL = (
 PERIOD_KEY_SQL = "substr(e.period,1,7)"
 PERIOD_MATCH_SQL = PERIOD_KEY_SQL + " = ?"
 
+
+def period_key(value) -> str:
+    """Clave del período, en Python. El equivalente exacto de `PERIOD_KEY_SQL`.
+
+    `str(x)[:7]` estaba escrito ocho veces repartidas por tres módulos. Todas normalizaban el
+    **argumento**, que es idempotente e inocuo; la que normalizaba el **dato** era una sola y
+    costó la observación `O3` de la generación 9. Tenerla con nombre evita que la próxima vez
+    haya que averiguar cuál de las nueve era la que decidía.
+    """
+    return str(value or "")[:7]
+
 # Columnas que describen un hecho vivo. Las necesitan por igual quien resuelve en caliente y quien
 # siembra, así que se declaran una vez.
 LIVE_FACT_COLUMNS = (
@@ -92,17 +103,17 @@ LIVE_FACT_COLUMNS = (
 )
 
 
-def live_official_facts_sql(*, by_period: bool) -> str:
-    """Consulta de hechos vivos: una sola, con o sin filtro por período.
+def live_official_facts_sql() -> str:
+    """Consulta de hechos vivos de un período: una sola, columnas y clave incluidas.
 
     Que la siembra y el código en caliente compartieran el `WHERE` pero no la consulta entera
-    dejaba el agrupamiento duplicado. Aquí no queda nada que separar.
+    dejaba el agrupamiento duplicado. Aquí no queda nada que separar. La variante global —sin
+    filtro por período— existía y no la usaba nadie: se retiró.
     """
-    scope = (f"{PERIOD_MATCH_SQL}" if by_period else "e.period IS NOT NULL")
     return (
         f"SELECT {LIVE_FACT_COLUMNS}, {PERIOD_KEY_SQL} AS period_key"
         f"  FROM commission_entries e JOIN commission_sales s ON s.id = e.sale_id"
-        f" WHERE {scope} AND {LIVE_OFFICIAL_FACT_SQL}"
+        f" WHERE {PERIOD_MATCH_SQL} AND {LIVE_OFFICIAL_FACT_SQL}"
         f" ORDER BY {PERIOD_KEY_SQL}, e.created_at, e.id"
     )
 
@@ -119,7 +130,9 @@ def resolve_period_rate(facts):
     hechos vivos llevan tasas distintas.
 
     Un pago manda sobre una aprobación —es el hecho más fuerte del mes— y a igualdad de fuerza gana
-    el más antiguo, para que el resultado no dependa del orden de lectura.
+    el más antiguo, para que el resultado no dependa del orden de lectura. **Ese orden no decide la
+    tasa**: cuando se llega a él, la ambigüedad ya se descartó y todos los hechos llevan la misma.
+    Decide qué liquidación se cita como causa del `PINNED`, que es lo que hace legible el libro.
 
     Que esta pregunta se contestara con **dos** reglas fue el bloqueante `AB1-g8`: la siembra exigía
     coherencia de tasa y se abstenía si no la había, mientras que la reconciliación en caliente

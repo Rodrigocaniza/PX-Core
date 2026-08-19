@@ -342,6 +342,58 @@ estructural y no con una corrección de redacción.
 
 Los verdicts de las generaciones 1 a 9 **no se reutilizan**.
 
+## Generación 10 — snapshot `bdc4f53fb8b3095ead16fbeadcc3d23ca6f2f2d8`
+
+| Runner | Rol | Verdict | Bloqueantes |
+|---|---|---|---|
+| `LIBRARIAN-IND-COMISION-POLICY-1PCT-010` | Librarian | **FAIL** | `L1-g10`, `L2-g10` |
+| `QA-IND-COMISION-POLICY-1PCT-010` | QA | **PASS** | ninguno |
+| `AUDITOR-IND-COMISION-POLICY-1PCT-010` | Auditor | **PASS** | ninguno |
+
+**Resultado: INVALIDADA por el Librarian, y sólo por él.** Segundo `PASS` consecutivo del Auditor.
+
+**El método maduró en los tres roles, y conviene dejarlo escrito.** QA extrajo el árbol de la
+generación anterior y **corrió los mismos escenarios contra las dos versiones**, comparando salidas
+serializadas: es la forma directa de comprobar «nada cambió» sin creerle al paquete. El Auditor hizo
+lo mismo por dos vías —diferencial sobre 4.952 comparaciones e instrumentación de 1.177 llamadas—.
+Y los dos **mutaron el código para comprobar que las guardas fallan**: QA retiró una reconciliación
+y verificó que el test la delata; el Librarian retiró otra y contó las seis pruebas que se rompen.
+Una guarda que nadie ha visto fallar no es una guarda.
+
+**Lo que encontró el Librarian.** `L2-g10` es el hallazgo más fino de la misión: no cuestionó el
+código sino **la prueba escrita para protegerlo**, replicó su lógica y exhibió el caso que la
+evadía. Es la tercera generación seguida en que el rol documental encuentra algo de código, y la
+primera en que lo que encuentra es un defecto de la verificación misma.
+
+**El patrón, en su forma final.** Seis veces la misma raíz: una afirmación que se sostiene sola en
+vez de estar amarrada a lo que hace el código. `AB1-g6`, `AB1-g7` y `AB1-g8` fueron la regla escrita
+dos veces. `L1-g8` y `L1-g9`, el documento que no se actualiza. `L1-g10` y `L2-g10`, la docstring
+que no se actualiza y la prueba que no comprueba. La generación 11 responde a las tres formas con la
+misma medicina: que la afirmación tenga una prueba que pueda fallar, y que esa prueba se
+autocompruebe.
+
+Los verdicts de las generaciones 1 a 10 **no se reutilizan**.
+
+## Generación 11
+
+**Remediada, pendiente de los tres verdicts.** Alcance: `L1-g10`, `L2-g10`, la observación económica
+`O8-g10` del Auditor —cerrada pese a haber sido declarada no bloqueante— y las estructurales `O9` a
+`O14`.
+
+**Qué superficie debe cubrir cada rol:**
+
+- **Librarian.** La guarda estructural se reescribió con AST y se autocomprueba. La pregunta es la
+  suya de siempre, un nivel más adentro: **¿la autocomprobación comprueba algo?** ¿Existe un
+  escritor de estado que el análisis sintáctico no vea? ¿Las dos exenciones declaradas son las
+  correctas y siguen siéndolo?
+- **Auditor.** `O8-g10` se cerró con una guarda aritmética en la cadena de pago. Verificar que no
+  rechaza nada legítimo —ninguna liquidación que el propio sistema produce— y que no queda un
+  sexto disfraz. El arnés desde bases migradas y el invariante en tres direcciones siguen siendo el
+  suelo.
+- **QA.** El eje sigue siendo que nada cambió: la semántica de la 9 —7% preservado, 1% prospectivo—
+  y el comportamiento de la 10 deben seguir idénticos, salvo el rechazo nuevo del importe
+  incoherente. El método diferencial contra el árbol anterior es el que mejor lo demuestra.
+
 ## Generación 10
 
 **Remediada, pendiente de los tres verdicts.** Alcance: `L1-g9`, `L2-g9`, `L3-g9` y las

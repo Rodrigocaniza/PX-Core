@@ -12,6 +12,7 @@ comprueba que **ninguna función que escriba `status` se olvide de hacerlo**. Es
 que esta misión lleva cinco generaciones persiguiendo: la misma regla en dos sitios, o una garantía
 que se afirma y no se sostiene.
 """
+import ast
 import re
 import sqlite3
 from pathlib import Path
@@ -59,33 +60,147 @@ def audits(service, action):
 
 
 # ------------------------------------------------- la garantía estructural, comprobada
-def test_toda_funcion_que_escribe_un_estado_reconcilia_su_periodo():
-    """`L3-g9`: la garantía «por construcción» se afirmaba sin sostenerse.
+#
+# La guarda de la generación 10 era textual y el Librarian la desarmó: buscaba la cadena exacta
+# `"UPDATE commission_entries SET"`, de modo que partir el literal en dos la evadía; comprobaba
+# `_reconcile_period_pin(` como **subcadena del cuerpo**, de modo que un comentario bastaba; y leía
+# un solo fichero. Exhibió una función que escribía estado, no reconciliaba, y la guarda pasaba.
+#
+# Ésta recorre el **árbol sintáctico** de todos los módulos del paquete. Python une por sí solo los
+# literales adyacentes, los comentarios no existen en el árbol, y una llamada es un nodo `Call` y
+# no un trozo de texto. Y se autocomprueba: `test_la_guarda_atrapa_una_violacion_sintetica`
+# construye los casos que la versión anterior dejaba pasar y verifica que **ésta los detecta**.
 
-    Se localiza cada función del módulo que escribe `commission_entries.status` y se comprueba que
-    en su cuerpo también reconcilia. No es una prueba de comportamiento: es la guarda que impide
-    que una transición escrita mañana se salte la regla, que es exactamente lo que el invariante
-    prometía y no podía cumplir.
+# Escritores de `commission_entries` exentos, con su razón. Estar aquí no es una excepción tácita:
+# es una afirmación que alguien tuvo que escribir y que el revisor puede discutir.
+ESCRITORES_EXENTOS = {
+    "_migrate_commission_policy":
+        "sólo reemplaza la etiqueta de política retirada, sin tocar tasa ni importe; la "
+        "reconciliación de la apertura recorre todos los períodos inmediatamente después",
+    "_create_entry":
+        "sólo crea liquidaciones en ELEGIBLE o PENDIENTE_SALDO, que no son hechos vivos y por lo "
+        "tanto no pueden cambiar la tasa de un período",
+}
+RECONCILIADORES = {"_reconcile_period_pin", "reconcile_period_rate"}
+
+
+def _sql_de(nodo):
+    """Todo el SQL literal que aparece dentro de una función, incluidas las f-strings."""
+    trozos = []
+    for hijo in ast.walk(nodo):
+        if isinstance(hijo, ast.Constant) and isinstance(hijo.value, str):
+            trozos.append(hijo.value)
+        elif isinstance(hijo, ast.JoinedStr):
+            trozos += [v.value for v in hijo.values
+                       if isinstance(v, ast.Constant) and isinstance(v.value, str)]
+    return " ".join(" ".join(trozos).split())
+
+
+def _llama_a(nodo, nombres):
+    """Si la función contiene una **llamada** real a alguno de esos nombres."""
+    for hijo in ast.walk(nodo):
+        if not isinstance(hijo, ast.Call):
+            continue
+        objetivo = hijo.func
+        nombre = (objetivo.attr if isinstance(objetivo, ast.Attribute)
+                  else objetivo.id if isinstance(objetivo, ast.Name) else None)
+        if nombre in nombres:
+            return True
+    return False
+
+
+def escritores_de_estado(fuente):
+    """Funciones que escriben `commission_entries`, por análisis sintáctico y no por texto."""
+    encontrados = {}
+    for nodo in ast.walk(ast.parse(fuente)):
+        if not isinstance(nodo, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if re.search(r"(UPDATE|INSERT INTO)\s+commission_entries", _sql_de(nodo), re.I):
+            encontrados[nodo.name] = nodo
+    return encontrados
+
+
+def test_toda_funcion_que_escribe_commission_entries_reconcilia_su_periodo():
+    """`L3-g9` y `L2-g10`: la garantía «por construcción», sostenida por algo que puede fallar.
+
+    Cubre `UPDATE` **y** `INSERT` —la versión anterior sólo miraba `UPDATE`, y una ruta futura que
+    insertara una `APROBADA` no la habría detenido— y recorre todos los módulos, no uno.
     """
-    fuente = (MODULO / "comisiones.py").read_text(encoding="utf-8")
-    funciones = re.split(r"\n    (?=def )", fuente)
-    escriben = [f for f in funciones if "UPDATE commission_entries SET" in f]
-    nombres = sorted(f.split("(")[0].replace("def ", "").strip() for f in escriben)
-    # Las cuatro rutas conocidas: `_set_status` y los tres `UPDATE` directos.
-    assert nombres == ["_apply_source_update", "_promote_to_eligible", "_set_status",
-                       "recalculate"], nombres
-    for cuerpo, nombre in zip(escriben, nombres):
-        assert "_reconcile_period_pin(" in cuerpo, f"{nombre} escribe estado y no reconcilia"
+    for fichero in sorted(MODULO.glob("*.py")):
+        for nombre, nodo in escritores_de_estado(fichero.read_text(encoding="utf-8")).items():
+            if nombre in ESCRITORES_EXENTOS:
+                continue
+            assert _llama_a(nodo, RECONCILIADORES), (
+                f"{fichero.name}::{nombre} escribe commission_entries y no reconcilia su período")
 
 
-def test_el_libro_se_lee_en_un_solo_sitio():
-    """Observación 2 del Auditor y 1 del Librarian: la lectura del estado estaba triplicada."""
-    fuentes = {p.name: p.read_text(encoding="utf-8") for p in MODULO.glob("*.py")}
-    # El SQL del último evento aparece una sola vez en todo el módulo.
-    assert sum(t.count("ORDER BY id DESC LIMIT 1") for t in fuentes.values()) == 1
-    # Y ya no hay un segundo camino con un `JOIN` sobre `MAX(id)` para la misma pregunta.
-    # `MAX(id)` sigue nombrándose en los comentarios que explican por qué se retiró.
-    assert sum(t.count("MAX(id) AS") for t in fuentes.values()) == 0
+def test_la_guarda_atrapa_una_violacion_sintetica():
+    """La guarda vale lo que valga su capacidad de fallar. Aquí se comprueba que falla.
+
+    Los tres casos son los que el Librarian usó para desarmar la versión textual: el literal SQL
+    partido en dos, la mención en un comentario en vez de una llamada, y un `INSERT` en lugar de un
+    `UPDATE`. Los tres deben ser detectados como escritores sin reconciliación.
+    """
+    partido = (
+        "class X:\n"
+        "    def cierre_masivo(self, con):\n"
+        "        con.execute('UPDATE commission_entries'\n"
+        "                    \" SET status='APROBADA' WHERE id=?\", (1,))\n")
+    comentado = (
+        "class X:\n"
+        "    def cierre_masivo(self, con):\n"
+        "        con.execute(\"UPDATE commission_entries SET status='APROBADA' WHERE id=?\", (1,))\n"
+        "        # aqui habria que llamar a self._reconcile_period_pin(con, p, a, b)\n")
+    insertado = (
+        "class X:\n"
+        "    def alta_directa(self, con):\n"
+        "        con.execute(\"INSERT INTO commission_entries(id,status) VALUES(?,'APROBADA')\", (1,))\n")
+
+    for fuente in (partido, comentado, insertado):
+        escritores = escritores_de_estado(fuente)
+        assert escritores, "la guarda no vio un escritor de estado"
+        for nodo in escritores.values():
+            assert not _llama_a(nodo, RECONCILIADORES)
+
+    # Y el contrapunto: una llamada de verdad sí cuenta.
+    correcto = (
+        "class X:\n"
+        "    def cierre_masivo(self, con):\n"
+        "        con.execute('UPDATE commission_entries'\n"
+        "                    \" SET status='APROBADA' WHERE id=?\", (1,))\n"
+        "        self._reconcile_period_pin(con, '2099-04', 'sol', 'CIERRE')\n")
+    assert _llama_a(escritores_de_estado(correcto)["cierre_masivo"], RECONCILIADORES)
+
+
+def test_los_escritores_exentos_son_los_declarados():
+    """Una exención tácita no es una exención: si aparece un escritor nuevo, hay que nombrarlo."""
+    encontrados = set()
+    for fichero in MODULO.glob("*.py"):
+        encontrados |= set(escritores_de_estado(fichero.read_text(encoding="utf-8")))
+    assert encontrados == {"_set_status", "recalculate", "_apply_source_update",
+                           "_promote_to_eligible", "_create_entry",
+                           "_migrate_commission_policy"}, sorted(encontrados)
+
+
+def test_el_estado_vigente_del_periodo_se_lee_en_un_solo_sitio():
+    """Observación 2 del Auditor de la generación 9, y la 3 del Librarian de la 10.
+
+    Lo que se unificó no es «toda lectura del libro» —hay varias, con fines distintos— sino la que
+    contesta **cuál es el estado vigente de un período**. Se localiza por sintaxis: funciones cuyo
+    SQL lee el libro ordenando por `id` descendente o agregando por `MAX(id)`, que son las dos
+    formas de esa pregunta.
+    """
+    lectores = []
+    for fichero in sorted(MODULO.glob("*.py")):
+        for nodo in ast.walk(ast.parse(fichero.read_text(encoding="utf-8"))):
+            if not isinstance(nodo, ast.FunctionDef):
+                continue
+            sql = _sql_de(nodo)
+            if "commission_period_rate_events" not in sql:
+                continue
+            if re.search(r"ORDER BY id DESC|MAX\(\s*id\s*\)", sql, re.I):
+                lectores.append(f"{fichero.name}::{nodo.name}")
+    assert lectores == ["repository.py::last_period_rate_event"], lectores
 
 
 # ---------------------------------------- las tres rutas que no pasan por `_set_status`
