@@ -72,10 +72,26 @@ def test_la_hora_de_apertura_se_muestra_y_no_se_pide():
     assert 'campos_manual["hora"]' not in SOURCE
 
 
-def test_el_datepicker_compartido_y_factufacil_no_se_tocaron():
+def test_el_datepicker_compartido_no_se_toco():
     assert "def abrir_selector_fecha_entrega():" in SOURCE
     assert 'campos_manual["fecha_entrega"].insert(0, valor.strftime("%d-%m-%Y"))' in SOURCE
-    assert "FactuFacil" not in SOURCE and "FactuFácil" not in SOURCE
+
+
+def test_apertura_sigue_sin_meterse_con_factufacil():
+    """Esta afirmación cambió, y conviene decir por qué.
+
+    RC15 pedía que Apertura no tocara FactuFácil, y lo comprobaba de la manera
+    más fuerte posible: que la palabra no apareciera en toda la pantalla. Servía
+    porque entonces FactuFácil no existía en Caja.
+
+    V1-016 le dio su propia pestaña, así que la palabra ahora aparece —y tiene
+    que aparecer—. Lo que se sigue comprobando es lo mismo de siempre: que la
+    apertura del día y FactuFácil no se mezclen. La pestaña se arma con una
+    llamada a su módulo y no mete nada en el formulario de apertura.
+    """
+    assert "construir_panel_factufacil(" in SOURCE
+    apertura = SOURCE[SOURCE.index("def abrir_selector_fecha_entrega():"):][:4000]
+    assert "factufacil" not in apertura.lower()
 
 
 def test_el_esquema_no_cambia():

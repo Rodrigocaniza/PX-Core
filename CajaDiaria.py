@@ -45,6 +45,7 @@ from modulos.caja_diaria.domain.models import (
 )
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.tracking import NextAction, TrackingStatus
+from modulos.caja_diaria.ui.factufacil_panel import construir_panel_factufacil
 from modulos.caja_diaria.application.tracking_service import (
     ETIQUETAS_ESTADO as ETIQUETAS_ESTADO_UI,
     GRUPOS_SEGUIMIENTO,
@@ -1033,6 +1034,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     tab_pedidos = pestañas.add("Pedidos")
     tab_seguimiento = pestañas.add("Seguimiento")
     tab_arqueo = pestañas.add("Arqueo")
+    tab_factufacil = pestañas.add("FactuFácil")
     tab_historial = pestañas.add("Historial")
     pestañas._segmented_button.grid_forget()
     for fila_oculta in (0, 1, 2):
@@ -1052,6 +1054,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("Cargar manual", "▣  Caja diaria"),
         ("Pedidos", "📦  Pedidos"),
         ("Seguimiento", "🚚  Seguimiento"),
+        ("FactuFácil", "🧾  FactuFácil"),
         ("Arqueo", "▤  Arqueo"),
         ("Importar Excel", "▣  Importar Excel"),
         ("Historial", "Historial"),
@@ -4431,6 +4434,24 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     def responsable_actual():
         return os.environ.get("BC_CAJA_RESPONSABLE") or os.environ.get("USERNAME") or "Operadora"
+
+    # ---- FactuFacil V1-016: que ventas faltan cargar en el sistema externo ----
+    #
+    # No hay integracion con FactuFacil, asi que la carga la sigue haciendo una
+    # persona. Lo que faltaba era que supiera cuales le faltan sin entrar a la
+    # consola administrativa ni preguntarle a nadie. La lista sale de las ventas
+    # que ya estan en esta misma caja: no se vuelve a cargar un solo dato.
+    def copiar_al_portapapeles(texto):
+        # El portapapeles es de la ventana, no del panel. `update()` fuerza el
+        # vaciado: sin eso, en Windows lo copiado se pierde al cerrar la app.
+        ventana.clipboard_clear()
+        ventana.clipboard_append(texto)
+        ventana.update()
+
+    construir_panel_factufacil(
+        tab_factufacil, controller.factufacil, actor=responsable_actual(),
+        perfil=perfil, copiar=copiar_al_portapapeles,
+    )
 
     def refrescar_seguimiento(nombre=None):
         if nombre:
