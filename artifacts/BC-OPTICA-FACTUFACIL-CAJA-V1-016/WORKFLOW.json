@@ -1,0 +1,84 @@
+{
+  "mision": "BC-OPTICA-FACTUFACIL-CAJA-V1-016",
+  "modo": "Casa, sin produccion",
+  "pasos": [
+    {
+      "n": 1,
+      "paso": "base git canonica",
+      "estado": "PASS",
+      "detalle": "cadena verificada con git real; tip vivo 1b07bf3; origin/main 7db56a0 descartado"
+    },
+    {
+      "n": 2,
+      "paso": "investigacion de soporte previo",
+      "estado": "PASS",
+      "detalle": "encontrada la bandeja de Gestion Central y su contrato; leida y reusada donde aplica"
+    },
+    {
+      "n": 3,
+      "paso": "datos disponibles en Caja",
+      "estado": "PASS",
+      "detalle": "cash_entries ya tiene los diez campos pedidos; no hace falta inventar ninguno"
+    },
+    {
+      "n": 4,
+      "paso": "numero de migracion",
+      "estado": "PASS",
+      "detalle": "029, verificado contra el repo: la ultima aplicada es la 028"
+    },
+    {
+      "n": 5,
+      "paso": "migracion aditiva",
+      "estado": "PASS",
+      "detalle": "dos tablas nuevas, cero modificadas"
+    },
+    {
+      "n": 6,
+      "paso": "servicio",
+      "estado": "PASS",
+      "detalle": "modulos/caja_diaria/application/factufacil.py"
+    },
+    {
+      "n": 7,
+      "paso": "pestana",
+      "estado": "PASS",
+      "detalle": "modulos/caja_diaria/ui/factufacil_panel.py + 12 lineas en CajaDiaria.py"
+    },
+    {
+      "n": 8,
+      "paso": "pruebas dirigidas",
+      "estado": "PASS",
+      "detalle": "43 verdes"
+    },
+    {
+      "n": 9,
+      "paso": "dry-run de migracion",
+      "estado": "PASS",
+      "detalle": "sobre base local en estado 028"
+    },
+    {
+      "n": 10,
+      "paso": "upgrade simulado",
+      "estado": "PASS",
+      "detalle": "28->29, invariantes intactos, idempotente"
+    },
+    {
+      "n": 11,
+      "paso": "dry-run funcional",
+      "estado": "PASS",
+      "detalle": "circuito completo, caja del dia identica"
+    },
+    {
+      "n": 12,
+      "paso": "suite",
+      "estado": "PASS",
+      "detalle": "Caja 701 verdes; repo 1069 verdes y 2 rojas preexistentes"
+    },
+    {
+      "n": 13,
+      "paso": "aplicacion productiva",
+      "estado": "PENDIENTE",
+      "detalle": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA: solo la migracion 029"
+    }
+  ]
+}

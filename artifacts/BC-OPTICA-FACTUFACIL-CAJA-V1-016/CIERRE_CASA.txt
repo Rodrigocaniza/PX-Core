@@ -1,0 +1,57 @@
+==============================================================================
+SAFE CLOSURE -- V1-016, lado Casa
+==============================================================================
+
+FactuFacil quedo dentro de BC Caja: la pestana, el servicio, la migracion y las
+pruebas. Lo unico que espera a la Optica es aplicar la 029 sobre la base real.
+
+  branch  : feature/bc-optica-factufacil-caja-v1-016
+  parte de: origin/feature/bc-optica-limpieza-marcas-laboratorio-v1-015 @ 1b07bf3
+  worktree: .worktrees/optica-factufacil-016
+
+REGLA DE CASA, RESPETADA
+  No se toco ninguna base productiva. La base de prueba se creo desde cero en el
+  estado 028 y vive en el scratchpad de la sesion. No se afirma validacion
+  contra produccion: las diferencias estan en ARTIFACT_CONSISTENCY.md.
+
+GATES
+  pruebas dirigidas .......... PASS  43 verdes (30 servicio + 13 pestana)
+  suite de Caja .............. PASS  701 verdes, 0 rojas
+  suite del repo ............. 1069 verdes, 2 rojas PREEXISTING_OUT_OF_SCOPE
+  dry-run de migracion ....... PASS  pre-guards ok, plan claro
+  upgrade simulado ........... PASS  28->29, 2 tablas, 0 datos tocados
+  idempotencia ............... PASS  migrar de nuevo no cambia nada
+  dry-run funcional .......... PASS  circuito completo, caja del dia identica
+  integridad ................. PASS  integrity ok, FK 0, negativos 0
+  Librarian .................. PASS  artifacts completos y con procedencia
+  QA ......................... PASS  los 17 casos pedidos cubiertos, y algunos mas
+  Auditor .................... PASS  cada numero rastreado a una corrida real
+  Artifact Consistency ....... PASS  ARTIFACT_CONSISTENCY.md
+  main ....................... intacto en 7db56a0, no se toco
+  force-push ................. no se uso
+  produccion local ........... no se aplico nada
+
+LOS DOS ROJOS
+  tests/gestion_central/test_ui_interactions.py. Ya clasificados
+  PREEXISTING_OUT_OF_SCOPE en V1-015, con evidencia de reproduccion en a0bd4da
+  limpio. Esta mision no toca Gestion Central. No se declara regresion verde
+  total del repo: lo que se declara es que Caja esta entera en verde.
+
+UNA PRUEBA CAMBIO
+  test_el_datepicker_compartido_y_factufacil_no_se_tocaron afirmaba que la
+  palabra FactuFacil no aparecia en CajaDiaria.py. Ahora tiene su pestana, asi
+  que la afirmacion dejo de ser cierta a proposito. Se dividio en dos y quedo
+  dicho por que, en ARTIFACT_CONSISTENCY.md.
+
+NO ABSORBIDO, A PROPOSITO
+  Integracion API con FactuFacil: no existe contrato oficial, no se invento.
+  Gestion Central sigue recibiendo factufacil_status='NO DISPONIBLE PILOTO';
+  conectarla es otra mision.
+  V1-015 sigue pendiente de aplicacion productiva, independiente de esta.
+
+ESTADO
+  READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA (solo la migracion 029)
+  Lease liberada. No hay mision en curso desde Casa.
+
+NEXT_ACTION
+  APLICACION_EN_LA_OPTICA.md, de punta a punta, en la PC de la Optica.

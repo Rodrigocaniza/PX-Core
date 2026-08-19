@@ -1,0 +1,71 @@
+PRUEBAS DIRIGIDAS -- V1-016
+comando: python -m pytest tests/caja_diaria/test_factufacil_caja.py tests/caja_diaria/test_factufacil_panel_ui.py tests/caja_diaria/test_rc15_apertura_caja.py -v
+
+43 dirigidas nuevas: 30 del servicio y 13 de la pestana.
+Suite de Caja completa: 701 passed, 0 failed.
+Suite total del repo: 1069 passed, 2 failed, 0 skipped -- dos corridas identicas.
+
+Los 2 rojos son tests/gestion_central/test_ui_interactions.py, PREEXISTING_OUT_OF_SCOPE:
+ya estaban rojos en a0bd4da y quedaron clasificados con evidencia en V1-015
+(artifacts/BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015/PRUEBAS_PREEXISTENTES.txt).
+Esta mision no toca Gestion Central.
+
+Nota: las pruebas de la pestana crean un solo Tk por modulo. Con un root por
+prueba, Windows agotaba los interpretes Tcl y alguna se salteaba sin motivo.
+Compartir el root las volvio determinsticas: 4 corridas seguidas, 13 verdes.
+
+tests/caja_diaria/test_factufacil_caja.py::test_una_venta_valida_aparece_en_para_cargar PASSED [  1%]
+tests/caja_diaria/test_factufacil_caja.py::test_una_venta_anulada_no_aparece PASSED [  3%]
+tests/caja_diaria/test_factufacil_caja.py::test_anular_despues_de_cargar_la_saca_de_las_dos_listas PASSED [  5%]
+tests/caja_diaria/test_factufacil_caja.py::test_un_gasto_no_es_una_venta_para_facturar PASSED [  7%]
+tests/caja_diaria/test_factufacil_caja.py::test_una_entrega_a_administracion_tampoco PASSED [  9%]
+tests/caja_diaria/test_factufacil_caja.py::test_una_venta_sin_importe_no_esta_para_cargar PASSED [ 11%]
+tests/caja_diaria/test_factufacil_caja.py::test_marcar_como_cargada PASSED [ 12%]
+tests/caja_diaria/test_factufacil_caja.py::test_actor_y_timestamp_quedan_guardados PASSED [ 14%]
+tests/caja_diaria/test_factufacil_caja.py::test_reiniciar_la_app_conserva_el_estado PASSED [ 16%]
+tests/caja_diaria/test_factufacil_caja.py::test_una_cargada_desaparece_de_para_cargar PASSED [ 18%]
+tests/caja_diaria/test_factufacil_caja.py::test_una_cargada_aparece_en_cargadas PASSED [ 20%]
+tests/caja_diaria/test_factufacil_caja.py::test_revertir_exige_motivo PASSED [ 22%]
+tests/caja_diaria/test_factufacil_caja.py::test_una_revertida_vuelve_a_para_cargar PASSED [ 24%]
+tests/caja_diaria/test_factufacil_caja.py::test_revertir_no_borra_la_historia PASSED [ 25%]
+tests/caja_diaria/test_factufacil_caja.py::test_no_se_puede_revertir_algo_que_no_se_cargo PASSED [ 27%]
+tests/caja_diaria/test_factufacil_caja.py::test_filtro_por_rango_de_fechas PASSED [ 29%]
+tests/caja_diaria/test_factufacil_caja.py::test_filtro_por_sucursal PASSED [ 31%]
+tests/caja_diaria/test_factufacil_caja.py::test_filtro_por_sobre PASSED  [ 33%]
+tests/caja_diaria/test_factufacil_caja.py::test_filtro_por_cliente_y_vendedora PASSED [ 35%]
+tests/caja_diaria/test_factufacil_caja.py::test_los_filtros_se_combinan PASSED [ 37%]
+tests/caja_diaria/test_factufacil_caja.py::test_el_estado_tiene_que_ser_uno_de_los_dos PASSED [ 38%]
+tests/caja_diaria/test_factufacil_caja.py::test_copiar_no_modifica_nada PASSED [ 40%]
+tests/caja_diaria/test_factufacil_caja.py::test_el_texto_copiado_trae_los_campos_que_pide_factufacil PASSED [ 42%]
+tests/caja_diaria/test_factufacil_caja.py::test_las_observaciones_van_completas PASSED [ 44%]
+tests/caja_diaria/test_factufacil_caja.py::test_no_duplica_ventas PASSED [ 46%]
+tests/caja_diaria/test_factufacil_caja.py::test_marcar_dos_veces_no_duplica_ni_pisa PASSED [ 48%]
+tests/caja_diaria/test_factufacil_caja.py::test_marcar_no_cambia_la_caja_del_dia PASSED [ 50%]
+tests/caja_diaria/test_factufacil_caja.py::test_marcar_exige_responsable PASSED [ 51%]
+tests/caja_diaria/test_factufacil_caja.py::test_una_venta_editada_despues_de_cargar_se_avisa PASSED [ 53%]
+tests/caja_diaria/test_factufacil_caja.py::test_los_conteos_alimentan_los_chips PASSED [ 55%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_abre_mostrando_lo_que_falta_cargar PASSED [ 57%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_sin_fila_elegida_los_botones_no_hacen_nada PASSED [ 59%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_elegir_una_fila_habilita_copiar_y_marcar PASSED [ 61%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_la_receta_se_ve_entera_al_elegir_la_fila PASSED [ 62%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_copiar_deja_los_datos_en_el_portapapeles_y_avisa PASSED [ 64%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_marcar_mueve_la_fila_de_lista_y_lo_dice PASSED [ 66%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_marcar_de_nuevo_avisa_que_ya_estaba PASSED [ 68%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_revertir_sin_motivo_no_revierte PASSED [ 70%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_revertir_con_motivo_la_devuelve_a_para_cargar PASSED [ 72%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_los_filtros_recortan_la_lista PASSED [ 74%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_el_boton_hoy_filtra_por_la_fecha_de_hoy PASSED [ 75%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_no_se_ve_un_solo_codigo_interno PASSED [ 77%]
+tests/caja_diaria/test_factufacil_panel_ui.py::test_una_venta_editada_despues_de_cargar_se_marca_en_la_grilla PASSED [ 79%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_la_fecha_operativa_no_se_tipea_y_arranca_en_hoy PASSED [ 81%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_abrir_caja_usa_siempre_el_dia_de_hoy PASSED [ 83%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_no_se_puede_abrir_una_caja_que_no_sea_la_de_hoy PASSED [ 85%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_consultar_otro_dia_es_el_unico_acceso_al_historico_y_es_solo_lectura PASSED [ 87%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_caja_inicial_esta_destacada_en_la_cabecera PASSED [ 88%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_la_hora_de_apertura_se_muestra_y_no_se_pide PASSED [ 90%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_el_datepicker_compartido_no_se_toco PASSED [ 92%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_apertura_sigue_sin_meterse_con_factufacil PASSED [ 94%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_el_esquema_no_cambia PASSED [ 96%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_la_apertura_registra_hora_automatica_y_la_conserva PASSED [ 98%]
+tests/caja_diaria/test_rc15_apertura_caja.py::test_consultar_un_dia_sin_caja_no_crea_nada PASSED [100%]
+============================= 54 passed in 5.63s ==============================
