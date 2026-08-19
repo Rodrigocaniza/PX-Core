@@ -65,6 +65,37 @@ a 100, sin borrar el movimiento original) y el intento de usar el retirado.
 14 pruebas dirigidas · 268 en la suite comercial · la ventana de Caja abre y
 cierra con el botón nuevo.
 
-## Lo que falta
+## Aplicado
 
-Una autorización, en `HUMAN_GATE.md`.
+Autorizado y hecho. **PASS, 0 fallas, sin rollback.**
+
+Las 726 unidades ficticias se compensaron —**−210 en Asunción, −516 en Pilar**—,
+se verificó que quedara en cero, y recién entonces `000037` se desactivó. Sus dos
+movimientos originales siguen donde estaban; las compensaciones son hechos nuevos
+al lado. No se borró nada y ninguna unidad se trasladó a `000010`, que quedó
+exactamente como estaba: 100 en Asunción y 10 en Pilar.
+
+| | antes | después |
+| --- | ---: | ---: |
+| activos | 2.829 | **2.828** |
+| movimientos | 4.439 | **4.441** |
+| stock ASUNCION | 6.376 | **6.166** |
+| stock PILAR | 2.776 | **2.260** |
+| **total** | 9.152 | **8.426** |
+
+`sha256`: `d307e017…` → `d9a88e9f…`
+
+El circuito bonificado se verificó **sobre una copia del estado ya retirado**, no
+sobre producción: comprobar que una venta funciona exige crear una venta, y una
+venta de prueba en producción sería justo el hecho sin causa que este sistema no
+admite. Sobre esa copia cobra 530.000, el limpia-cristal baja de 100 a 99, el
+movimiento lleva `PROMO_CRISTAL_ARMAZON_LIMPIA`, y anular devuelve el frasco sin
+borrar nada. Contra producción sí se verificó lo que se puede mirar sin escribir:
+`000037` ya no aparece para vender y `000010` sí.
+
+Caja histórica, V1-008 y V1-010 intactas. Un segundo retiro se detiene en las
+guardas sin escribir.
+
+## Lo que sigue
+
+Dos slices, sin empezar: **011** Delivery y **012** laboratorio por defecto.

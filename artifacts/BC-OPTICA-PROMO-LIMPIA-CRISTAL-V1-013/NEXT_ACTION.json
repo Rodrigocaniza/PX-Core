@@ -1,15 +1,15 @@
 {
   "mission": "BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013",
-  "state": "HUMAN_GATE",
+  "state": "SAFE_CLOSURE",
   "repository": "PX-Core",
   "worktree": ".worktrees/optica-promo-013",
   "branch": "feature/bc-optica-promo-limpia-cristal-v1-013",
   "base_commit": "09532f7d7f2a28933d824d221d8f2d086b03e9c1",
   "opened_on": "2026-08-19",
   "opened_at": "PC Optica",
-  "blocked_on": "una autorizacion: retirar 000037",
-  "produccion": "INTACTA. sha256 d307e017... sin cambios",
-  "next_action": "Esperar la autorizacion y correr tools/retirar_obsequio_ficticio_optica.py --confirmar, que hace backup verificable, compensa las 726 unidades ficticias (210 ASUNCION + 516 PILAR), verifica que quede en cero y recien entonces desactiva 000037, dejando su historia y una entrada PROMO_OBSEQUIO_LEGACY_RETIRED en la bitacora. Despues quedan los slices 011 (Delivery) y 012 (laboratorio por defecto), en ese orden",
+  "blocked_on": null,
+  "produccion": "3.595 articulos (2.828 activos), 4.441 movimientos, ASU 6.166 / PIL 2.260, total 8.426. 000037 retirado con stock cero. Caja historica intacta",
+  "next_action": "No iniciar nada automaticamente. Quedan dos slices, en este orden: (1) BC-OPTICA-DELIVERY-SERVICE-V1-011, el concepto de envio como SERVICIO_NO_STOCKEABLE con precio editable por venta y orientativo de 20.000; (2) BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012, laboratorio por defecto por tipo de cristal, modificable sin reescribir ventas historicas, poblando laboratories con Laboratorio Optilab, ServiOptica y Laboratorio Cristal. 2000212 ST Fotocromatico sigue sin laboratorio y no se le inventa uno",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
@@ -24,7 +24,7 @@
     {
       "id": "000010-ASUNCION-ES-UNA-ESTIMACION",
       "estado": "ABIERTA, no bloqueante",
-      "detalle": "las 100 unidades vienen de V1-010 como ESTIMATED_INITIAL_STOCK. El regalo las descuenta igual; el dia que se cuente, la diferencia se compensa"
+      "detalle": "las 100 unidades vienen de V1-010 como ESTIMATED_INITIAL_STOCK. El regalo las descuenta igual; cuando se cuente, la diferencia se compensa"
     },
     {
       "id": "DELIVERY-NO-EXISTE",
@@ -35,9 +35,13 @@
       "estado": "PENDIENTE, slice 012"
     },
     {
+      "id": "PROMO-NO-AUTOMATICA",
+      "estado": "ABIERTA por decision",
+      "detalle": "el obsequio se agrega a mano. Si el negocio define que siempre corresponde, se puede automatizar despues sin cambiar el modelo"
+    },
+    {
       "id": "MOTOR-PROMOCIONAL-GENERAL",
-      "estado": "NO PEDIDO",
-      "detalle": "esta mision resuelve una promocion concreta con el modelo que ya existe"
+      "estado": "NO PEDIDO"
     },
     {
       "id": "CENTINELAS-EN-LA-FUENTE",
@@ -74,6 +78,10 @@
       "qa": "PASS",
       "auditor": "PASS",
       "artifact_consistency": "PASS"
-    }
-  }
+    },
+    "aplicacion_productiva": "PASS, 0 fallas",
+    "verificacion_post": "PASS, 0 fallas",
+    "rollback_usado": "NO"
+  },
+  "generacion": 2
 }

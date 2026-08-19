@@ -1,7 +1,7 @@
 {
   "mission": "BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013",
   "engine": "BC Command Center / Workflow Engine",
-  "state": "HUMAN_GATE",
+  "state": "SAFE_CLOSURE",
   "pc": "Optica",
   "headless_executor": "NO USADO: el dry run levanta Caja y el controlador comercial contra una copia",
   "lease": {
@@ -58,14 +58,43 @@
       "detalle": "268 passed en tests/comercial; BC_CAJA_WINDOW_LIFECYCLE_OK"
     },
     {
-      "step": "escritura productiva",
-      "state": "NO EJECUTADA",
-      "detalle": "espera autorizacion"
+      "step": "pre-guard productivo",
+      "state": "DONE",
+      "detalle": "PASS en los 11 puntos: base con el sha256 esperado, HEAD 049c59a, worktree limpio, 000037 activo con 210+516, cero ventas que lo referencien, 000010 en 100/10, BC Caja cerrada, WAL en cero"
+    },
+    {
+      "step": "aplicacion productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. -210 ASUNCION y -516 PILAR, stock a cero verificado, y recien despues el retiro. Rollback no usado"
+    },
+    {
+      "step": "verificacion post-produccion",
+      "state": "DONE",
+      "detalle": "PASS. Los 6 totales del plan exactos, 000037 inactivo con 4 movimientos y stock cero, 000010 sin alterar, invariantes limpias, Caja e historia intactas"
+    },
+    {
+      "step": "circuito bonificado verificado sobre copia",
+      "state": "DONE",
+      "detalle": "no se creo una venta en produccion. Sobre copia del estado ya retirado: cobra 530.000, 000010 100 -> 99, nota con la promocion, linea sin costo, y anular devuelve el frasco"
+    },
+    {
+      "step": "idempotencia",
+      "state": "DONE",
+      "detalle": "el segundo retiro se rechaza en las guardas sin escribir"
+    },
+    {
+      "step": "smoke",
+      "state": "DONE",
+      "detalle": "BC Caja abre y la UI Comercial pasa sus seis comprobaciones"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE"
     },
     {
       "step": "slices siguientes",
       "state": "NO INICIADOS",
-      "detalle": "011 Delivery, 012 laboratorio por defecto"
+      "detalle": "011 Delivery y 012 laboratorio por defecto, en ese orden"
     },
     {
       "step": "merge a main",
@@ -80,5 +109,6 @@
     "merge_a_main": "NO",
     "pr": "NO",
     "force_push": "NO"
-  }
+  },
+  "generacion": 2
 }
