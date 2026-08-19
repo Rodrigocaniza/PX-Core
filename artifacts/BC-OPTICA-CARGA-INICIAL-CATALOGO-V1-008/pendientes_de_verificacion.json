@@ -1,0 +1,57 @@
+[
+ {
+  "sku": "000010",
+  "nombre": "LIMPIA CRISTAL",
+  "nature": "PRODUCTO_STOCKEABLE",
+  "estado": "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION",
+  "sucursal": "ASUNCION",
+  "source_reported_quantity": 2860,
+  "motivo": "2.860 declarados. Decisión humana: las fuentes que lo repiten comparten origen, así que no son confirmación física independiente. La cantidad espera un conteo",
+  "fuente": "PC - Inventario.xlsx#8397",
+  "corte": "2026-08-03"
+ },
+ {
+  "sku": "2000056",
+  "nombre": "Par de patillas",
+  "nature": "PRODUCTO_STOCKEABLE",
+  "estado": "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION",
+  "sucursal": "PILAR",
+  "source_reported_quantity": 526,
+  "motivo": "526 declarados el 2026-08-10 y 616 el 2026-08-04: dos cifras distintas del mismo mes, ninguna verificada. Decisión humana: la pieza entra al catálogo, la cantidad espera un conteo",
+  "fuente": "P2 - Inventario.xlsx#842",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "2000070",
+  "nombre": "Hilo",
+  "nature": "PRODUCTO_STOCKEABLE",
+  "estado": "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION",
+  "sucursal": "PILAR",
+  "source_reported_quantity": 99981,
+  "motivo": "99.981 declarados: valor centinela, no un conteo. Falta recuento real",
+  "fuente": "P2 - Inventario.xlsx#854",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "2000071",
+  "nombre": "Tornillo",
+  "nature": "PRODUCTO_STOCKEABLE",
+  "estado": "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION",
+  "sucursal": "PILAR",
+  "source_reported_quantity": 99425,
+  "motivo": "99.425 declarados: valor centinela, no un conteo. Falta recuento real",
+  "fuente": "P2 - Inventario.xlsx#855",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "2000072",
+  "nombre": "Plaqueta",
+  "nature": "PRODUCTO_STOCKEABLE",
+  "estado": "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION",
+  "sucursal": "PILAR",
+  "source_reported_quantity": 9393,
+  "motivo": "9.393 declarados: valor centinela, no un conteo. Falta recuento real",
+  "fuente": "P2 - Inventario.xlsx#856",
+  "corte": "2026-08-10"
+ }
+]

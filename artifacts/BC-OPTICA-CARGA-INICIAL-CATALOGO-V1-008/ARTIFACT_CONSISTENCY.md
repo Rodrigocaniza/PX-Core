@@ -3,12 +3,16 @@
 Cada afirmación de los artefactos contra lo que el repositorio, los archivos y
 las corridas dicen. Lo que no se verificó está declarado como tal.
 
-> Este documento tiene dos partes. La primera es el registro de la **generación
-> 1** y se deja tal como se escribió: sus cifras (3.529 artículos, 3.579
-> movimientos, 25 filas en `REQUIRES_POLICY_DECISION`) son las de ese momento y
-> quedaron superadas por la generación 2. La segunda parte, al final, es la
-> vigente. No se reescribe la primera: un registro que se corrige a sí mismo hacia
-> atrás deja de servir para auditar.
+> Este documento tiene tres partes, una por generación, y **sólo la última está
+> vigente**. Las anteriores se dejan tal como se escribieron: sus cifras son las
+> de ese momento y quedaron superadas. No se reescriben hacia atrás — un registro
+> que se corrige a sí mismo deja de servir para auditar.
+>
+> | Generación | Artículos | Movimientos | Estado |
+> | --- | ---: | ---: | --- |
+> | 1 | 3.529 | 3.579 | 25 filas en `REQUIRES_POLICY_DECISION` |
+> | 2 | 3.553 | 3.583 | 1 fila y 4 cantidades sin resolver |
+> | **3 (vigente)** | **3.554** | **3.583** | **todo resuelto, 5 cantidades pendientes de conteo** |
 
 # Generación 1 — análisis, normalización y primer dry-run
 
@@ -195,3 +199,86 @@ detectarlo, la carga habría metido **108.799 unidades fantasma** en Pilar.
   producto: sólo las tablas de decisión del normalizador, y el dry-run ejercita
   ese camino de punta a punta. La corrida de la generación 1 (254 passed) sigue
   siendo la vigente.
+
+---
+
+# Generación 3 — decisiones A y B, y el HUMAN_GATE final
+
+## Reanudación sin drift
+
+| Afirmación | Verificación | Resultado |
+| --- | --- | --- |
+| Se retomó desde `56f4f17` | `git rev-parse HEAD`, worktree limpio | ✔ |
+| Artefactos de la generación 2 intactos | sha256 del catálogo `be2a07bf…` y de los recuentos | ✔ |
+| XLSX sin cambios | `388d4c51…` y `9be5ffcb…` | ✔ |
+| Producción sin cambios | `aa13f36e…`, 0 artículos, 0 movimientos, 0 `import_runs` | ✔ |
+
+## Decisiones aplicadas
+
+| Afirmación | Verificación | Resultado |
+| --- | --- | --- |
+| `2000056 Par de patillas` entra al catálogo | existe en `articles`, `nature = PRODUCTO_STOCKEABLE` | ✔ |
+| …y sin movimiento por sus 526 | `stock_movements` para ese artículo en PILAR | ✔ 0 |
+| `000010 Limpia Cristal` sigue stockeable | `articles.nature` | ✔ |
+| …sin movimiento por los 2.860 de Asunción | `stock_movements` para ese artículo en ASUNCION | ✔ 0 |
+| …pero **sí** con las 10 unidades de Pilar | el recuento de PILAR lo incluye | ✔ |
+| Los 5 pendientes no figuran en `stock_actual` en su sucursal | `SELECT … WHERE article_id = ? AND destination = ?` | ✔ 0 filas |
+| Cada uno conserva su cifra fuente | `articles.notes` contiene el estado y `SOURCE_REPORTED_QUANTITY` | ✔ |
+| Y queda en la bitácora | `admin_audit_log`, `action = STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION` | ✔ 5 filas |
+
+## El desglose que pedía la orden
+
+| Clase | Cantidad |
+| --- | ---: |
+| artículos creados | 3.554 |
+| con inventario inicial confirmado | 3.511 |
+| stockeables con cantidad pendiente | 5 |
+| servicios | 9 |
+| trabajos bajo pedido | 30 |
+| filas rechazadas | 11 |
+
+La identidad cierra: **3.511 con stock + 4 pendientes sin stock en ningún
+depósito + 39 que no llevan stock por naturaleza = 3.554**. El quinto pendiente
+es `000010`, que tiene stock confirmado en Pilar y pendiente en Asunción — un
+código global puede estar en los dos estados a la vez, cada uno en su depósito.
+
+## Un fallo del propio verificador, y lo que enseñó
+
+La primera corrida del dry-run 3 **falló**, y la falla era del verificador, no de
+los datos: comprobaba «este artículo no tiene ningún movimiento» cuando lo
+correcto era «no tiene movimiento **en esa sucursal**». `000010` lo destapó. El
+estado pendiente es de la cantidad en un depósito, no del artículo entero.
+
+Se arregló el verificador, no el dato. Y el desglose ahora dice explícitamente
+cuántos pendientes tienen stock confirmado del otro lado.
+
+## Corrección de una decisión propia
+
+En la generación 2 moví `Hilo`, `Tornillo` y `Plaqueta` de la categoría
+`Compostura` a `Sujetadores`. No había evidencia para eso: la decisión humana
+dijo **qué son**, no dónde se archivan, y la naturaleza ya lleva toda la
+consecuencia. Los tres vuelven a `Compostura`, que es la categoría del archivo.
+
+## Seguridad productiva
+
+| Afirmación | Verificación | Resultado |
+| --- | --- | --- |
+| Backup hecho por la API de backup de SQLite | `bc-caja-preimport-catalogo-20260819-135805.sqlite3` | ✔ 733.184 bytes |
+| Backup equivalente a la base | 12 entradas, 6.400.000, 10 líneas, 2 días, 8 pedidos, integridad, FK | ✔ |
+| Hacer el backup no tocó producción | sha256 idéntico antes y después | ✔ |
+| La herramienta de import no escribe sin `--confirmar` | corrida en modo previsualización | ✔ 0 artículos después |
+
+## Lo que NO se verificó, y hay que decirlo
+
+- **Sigue sin importarse nada.** Todo lo anterior es lo que pasaría.
+- **Las cinco cantidades pendientes siguen sin conteo físico.** Se descartó el
+  error de planilla en el caso de `000010` y se documentó la discrepancia en
+  `2000056`; nada de eso es contar.
+- **No se eligió una cifra «más creíble» para los centinelas.** `inventario_base`
+  traía 949, 708 y 575 para Hilo, Tornillo y Plaqueta: son de la misma familia
+  dudosa, y poner una en lugar de la otra sería elegir el error más chico, no la
+  verdad.
+- **La suite completa no se re-corrió.** Esta generación cambia tablas de
+  decisión del normalizador y agrega el script de import, que no toca código de
+  producto. El dry-run ejercita ese camino entero. Vale la corrida de la
+  generación 1: **254 passed**.

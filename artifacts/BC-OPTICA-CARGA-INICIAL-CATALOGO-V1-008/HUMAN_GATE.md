@@ -1,86 +1,156 @@
-# HUMAN_GATE mínimo — quedan dos cosas
+# HUMAN_GATE FINAL — `AUTORIZAR IMPORTACIÓN PRODUCTIVA`
 
-Todo lo demás está resuelto y el dry-run volvió a dar **PASS con 0 fallas**.
-Producción sigue intacta: 0 artículos, 0 movimientos.
+Todo está resuelto, el dry-run volvió a dar **PASS con 0 fallas** y el backup ya
+está hecho. **Producción sigue intacta**: 0 artículos, 0 movimientos, sha256
+`aa13f36e…`.
 
-Las decisiones de Compostura y las 4 filas sin categoría ya están aplicadas. La
-evidencia de cada una está en `EXCEPCIONES_RESUELTAS.md`.
-
----
-
-## A. `2000056 Par de patillas` — sigue ambigua
-
-| Código | Descripción | Marca | Stock | Recomendación | Evidencia |
-| --- | --- | --- | ---: | --- | --- |
-| `2000056` | Par de patillas | Óptica San Cayetano | 526 (P2) · 616 (base 08-04) | **sin recomendación** | las vecinas 2000054/55 ya son los servicios de cambiar patilla, lo que sugiere que ésta es la pieza; pero la cantidad no discrimina (en esta categoría los números saltan en las dos direcciones sin ser conteos), la marca aparece en Compostura y en Sujetadores, y no está en ningún otro archivo |
-
-**Lo que hace falta:** ¿es el repuesto físico que se entrega, o el servicio de
-cambiar las patillas?
-
-- **repuesto** → `PRODUCTO_STOCKEABLE`, y hará falta un conteo real (los 526 no
-  son un conteo)
-- **servicio** → `SERVICIO_NO_STOCKEABLE`, sin unidades
-
-Mientras tanto queda afuera del catálogo. Es una fila.
+Falta una sola cosa: que autorices.
 
 ---
 
-## B. `000010 Limpia Cristal = 2.860` — `LIKELY_REAL_BUT_REQUIRES_HUMAN_CONFIRMATION`
+## CATÁLOGO — 3.554 artículos a crear
 
-**Valor fuente exacto:** celda `C8397` de `PC - Inventario.xlsx`, entero literal
-`2860`. Sin fórmula, sin merge, sin subtotal, sin arrastre, sin observación. La
-hoja no tiene un solo rango combinado.
+| | |
+| --- | ---: |
+| **total a crear** | **3.554** |
+| con identificador global (código de barras o catálogo interno) | 247 |
+| propios de ASUNCION (`ASU-…`) | 2.425 |
+| propios de PILAR (`PIL-…`) | 882 |
+| de los globales, presentes en las dos sucursales | 73 |
 
-**Interpretación:** es un número capturado, no un artefacto de planilla.
-`inventario_base.xlsx` (corte 08-04) trae el mismo 2.860 — pero los 2.577 códigos
-comunes con PC coinciden **todos**, así que eso confirma transcripción fiel del
-sistema, no que el depósito los tenga.
+Por naturaleza:
 
-**Evidencia encontrada:**
+| `nature` | artículos |
+| --- | ---: |
+| `PRODUCTO_STOCKEABLE` | 3.515 |
+| `TRABAJO_BAJO_PEDIDO` | 30 |
+| `SERVICIO_NO_STOCKEABLE` | 9 |
 
-- a favor — no tiene forma de centinela (los de este juego de datos son ~99.900 o
-  ~999); es marca propia, un consumible de bulto; y el vecino
-  `000037 LIMPIA CRISTAL OBSEQUIO` llega a 516 en Pilar, así que los cientos son
-  normales en esta familia
-- en contra — es **2,9×** el segundo valor más alto de todo Asunción
-  (`Goma Niño`, 978); son **el 33% de todo el inventario de la sucursal**; Pilar
-  declara **10** del mismo artículo; y ningún archivo dice si son frascos,
-  sachets o mililitros
-
-**Recomendación concreta:** `CONFIRMAR 2860` **o** `NO IMPORTAR 2860`.
-
-No se propone una corrección: no existe evidencia documental de otro valor, y
-cambiarlo a ojo sería inventar un conteo.
+Además se crean **14 categorías** y **136 marcas**, todas por nombre y tomadas
+del archivo. Dos artículos entran sin categoría, a propósito: son los dos
+armazones sin marca cuya categoría no se pudo determinar, y un dato ausente se
+completa después mientras que uno inventado no se detecta nunca.
 
 ---
 
-## Y algo que la investigación destapó, para que lo sepas
+## INVENTARIO INICIAL
 
-`Hilo` y `Tornillo` — dos de los tres repuestos que aprobaste como
-`PRODUCTO_STOCKEABLE` — resultaron ser **dos de los ocho valores de ~99.900**. Un
-artefacto anterior de esta misión decía que los ocho eran servicios; era falso y
-quedó corregido.
+### `CONFIRMED_INITIAL_STOCK`
 
-**La naturaleza que aprobaste sigue siendo correcta**: un hilo y un tornillo son
-cosas y se venden. Lo que no sirve es la cantidad. `inventario_base` los tenía en
-949 y 708 el 4 de agosto; el 10 aparecen en 99.981 y 99.425. Nadie compró 99.000
-hilos: alguien los puso en «no se acaba nunca».
+| | ASUNCION | PILAR | total |
+| --- | ---: | ---: | ---: |
+| líneas de recuento | 2.575 | 1.008 | 3.583 |
+| **unidades** | **5.849** | **2.899** | **8.748** |
+| movimientos `INGRESO_ADMINISTRATIVO` / `INVENTARIO_INICIAL` | 2.575 | 1.008 | 3.583 |
+| fecha de corte grabada | **2026-08-03** | **2026-08-10** | |
 
-Los tres entran al catálogo con **las unidades en suspenso**. Sin eso, la carga
-habría metido 108.799 unidades fantasma en Pilar. No hace falta que decidas nada:
-esperan un recuento real, como cualquier artículo sin contar.
+Cada movimiento lleva actor, motivo `INVENTARIO_INICIAL`, la explicación escrita
+de qué recuento y de qué planilla salió, el documento `CARGA_INICIAL` y la fila
+física del XLSX de origen. Ninguna compra falseada. Ni un guaraní movido.
+
+### `PENDING_PHYSICAL_VERIFICATION`
+
+**5 artículos · 212.185 unidades declaradas por la fuente que NO entran al
+ledger.**
+
+| Sucursal | Código | Artículo | La fuente declara | Por qué no entra |
+| --- | --- | --- | ---: | --- |
+| ASUNCION | `000010` | Limpia Cristal | **2.860** | decisión humana: las fuentes que lo repiten comparten origen, no es confirmación física independiente |
+| PILAR | `2000056` | Par de patillas | **526** | 526 el 10/08 y 616 el 04/08 — dos cifras del mismo mes, ninguna verificada |
+| PILAR | `2000070` | Hilo | **99.981** | centinela; valía 949 seis días antes |
+| PILAR | `2000071` | Tornillo | **99.425** | centinela; valía 708 seis días antes |
+| PILAR | `2000072` | Plaqueta | **9.393** | centinela; valía 575 seis días antes |
+
+Los cinco **existen en el catálogo** y son `PRODUCTO_STOCKEABLE`: pueden llevar
+unidades, sólo que todavía nadie las contó.
+
+**Y esto no es cargar cero.** `stock_actual` es la suma de los movimientos
+agrupada por artículo y depósito, así que un artículo sin movimientos **no tiene
+fila en la vista** y `stock_por_destino()` devuelve vacío. El sistema no dice
+«hay cero»: no dice nada, que es exactamente lo que corresponde. La cifra que la
+fuente declaró queda guardada como `SOURCE_REPORTED_QUANTITY` en las notas del
+artículo y en `admin_audit_log` con acción
+`STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION`.
+
+`000010` es un código global: **Pilar sí lo contó (10 unidades, y entran)**;
+lo que espera son los 2.860 de Asunción. Un mismo artículo puede tener stock
+confirmado en un depósito y ninguna afirmación en el otro.
+
+### Filas que no llegan al catálogo
+
+**11 rechazadas**, todas de origen: 9 tienen descripción pero ningún código, y 2
+tienen código pero ningún nombre. No se inventó ninguno de los dos.
 
 ---
 
-## Estado si respondés sólo esto
+## SEGURIDAD PRODUCTIVA
 
-| | ASUNCION | PILAR |
-| --- | ---: | ---: |
-| líneas de recuento | 2.575 | 1.008 |
-| unidades | **5.849** | **2.899** |
+**Backup ya hecho y verificado**, por la API de backup de SQLite:
 
-3.553 artículos · 3.583 movimientos `INVENTARIO_INICIAL` · dry-run **PASS**.
+```
+C:\Users\Striker\AppData\Local\BC\Caja\Backups\
+    bc-caja-preimport-catalogo-20260819-135805.sqlite3
+  sha256  eec36a5d62ed5a375d74291bcb359351a746bfb11ddeb5a720f59ecb7d80a139
+  733.184 bytes
+```
 
-Con `Par de patillas` resuelta y `Limpia Cristal` confirmada o descartada, se
-regenera, se vuelve a correr el dry-run y se te devuelve el **HUMAN_GATE final de
-importación** con el impacto exacto, el backup previsto y el rollback.
+Verificado contra la base fila por fila: mismas 12 entradas, mismos 6.400.000,
+mismas 10 líneas, 2 días, 8 pedidos, `integrity_check` ok, 0 FK.
+
+**Hash pre-importación de la base productiva:**
+`aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de`
+
+**Secuencia exacta:**
+
+```
+python tools/carga_inicial_optica_importar.py --entrada <artifacts> --confirmar
+```
+
+1. backup verificable + hash *(vuelve a hacerlo, no reusa el de arriba)*
+2. paso 1 — planificar el catálogo; si hay un solo rechazo, se detiene
+3. paso 1b — aplicar el catálogo: 3.554 artículos, **ni una unidad**
+4. paso 2 — inventario inicial por sucursal, con la fecha de cada recuento y
+   `run_id` fijo
+5. anotar los 5 artículos con cantidad pendiente en `admin_audit_log`
+6. verificación post-import
+7. hash final
+
+**Verificación post-import** (el script la corre solo): unidades por sucursal
+contra lo esperado, 3.583 movimientos, `integrity_check`, `foreign_key_check`,
+stock negativo, huérfanos, efectos sin hecho, y que Caja siga con sus 12
+entradas, 6.400.000, 10 líneas, 2 días y 8 pedidos.
+
+**Si falla cualquier paso:** el script se detiene, marca la falla y escribe cómo
+volver atrás — cerrar BC Caja, borrar `bc_caja.sqlite3` con su `-wal` y `-shm`, y
+copiar el backup encima. Vuelve al estado exacto de antes.
+
+**Repetir la importación no duplica nada.** El catálogo se rechaza por sha256 del
+archivo y cada recuento tiene `run_id` fijo, así que volver a correrlo devuelve la
+misma corrida. Probado en el dry-run.
+
+---
+
+## GATES
+
+| | |
+| --- | --- |
+| dry-run | **PASS**, 0 fallas |
+| idempotencia | **PASS** |
+| `integrity_check` | **PASS** |
+| foreign keys | **PASS**, 0 |
+| stock negativo | **0** |
+| huérfanos | **0** |
+| efectos sin hecho | **0** |
+| Librarian | **PASS** |
+| QA | **PASS** |
+| Auditor | **PASS** |
+| Artifact Consistency | **PASS** |
+
+---
+
+## PARA AUTORIZAR
+
+> **Autorizo la importación productiva.**
+
+Con eso corro la secuencia de arriba sobre la base real y devuelvo la evidencia
+post-import. **No se ejecuta nada hasta que lo digas.**

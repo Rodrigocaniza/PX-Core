@@ -1,7 +1,7 @@
 {
   "mission": "BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008",
   "engine": "BC Command Center / Workflow Engine",
-  "state": "HUMAN_GATE",
+  "state": "HUMAN_GATE_FINAL",
   "pc": "Optica",
   "headless_executor": "NO USADO: la simulacion arranca el controlador comercial y toca una copia de la base productiva; corrio en sesion",
   "lease": {
@@ -114,6 +114,36 @@
       "detalle": "3.553 articulos, 3.583 movimientos, 5.849 unidades a Asuncion y 2.899 a Pilar. PASS, 0 fallas, idempotencia probada, produccion con el mismo sha256"
     },
     {
+      "step": "decisiones A y B aplicadas",
+      "state": "DONE",
+      "detalle": "Par de patillas entra como pieza fisica con cantidad pendiente; Limpia Cristal conserva 2.860 como SOURCE_REPORTED_QUANTITY sin convertirlo en ledger"
+    },
+    {
+      "step": "correccion de una decision propia",
+      "state": "DONE",
+      "detalle": "Hilo, Tornillo y Plaqueta vuelven a la categoria Compostura: moverlos a Sujetadores en la generacion 2 no tenia evidencia"
+    },
+    {
+      "step": "representacion canonica de la cantidad pendiente",
+      "state": "DONE",
+      "detalle": "sin movimiento, que en este modelo es no afirmar nada en vez de afirmar cero; mas articles.notes y admin_audit_log con la cifra declarada"
+    },
+    {
+      "step": "regeneracion y dry run 3",
+      "state": "DONE",
+      "detalle": "3.554 articulos, 3.583 movimientos, 5.849 + 2.899 unidades confirmadas, 5 articulos con cantidad pendiente. PASS, 0 fallas"
+    },
+    {
+      "step": "backup verificable pre-importacion",
+      "state": "DONE",
+      "detalle": "bc-caja-preimport-catalogo-20260819-135805.sqlite3, sha256 eec36a5d..., verificado fila por fila. La base productiva quedo con el mismo sha256"
+    },
+    {
+      "step": "herramienta de importacion productiva",
+      "state": "PREPARADA, NO EJECUTADA",
+      "detalle": "tools/carga_inicial_optica_importar.py, probada en modo previsualizacion. No escribe sin --confirmar"
+    },
+    {
       "step": "carga sobre produccion",
       "state": "NO EJECUTADA",
       "detalle": "prohibida por la orden. Espera las dos decisiones del HUMAN_GATE minimo"
@@ -135,5 +165,5 @@
     "resolucion_de_Par_de_patillas_por_vecindad": "NO: sugerir no es determinar",
     "carga_de_los_centinelas_como_stock": "NO: 211.659 unidades declaradas quedaron en suspenso"
   },
-  "generacion": 2
+  "generacion": 3
 }

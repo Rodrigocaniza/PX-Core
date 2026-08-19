@@ -85,12 +85,20 @@ DECISIONES_POR_SKU: dict[tuple[str, str], tuple[str, str, str]] = {
     ("PILAR", "2000064"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
     ("PILAR", "2000066"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
     ("PILAR", "2000067"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
-    # -- Compostura: los tres repuestos físicos. Decisión humana, 19/08/2026.
+    # -- Compostura: los repuestos físicos. Decisión humana, 19/08/2026.
     #    La naturaleza es de la decisión; la cantidad NO, y por eso quedan en
     #    CANTIDAD_EN_SUSPENSO: 99.981 hilos y 99.425 tornillos no son un conteo.
-    ("PILAR", "2000070"): ("PRODUCTO_STOCKEABLE", "Sujetadores", "decisión humana"),
-    ("PILAR", "2000071"): ("PRODUCTO_STOCKEABLE", "Sujetadores", "decisión humana"),
-    ("PILAR", "2000072"): ("PRODUCTO_STOCKEABLE", "Sujetadores", "decisión humana"),
+    #    La categoría se deja como vino. Moverlos a «Sujetadores» era una
+    #    invención mía: la decisión humana dijo qué son, no dónde se archivan, y
+    #    la naturaleza ya lleva toda la consecuencia.
+    ("PILAR", "2000070"): ("PRODUCTO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000071"): ("PRODUCTO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000072"): ("PRODUCTO_STOCKEABLE", "Compostura", "decisión humana"),
+    #    Par de patillas: la pieza física. Decisión humana, 19/08/2026. Los
+    #    servicios de cambiar patilla ya existen aparte (2000054 y 2000055), y
+    #    fundir la pieza con la mano de obra dejaría un artículo que a veces
+    #    mueve stock y a veces no según quién lo vendió.
+    ("PILAR", "2000056"): ("PRODUCTO_STOCKEABLE", "Compostura", "decisión humana"),
     # -- Mostacillas: resuelto por evidencia, no por decisión humana.
     #    Los otros tres artículos llamados «Mostacilla*» del universo están en
     #    Sujetadores o Accesorios, y el más cercano (000012 Mostacilla) comparte
@@ -114,22 +122,34 @@ DECISIONES_POR_SKU: dict[tuple[str, str], tuple[str, str, str]] = {
                              "evidencia: prefijo AC PAT, stockeable en las 3.065 filas del universo"),
 }
 
-#: El artículo entra al catálogo; sus unidades NO. Un número que no es un conteo
-#: no puede convertirse en stock: quedaría un depósito que nadie contó y que
-#: sólo se corrige compensando.
+#: Marca canónica del artículo que existe pero cuya existencia física nadie
+#: confirmó todavía.
+PENDIENTE = "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION"
+
+#: El artículo entra al catálogo; sus unidades NO.
+#:
+#: Dato fuente no es hecho físico. Un `INVENTARIO_INICIAL` es durable: una vez
+#: asentado sólo se corrige compensando, nunca borrando, así que sólo debe
+#: representar una cantidad respaldada.
+#:
+#: Y esto **no** es cargar cero. El ledger es la suma de lo que pasó, y
+#: `stock_actual` agrupa movimientos: un artículo sin movimientos no tiene fila
+#: en la vista y `stock_por_destino()` devuelve un diccionario vacío. El sistema
+#: no dice «hay cero»; no dice nada, que es exactamente lo que corresponde decir.
 CANTIDAD_EN_SUSPENSO: dict[tuple[str, str], str] = {
     ("PILAR", "2000070"): "99.981 declarados: valor centinela, no un conteo. Falta recuento real",
     ("PILAR", "2000071"): "99.425 declarados: valor centinela, no un conteo. Falta recuento real",
     ("PILAR", "2000072"): "9.393 declarados: valor centinela, no un conteo. Falta recuento real",
-    ("ASUNCION", "000010"): "2.860 declarados: pendiente de confirmación humana",
+    ("PILAR", "2000056"): ("526 declarados el 2026-08-10 y 616 el 2026-08-04: dos cifras "
+                           "distintas del mismo mes, ninguna verificada. Decisión humana: "
+                           "la pieza entra al catálogo, la cantidad espera un conteo"),
+    ("ASUNCION", "000010"): ("2.860 declarados. Decisión humana: las fuentes que lo repiten "
+                             "comparten origen, así que no son confirmación física "
+                             "independiente. La cantidad espera un conteo"),
 }
 
-#: Ni la categoría ni la evidencia alcanzan. No entra al catálogo hasta que se
-#: decida: puede ser el repuesto físico o el servicio de cambiarlo, y las dos
-#: filas vecinas ya cubren la mano de obra.
-SIN_RESOLVER: set[tuple[str, str]] = {
-    ("PILAR", "2000056"),  # Par de patillas
-}
+#: Nada quedó sin resolver en esta generación.
+SIN_RESOLVER: set[tuple[str, str]] = set()
 
 MUEVEN_STOCK = {"PRODUCTO_STOCKEABLE", "PRODUCCION_INTERNA"}
 PREFIJO_SUCURSAL = {"ASUNCION": "ASU", "PILAR": "PIL"}
@@ -235,7 +255,7 @@ def normalizar(archivos: dict[str, Path]) -> tuple[list[dict], list[dict]]:
     return registros, rechazos
 
 
-def consolidar(registros: list[dict]) -> tuple[list[dict], dict, list[dict]]:
+def consolidar(registros: list[dict]) -> tuple[list[dict], dict, list[dict], list[dict]]:
     """Un artículo por identidad canónica, y el recuento aparte.
 
     Catálogo y stock son dos cosas distintas: acá se separan y el sistema las
@@ -271,7 +291,8 @@ def consolidar(registros: list[dict]) -> tuple[list[dict], dict, list[dict]]:
                if r["categoria_original"] and r["categoria_original"] != r["categoria"] else "")
             for r in iguales if r.get("decision"))
         suspendido = "; ".join(
-            f"cantidad en suspenso en {r['sucursal']}: {r['stock_en_suspenso']}"
+            f"{PENDIENTE} en {r['sucursal']}: SOURCE_REPORTED_QUANTITY="
+            f"{r['stock_inicial']} ({r['stock_en_suspenso']})"
             for r in iguales if r.get("stock_en_suspenso"))
         anotaciones = " || ".join(x for x in (notas, decidido, suspendido) if x)
         catalogo.append(dict(
@@ -293,7 +314,18 @@ def consolidar(registros: list[dict]) -> tuple[list[dict], dict, list[dict]]:
                 sku=articulo["sku"], cantidad=registro["stock_inicial"],
                 fuente=f"{registro['fuente_archivo']}#{registro['fuente_fila']}",
                 corte=registro["corte"]))
-    return catalogo, recuentos, pendientes
+
+    en_suspenso = [
+        dict(sku=articulo["sku"], nombre=articulo["name"], nature=articulo["nature"],
+             estado=PENDIENTE, sucursal=registro["sucursal"],
+             source_reported_quantity=registro["stock_inicial"],
+             motivo=registro["stock_en_suspenso"],
+             fuente=f"{registro['fuente_archivo']}#{registro['fuente_fila']}",
+             corte=registro["corte"])
+        for articulo in catalogo
+        for registro in por_canonico[articulo["sku"]]
+        if registro.get("stock_en_suspenso")]
+    return catalogo, recuentos, pendientes, en_suspenso
 
 
 CAMPOS = ["sku", "name", "nature", "category", "brand", "sale_price", "location",
@@ -310,7 +342,7 @@ def main() -> int:
     salida = Path(args.salida)
     salida.mkdir(parents=True, exist_ok=True)
     registros, rechazos = normalizar({"PC": Path(args.pc), "P2": Path(args.p2)})
-    catalogo, recuentos, pendientes = consolidar(registros)
+    catalogo, recuentos, pendientes, en_suspenso = consolidar(registros)
 
     with (salida / "catalogo_canonico.csv").open("w", encoding="utf-8-sig", newline="") as archivo:
         escritor = csv.DictWriter(archivo, fieldnames=CAMPOS)
@@ -319,6 +351,8 @@ def main() -> int:
     for sucursal, lineas in recuentos.items():
         (salida / f"recuento_{sucursal}.json").write_text(
             json.dumps(lineas, ensure_ascii=False, indent=1), encoding="utf-8")
+    (salida / "pendientes_de_verificacion.json").write_text(
+        json.dumps(en_suspenso, ensure_ascii=False, indent=1), encoding="utf-8")
 
     globales = sum(1 for a in catalogo if identificador_es_global(a["sku"]))
     print(f"registros normalizados : {len(registros)}")
@@ -328,13 +362,13 @@ def main() -> int:
     for sucursal, lineas in recuentos.items():
         print(f"recuento {sucursal:9}: {len(lineas):>5} lineas, "
               f"{sum(x['cantidad'] for x in lineas):>7} unidades")
-    suspendidos = [r for r in registros if r.get("stock_en_suspenso")]
-    if suspendidos:
-        print(f"unidades en suspenso   : {len(suspendidos)} articulos, "
-              f"{sum(r['stock_inicial'] or 0 for r in suspendidos)} unidades declaradas que NO entran")
-        for r in suspendidos:
-            print(f"    {r['sucursal']:9} {r['sku']:>8} {r['nombre'][:28]:30} "
-                  f"declara {r['stock_inicial']:>7} -- {r['stock_en_suspenso']}")
+    if en_suspenso:
+        print(f"{PENDIENTE}: {len(en_suspenso)} articulos, "
+              f"{sum(x['source_reported_quantity'] or 0 for x in en_suspenso)} unidades "
+              f"declaradas por la fuente que NO entran al ledger")
+        for x in en_suspenso:
+            print(f"    {x['sucursal']:9} {x['sku']:>8} {x['nombre'][:28]:30} "
+                  f"SOURCE_REPORTED={x['source_reported_quantity']:>7}")
     print(f"en espera de decision  : {len(pendientes)}")
     for clave, cuantos in Counter(
             (r["sucursal"], r["categoria"] or "(sin categoria)") for r in pendientes).most_common():

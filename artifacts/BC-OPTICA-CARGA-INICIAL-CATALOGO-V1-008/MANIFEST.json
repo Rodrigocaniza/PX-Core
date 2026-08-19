@@ -117,10 +117,10 @@
     }
   },
   "normalizacion": {
-    "registros_normalizados": 3626,
-    "filas_rechazadas": 12,
-    "articulos_canonicos": 3553,
-    "con_identificador_global": 246,
+    "registros_normalizados": 3627,
+    "filas_rechazadas": 11,
+    "articulos_canonicos": 3554,
+    "con_identificador_global": 247,
     "con_prefijo_de_sucursal": 3307,
     "presentes_en_las_dos_sucursales": 73,
     "en_espera_de_decision": 0,
@@ -144,15 +144,17 @@
       "descripcion_distinta": 139,
       "categoria_distinta": 19,
       "naturaleza_distinta": 0
-    }
+    },
+    "con_prefijo_ASU": 2425,
+    "con_prefijo_PIL": 882
   },
   "dry_run": {
     "artefacto": "DRY_RUN.txt",
     "base": "copia consistente de la base productiva, por la API de backup de SQLite",
     "mecanismo": "el real de dos pasos: planificar_carga_de_articulos + aplicar_carga_de_articulos, y despues cargar_stock_inicial",
     "veredicto": "PASS, 0 fallas",
-    "plan_catalogo": "3553 altas, 0 actualizaciones, 0 rechazadas",
-    "catalogo_no_es_stock": "tras crear 3.553 articulos, 0 movimientos",
+    "plan_catalogo": "3554 altas, 0 actualizaciones, 0 rechazadas",
+    "catalogo_no_es_stock": "tras crear 3.554 articulos, 0 movimientos",
     "categorias_creadas": 14,
     "marcas_creadas": 136,
     "movimientos": 3583,
@@ -182,14 +184,17 @@
     },
     "base_productiva_sha256_antes": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
     "base_productiva_sha256_despues": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
-    "generacion": 2
+    "generacion": 3,
+    "articulos_con_inventario_confirmado": 3511,
+    "articulos_con_cantidad_pendiente": 5,
+    "articulos_que_no_llevan_stock_por_naturaleza": 39,
+    "identidad_verificada": "3511 con stock + 4 pendientes sin stock en ningun deposito + 39 que no llevan stock = 3554. El quinto pendiente es 000010, que tiene stock confirmado en Pilar"
   },
   "entregables_reutilizables": {
     "catalogo_canonico.csv": {
-      "filas": 3553,
-      "formato": "docs/PLANTILLA_ARTICULOS.csv",
-      "sha256": "be2a07bf48819e9a2ec3a4074dc83afd98a0cb49aa445a3984540b420b46969d",
-      "nota": "este sha256 ES la clave de idempotencia del paso de catalogo. Cambio respecto de la generacion 1 (226a7245...) porque el archivo cambio, y eso es correcto"
+      "filas": 3554,
+      "sha256": "9957c7384e6899ee705b23b27d8fabaab9d7c5af10afe2c4fde337cc9326f7b3",
+      "nota": "su sha256 es la clave de idempotencia del paso de catalogo"
     },
     "recuento_ASUNCION.json": {
       "lineas": 2575,
@@ -200,6 +205,11 @@
       "lineas": 1008,
       "unidades": 2899,
       "sha256": "759b41bff84d3a770fbd23ccd0626bfba28432d6427704d79ef5892a0837aff5"
+    },
+    "pendientes_de_verificacion.json": {
+      "articulos": 5,
+      "unidades_declaradas": 212185,
+      "sha256": "c3f3ccfa29b3d0f38ccb56243f18d21ad6a079ff40eb8b64f2108ed4b3be32c1"
     }
   },
   "verification": {
@@ -214,7 +224,7 @@
     "merge_a_main": "NO",
     "pr": "NO"
   },
-  "generacion": 2,
+  "generacion": 3,
   "generacion_1": "analisis, normalizacion y dry run con 25 filas en REQUIRES_POLICY_DECISION. Commit a21c304",
   "generacion_2": "decision humana de Compostura aplicada, las dos excepciones restantes investigadas con evidencia, 4 filas sin categoria resueltas, cantidades centinela puestas en suspenso, dry run vuelto a correr",
   "decisiones_incorporadas": {
@@ -245,6 +255,20 @@
         "108004"
       ],
       "criterio": "la categoria queda vacia en vez de inventada; no afecta el comportamiento de stock"
+    },
+    "par_de_patillas_decision_humana_19_08_2026": {
+      "sku": "2000056",
+      "nature": "PRODUCTO_STOCKEABLE",
+      "razon": "es la pieza fisica. Los servicios de cambiar patilla ya existen aparte (2000054 y 2000055) y fundir la pieza con la mano de obra dejaria un articulo que a veces mueve stock y a veces no",
+      "categoria": "Compostura, la del archivo. La decision dijo que es, no donde se archiva",
+      "cantidad": "PENDIENTE. Ni 526 ni 616 se aceptan como conteo"
+    },
+    "limpia_cristal_decision_humana_19_08_2026": {
+      "sku": "000010",
+      "nature": "PRODUCTO_STOCKEABLE",
+      "cantidad_ASUNCION": "PENDIENTE. 2.860 queda como SOURCE_REPORTED_QUANTITY",
+      "razon": "las fuentes que repiten el 2.860 comparten origen, asi que no son confirmacion fisica independiente",
+      "cantidad_PILAR": "10 unidades, CONFIRMADAS. Es un codigo global: puede estar confirmado en un deposito y pendiente en el otro"
     }
   },
   "correccion_de_un_artefacto_propio": {
@@ -264,17 +288,40 @@
       "000010 Limpia Cristal (ASUNCION)": "2.860 declarados, pendiente de confirmacion humana"
     }
   },
-  "sin_resolver": {
-    "2000056 Par de patillas": {
-      "estado": "fuera del catalogo hasta que se decida",
-      "por_que": "puede ser el repuesto fisico o el servicio de cambiarlo. Las filas vecinas 2000054 y 2000055 ya son los servicios de patilla, lo que sugiere que esta es la pieza, pero es inferencia por vecindad. La cantidad no discrimina: en esta categoria los numeros saltan en las dos direcciones sin ser conteos. La marca aparece en Compostura y en Sujetadores. No esta en PC ni en ninguna otra fuente"
-    }
-  },
+  "sin_resolver": {},
   "tercera_fuente_hallada": {
     "archivo": "BC-Inventario-Control/data/inventario_base.xlsx",
     "corte": "2026-08-04",
     "filas": 2710,
     "aporta": "227 codigos de P2 con valores de otra fecha, que fue lo que dejo ver el salto de los centinelas",
     "no_es_conteo_independiente": "de los 2.577 codigos que comparte con PC, los 2.577 traen exactamente el mismo stock. Es otra extraccion del mismo sistema"
+  },
+  "generacion_3": "decisiones A y B aplicadas: Par de patillas entra como pieza fisica con cantidad pendiente, y Limpia Cristal conserva 2.860 como SOURCE_REPORTED_QUANTITY sin convertirlo en ledger. Dry run 3 PASS. Backup pre-importacion hecho. HUMAN_GATE final de importacion",
+  "correccion_de_una_decision_propia": {
+    "que_hice_mal": "en la generacion 2 movi Hilo, Tornillo y Plaqueta de la categoria Compostura a Sujetadores",
+    "por_que_estaba_mal": "no habia evidencia para eso. La decision humana dijo que son repuestos fisicos, no donde se archivan, y la naturaleza ya lleva toda la consecuencia",
+    "corregido": "los tres vuelven a la categoria Compostura, que es la que trae el archivo"
+  },
+  "representacion_de_la_cantidad_pendiente": {
+    "estado": "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION",
+    "no_es_cargar_cero": "stock_actual es SUM(quantity) agrupado por articulo y destino. Un articulo sin movimientos NO tiene fila en la vista y stock_por_destino() devuelve vacio. El sistema no afirma cero: no afirma nada",
+    "donde_queda_la_evidencia": [
+      "articles.notes: el estado y SOURCE_REPORTED_QUANTITY con su motivo",
+      "admin_audit_log: una fila por articulo, action = STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION, details_json con sucursal, cantidad declarada, archivo, fila fisica y corte",
+      "artifacts/pendientes_de_verificacion.json"
+    ],
+    "articulos": 5,
+    "unidades_declaradas_que_no_entran": 212185
+  },
+  "seguridad_productiva": {
+    "backup_hecho": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-preimport-catalogo-20260819-135805.sqlite3",
+    "backup_sha256": "eec36a5d62ed5a375d74291bcb359351a746bfb11ddeb5a720f59ecb7d80a139",
+    "backup_bytes": 733184,
+    "backup_verificado": "mismas 12 entradas, 6.400.000, 10 lineas, 2 dias, 8 pedidos, integrity ok, 0 FK",
+    "hash_pre_importacion": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
+    "herramienta": "tools/carga_inicial_optica_importar.py, no corre sin --confirmar",
+    "probada_en_modo_previsualizacion": true,
+    "rollback": "cerrar BC Caja, borrar bc_caja.sqlite3 con su -wal y -shm, copiar el backup encima",
+    "repetible_sin_duplicar": "catalogo por sha256 del archivo, recuentos por run_id fijo"
   }
 }

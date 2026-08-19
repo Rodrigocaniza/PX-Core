@@ -99,18 +99,49 @@ esa corrección, la carga metía 108.799 unidades fantasma en Pilar.
 3.553 artículos · 3.583 movimientos · dry-run **PASS, 0 fallas** · producción con
 el mismo sha256 · **0 filas en `REQUIRES_POLICY_DECISION`**.
 
-## Lo que falta y por qué se para acá
+## Generación 3 — las dos últimas decisiones, y el gate final
 
-Dos cosas, y ninguna es una naturaleza:
+`Par de patillas` entra como **la pieza física**: los servicios de cambiar
+patilla ya existen aparte, y fundir la pieza con la mano de obra dejaría un
+artículo que a veces mueve stock y a veces no según quién lo vendió.
 
-- **`2000056 Par de patillas`** — repuesto o servicio. La vecindad sugiere que es
-  la pieza; sugerir no es determinar. Queda afuera del catálogo hasta que se
-  decida. Es una fila.
-- **`000010 Limpia Cristal = 2.860`** —
-  `LIKELY_REAL_BUT_REQUIRES_HUMAN_CONFIRMATION`. Es un entero literal, sin
-  fórmula ni merge ni subtotal: no hay error de planilla. Pero son el 33% de todo
-  el inventario de Asunción y Pilar declara 10 del mismo artículo. El artículo
-  entra; sus unidades esperan.
+`Limpia Cristal` sigue stockeable y **sus 2.860 no entran**. Las fuentes que
+repiten ese número comparten origen, así que no son confirmación física
+independiente.
 
-Están en `HUMAN_GATE.md`. **No se carga nada sobre producción hasta que estén
-respondidas.**
+**Ninguna de las dos se cargó como cero.** El modelo ya sabía decir esto sin que
+haga falta inventarle un campo: `stock_actual` es la suma de los movimientos
+agrupada por artículo y depósito, así que un artículo sin movimientos **no tiene
+fila en la vista**. El sistema no dice «hay cero»; no dice nada. Lo que sí queda
+escrito es la cifra que la fuente declaró — en las notas del artículo y en
+`admin_audit_log` con acción `STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION`, con
+su archivo, su fila y su corte.
+
+Y se corrigió una decisión propia: en la generación 2 había movido `Hilo`,
+`Tornillo` y `Plaqueta` de `Compostura` a `Sujetadores` sin evidencia. La
+decisión humana dijo qué son, no dónde se archivan. Vuelven a `Compostura`.
+
+**El dry-run 3 falló la primera vez, y la falla era del verificador.** Comprobaba
+«este artículo no tiene ningún movimiento» cuando lo correcto era «no tiene
+movimiento en esa sucursal». Lo destapó `000010`, que es un código global: Pilar
+sí lo contó (10 unidades, y entran) y lo que espera son los 2.860 de Asunción. Se
+arregló el verificador, no el dato.
+
+## Estado final
+
+| | ASUNCION | PILAR |
+| --- | ---: | ---: |
+| líneas de recuento | 2.575 | 1.008 |
+| **unidades confirmadas** | **5.849** | **2.899** |
+
+3.554 artículos · 3.583 movimientos · **PASS, 0 fallas** · 5 artículos con
+cantidad pendiente (212.185 unidades declaradas que no se convierten en ledger) ·
+producción con el mismo sha256 · backup pre-importación hecho y verificado.
+
+## Lo que falta
+
+**Una sola autorización.** Está todo preparado: el catálogo, los recuentos, el
+backup verificable, la herramienta de importación —que no escribe sin
+`--confirmar`— y el rollback. El gate está en `HUMAN_GATE.md`.
+
+**No se importa nada hasta que lo autorices.**

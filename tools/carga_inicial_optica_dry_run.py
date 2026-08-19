@@ -21,6 +21,7 @@ import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from uuid import uuid4
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
@@ -95,6 +96,114 @@ def radiografia(ruta: Path) -> dict:
                                   " LEFT JOIN domain_events de ON de.event_id = ee.event_id"
                                   " WHERE de.event_id IS NULL"),
         )
+    finally:
+        conexion.close()
+
+
+PENDIENTE = "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION"
+
+
+def anotar_pendientes(base: Path, pendientes: list[dict], por_sku: dict, actor: str) -> None:
+    """Deja el estado pendiente como hecho auditado, y verifica que no sea stock.
+
+    El artículo existe y su naturaleza dice que puede llevar unidades; lo que no
+    existe es un conteo. La forma canónica de decirlo en este modelo es **no
+    escribir el movimiento**: `stock_actual` agrupa movimientos, así que un
+    artículo sin ninguno no tiene fila en la vista y `stock_por_destino()`
+    devuelve vacío. El sistema no afirma «hay cero»; no afirma nada.
+
+    Lo que sí se escribe es el registro de por qué: la cantidad que la fuente
+    declaró queda en `admin_audit_log`, que es la bitácora que ya usa el resto
+    del módulo, y en las notas del artículo.
+    """
+    conexion = sqlite3.connect(str(base))
+    try:
+        for p in pendientes:
+            article_id = por_sku[p["sku"]]
+            conexion.execute(
+                "INSERT INTO admin_audit_log(id, actor, action, target_type, target_id,"
+                " result, details_json, recorded_at) VALUES (?,?,?,?,?,?,?,?)",
+                (str(uuid4()), actor, PENDIENTE, "article", article_id, "PENDIENTE",
+                 json.dumps(p, ensure_ascii=False, sort_keys=True),
+                 datetime.now(timezone.utc).replace(microsecond=0).isoformat()))
+        conexion.commit()
+
+        anotados = conexion.execute(
+            "SELECT COUNT(*) FROM admin_audit_log WHERE action = ?", (PENDIENTE,)).fetchone()[0]
+        comprobar(anotados == len(pendientes),
+                  f"{anotados} articulos anotados como {PENDIENTE}")
+        for p in pendientes:
+            article_id = por_sku[p["sku"]]
+            # Lo pendiente es la cantidad EN ESA SUCURSAL, no el articulo. 000010
+            # es un codigo global: Pilar conto 10 y esos si entran; los 2.860 de
+            # Asuncion son los que esperan. El mismo articulo puede tener stock
+            # confirmado en un deposito y ninguna afirmacion en el otro.
+            movimientos = conexion.execute(
+                "SELECT COUNT(*) FROM stock_movements WHERE article_id = ?"
+                " AND destination = ?", (article_id, p["sucursal"])).fetchone()[0]
+            comprobar(movimientos == 0,
+                      f"{p['sku']} {p['nombre'][:24]} en {p['sucursal']}: sin movimiento "
+                      f"por sus {p['source_reported_quantity']} declarados")
+            filas_en_vista = conexion.execute(
+                "SELECT COUNT(*) FROM stock_actual WHERE article_id = ? AND destination = ?",
+                (article_id, p["sucursal"])).fetchone()[0]
+            comprobar(filas_en_vista == 0,
+                      f"{p['sku']} en {p['sucursal']}: no figura en stock_actual -- el sistema "
+                      f"no afirma cero, no afirma nada")
+            existe = conexion.execute(
+                "SELECT nature, notes FROM articles WHERE id = ?", (article_id,)).fetchone()
+            comprobar(existe is not None, f"{p['sku']}: el articulo si existe en el catalogo")
+            comprobar(PENDIENTE in (existe[1] or ""),
+                      f"{p['sku']}: la nota del articulo conserva el estado y la cifra fuente")
+        declaradas = sum(p["source_reported_quantity"] or 0 for p in pendientes)
+        registrar(f"  ---  {len(pendientes)} articulos, {declaradas} unidades declaradas por "
+                  f"la fuente que NO se convirtieron en ledger")
+    finally:
+        conexion.close()
+
+
+def desglose(base: Path, recuentos: dict, pendientes: list[dict]) -> None:
+    conexion = sqlite3.connect(f"file:{base}?mode=ro", uri=True)
+    try:
+        def uno(consulta: str, *args):
+            return conexion.execute(consulta, args).fetchone()[0]
+
+        creados = uno("SELECT COUNT(*) FROM articles")
+        con_stock = uno("SELECT COUNT(DISTINCT article_id) FROM stock_movements")
+        por_naturaleza = dict(conexion.execute(
+            "SELECT nature, COUNT(*) FROM articles GROUP BY nature"))
+        registrar(f"  articulos creados                          : {creados}")
+        registrar(f"  con inventario inicial confirmado          : {con_stock}")
+        registrar(f"  stockeables con cantidad PENDIENTE         : {len(pendientes)}")
+        registrar(f"  servicios (no llevan stock por naturaleza) : "
+                  f"{por_naturaleza.get('SERVICIO_NO_STOCKEABLE', 0)}")
+        registrar(f"  trabajos bajo pedido (idem)                : "
+                  f"{por_naturaleza.get('TRABAJO_BAJO_PEDIDO', 0)}")
+        registrar(f"  productos stockeables                      : "
+                  f"{por_naturaleza.get('PRODUCTO_STOCKEABLE', 0)}")
+        no_stockeables = (por_naturaleza.get("SERVICIO_NO_STOCKEABLE", 0)
+                          + por_naturaleza.get("TRABAJO_BAJO_PEDIDO", 0))
+        # Un articulo global puede estar confirmado en un deposito y pendiente en
+        # el otro, asi que las dos listas se solapan y hay que descontarlo.
+        skus_pendientes = {p["sku"] for p in pendientes}
+        pendientes_sin_ningun_stock = sum(
+            1 for sku in skus_pendientes
+            if uno("SELECT COUNT(*) FROM stock_movements sm JOIN articles a"
+                   " ON a.id = sm.article_id WHERE a.sku = ?", sku) == 0)
+        solapados = len(skus_pendientes) - pendientes_sin_ningun_stock
+        if solapados:
+            registrar(f"  de esos pendientes, {solapados} tienen stock confirmado en la otra "
+                      f"sucursal (codigo global)")
+        comprobar(creados == con_stock + pendientes_sin_ningun_stock + no_stockeables,
+                  f"cuadra: {con_stock} con stock + {pendientes_sin_ningun_stock} pendientes "
+                  f"sin stock en ningun deposito + {no_stockeables} que no llevan stock "
+                  f"= {creados}")
+        for sucursal, lineas in recuentos.items():
+            registrar(f"  {sucursal:9} CONFIRMED_INITIAL_STOCK: {len(lineas)} lineas, "
+                      f"{sum(x['cantidad'] for x in lineas)} unidades")
+        for p in pendientes:
+            registrar(f"  {p['sucursal']:9} PENDING: {p['sku']} {p['nombre'][:26]:28} "
+                      f"la fuente declara {p['source_reported_quantity']}")
     finally:
         conexion.close()
 
@@ -243,6 +352,16 @@ def main() -> int:
                                 ("suma_caja", "dinero registrado"),
                                 ("sale_items", "lineas de venta")):
             comprobar(repetido[clave] == antes[clave], f"{etiqueta}: {antes[clave]}")
+        registrar()
+
+        pendientes = json.loads(
+            (entrada / "pendientes_de_verificacion.json").read_text(encoding="utf-8"))
+        registrar("== cantidad pendiente de verificacion fisica ==")
+        anotar_pendientes(copia, pendientes, por_sku, actor)
+        registrar()
+
+        registrar("== que entro y que no, por clase ==")
+        desglose(copia, recuentos, pendientes)
         registrar()
     finally:
         controlador.close()

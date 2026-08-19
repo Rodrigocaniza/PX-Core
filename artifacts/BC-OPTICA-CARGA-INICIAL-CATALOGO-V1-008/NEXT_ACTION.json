@@ -1,7 +1,7 @@
 {
   "mission": "BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008",
-  "generacion": 2,
-  "state": "HUMAN_GATE",
+  "generacion": 3,
+  "state": "HUMAN_GATE_FINAL",
   "repository": "PX-Core",
   "worktree": ".worktrees/optica-carga-catalogo-008",
   "branch": "feature/bc-optica-carga-inicial-catalogo-v1-008",
@@ -9,72 +9,42 @@
   "generacion_1_commit": "a21c3046ba444dc6157a767fc76314638ab822ef",
   "closed_on": "2026-08-19",
   "closed_at": "PC Optica",
-  "blocked_on": "dos decisiones, en HUMAN_GATE.md. Ninguna es una naturaleza: una es una fila y la otra es una cantidad",
+  "blocked_on": "una sola autorizacion: AUTORIZAR IMPORTACION PRODUCTIVA",
   "produccion": "INTACTA. rc.32, 27 migraciones, 0 articulos, 0 movimientos, sha256 sin cambios",
-
-  "next_action": "Responder las dos de HUMAN_GATE.md: (1) si 2000056 Par de patillas es el repuesto fisico o el servicio de cambiarlo; (2) CONFIRMAR 2860 o NO IMPORTAR 2860 para 000010 Limpia Cristal en Asuncion. Con eso Command Center agrega la decision a DECISIONES_POR_SKU / CANTIDAD_EN_SUSPENSO en tools/carga_inicial_optica_normalizar.py, regenera catalogo y recuentos, vuelve a correr tools/carga_inicial_optica_dry_run.py, y si da PASS devuelve el HUMAN_GATE FINAL DE IMPORTACION con articulos a crear, unidades por sucursal, movimientos, excepciones descartadas, backup previsto, impacto exacto y rollback. La carga sobre produccion sigue sin autorizar",
+  "next_action": "Esperar la autorizacion. Con ella se corre tools/carga_inicial_optica_importar.py --entrada artifacts/BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008 --confirmar, que hace backup verificable, aplica el catalogo (3.554 articulos, cero unidades), carga el inventario inicial por sucursal con la fecha de cada recuento y run_id fijo, anota los 5 articulos con cantidad pendiente en admin_audit_log, y verifica todo post-import. Si algo falla se detiene y dice como volver atras. Despues de eso la mision cierra con Safe Closure, y la deuda que queda es el recuento fisico de los 5 pendientes",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
-
-  "resuelto_en_esta_generacion": {
-    "compostura_9_servicios": "SERVICIO_NO_STOCKEABLE, decision humana",
-    "compostura_7_cristales": "TRABAJO_BAJO_PEDIDO, decision humana",
-    "compostura_3_repuestos": "PRODUCTO_STOCKEABLE, decision humana. Cantidad en suspenso: los tres declaran centinelas",
-    "000005_Mostacillas": "PRODUCTO_STOCKEABLE / Sujetadores, por evidencia y sin intervencion",
-    "4_filas_sin_categoria": "PRODUCTO_STOCKEABLE las cuatro, por evidencia y sin intervencion. Categoria Armazones en 2, vacia en 2",
-    "en_espera_de_decision": 0
-  },
-
-  "decisiones_pendientes": [
-    {
-      "id": "PAR-DE-PATILLAS",
-      "sku": "2000056",
-      "sucursal": "PILAR",
-      "estado": "fuera del catalogo hasta que se decida",
-      "pregunta": "repuesto fisico o servicio de cambiar las patillas",
-      "si_repuesto": "PRODUCTO_STOCKEABLE, y la cantidad va en suspenso: los 526 no son un conteo",
-      "si_servicio": "SERVICIO_NO_STOCKEABLE, sin unidades",
-      "por_que_no_se_resolvio": "las vecinas 2000054 y 2000055 ya son los servicios de patilla, lo que sugiere que esta es la pieza, pero es inferencia por vecindad. La cantidad no discrimina (526 el 10/08 contra 616 el 04/08, y en esa categoria los numeros saltan en las dos direcciones sin ser conteos). La marca aparece en Compostura y en Sujetadores. No esta en PC ni en ninguna otra fuente"
-    },
-    {
-      "id": "LIMPIA-CRISTAL-2860",
-      "sku": "000010",
-      "sucursal": "ASUNCION",
-      "clasificacion": "LIKELY_REAL_BUT_REQUIRES_HUMAN_CONFIRMATION",
-      "estado": "el articulo entra al catalogo; sus 2.860 unidades estan en suspenso",
-      "valor_fuente": "celda C8397 de PC - Inventario.xlsx, entero literal 2860, sin formula, sin merge, sin subtotal, sin arrastre, sin observacion. La hoja no tiene un solo rango combinado",
-      "corroboracion": "inventario_base.xlsx del 04/08 trae el mismo 2.860, pero los 2.577 codigos comunes con PC coinciden todos: prueba transcripcion fiel del sistema, no que el deposito los tenga",
-      "a_favor": "no tiene forma de centinela; es marca propia y consumible de bulto; el vecino 000037 LIMPIA CRISTAL OBSEQUIO llega a 516 en Pilar",
-      "en_contra": "es 2,9 veces el segundo valor mas alto de Asuncion (Goma Nino, 978); son el 33% de todo el inventario de la sucursal; Pilar declara 10 del mismo articulo; ningun archivo dice si son frascos, sachets o mililitros",
-      "recomendacion": "CONFIRMAR 2860 o NO IMPORTAR 2860. No se propone corregir el numero: no hay evidencia documental de otro valor y cambiarlo a ojo seria inventar un conteo"
-    }
-  ],
-
+  "decisiones_pendientes": [],
   "totales_actuales_del_dry_run": {
-    "articulos_canonicos": 3553,
+    "articulos_canonicos": 3554,
     "categorias": 14,
     "marcas": 136,
     "movimientos": 3583,
-    "ASUNCION": {"lineas": 2575, "unidades": 5849},
-    "PILAR": {"lineas": 1008, "unidades": 2899},
-    "unidades_totales": 8748,
-    "unidades_en_suspenso": 211659,
-    "filas_rechazadas": 12
+    "ASUNCION": {
+      "lineas": 2575,
+      "unidades": 5849
+    },
+    "PILAR": {
+      "lineas": 1008,
+      "unidades": 2899
+    },
+    "unidades_confirmadas": 8748,
+    "articulos_con_cantidad_pendiente": 5,
+    "unidades_declaradas_pendientes": 212185,
+    "filas_rechazadas": 11
   },
-
   "por_que_este_next_action_y_no_otro": {
     "evaluado_resolver_Par_de_patillas_por_vecindad": "NO. Que las dos filas de al lado sean los servicios de patilla sugiere que esta es la pieza, pero sugerir no es determinar, y la orden pedia no adivinar si la evidencia no alcanza",
     "evaluado_confirmar_2860_por_estar_en_dos_archivos": "NO. Los dos archivos son la misma extraccion: coinciden en los 2.577 codigos comunes. Confirma la transcripcion, no el deposito",
     "evaluado_cargar_los_tres_repuestos_con_su_centinela": "NO. Habria metido 108.799 unidades fantasma en Pilar",
     "evaluado_importar_ya_lo_que_esta_limpio": "NO. La orden lo prohibe y ademas cargar dos veces deja dos hechos INVENTARIO_INICIAL donde hubo un solo recuento"
   },
-
   "deudas_explicitas_no_mezcladas": [
     {
-      "id": "RECUENTO-REAL-DE-LOS-TRES-REPUESTOS",
+      "id": "RECUENTO-FISICO-DE-LOS-CINCO-PENDIENTES",
       "estado": "PENDIENTE, no bloqueante",
-      "detalle": "Hilo, Tornillo y Plaqueta quedan en el catalogo con 0 unidades. Entran cuando alguien los cuente, por el mismo camino INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL"
+      "detalle": "Limpia Cristal en Asuncion, Par de patillas, Hilo, Tornillo y Plaqueta en Pilar. Entran cuando alguien los cuente, por el mismo camino INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL. Su cifra declarada quedo guardada como evidencia"
     },
     {
       "id": "CATEGORIA-VACIA-EN-DOS-ARTICULOS",
@@ -97,23 +67,44 @@
       "detalle": "heredada del slice 6"
     }
   ],
-
   "verification": {
-    "sin_drift": "HEAD a21c304, artefactos de la generacion 1 con sus sha256, XLSX y base productiva sin cambios. No se repitio ningun analisis valido",
-    "dry_run_generacion_2": "PASS, 0 fallas",
+    "sin_drift": "se reanudo desde 56f4f17 con los artefactos de la generacion 2 y los XLSX con sus sha256 intactos, y produccion en aa13f36e con 0 articulos y 0 movimientos. No se repitio ningun analisis ya valido",
+    "dry_run_generacion_3": "PASS, 0 fallas",
     "idempotencia": "PASS",
     "integrity_check": "ok",
     "foreign_key_check": 0,
     "stock_negativo": 0,
     "articulos_huerfanos": 0,
     "efectos_sin_hecho": 0,
-    "produccion_intacta": "sha256 aa13f36e... antes y despues",
-    "trazabilidad": "COMPLETA. Cada excepcion resuelta lleva escrito en el articulo si fue decision humana o evidencia, y que decia el archivo",
+    "produccion_intacta": "sha256 aa13f36e... antes y despues del dry run y del backup",
+    "backup_pre_importacion": "hecho y verificado, sha256 eec36a5d...",
+    "trazabilidad": "COMPLETA. Cada excepcion lleva escrito en el articulo si fue decision humana o evidencia, y cada cantidad pendiente conserva la cifra que declaro la fuente, su archivo, su fila y su corte",
+    "desglose_exigido_por_la_orden": {
+      "articulos_creados": 3554,
+      "con_inventario_inicial_confirmado": 3511,
+      "stockeables_con_cantidad_pendiente": 5,
+      "servicios": 9,
+      "trabajos_bajo_pedido": 30,
+      "filas_rechazadas": 11,
+      "filas_excluidas_del_ledger": "las 5 pendientes, mas las 39 que no llevan stock por naturaleza. 212.185 unidades declaradas por la fuente no se convierten en ledger"
+    },
     "gates": {
       "librarian": "PASS",
       "qa": "PASS",
       "auditor": "PASS",
       "artifact_consistency": "PASS"
     }
+  },
+  "resuelto_en_generacion_2": {
+    "compostura_9_servicios": "SERVICIO_NO_STOCKEABLE, decision humana",
+    "compostura_7_cristales": "TRABAJO_BAJO_PEDIDO, decision humana",
+    "compostura_3_repuestos": "PRODUCTO_STOCKEABLE, decision humana. Cantidad pendiente: los tres declaran centinelas. La categoria vuelve a ser Compostura en la generacion 3",
+    "000005_Mostacillas": "PRODUCTO_STOCKEABLE / Sujetadores, por evidencia y sin intervencion",
+    "4_filas_sin_categoria": "PRODUCTO_STOCKEABLE las cuatro, por evidencia y sin intervencion. Categoria Armazones en 2, vacia en 2",
+    "en_espera_de_decision": 0
+  },
+  "resuelto_en_generacion_3": {
+    "2000056 Par de patillas": "PRODUCTO_STOCKEABLE, cantidad PENDIENTE",
+    "000010 Limpia Cristal": "PRODUCTO_STOCKEABLE, 2.860 de Asuncion PENDIENTE, 10 de Pilar confirmados"
   }
 }
