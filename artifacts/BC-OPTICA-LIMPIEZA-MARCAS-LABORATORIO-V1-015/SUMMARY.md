@@ -86,15 +86,18 @@ productiva.
 
 ## Pruebas
 
-21 dirigidas nuevas, verdes. Cubren la clasificación caso por caso y —la mitad
+24 dirigidas nuevas, verdes. Cubren la clasificación caso por caso y —la mitad
 que más importa— que cambiar la marca no arrastre categoría, naturaleza, notas,
 costo, precio, `default_laboratory_id`, proveedor, unidad ni ningún otro campo.
 La última vende un cristal de los que se limpian, con su laboratorio escrito en
 la línea, y comprueba que vaciar la marca no reescribe esa venta de agosto.
 
-Suite comercial completa: 342 verdes. Suite del repo: 1022 verdes y 2 rojas en
-`tests/gestion_central/test_ui_interactions.py`, que ya estaban rojas en `a0bd4da`
-antes de tocar nada.
+Commercial Core entero: 345 verdes, ninguna roja. El repo: 1025 verdes y 2 rojas
+en `tests/gestion_central/test_ui_interactions.py`, clasificadas
+`PREEXISTING_OUT_OF_SCOPE` — ya estaban rojas en `a0bd4da`, y la misión no
+modifica ni un archivo de producción. La evidencia de la reproducción está en
+`PRUEBAS_PREEXISTENTES.txt`. No se declara regresión verde total del repo: no lo
+es.
 
 ## Estado
 

@@ -1,0 +1,422 @@
+{
+  "mision": "BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015",
+  "que_es": "La identidad exacta de lo que se uso y de lo que se produjo en Casa. Sirve para que en la Optica se pueda comprobar que llego lo mismo que salio, y que el plan que se aplica es el que se sello",
+  "git": {
+    "branch": "feature/bc-optica-limpieza-marcas-laboratorio-v1-015",
+    "head": "no se sella: un artifact no puede contener el hash del commit que lo contiene. El HEAD autoritativo es el de origin/feature/bc-optica-limpieza-marcas-laboratorio-v1-015",
+    "base": "a0bd4da8b40829fed1d29249aacbc3fbbf79cc77",
+    "origin_main_intacto": "7db56a082d06c735583a2717da3ad273f4d41a84",
+    "como_verificar": "comparar huella_del_plan_sha256 y el resumen 28/2/1 del dry-run en la Optica contra plan_sellado"
+  },
+  "baseline_esperado": {
+    "LABORATORY_IN_BRAND_CONFIRMED": 28,
+    "CORRECTED_SOURCE_HAS_REAL_BRAND": 2,
+    "AMBIGUOUS": 1,
+    "VALID_BRAND": 0,
+    "NO_ACTION": 0,
+    "cambian": 30,
+    "campos_tocados": [
+      "articles.brand_id"
+    ]
+  },
+  "huella_del_plan_sha256": "8f2433876feac8f9efce794e7ee2b98ac66876b7e9d1a23695edc7883e1b2326",
+  "fuentes_disponibles_en_casa": {
+    "artifacts/BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008/catalogo_canonico.csv": {
+      "sha256": "9957c7384e6899ee705b23b27d8fabaab9d7c5af10afe2c4fde337cc9326f7b3",
+      "bytes": 550401
+    },
+    "artifacts/BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012/APLICACION_PRODUCTIVA.txt": {
+      "sha256": "5a2e71d8849f093facadad1451b87dbc1088b93e44a7f13c96dad034e7a860ad",
+      "bytes": 5087
+    },
+    "artifacts/BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012/MANIFEST.json": {
+      "sha256": "7c068df6ad4c26169469ca53bb033978588f9bb49c8e74e29573603b590b06a2",
+      "bytes": 13584
+    },
+    "artifacts/BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012/HUMAN_GATE.md": {
+      "sha256": "0b1029560075e527a45efc7e69dcb0aca34112bc725f4e653471990c597819c2",
+      "bytes": 4237
+    },
+    "artifacts/BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010/PERFIL_CORREGIDOS.txt": {
+      "sha256": "3865a17ebae8a0e2a4c912ae77399ba60625cc3599e2362a1dd59bbd3aeda9e9",
+      "bytes": 5056
+    },
+    "artifacts/BC-OPTICA-ARTICLE-METADATA-RESTORE-V1-014/SUMMARY.md": {
+      "sha256": "9745893256c6c6fd772bcb33f0fd021e6c3bf0815f35ee14c7f32dd4e02d995f",
+      "bytes": 4075
+    },
+    "modulos/caja_diaria/infrastructure/migrations/028_default_laboratory.sql": {
+      "sha256": "77a73e18e9a0f735c828fc2f5e8dde59a8ca4176e6e8c3cd6ab0872bbe873242",
+      "bytes": 2711
+    },
+    "modulos/comercial/application/comercial_controller.py": {
+      "sha256": "93e83312af7a514119738d0e56de08ff8b2ec555faf7ef8463980e812e5bae99",
+      "bytes": 37511
+    },
+    "tools/limpieza_marcas_laboratorio_optica.py": {
+      "sha256": "9b2fe5efd35886b2d1d57b9d6a11795a0fa7d45ae6d9fe84c6226c590b4cc619",
+      "bytes": 23598
+    },
+    "tests/comercial/test_limpieza_marcas_laboratorio.py": {
+      "sha256": "e0b233885e349aa1ee96842c40e6988232b7d79ba4d17fb7e35a61d16e9ba33a",
+      "bytes": 16143
+    }
+  },
+  "fuentes_NO_disponibles_en_casa": {
+    "C:/Users/Striker/Downloads/Inventario P2.xls": "el inventario corregido del 19/08, sucursal PILAR. Es la unica fuente que puede cerrar 2000212. Vive en la PC de la Optica y no viaja con Git",
+    "C:/Users/Striker/Downloads/Inventario PC.xls": "el corregido de ASUNCION. Ninguno de los 31 sale de ahi: los 31 vienen de PILAR. Sirve como confirmacion cruzada de 2000070, nada mas",
+    "C:/Users/Striker/AppData/Local/BC/Caja/bc_caja.sqlite3": "la base productiva. No viaja"
+  },
+  "artifacts": {
+    "APLICACION_EN_LA_OPTICA.md": {
+      "sha256": "b7d18a912a9d3ca612239d92d788be13139fef7b8668db1586f902b1a8d75028",
+      "bytes": 3387
+    },
+    "ARTIFACT_CONSISTENCY.md": {
+      "sha256": "9c3dc52fedd04f498601280ca9b4a0f5729d9017b4f5de423c0a501ed8b16a17",
+      "bytes": 5028
+    },
+    "base_de_prueba.py": {
+      "sha256": "57237d4915549b8ff44af36e28580546d97c3ee4d1b3354a84f680e860675795",
+      "bytes": 4298
+    },
+    "CIERRE_CASA.txt": {
+      "sha256": "0bb5020051b3091389a05491cc4731537388efca024595dd8ab40f142f83b4b7",
+      "bytes": 3977
+    },
+    "DRY_RUN.txt": {
+      "sha256": "491645ffbd8f339ca825baf065611f3655dae593957c8a322ac57831b22d20bd",
+      "bytes": 10904
+    },
+    "EVIDENCIA_FUENTE_CORREGIDA.json": {
+      "sha256": "dd131ed860d2bbda1e66badcafe0ff0a319d9f560532bbb10a2d0a2f8c9789e4",
+      "bytes": 12377
+    },
+    "HANDOFF_OPTICA.md": {
+      "sha256": "a7f79b654a3e8b999d1fc334530739849c412603e342b2bff63661f21dd26a6c",
+      "bytes": 7470
+    },
+    "HUMAN_GATE.md": {
+      "sha256": "e7b54ea1bebc4c1ce463ef053b257eef6be44a0a0d49589bc0063ca9adcaab98",
+      "bytes": 2234
+    },
+    "IDEMPOTENCIA.txt": {
+      "sha256": "57db093fb83b3f72c35a62ae8d771a3af813af30c2d7c6af8af1ce3204aedf7f",
+      "bytes": 1799
+    },
+    "MANIFEST.json": {
+      "sha256": "5ff80c885c855e166f156809a53495f62c0a022065d276ecac11085781b35dd3",
+      "bytes": 6790
+    },
+    "NEXT_ACTION.json": {
+      "sha256": "c94d3cc9641d369b5b206db5d900afaf8e7fcc5bba6524b6acb26eaad4b0024f",
+      "bytes": 1514
+    },
+    "PLAN_SELLADO.json": {
+      "sha256": "271de7963f4237cbdf6e1530690e74a1760c52fbe97383cd05194bd6f867551e",
+      "bytes": 13905
+    },
+    "PRUEBAS_DIRIGIDAS.txt": {
+      "sha256": "c889b9e24a55c7045a8212cad92318225df4dcb7f958ac3470bb18b6e5de3f63",
+      "bytes": 7452
+    },
+    "PRUEBAS_PREEXISTENTES.txt": {
+      "sha256": "e3ac1475efd5af67face3f4b77dc79d938b551666c731d6005f81770da058eac",
+      "bytes": 3133
+    },
+    "SIMULACION_APLICACION.txt": {
+      "sha256": "d850b92eda7e2fca596813a6e1ff0e16a2ae3e9d38ee27d919608328fb32d7b6",
+      "bytes": 15411
+    },
+    "SUMMARY.md": {
+      "sha256": "7bd112b4ceeae34b04813308e4982a3c04096eb74872b3bcc840b19ee094d0e8",
+      "bytes": 5582
+    },
+    "WORKFLOW.json": {
+      "sha256": "8c62664c8e01597bac90bb9d6f00f305c360f2dc8e203830c87257da9531f6ac",
+      "bytes": 2820
+    }
+  },
+  "plan_sellado": [
+    {
+      "sku": "2000060",
+      "nombre": "Organico UVX",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000061",
+      "nombre": "Fotocromático (AR)",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000062",
+      "nombre": "Multifocal (OP)",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000063",
+      "nombre": "Kripto (Kto) Organico UVX",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000064",
+      "nombre": "Blue Ar",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000065",
+      "nombre": "Adaptacion de cristal",
+      "categoria": "Compostura",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": "Óptica Puppilent`s",
+      "clase": "CORRECTED_SOURCE_HAS_REAL_BRAND",
+      "cambia": true
+    },
+    {
+      "sku": "2000067",
+      "nombre": "Bifocal (ST)",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000070",
+      "nombre": "Hilo",
+      "categoria": "Compostura",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": "Óptica Puppilent`s",
+      "clase": "CORRECTED_SOURCE_HAS_REAL_BRAND",
+      "cambia": true
+    },
+    {
+      "sku": "2000073",
+      "nombre": "Multiblue",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000074",
+      "nombre": "Progresivo OP",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000075",
+      "nombre": "Futurex Protec",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Servi Optical",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000076",
+      "nombre": "Blue Protec",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Servi Optical",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000086",
+      "nombre": "Foto Sunactive",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Servi Optical",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000125",
+      "nombre": "FUTUREX STEEL",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Servi Optical",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000126",
+      "nombre": "FUTUREX G2",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Servi Optical",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000127",
+      "nombre": "Green AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000206",
+      "nombre": "Kto.Invisible",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000207",
+      "nombre": "Kto.AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000208",
+      "nombre": "Kto.Blue AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000209",
+      "nombre": "Blue Fotocromatico AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000210",
+      "nombre": "Multifocal Foto AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000211",
+      "nombre": "Multifocal AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000212",
+      "nombre": "ST Fotocromatico",
+      "categoria": "Armazones",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "AMBIGUOUS",
+      "cambia": false
+    },
+    {
+      "sku": "2000213",
+      "nombre": "Org AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000214",
+      "nombre": "Kto.Foto.AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Servi Optical",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000215",
+      "nombre": "Kto.Foto",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000216",
+      "nombre": "Kto.Foto Blue AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Servi Optical",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000217",
+      "nombre": "Policarbonato Blanco",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Servi Optical",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000218",
+      "nombre": "Policarbonato AR",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000219",
+      "nombre": "Multiblue Foto Ar",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    },
+    {
+      "sku": "2000227",
+      "nombre": "Progresivo Rodensto",
+      "categoria": "Cristales",
+      "marca_actual": "Laboratorio Optilab",
+      "marca_propuesta": null,
+      "clase": "LABORATORY_IN_BRAND_CONFIRMED",
+      "cambia": true
+    }
+  ],
+  "artifacts_nota": "los sha256 de esta carpeta se tomaron antes del commit de cierre. Los que importan para aplicar -la herramienta, el catalogo canonico, las migraciones- estan en fuentes_disponibles_en_casa y no cambian despues de este sello"
+}

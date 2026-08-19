@@ -31,7 +31,13 @@
       "cash_entries",
       "brands",
       "laboratories"
-    ]
+    ],
+    "archivos_tocados": [
+      "tools/limpieza_marcas_laboratorio_optica.py (nuevo)",
+      "tests/comercial/test_limpieza_marcas_laboratorio.py (nuevo)",
+      "artifacts/BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015/ (nuevo)"
+    ],
+    "modulos_de_produccion_modificados": 0
   },
   "clasificacion": {
     "LABORATORY_IN_BRAND_CONFIRMED": 28,
@@ -98,14 +104,17 @@
     "no_es": "produccion. La copia no tiene movimientos, ventas, caja ni las 767 bajas de V1-010/V1-013"
   },
   "pruebas": {
-    "dirigidas": 21,
-    "suite_comercial": 342,
-    "suite_repo": "1022 passed, 2 failed",
+    "dirigidas": 24,
+    "suite_comercial": 345,
+    "suite_repo": "1025 passed, 2 failed",
     "rojas_preexistentes": [
       "tests/gestion_central/test_ui_interactions.py::test_refresh_and_filters_have_visible_feedback",
       "tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence"
     ],
-    "verificacion_preexistencia": "git stash -u sobre a0bd4da: las dos fallan igual sin los cambios de esta mision"
+    "verificacion_preexistencia": "git stash -u sobre a0bd4da: las dos fallan igual sin los cambios de esta mision",
+    "clasificacion_rojos": "PREEXISTING_OUT_OF_SCOPE",
+    "evidencia": "PRUEBAS_PREEXISTENTES.txt",
+    "certificacion": "scope propio de V1-015 PASS; Commercial Core PASS con 0 rojas; no se declara regresion verde total del repo"
   },
   "human_gate": {
     "abiertos": 1,
@@ -133,5 +142,23 @@
     "laboratorios": 3,
     "con_default": 24,
     "migraciones": 28
+  },
+  "2000212": {
+    "clase": "AMBIGUOUS",
+    "estado": "no se resuelve desde Casa, y no se pide decision ahora",
+    "en_la_optica": [
+      "usar --fuente-corregida",
+      "si la fuente da una marca real inequivoca para el mismo codigo, se usa y el gate se cierra solo",
+      "si la celda Marca viene vacia o repite un laboratorio, queda SIN CAMBIO",
+      "no se recategoriza como cristal",
+      "no se limpia a blanco sin evidencia"
+    ],
+    "aislamiento": "no frena a los otros 30. Probado en test_el_ambiguo_no_frena_a_los_demas",
+    "correccion_de_esta_sesion": "antes, una celda «Marca» vacia en la fuente lo habria limpiado a blanco. Ahora esa regla vale solo para Cristales: fuera de ahi una celda en blanco dice «no se», no «no tiene marca». El plan de los 31 no cambio: sigue 28/2/1"
+  },
+  "normalizacion_de_marcas": {
+    "decision": "NO_ABSORBER",
+    "finding": "«Óptica Puppilent`s» 7 articulos / «Optica Puppilents» 1. Sigue vigente",
+    "por_que": "unificarlas tocaria articulos fuera de los 31 y convertiria V1-015 en una limpieza general de marcas"
   }
 }

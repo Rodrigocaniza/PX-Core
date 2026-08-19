@@ -1,7 +1,7 @@
 {
   "mision": "BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015",
   "estado": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
-  "next_action": "En la Optica, con BC Caja cerrado: correr tools/limpieza_marcas_laboratorio_optica.py con --fuente-corregida apuntando al Inventario P2 del 19/08 y SIN --confirmar; comparar el plan contra DRY_RUN.txt (28/2/1); y recien entonces repetir con --confirmar. Los pasos exactos, el rollback y los post-checks estan en APLICACION_EN_LA_OPTICA.md",
+  "next_action": "En la Optica: seguir HANDOFF_OPTICA.md de punta a punta. Verificar el estado canonico de produccion, localizar Inventario P2 corregido del 19/08, dry-run con --fuente-corregida, comparar contra el baseline 28/2/1 de PLAN_SELLADO.json, y recien entonces --confirmar. 2000212 se resuelve solo si la fuente lo permite; si no, queda sin cambio y no bloquea a los otros 30",
   "desde_casa": "nada mas. Lo que quedaba por hacer necesita la base real",
   "bloqueantes": [],
   "human_gate": [
@@ -20,5 +20,8 @@
       "id": "marcas-duplicadas",
       "detalle": "«Óptica Puppilent`s» vs «Optica Puppilents»"
     }
-  ]
+  ],
+  "handoff": "artifacts/BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015/HANDOFF_OPTICA.md",
+  "plan_sellado": "artifacts/BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015/PLAN_SELLADO.json",
+  "no_iniciar_otra_mision": true
 }

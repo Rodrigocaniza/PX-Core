@@ -1,7 +1,11 @@
 # HUMAN_GATE — V1-015
 
-**Una sola pregunta.** Treinta de los treinta y un casos se resuelven con
-evidencia y no necesitan que mires nada. Queda uno.
+**Una sola pregunta, y no es para ahora.** Treinta de los treinta y un casos se
+resuelven con evidencia y no necesitan que mires nada. Queda uno, y lo más
+probable es que tampoco necesite que mires nada: la planilla corregida puede
+cerrarlo sola cuando estemos en la Óptica.
+
+No hace falta que decidas nada desde Casa.
 
 ---
 

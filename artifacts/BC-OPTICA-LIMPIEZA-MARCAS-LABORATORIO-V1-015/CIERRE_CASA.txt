@@ -2,8 +2,8 @@
 SAFE CLOSURE -- V1-015, lado Casa
 ==============================================================================
 
-Se cierra el trabajo que se podia hacer sin la base de la Optica. Lo unico que
-queda es aplicarlo alla, y esta preparado hasta el ultimo paso.
+Se cierra formalmente todo lo que se podia hacer sin la base de la Optica. Lo
+unico que queda es aplicarlo alla, y esta preparado hasta el ultimo paso.
 
   branch  : feature/bc-optica-limpieza-marcas-laboratorio-v1-015
   parte de: origin/feature/bc-optica-laboratorio-por-defecto-v1-012 @ a0bd4da
@@ -19,32 +19,62 @@ REGLA DE CASA, RESPETADA
   ARTIFACT_CONSISTENCY.md, con las diferencias entre la copia y produccion
   puestas de frente.
 
+QUE CAMBIO EN ESTA SESION DE CIERRE
+  Una sola cosa de fondo, y es una correccion real, no un ajuste cosmetico:
+  antes, si la planilla corregida traia la celda «Marca» vacia para 2000212, la
+  herramienta lo habria limpiado a blanco. Ahora esa regla vale solo para
+  Cristales. Fuera de ahi una celda en blanco dice «no se», no «no tiene marca»,
+  y limpiar por una celda vacia seria inventar una decision que nadie tomo.
+
+  El plan de los 31 no se movio: el dry-run repetido despues del cambio da
+  28 / 2 / 1, identico al sellado. Sin drift.
+
 GATES
-  pruebas dirigidas .......... PASS  21 verdes
-  suite comercial ............ PASS  342 verdes
-  suite del repo ............. 1022 verdes, 2 rojas preexistentes en
-                               tests/gestion_central/test_ui_interactions.py,
-                               verificadas rojas en a0bd4da con git stash -u
-  dry-run .................... PASS  28 / 2 / 1 sobre los 31
+  pruebas dirigidas .......... PASS  24 verdes
+  Commercial Core ............ PASS  345 verdes, 0 rojas
+  suite del repo ............. 1025 verdes, 2 rojas PREEXISTING_OUT_OF_SCOPE
+  dry-run .................... PASS  28 / 2 / 1 sobre los 31, sin drift
   aplicacion simulada ........ PASS  30 brand_id, 0 campos inesperados
   idempotencia ............... PASS  la segunda corrida no escribe nada
   integridad ................. PASS  integrity ok, FK 0, negativos 0,
                                huerfanos 0, efectos sin hecho 0
-  Librarian .................. PASS  artifacts completos y con procedencia
-  QA ......................... PASS  clasificacion e invariantes probados
-  Auditor .................... PASS  cada numero rastreado a una corrida real
+  Librarian .................. PASS  artifacts completos, con procedencia y
+                               sellados con huella
+  QA ......................... PASS  clasificacion, aislamiento del ambiguo e
+                               invariantes probados
+  Auditor .................... PASS  cada numero rastreado a una corrida real;
+                               los 2 rojos reproducidos en a0bd4da limpio
   Artifact Consistency ....... PASS  ARTIFACT_CONSISTENCY.md
-  main ....................... intacto, no se toco
+  main ....................... intacto en 7db56a0, no se toco
   force-push ................. no se uso
+  produccion local ........... no se aplico nada
+
+LOS DOS ROJOS
+  tests/gestion_central/test_ui_interactions.py, dos casos. Clasificados
+  PREEXISTING_OUT_OF_SCOPE con evidencia de reproduccion en a0bd4da limpio. No
+  se modificaron, no se adapto V1-015 para hacerlos pasar, y no se declara
+  regresion verde total del repo. Detalle en PRUEBAS_PREEXISTENTES.txt.
+
+  Ningun gate los considera bloqueantes para V1-015: la mision no modifica un
+  solo modulo de produccion -agrega una herramienta y sus pruebas-, y Gestion
+  Central no aparece en ninguno de los archivos que toca.
 
 HUMAN_GATE
-  Uno solo: 2000212 ST Fotocromatico. Puede cerrarse solo al releer la fuente
-  corregida en la Optica.
+  Uno solo: 2000212 ST Fotocromatico. No se pide decision ahora. Se resuelve
+  solo en la Optica si la fuente corregida trae su marca real; si no, queda sin
+  cambio y no bloquea a los otros 30.
+
+NO ABSORBIDO, A PROPOSITO
+  La normalizacion «Óptica Puppilent`s» / «Optica Puppilents» sigue vigente como
+  finding separado. No se fusiona dentro de V1-015.
+  Los pendientes de V1-012 siguen abiertos: 7 codigos ausentes, 2000078/2000219,
+  6 cristales sin laboratorio, tres telefonos.
 
 ESTADO
   READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA
 
+  Lease liberada. No hay mision en curso desde Casa.
+
 NEXT_ACTION
-  En la Optica, con BC Caja cerrado: dry-run con --fuente-corregida, comparar
-  contra DRY_RUN.txt, y recien entonces --confirmar. Paso a paso en
-  APLICACION_EN_LA_OPTICA.md.
+  HANDOFF_OPTICA.md, de punta a punta, cuando estemos fisicamente en la Optica.
+  Nada que copiar a mano: todo viaja por Git.

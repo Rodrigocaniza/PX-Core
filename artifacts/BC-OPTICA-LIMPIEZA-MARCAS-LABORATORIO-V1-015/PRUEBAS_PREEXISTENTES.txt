@@ -1,0 +1,72 @@
+==============================================================================
+DOS FALLOS PREEXISTENTES -- clasificacion y evidencia
+==============================================================================
+
+CLASIFICACION: PREEXISTING_OUT_OF_SCOPE
+
+  tests/gestion_central/test_ui_interactions.py::test_refresh_and_filters_have_visible_feedback
+  tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence
+
+No se modificaron. No se adapto V1-015 para hacerlos pasar. No se tocaron los
+archivos que los contienen.
+
+REPRODUCCION EN LA BASE, SIN LOS CAMBIOS DE V1-015
+--------------------------------------------------
+
+Se guardo el arbol de trabajo, se hizo checkout de a0bd4da limpio -la base de la
+que sale V1-015- y se corrieron los dos ahi:
+
+  $ git stash -u
+  $ git checkout a0bd4da
+  $ python -m pytest tests/gestion_central/test_ui_interactions.py -q
+
+  FAILED tests/gestion_central/test_ui_interactions.py::test_refresh_and_filters_have_visible_feedback
+  FAILED tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence
+  2 failed, 3 passed in 3.31s
+
+  $ git checkout feature/bc-optica-limpieza-marcas-laboratorio-v1-015
+  $ git stash pop
+
+Fallan igual sin una sola linea de esta mision en el arbol.
+
+POR QUE SON AJENOS AL SCOPE
+---------------------------
+
+El fallo, textual:
+
+  def test_refresh_and_filters_have_visible_feedback(interactive_app):
+      assert app.status_var.get().startswith("Actualizado ")
+      assert "Filtro <<Con alertas>>" in app.status_var.get()
+  >   assert set(app.card_buttons) == {Unit.OPTICA_ASUNCION}
+  E   AssertionError: assert {<Unit.CONSUL...PTICA_PILAR'>} == {<Unit.OPTICA...CA_ASUNCION'>}
+  E     Extra items in the left set:
+  E     <Unit.OPTICA_PILAR: 'OPTICA_PILAR'>
+  E     <Unit.CONSULTORIO_PILAR: 'CONSULTORIO_PILAR'>
+  E     <Unit.CONSULTORIO_ASUNCION: 'CONSULTORIO_ASUNCION'>
+
+Es el filtro <<Con alertas>> de la pantalla de Gestion Central: no deja las
+tarjetas que deberia. Ni Gestion Central, ni sus unidades, ni sus alertas, ni
+`card_buttons` aparecen en ningun archivo que V1-015 toque.
+
+V1-015 toca exactamente tres archivos:
+
+  tools/limpieza_marcas_laboratorio_optica.py        (nuevo)
+  tests/comercial/test_limpieza_marcas_laboratorio.py (nuevo)
+  artifacts/BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015/  (nuevo)
+
+Ningun modulo de produccion se modifico. La mision no cambia una linea de codigo
+existente: agrega una herramienta y sus pruebas.
+
+CERTIFICACION, DISTINGUIENDO LOS DOS PLANOS
+-------------------------------------------
+
+  scope propio de V1-015 ......... PASS   24 dirigidas verdes
+  Commercial Core ................ PASS   345 verdes, 0 rojas
+  suite del repo ................. 1025 verdes, 2 rojas
+  las 2 rojas .................... PREEXISTING_OUT_OF_SCOPE, Gestion Central
+
+No se declara <<regresion verde total>>: no lo es, y decirlo seria falso. Se
+declara que lo que V1-015 toca esta verde y que lo que esta rojo ya lo estaba.
+
+Cerrar V1-015 no arregla esos dos ni los empeora. Arreglarlos es una mision de
+Gestion Central, con su propio dueño.

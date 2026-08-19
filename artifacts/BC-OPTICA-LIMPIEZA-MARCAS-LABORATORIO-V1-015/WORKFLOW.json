@@ -48,7 +48,7 @@
       "n": 8,
       "paso": "pruebas dirigidas",
       "estado": "PASS",
-      "detalle": "21 verdes"
+      "detalle": "24 verdes"
     },
     {
       "n": 9,
@@ -72,7 +72,13 @@
       "n": 12,
       "paso": "suite",
       "estado": "PASS",
-      "detalle": "comercial 342 verdes; repo 1022 verdes y 2 rojas preexistentes en Gestion Central"
+      "detalle": "Commercial Core 345 verdes y 0 rojas; repo 1025 verdes y 2 rojas PREEXISTING_OUT_OF_SCOPE"
+    },
+    {
+      "n": 12.5,
+      "paso": "cierre de Casa",
+      "estado": "PASS",
+      "detalle": "plan sellado con huella, handoff productivo, evidencia de los rojos preexistentes, sin drift: el dry-run sigue dando 28/2/1"
     },
     {
       "n": 13,

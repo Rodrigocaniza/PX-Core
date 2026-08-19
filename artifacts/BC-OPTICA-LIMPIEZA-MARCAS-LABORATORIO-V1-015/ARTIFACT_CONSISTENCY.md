@@ -15,10 +15,12 @@ que se esperaba que pasara.
 | 30 cambian | MANIFEST | `cambios: 30, esperados 30` en la corrida | ✔ |
 | 24 laboratorios por defecto | base de prueba | copiados uno por uno de `APLICACION_PRODUCTIVA.txt` de V1-012 | ✔ |
 | marcas 136 | MANIFEST | `radiografia()` sobre la copia, antes y después | ✔ |
-| 21 pruebas dirigidas | SUMMARY | `21 passed` | ✔ |
-| 342 en comercial | SUMMARY | `342 passed` | ✔ |
-| 1022 + 2 en el repo | SUMMARY | `1022 passed, 2 failed` | ✔ |
-| las 2 rojas ya estaban | SUMMARY, MANIFEST | `git stash -u` y volver a correrlas: fallan igual | ✔ |
+| 24 pruebas dirigidas | SUMMARY | `24 passed` | ✔ |
+| 345 en comercial, 0 rojas | SUMMARY | `345 passed` | ✔ |
+| 1025 + 2 en el repo | SUMMARY | `1025 passed, 2 failed` | ✔ |
+| las 2 rojas ya estaban | SUMMARY, MANIFEST | checkout limpio de `a0bd4da` y volver a correrlas: fallan igual | ✔ |
+| la misión no toca producción | PRUEBAS_PREEXISTENTES | `git diff --name-only a0bd4da HEAD`: sólo la herramienta, sus pruebas y sus artifacts | ✔ |
+| el plan no derivó | PLAN_SELLADO | dry-run repetido tras el cambio de código: 28/2/1 idéntico | ✔ |
 
 ## Lo que se dice que no cambia
 
