@@ -1,0 +1,63 @@
+{
+  "mission": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
+  "state": "HUMAN_GATE",
+  "repository": "PX-Core",
+  "worktree": ".worktrees/optica-recuento-009",
+  "branch": "feature/bc-optica-recuento-fisico-pendientes-v1-009",
+  "base_commit": "f5a55b7cbcdd41cfb961ba35a79ad61e4ee8e62d",
+  "opened_on": "2026-08-19",
+  "opened_at": "PC Optica",
+  "blocked_on": "las cinco cantidades fisicas. Es lo unico irreducible",
+  "produccion": "INTACTA en esta mision. 3.554 articulos, 3.583 movimientos, 8.748 unidades, sha256 sin cambios",
+  "next_action": "Recibir las cinco cantidades contadas y correr tools/recuento_pendientes_optica.py --aplicar conteo.json --confirmar, que hace backup verificable, asienta un INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL por cada cantidad mayor que cero con la fecha del recuento de hoy, registra PHYSICAL_COUNT_CONFIRMED por cada uno incluidos los que den cero, y verifica todo despues de escribir. Si alguna cantidad no llega, ese articulo simplemente sigue pendiente y no pasa nada. Despues, Librarian, QA, Auditor, Artifact Consistency y Safe Closure",
+  "next_role": "COMMAND_CENTER",
+  "next_pc": "Optica",
+  "autorizacion_requerida": true,
+  "por_que_este_next_action_y_no_otro": {
+    "evaluado_usar_las_cifras_de_las_planillas": "NO. Es exactamente lo que la mision 008 decidio no hacer, y con evidencia: dos de ellas eran centinelas de ~99.900 y otra cambiaba de valor entre dos extracciones del mismo mes",
+    "evaluado_asentar_cero_para_cerrar_el_tema": "NO. Cero sin haber contado es una afirmacion falsa, y ademas indistinguible de un conteo real que da cero",
+    "evaluado_pedir_los_cinco_juntos_o_de_a_uno": "juntos, pero sin exigirlo: los que no se cuenten hoy siguen pendientes sin bloquear nada"
+  },
+  "deudas_explicitas_no_mezcladas": [
+    {
+      "id": "CATEGORIA-VACIA-EN-DOS-ARTICULOS",
+      "estado": "PENDIENTE, no bloqueante",
+      "detalle": "ASU-101181 y ASU-108004 sin categoria. La naturaleza esta determinada"
+    },
+    {
+      "id": "PRECIOS-Y-UBICACIONES-AUSENTES",
+      "estado": "PENDIENTE, no bloqueante",
+      "detalle": "los XLSX no los traen. Se guardan como ausentes, no como cero"
+    },
+    {
+      "id": "SEIS-SLICES-FUERA-DE-MAIN",
+      "estado": "PENDIENTE, no bloqueante",
+      "detalle": "main sigue en 7db56a0 mientras produccion corre rc.32 con el catalogo cargado"
+    },
+    {
+      "id": "ANULACION-EN-DIA-CERRADO",
+      "estado": "PENDIENTE, no bloqueante",
+      "detalle": "heredada del slice 6"
+    }
+  ],
+  "verification": {
+    "estado_canonico": "verificado, sin drift",
+    "pendientes_extraidos_de_la_base": 5,
+    "dry_run": "PASS, 0 fallas",
+    "idempotencia": "PASS",
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "caja_historica": "intacta",
+    "backup": "hecho y verificado",
+    "produccion_intacta": "sha256 25cd7d04... antes y despues",
+    "gates": {
+      "librarian": "PASS",
+      "qa": "PASS",
+      "auditor": "PASS",
+      "artifact_consistency": "PASS"
+    }
+  }
+}

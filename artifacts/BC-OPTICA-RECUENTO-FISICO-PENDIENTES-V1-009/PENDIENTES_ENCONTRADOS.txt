@@ -1,0 +1,30 @@
+PENDIENTES DE CONTEO FISICO, SEGUN LA BASE PRODUCTIVA
+base: C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256: 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658
+
+  OK   5 articulos esperan conteo
+  ASUNCION    000010  LIMPIA CRISTAL                       nature=PRODUCTO_STOCKEABLE
+      la fuente declaraba : 2860
+      origen              : PC - Inventario.xlsx#8397 (corte 2026-08-03)
+  OK   000010 en ASUNCION: sigue sin movimiento (0)
+      OJO: en otra sucursal ya tiene {'PILAR': 10} -- no se toca
+  PILAR      2000056  Par de patillas                      nature=PRODUCTO_STOCKEABLE
+      la fuente declaraba : 526
+      origen              : P2 - Inventario.xlsx#842 (corte 2026-08-10)
+  OK   2000056 en PILAR: sigue sin movimiento (0)
+  PILAR      2000070  Hilo                                 nature=PRODUCTO_STOCKEABLE
+      la fuente declaraba : 99981
+      origen              : P2 - Inventario.xlsx#854 (corte 2026-08-10)
+  OK   2000070 en PILAR: sigue sin movimiento (0)
+  PILAR      2000071  Tornillo                             nature=PRODUCTO_STOCKEABLE
+      la fuente declaraba : 99425
+      origen              : P2 - Inventario.xlsx#855 (corte 2026-08-10)
+  OK   2000071 en PILAR: sigue sin movimiento (0)
+  PILAR      2000072  Plaqueta                             nature=PRODUCTO_STOCKEABLE
+      la fuente declaraba : 9393
+      origen              : P2 - Inventario.xlsx#856 (corte 2026-08-10)
+  OK   2000072 en PILAR: sigue sin movimiento (0)
+
+planilla de conteo: artifacts\BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009\conteo.json
+
+VEREDICTO: PASS (0 fallas)

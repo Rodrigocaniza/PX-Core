@@ -1,0 +1,37 @@
+[
+ {
+  "sku": "000010",
+  "sucursal": "ASUNCION",
+  "nombre": "LIMPIA CRISTAL",
+  "source_reported_quantity": 2860,
+  "cantidad_fisica": null
+ },
+ {
+  "sku": "2000056",
+  "sucursal": "PILAR",
+  "nombre": "Par de patillas",
+  "source_reported_quantity": 526,
+  "cantidad_fisica": null
+ },
+ {
+  "sku": "2000070",
+  "sucursal": "PILAR",
+  "nombre": "Hilo",
+  "source_reported_quantity": 99981,
+  "cantidad_fisica": null
+ },
+ {
+  "sku": "2000071",
+  "sucursal": "PILAR",
+  "nombre": "Tornillo",
+  "source_reported_quantity": 99425,
+  "cantidad_fisica": null
+ },
+ {
+  "sku": "2000072",
+  "sucursal": "PILAR",
+  "nombre": "Plaqueta",
+  "source_reported_quantity": 9393,
+  "cantidad_fisica": null
+ }
+]

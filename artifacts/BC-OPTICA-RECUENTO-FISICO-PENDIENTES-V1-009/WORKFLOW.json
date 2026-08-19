@@ -1,0 +1,90 @@
+{
+  "mission": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "HUMAN_GATE",
+  "pc": "Optica",
+  "headless_executor": "NO USADO: la simulacion levanta el controlador comercial contra una copia de la base productiva",
+  "lease": {
+    "held": false,
+    "otros_leases_vivos": 0,
+    "nota": "mision nueva, sin artefactos previos propios"
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "verificacion canonica, extraccion de pendientes, mecanismo y dry run",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "regla_de_corte": "si el dry run fallaba no se llegaba al HUMAN_GATE. Dio PASS con 0 fallas",
+  "steps": [
+    {
+      "step": "verificacion canonica y eleccion de base",
+      "state": "DONE",
+      "detalle": "fetch, main en 7db56a0, 008 en f5a55b7 y fuera de main, ancestria verificada desde el slice 6. Base elegida f5a55b7"
+    },
+    {
+      "step": "verificacion del estado productivo",
+      "state": "DONE",
+      "detalle": "rc.32, 27 migraciones, 3.554 articulos, 3.583 movimientos, 5.849 + 2.899 unidades, Caja intacta, integridad ok, sha256 25cd7d04..."
+    },
+    {
+      "step": "worktree propio",
+      "state": "DONE",
+      "detalle": ".worktrees/optica-recuento-009 desde f5a55b7"
+    },
+    {
+      "step": "fase 1 - extraer los pendientes de la base",
+      "state": "DONE",
+      "detalle": "5 encontrados por admin_audit_log, con articulo, codigo, sucursal, nature, cifra fuente, archivo y corte. Los 5 siguen sin movimiento en su sucursal"
+    },
+    {
+      "step": "fase 1 - comprobaciones especificas",
+      "state": "DONE",
+      "detalle": "000010 conserva sus 10 unidades en PILAR; ASUNCION sigue sin movimiento por sus 2.860 reportados"
+    },
+    {
+      "step": "fase 1 - planilla de conteo",
+      "state": "DONE",
+      "detalle": "conteo.json, cinco filas con la cifra fuente y el hueco para la fisica"
+    },
+    {
+      "step": "fase 1 - mecanismo de registro",
+      "state": "DONE",
+      "detalle": "tools/recuento_pendientes_optica.py, con backup, validaciones, verificacion post-escritura y rollback escrito"
+    },
+    {
+      "step": "fase 1 - dry run sobre copia aislada",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Cantidad positiva, cantidad cero, aislamiento entre sucursales, idempotencia, invariantes y Caja"
+    },
+    {
+      "step": "fase 1 - backup verificable",
+      "state": "DONE",
+      "detalle": "bc-caja-prerecuento-20260819-142306.sqlite3, sha256 71580fc8..., equivalente a la base"
+    },
+    {
+      "step": "conteo fisico",
+      "state": "HUMAN_GATE",
+      "detalle": "cinco numeros. Es lo unico que no puede salir de ningun archivo"
+    },
+    {
+      "step": "escritura productiva",
+      "state": "NO EJECUTADA",
+      "detalle": "espera las cantidades"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA",
+      "detalle": "main sigue en 7db56a0"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "escritura_en_produccion": "NO",
+    "inventar_cantidades": "NO",
+    "reutilizar_la_cifra_de_la_planilla_como_conteo": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "force_push": "NO"
+  }
+}

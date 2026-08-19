@@ -1,0 +1,27 @@
+[
+ {
+  "sku": "000010",
+  "sucursal": "ASUNCION",
+  "cantidad_fisica": 143
+ },
+ {
+  "sku": "2000056",
+  "sucursal": "PILAR",
+  "cantidad_fisica": 12
+ },
+ {
+  "sku": "2000070",
+  "sucursal": "PILAR",
+  "cantidad_fisica": 0
+ },
+ {
+  "sku": "2000071",
+  "sucursal": "PILAR",
+  "cantidad_fisica": 37
+ },
+ {
+  "sku": "2000072",
+  "sucursal": "PILAR",
+  "cantidad_fisica": 0
+ }
+]

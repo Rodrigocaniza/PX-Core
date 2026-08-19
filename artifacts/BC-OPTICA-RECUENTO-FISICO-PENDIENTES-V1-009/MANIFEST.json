@@ -1,0 +1,151 @@
+{
+  "mission": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
+  "tipo": "cierre de stocks iniciales pendientes de verificacion fisica",
+  "pc": "Optica",
+  "branch": "feature/bc-optica-recuento-fisico-pendientes-v1-009",
+  "worktree": ".worktrees/optica-recuento-009",
+  "base_commit": "f5a55b7cbcdd41cfb961ba35a79ad61e4ee8e62d",
+  "base_branch": "feature/bc-optica-carga-inicial-catalogo-v1-008",
+  "origin_main": "7db56a082d06c735583a2717da3ad273f4d41a84",
+  "main_tocado": false,
+  "pr": false,
+  "merge_to_main": false,
+  "force_push": false,
+  "estado": "HUMAN_GATE, esperando las cinco cantidades fisicas",
+  "base_canonica": {
+    "elegida": "f5a55b7",
+    "por_que_no_origin_main": "main = 7db56a0 = rc.31 con 21 migraciones. Produccion corre rc.32 con 27 y con el catalogo ya cargado. Ramificar desde main eliminaria Commercial Core entero",
+    "cadena_verificada": "7db56a0 -> ... -> 5bc1540 (codigo de rc.32) -> a7b685c (instalacion) -> f5a55b7 (catalogo cargado)",
+    "produccion_por_delante_de_main": true
+  },
+  "estado_productivo_verificado": {
+    "version": "BC Caja 1.0.0-rc.32",
+    "migraciones": 27,
+    "articulos": 3554,
+    "movimientos": 3583,
+    "unidades_ASUNCION": 5849,
+    "unidades_PILAR": 2899,
+    "unidades_totales": 8748,
+    "cash_entries": 12,
+    "suma_total": 6400000,
+    "sale_items": 10,
+    "cash_days": 2,
+    "orders": 8,
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "sha256": "25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658"
+  },
+  "pendientes_encontrados": {
+    "de_donde_salen": "admin_audit_log, action = STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION. No de una lista escrita a mano ni del prompt",
+    "cuantos": 5,
+    "detalle": [
+      {
+        "sucursal": "ASUNCION",
+        "sku": "000010",
+        "nombre": "LIMPIA CRISTAL",
+        "nature": "PRODUCTO_STOCKEABLE",
+        "source_reported_quantity": 2860,
+        "fuente": "PC - Inventario.xlsx#8397",
+        "corte": "2026-08-03",
+        "movimientos_en_esa_sucursal": 0,
+        "nota": "en PILAR ya tiene 10 unidades confirmadas, que no se tocan"
+      },
+      {
+        "sucursal": "PILAR",
+        "sku": "2000056",
+        "nombre": "Par de patillas",
+        "nature": "PRODUCTO_STOCKEABLE",
+        "source_reported_quantity": 526,
+        "fuente": "P2 - Inventario.xlsx#842",
+        "corte": "2026-08-10",
+        "movimientos_en_esa_sucursal": 0
+      },
+      {
+        "sucursal": "PILAR",
+        "sku": "2000070",
+        "nombre": "Hilo",
+        "nature": "PRODUCTO_STOCKEABLE",
+        "source_reported_quantity": 99981,
+        "fuente": "P2 - Inventario.xlsx#854",
+        "corte": "2026-08-10",
+        "movimientos_en_esa_sucursal": 0
+      },
+      {
+        "sucursal": "PILAR",
+        "sku": "2000071",
+        "nombre": "Tornillo",
+        "nature": "PRODUCTO_STOCKEABLE",
+        "source_reported_quantity": 99425,
+        "fuente": "P2 - Inventario.xlsx#855",
+        "corte": "2026-08-10",
+        "movimientos_en_esa_sucursal": 0
+      },
+      {
+        "sucursal": "PILAR",
+        "sku": "2000072",
+        "nombre": "Plaqueta",
+        "nature": "PRODUCTO_STOCKEABLE",
+        "source_reported_quantity": 9393,
+        "fuente": "P2 - Inventario.xlsx#856",
+        "corte": "2026-08-10",
+        "movimientos_en_esa_sucursal": 0
+      }
+    ]
+  },
+  "ubicacion_para_contar": {
+    "dato_disponible": "NINGUNO. PC - Inventario.xlsx tiene columnas Casilla y Zona pero vienen vacias en las 2.586 filas, y P2 no las tiene. articles.location esta vacio en los cinco",
+    "lo_que_si_se_puede_decir": "sucursal, categoria y marca. Los cuatro de PILAR son de la categoria Compostura: el cajon de repuestos del taller"
+  },
+  "mecanismo": {
+    "herramienta": "tools/recuento_pendientes_optica.py",
+    "listar": "lee los pendientes de la base y emite la planilla de conteo",
+    "aplicar": "toma las cantidades contadas, hace backup, asienta y verifica. No escribe sin --confirmar",
+    "hecho_que_se_registra": "INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL, que es lo que realmente es: la primera vez que ese articulo tiene unidades",
+    "fecha_del_movimiento": "la del recuento de hoy, NO la de los XLSX de agosto",
+    "cantidad_cero": "no se inventa un movimiento de cero. Se registra PHYSICAL_COUNT_CONFIRMED con physical_count = 0 y movimiento_creado = false, que es lo que distingue «se conto y no habia» de «nunca se conto»",
+    "la_cifra_vieja": "NO se borra ni se reescribe. El cierre guarda source_reported_quantity, fuente_anterior, corte_anterior, physical_count y el run_id del movimiento",
+    "idempotencia": "un pendiente ya cerrado desaparece de la lista, asi que reaplicar el mismo conteo no escribe nada"
+  },
+  "dry_run": {
+    "artefacto": "DRY_RUN.txt",
+    "base": "copia consistente de la base productiva",
+    "cantidades_de_ensayo": "143, 12, 0, 37, 0 -- elegidas para ejercitar los dos caminos, no son las reales",
+    "veredicto": "PASS, 0 fallas",
+    "movimientos_nuevos": "3, uno por cada cantidad mayor que cero",
+    "ASUNCION": "5849 -> 5992",
+    "PILAR": "2899 -> 2948",
+    "cero_distinguible": "los dos que dieron cero quedaron con PHYSICAL_COUNT_CONFIRMED = 0, sin movimiento, conservando su cifra fuente",
+    "sucursales_no_se_mezclan": "000010 quedo en 143 en ASUNCION y siguio en 10 en PILAR",
+    "idempotencia": "PASS, el segundo intento no escribe nada",
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "caja_intacta": {
+      "entradas": 12,
+      "suma": 6400000,
+      "sale_items": 10,
+      "dias": 2,
+      "pedidos": 8
+    },
+    "base_productiva_intacta": "sha256 25cd7d04... antes y despues"
+  },
+  "seguridad_productiva": {
+    "backup_de_referencia": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-prerecuento-20260819-142306.sqlite3",
+    "sha256": "71580fc835301902ca9c81eb38c0ddea41c386ee1ca1af47801942c80ea73f6c",
+    "bytes": 5906432,
+    "verificado": "equivalente a la base en articulos, movimientos, unidades por sucursal, pendientes, Caja, integridad y FK",
+    "el_paso_productivo_hace_el_suyo": true,
+    "rollback": "cerrar BC Caja, borrar bc_caja.sqlite3 con su -wal y -shm, copiar el backup encima"
+  },
+  "no_ejecutado_a_proposito": {
+    "escritura_en_produccion": "NO. Espera las cinco cantidades",
+    "inventar_una_cantidad": "NO",
+    "usar_la_cifra_de_la_planilla_como_conteo": "NO. Es lo que la mision anterior decidio explicitamente no hacer",
+    "tocar_las_10_unidades_de_000010_en_PILAR": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO"
+  }
+}

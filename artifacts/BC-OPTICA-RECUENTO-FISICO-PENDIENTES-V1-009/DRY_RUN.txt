@@ -1,0 +1,124 @@
+DRY RUN -- RECUENTO FISICO DE LOS CINCO PENDIENTES
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 antes    : 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658
+copia           : C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\55fef905-3b6d-44f0-bf35-8b120350484f\scratchpad\m009\dryrun009.sqlite3
+antes           : 3554 articulos, 3583 movimientos, ASU 5849 / PIL 2899, pendientes 5, cerrados 0
+
+== cantidades de ENSAYO (no son las reales) ==
+    ASUNCION    000010 -> 143
+    PILAR      2000056 -> 12
+    PILAR      2000070 -> 0
+    PILAR      2000071 -> 37
+    PILAR      2000072 -> 0
+
+== aplicando sobre la copia ==
+    RECUENTO FISICO -- APLICACION
+    base   : C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\55fef905-3b6d-44f0-bf35-8b120350484f\scratchpad\m009\dryrun009.sqlite3
+    sha256 : 71580fc835301902ca9c81eb38c0ddea41c386ee1ca1af47801942c80ea73f6c
+    conteo : conteo_ensayo.json
+    
+    == el conteo corresponde a lo que la base dice que falta ==
+      OK   todo lo contado es un pendiente conocido ([] sin reconocer)
+      OK   000010 en ASUNCION: cantidad fisica valida (143)
+      OK   2000056 en PILAR: cantidad fisica valida (12)
+      OK   2000070 en PILAR: cantidad fisica valida (0)
+      OK   2000071 en PILAR: cantidad fisica valida (37)
+      OK   2000072 en PILAR: cantidad fisica valida (0)
+    
+    == lo que se asentaria, con fecha de HOY (2026-08-19) ==
+      ASUNCION    000010 LIMPIA CRISTAL                 fuente decia   2860 -> contado    143  (un movimiento de 143 unidades)
+      PILAR      2000056 Par de patillas                fuente decia    526 -> contado     12  (un movimiento de 12 unidades)
+      PILAR      2000070 Hilo                           fuente decia  99981 -> contado      0  (NINGUN movimiento: se registra que se conto y dio cero)
+      PILAR      2000071 Tornillo                       fuente decia  99425 -> contado     37  (un movimiento de 37 unidades)
+      PILAR      2000072 Plaqueta                       fuente decia   9393 -> contado      0  (NINGUN movimiento: se registra que se conto y dio cero)
+    
+    == backup verificable, antes de tocar nada ==
+      backup : C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\55fef905-3b6d-44f0-bf35-8b120350484f\scratchpad\m009\Backups\bc-caja-prerecuento-20260819-142251.sqlite3
+      sha256 : 71580fc835301902ca9c81eb38c0ddea41c386ee1ca1af47801942c80ea73f6c
+      OK   el backup tiene los mismos datos que la base
+    
+    == asentando ==
+      000010 en ASUNCION: 1 movimiento, corrida recuento-fisico-000010-asuncion-20260819
+      2000056 en PILAR: 1 movimiento, corrida recuento-fisico-2000056-pilar-20260819
+      2000070 en PILAR: contado y dio cero. Sin movimiento, porque no hubo nada que ingresar
+      2000071 en PILAR: 1 movimiento, corrida recuento-fisico-2000071-pilar-20260819
+      2000072 en PILAR: contado y dio cero. Sin movimiento, porque no hubo nada que ingresar
+      5 pendientes cerrados como PHYSICAL_COUNT_CONFIRMED
+    
+    == verificacion post-escritura ==
+      OK   3 movimientos nuevos, uno por cada cantidad mayor que cero (3)
+      OK   ASUNCION: 5849 -> 5992 (+143)
+      OK   PILAR: 2899 -> 2948 (+49)
+      OK   5 pendientes cerrados
+      OK   las filas de PENDIENTE siguen ahi: la historia no se borra
+      OK   integrity_check: ok
+      OK   foreign_key_check: 0
+      OK   stock negativo: 0
+      OK   huerfanos: 0
+      OK   efectos sin hecho: 0
+      OK   Caja, entradas sin cambios: 12
+      OK   Caja, suma_caja sin cambios: 6400000
+      OK   Caja, sale_items sin cambios: 10
+      OK   Caja, cash_days sin cambios: 2
+      OK   Caja, orders sin cambios: 8
+    
+    sha256 base despues: 73c1ff063c177686800da71331da36ed53d735480dc27cc9e698ddacc6b1ac2d
+  OK   el mecanismo aplico sin fallas
+
+== resultado ==
+  OK   3 movimientos nuevos, uno por cada cantidad > 0 (3)
+  OK   ASUNCION: 5849 -> 5992
+  OK   PILAR: 2899 -> 2948
+  OK   5 pendientes cerrados como PHYSICAL_COUNT_CONFIRMED
+  OK   las filas de PENDIENTE no se borraron: la historia queda
+
+== contado y dio cero: distinguible de nunca contado ==
+  OK   2000070: PHYSICAL_COUNT_CONFIRMED con physical_count = 0, no ausencia de registro
+  OK   2000070: registra que NO se creo movimiento
+  OK   2000070: conserva la cantidad que declaraba la fuente (99981)
+  OK   2000070: sigue sin unidades
+  OK   2000072: PHYSICAL_COUNT_CONFIRMED con physical_count = 0, no ausencia de registro
+  OK   2000072: registra que NO se creo movimiento
+  OK   2000072: conserva la cantidad que declaraba la fuente (9393)
+  OK   2000072: sigue sin unidades
+
+== no se mezclan sucursales ==
+  OK   000010 en PILAR sigue en 10 (10)
+  OK   000010 en ASUNCION quedo en 143
+
+== trazabilidad del vinculo ==
+  OK   el cierre guarda «source_reported_quantity»: 2860
+  OK   el cierre guarda «physical_count»: 143
+  OK   el cierre guarda «run_id»: 'recuento-fisico-000010-asuncion-20260819'
+  OK   el cierre guarda «fuente_anterior»: 'PC - Inventario.xlsx#8397'
+  OK   el cierre guarda «corte_anterior»: '2026-08-03'
+  OK   el cierre guarda «cierra»: 'STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION'
+  OK   el cierre guarda «contado_el»: '2026-08-19'
+  OK   el movimiento es INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL
+  OK   la fecha es la del recuento de hoy, no la del XLSX: 2026-08-19
+    nota: Recuento fisico del 2026-08-19 en ASUNCION, articulo 000010 LIMPIA CRISTAL. La planilla anterior declaraba 286
+
+== idempotencia: volver a aplicar el mismo conteo ==
+  OK   no se duplicaron movimientos: 3586
+  OK   no se duplicaron unidades
+  OK   no se duplicaron cierres: 5
+  ---  el segundo intento ve la lista de pendientes ya vacia y no tiene nada que hacer
+
+== invariantes ==
+  OK   integrity_check: ok
+  OK   foreign_key_check: 0
+  OK   stock negativo: 0
+  OK   movimientos huerfanos: 0
+  OK   efectos sin hecho: 0
+
+== Caja historica ==
+  OK   entradas sin cambios: 12
+  OK   dinero sin cambios: 6400000
+  OK   lineas de venta sin cambios: 10
+  OK   dias sin cambios: 2
+  OK   pedidos sin cambios: 8
+
+sha256 base productiva despues: 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658
+  OK   la base productiva quedo intacta
+
+VEREDICTO: PASS (0 fallas)
