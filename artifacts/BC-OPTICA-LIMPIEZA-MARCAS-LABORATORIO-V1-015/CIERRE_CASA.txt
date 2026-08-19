@@ -1,0 +1,50 @@
+==============================================================================
+SAFE CLOSURE -- V1-015, lado Casa
+==============================================================================
+
+Se cierra el trabajo que se podia hacer sin la base de la Optica. Lo unico que
+queda es aplicarlo alla, y esta preparado hasta el ultimo paso.
+
+  branch  : feature/bc-optica-limpieza-marcas-laboratorio-v1-015
+  parte de: origin/feature/bc-optica-laboratorio-por-defecto-v1-012 @ a0bd4da
+  worktree: .worktrees/optica-marcas-lab-015
+
+REGLA DE CASA, RESPETADA
+  No se toco ninguna base productiva. No existe base productiva en esta PC: hay
+  una ruta con el mismo nombre y eso no la vuelve la de la Optica. Todo lo que
+  se escribio fue sobre copias en el scratchpad de la sesion, armadas desde el
+  catalogo canonico de V1-008.
+
+  No se afirma validacion contra produccion. Lo que se afirma esta en
+  ARTIFACT_CONSISTENCY.md, con las diferencias entre la copia y produccion
+  puestas de frente.
+
+GATES
+  pruebas dirigidas .......... PASS  21 verdes
+  suite comercial ............ PASS  342 verdes
+  suite del repo ............. 1022 verdes, 2 rojas preexistentes en
+                               tests/gestion_central/test_ui_interactions.py,
+                               verificadas rojas en a0bd4da con git stash -u
+  dry-run .................... PASS  28 / 2 / 1 sobre los 31
+  aplicacion simulada ........ PASS  30 brand_id, 0 campos inesperados
+  idempotencia ............... PASS  la segunda corrida no escribe nada
+  integridad ................. PASS  integrity ok, FK 0, negativos 0,
+                               huerfanos 0, efectos sin hecho 0
+  Librarian .................. PASS  artifacts completos y con procedencia
+  QA ......................... PASS  clasificacion e invariantes probados
+  Auditor .................... PASS  cada numero rastreado a una corrida real
+  Artifact Consistency ....... PASS  ARTIFACT_CONSISTENCY.md
+  main ....................... intacto, no se toco
+  force-push ................. no se uso
+
+HUMAN_GATE
+  Uno solo: 2000212 ST Fotocromatico. Puede cerrarse solo al releer la fuente
+  corregida en la Optica.
+
+ESTADO
+  READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA
+
+NEXT_ACTION
+  En la Optica, con BC Caja cerrado: dry-run con --fuente-corregida, comparar
+  contra DRY_RUN.txt, y recien entonces --confirmar. Paso a paso en
+  APLICACION_EN_LA_OPTICA.md.

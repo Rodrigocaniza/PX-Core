@@ -1,0 +1,326 @@
+{
+  "mision": "BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015",
+  "que_es": "Lo que las fuentes corregidas del 19/08 dicen sobre la columna «Marca», tal como quedo registrado en V1-010 y V1-012. Se usa solo cuando el .xls corregido no esta a mano; cuando esta, el .xls manda y esto se compara contra el.",
+  "por_que_existe": "las fuentes corregidas viven en la PC de la Optica (C:/Users/Striker/Downloads). Desde Casa no se pueden leer. Su contenido relevante quedo asentado en artifacts de misiones cerradas, y eso es evidencia, no memoria.",
+  "procedencia": [
+    {
+      "artifact": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010/PERFIL_CORREGIDOS.txt",
+      "dice": "Inventario P2.xls (PILAR), fechado 2026-08-19, encabezado ['Articulo','Cod. Barra','Categoria','Marca','CostoA','PrecioA','Stock A Fecha']; 24 filas en Cristales y 21 en Compostura. La fuente corregida separo los cristales de Compostura, que en la planilla vieja iban mezclados."
+    },
+    {
+      "artifact": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012/MANIFEST.json#hilo_2000070",
+      "dice": "«en las fuentes CORREGIDAS del 19/08, las dos sucursales le dan a Hilo la marca ‹Óptica Puppilent`s›, no un laboratorio»"
+    },
+    {
+      "artifact": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012/MANIFEST.json#hilo_2000070.alcance_real",
+      "dice": "«En las fuentes corregidas las 21 filas de Compostura pasaron a ‹Óptica Puppilent`s›, y produccion todavia tiene las marcas viejas porque V1-010 no tocaba marcas. Y en Cristales la ‹Marca› sigue siendo el laboratorio: 20 articulos con Optilab o Servi Optical»"
+    }
+  ],
+  "reglas_derivadas": {
+    "Compostura": {
+      "marca_en_fuente_corregida": "Óptica Puppilent`s",
+      "cobertura": "las 21 filas de la categoria Compostura en Inventario P2.xls",
+      "verificado_por_sku": [
+        "2000070"
+      ],
+      "inferido_por_bloque": [
+        "2000065"
+      ]
+    },
+    "Cristales": {
+      "marca_en_fuente_corregida": "sigue siendo el nombre del laboratorio",
+      "consecuencia": "la fuente corregida NO aporta marca real para ningun cristal"
+    },
+    "Armazones": {
+      "marca_en_fuente_corregida": "desconocida desde Casa",
+      "consecuencia": "2000212 no se resuelve sin releer el .xls en la Optica"
+    }
+  },
+  "marcas_que_son_laboratorio": {
+    "Laboratorio Optilab": {
+      "laboratorio": "Laboratorio Optilab",
+      "articulos": 23
+    },
+    "Laboratorio Servi Optical": {
+      "laboratorio": "ServiOptica",
+      "articulos": 8,
+      "nota": "el laboratorio del catalogo se llama «ServiOptica». Que sean el mismo con dos nombres es pregunta 3 del HUMAN_GATE de V1-012 y no se resuelve aca: para limpiar la marca alcanza con saber que ese texto nombra un laboratorio, no una marca de fabricante."
+    }
+  },
+  "no_son_laboratorios": {
+    "Optica San Cayetano": {
+      "articulos": 12,
+      "por_que": "es una optica, no uno de los tres laboratorios del catalogo. VALID_BRAND, fuera de alcance"
+    },
+    "Optica Puppilents": {
+      "articulos": 1,
+      "por_que": "la propia optica, en 000010 LIMPIA CRISTAL. VALID_BRAND, fuera de alcance"
+    },
+    "FENIX": {
+      "articulos": 1,
+      "por_que": "marca de 2000239 POLIBLUE, aparece una sola vez y no es ninguno de los tres laboratorios. No se toca"
+    }
+  },
+  "los_31": [
+    {
+      "sku": "2000060",
+      "nombre": "Organico UVX",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#845@2026-08-10"
+    },
+    {
+      "sku": "2000061",
+      "nombre": "Fotocromático (AR)",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#846@2026-08-10"
+    },
+    {
+      "sku": "2000062",
+      "nombre": "Multifocal (OP)",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#847@2026-08-10"
+    },
+    {
+      "sku": "2000063",
+      "nombre": "Kripto (Kto) Organico UVX",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#848@2026-08-10"
+    },
+    {
+      "sku": "2000064",
+      "nombre": "Blue Ar",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#849@2026-08-10"
+    },
+    {
+      "sku": "2000065",
+      "nombre": "Adaptacion de cristal",
+      "categoria": "Compostura",
+      "naturaleza": "SERVICIO_NO_STOCKEABLE",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#850@2026-08-10"
+    },
+    {
+      "sku": "2000067",
+      "nombre": "Bifocal (ST)",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#852@2026-08-10"
+    },
+    {
+      "sku": "2000070",
+      "nombre": "Hilo",
+      "categoria": "Compostura",
+      "naturaleza": "PRODUCTO_STOCKEABLE",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#854@2026-08-10"
+    },
+    {
+      "sku": "2000073",
+      "nombre": "Multiblue",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#859@2026-08-10"
+    },
+    {
+      "sku": "2000074",
+      "nombre": "Progresivo OP",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#860@2026-08-10"
+    },
+    {
+      "sku": "2000075",
+      "nombre": "Futurex Protec",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Servi Optical",
+      "origen": "PILAR=P2 - Inventario.xlsx#861@2026-08-10"
+    },
+    {
+      "sku": "2000076",
+      "nombre": "Blue Protec",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Servi Optical",
+      "origen": "PILAR=P2 - Inventario.xlsx#862@2026-08-10"
+    },
+    {
+      "sku": "2000086",
+      "nombre": "Foto Sunactive",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Servi Optical",
+      "origen": "PILAR=P2 - Inventario.xlsx#863@2026-08-10"
+    },
+    {
+      "sku": "2000125",
+      "nombre": "FUTUREX STEEL",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Servi Optical",
+      "origen": "PILAR=P2 - Inventario.xlsx#865@2026-08-10"
+    },
+    {
+      "sku": "2000126",
+      "nombre": "FUTUREX G2",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Servi Optical",
+      "origen": "PILAR=P2 - Inventario.xlsx#881@2026-08-10"
+    },
+    {
+      "sku": "2000127",
+      "nombre": "Green AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#864@2026-08-10"
+    },
+    {
+      "sku": "2000206",
+      "nombre": "Kto.Invisible",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#874@2026-08-10"
+    },
+    {
+      "sku": "2000207",
+      "nombre": "Kto.AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#875@2026-08-10"
+    },
+    {
+      "sku": "2000208",
+      "nombre": "Kto.Blue AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#876@2026-08-10"
+    },
+    {
+      "sku": "2000209",
+      "nombre": "Blue Fotocromatico AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#877@2026-08-10"
+    },
+    {
+      "sku": "2000210",
+      "nombre": "Multifocal Foto AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#878@2026-08-10"
+    },
+    {
+      "sku": "2000211",
+      "nombre": "Multifocal AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#879@2026-08-10"
+    },
+    {
+      "sku": "2000212",
+      "nombre": "ST Fotocromatico",
+      "categoria": "Armazones",
+      "naturaleza": "PRODUCTO_STOCKEABLE",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#809@2026-08-10"
+    },
+    {
+      "sku": "2000213",
+      "nombre": "Org AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#868@2026-08-10"
+    },
+    {
+      "sku": "2000214",
+      "nombre": "Kto.Foto.AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Servi Optical",
+      "origen": "PILAR=P2 - Inventario.xlsx#869@2026-08-10"
+    },
+    {
+      "sku": "2000215",
+      "nombre": "Kto.Foto",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#870@2026-08-10"
+    },
+    {
+      "sku": "2000216",
+      "nombre": "Kto.Foto Blue AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Servi Optical",
+      "origen": "PILAR=P2 - Inventario.xlsx#871@2026-08-10"
+    },
+    {
+      "sku": "2000217",
+      "nombre": "Policarbonato Blanco",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Servi Optical",
+      "origen": "PILAR=P2 - Inventario.xlsx#872@2026-08-10"
+    },
+    {
+      "sku": "2000218",
+      "nombre": "Policarbonato AR",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#873@2026-08-10"
+    },
+    {
+      "sku": "2000219",
+      "nombre": "Multiblue Foto Ar",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#880@2026-08-10"
+    },
+    {
+      "sku": "2000227",
+      "nombre": "Progresivo Rodensto",
+      "categoria": "Cristales",
+      "naturaleza": "TRABAJO_BAJO_PEDIDO",
+      "marca_actual": "Laboratorio Optilab",
+      "origen": "PILAR=P2 - Inventario.xlsx#866@2026-08-10"
+    }
+  ],
+  "marca_destino_compostura": {
+    "nombre": "Óptica Puppilent`s",
+    "ya_existe_en_produccion": true,
+    "usos_actuales": 7,
+    "por_que_esa_grafia": "es la que ya vive en `brands` y la que V1-014 restauro en 000010 LIMPIA CRISTAL. Escribirla de otra forma crearia una marca nueva, y esta mision no crea ninguna."
+  },
+  "hallazgo_lateral_no_resuelto": {
+    "id": "MARCA-CASI-DUPLICADA",
+    "detalle": "conviven «Óptica Puppilent`s» (7 articulos) y «Optica Puppilents» (1). Es la misma optica escrita de dos maneras.",
+    "decision": "no se unifica en V1-015. Unificar marcas es otra mision y tocaria articulos fuera de los 31."
+  },
+  "nota_encoding_csv": "catalogo_canonico.csv de V1-008 tiene algunos acentos perdidos como U+FFFD en la columna `name` (dano de exportacion de aquella mision, no de produccion). SKU, categoria y marca estan intactos, y son los tres campos que esta mision usa."
+}

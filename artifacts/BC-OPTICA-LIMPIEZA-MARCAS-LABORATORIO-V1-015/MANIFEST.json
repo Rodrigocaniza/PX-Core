@@ -1,0 +1,137 @@
+{
+  "mision": "BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015",
+  "estado": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+  "aplicado_en_produccion": false,
+  "donde_se_hizo": "Casa. La base productiva de la Optica no viaja con Git: vive solo en C:/Users/Striker/AppData/Local/BC/Caja/bc_caja.sqlite3. Nada de lo que hay aca se corrio contra ella",
+  "base_git": {
+    "branch": "feature/bc-optica-limpieza-marcas-laboratorio-v1-015",
+    "parte_de": "origin/feature/bc-optica-laboratorio-por-defecto-v1-012 @ a0bd4da",
+    "por_que_no_main": "origin/main esta en 7db56a0, rc.31. La cadena de ocho ramas de la Optica no sale de ahi: ramificar desde main perderia Commercial Core entero. a0bd4da es la punta viva, y contiene a v1-014 (c838f10) como ancestro"
+  },
+  "alcance": {
+    "toca": [
+      "articles.brand_id"
+    ],
+    "no_toca": [
+      "articles.default_laboratory_id",
+      "articles.nature",
+      "articles.category_id",
+      "articles.notes",
+      "articles.sale_price",
+      "articles.supplier_id",
+      "articles.unit",
+      "articles.location",
+      "articles.min_stock",
+      "articles.barcode",
+      "articles.active",
+      "stock_movements",
+      "stock_actual",
+      "sale_items",
+      "sale_items.laboratory",
+      "cash_entries",
+      "brands",
+      "laboratories"
+    ]
+  },
+  "clasificacion": {
+    "LABORATORY_IN_BRAND_CONFIRMED": 28,
+    "CORRECTED_SOURCE_HAS_REAL_BRAND": 2,
+    "VALID_BRAND": 0,
+    "AMBIGUOUS": 1,
+    "NO_ACTION": 0,
+    "total": 31,
+    "cambian": 30
+  },
+  "reglas": [
+    {
+      "id": "R1",
+      "regla": "marca y laboratorio son campos distintos: brand no se usa como fallback de laboratorio, y el laboratorio no se copia a brand"
+    },
+    {
+      "id": "R2",
+      "regla": "si la fuente corregida del 19/08 trae una marca real, esa gana",
+      "aplica_a": [
+        "2000065",
+        "2000070"
+      ],
+      "marca": "Óptica Puppilent`s"
+    },
+    {
+      "id": "R3",
+      "regla": "si el unico valor historico en brand era un laboratorio y ninguna fuente corregida aporta marca real, brand queda en blanco. No se inventa otra",
+      "aplica_a": "los 28 cristales"
+    },
+    {
+      "id": "R4",
+      "regla": "los cristales siguen TRABAJO_BAJO_PEDIDO y su laboratorio sigue en default_laboratory_id"
+    },
+    {
+      "id": "R5",
+      "regla": "las composturas siguen SERVICIO_NO_STOCKEABLE: recuperar una marca no las vuelve productos"
+    },
+    {
+      "id": "R6",
+      "regla": "nada de heuristica amplia. La lista de marcas-laboratorio tiene dos entradas escritas a mano; cualquier otra se denuncia y no se toca"
+    }
+  ],
+  "mecanica": {
+    "operacion": "ComercialController.actualizar_articulo(article_id, actor=..., brand_id=...)",
+    "por_que": "PATCH incorporado en V1-014: lee lo que hay y reemplaza solo lo que se nombra. guardar_articulo reemplaza el registro entero y por eso borro categoria y marca de cinco articulos en V1-010",
+    "campos_nombrados": [
+      "brand_id"
+    ]
+  },
+  "verificado_en_copia_local": {
+    "copia": "reconstruida desde artifacts/BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008/catalogo_canonico.csv mas los 24 defaults copiados de la salida real de V1-012",
+    "articulos": 3554,
+    "categorias": 14,
+    "marcas": 136,
+    "laboratorios": 3,
+    "con_default": 24,
+    "cambios": "30 brand_id, 0 campos inesperados",
+    "integridad": "ok",
+    "fk": 0,
+    "negativos": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "idempotencia": "PASS: la segunda corrida no cambia nada",
+    "no_es": "produccion. La copia no tiene movimientos, ventas, caja ni las 767 bajas de V1-010/V1-013"
+  },
+  "pruebas": {
+    "dirigidas": 21,
+    "suite_comercial": 342,
+    "suite_repo": "1022 passed, 2 failed",
+    "rojas_preexistentes": [
+      "tests/gestion_central/test_ui_interactions.py::test_refresh_and_filters_have_visible_feedback",
+      "tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence"
+    ],
+    "verificacion_preexistencia": "git stash -u sobre a0bd4da: las dos fallan igual sin los cambios de esta mision"
+  },
+  "human_gate": {
+    "abiertos": 1,
+    "caso": "2000212 ST Fotocromatico",
+    "se_cierra_solo_si": "la fuente corregida del 19/08 le da una marca real en el bloque de Armazones"
+  },
+  "pendientes_de_v1_012_no_absorbidos": [
+    "7 codigos de cristales que no existen",
+    "2000078 / 2000219 posible mismo cristal",
+    "6 cristales sin laboratorio por defecto",
+    "telefonos de Optilab / ServiOptica / Laboratorio Cristal",
+    "unificar «Laboratorio Servi Optical» con «ServiOptica»"
+  ],
+  "hallazgo_nuevo": "conviven «Óptica Puppilent`s» (7 articulos) y «Optica Puppilents» (1). No se unifica aca",
+  "esperado_en_produccion": {
+    "articulos": 3596,
+    "activos": 2829,
+    "movimientos": 4441,
+    "asuncion": 6166,
+    "pilar": 2260,
+    "total": 8426,
+    "caja_entradas": 12,
+    "caja_total": 6400000,
+    "marcas": 136,
+    "laboratorios": 3,
+    "con_default": 24,
+    "migraciones": 28
+  }
+}

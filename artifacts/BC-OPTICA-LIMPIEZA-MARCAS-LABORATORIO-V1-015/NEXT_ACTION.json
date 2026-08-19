@@ -1,0 +1,24 @@
+{
+  "mision": "BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015",
+  "estado": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+  "next_action": "En la Optica, con BC Caja cerrado: correr tools/limpieza_marcas_laboratorio_optica.py con --fuente-corregida apuntando al Inventario P2 del 19/08 y SIN --confirmar; comparar el plan contra DRY_RUN.txt (28/2/1); y recien entonces repetir con --confirmar. Los pasos exactos, el rollback y los post-checks estan en APLICACION_EN_LA_OPTICA.md",
+  "desde_casa": "nada mas. Lo que quedaba por hacer necesita la base real",
+  "bloqueantes": [],
+  "human_gate": [
+    "2000212 ST Fotocromatico: se cierra solo si la fuente corregida le da una marca real"
+  ],
+  "despues": [
+    {
+      "id": "V1-016-candidato",
+      "detalle": "los 6 cristales sin laboratorio por defecto. Cinco tenian «Laboratorio Optilab» de marca y esta mision borra ese dato: si se va a usar como pista hay que hacerlo antes, o leerlo del backup bc-caja-premarcas"
+    },
+    {
+      "id": "telefonos",
+      "detalle": "los tres laboratorios siguen sin numero. Se cargan desde el ABM de Laboratorios en Seguimiento"
+    },
+    {
+      "id": "marcas-duplicadas",
+      "detalle": "«Óptica Puppilent`s» vs «Optica Puppilents»"
+    }
+  ]
+}
