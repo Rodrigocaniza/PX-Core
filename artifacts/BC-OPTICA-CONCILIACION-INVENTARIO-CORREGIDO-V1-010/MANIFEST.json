@@ -249,7 +249,7 @@
     "merge_a_main": "NO",
     "pr": "NO"
   },
-  "generacion": 3,
+  "generacion": 4,
   "generacion_1": "primer analisis y dry run. Plan OBSOLETO: 42 altas, +47/-65, ASU 6.904, PIL 2.892. No se reutilizo",
   "generacion_2": "decisiones humanas del 2026-08-19 incorporadas y plan recalculado entero",
   "decisiones_humanas": {
@@ -377,10 +377,10 @@
       "pendientes_cerrados_por_NATURE_CORRECTION": 4,
       "articulos": 3595,
       "activos": 2829,
-      "movimientos": 4438,
-      "ASUNCION": 6276,
+      "movimientos": 4439,
+      "ASUNCION": 6376,
       "PILAR": 2776,
-      "total": 9052
+      "total": 9152
     },
     "verificacion_post": {
       "integrity_check": "ok",
@@ -412,5 +412,53 @@
       "app": "BC Caja abre, ventana 'Caja diaria - Optica'",
       "ui_comercial": "PASS sobre copia de la base ya conciliada"
     }
+  },
+  "adenda_stock_estimado": {
+    "que_es": "V1-010 ya estaba aplicada cuando llego esta decision, asi que NO se recalculo el plan: se agrego un hecho incremental sobre lo ya escrito. El resto de la autorizacion quedo tal cual",
+    "decision_humana": "registrar 100 unidades de 000010 Limpia Cristal en ASUNCION",
+    "naturaleza_de_la_cifra": "ESTIMATED_INITIAL_STOCK. Estimacion operativa aprobada por el dueno, NO un conteo fisico exacto",
+    "por_que_no_PHYSICAL_COUNT_CONFIRMED": "no hubo conteo. Registrarlo como conteo haria indistinguible una estimacion de una medicion, y el dia que alguien cuente de verdad nadie sabria por que la correccion hacia falta",
+    "cifras_fuente_rechazadas": [
+      {
+        "valor": 2860,
+        "fuente": "PC - Inventario.xlsx#8397",
+        "corte": "2026-08-03"
+      },
+      {
+        "valor": 2857,
+        "fuente": "Inventario PC.xls#8397",
+        "corte": "2026-08-19"
+      }
+    ],
+    "conservadas_como": "evidencia historica en admin_audit_log y en las notas del articulo",
+    "herramienta": "tools/stock_inicial_estimado_optica.py --confirmar",
+    "movimiento": "INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL, corrida estimado-000010-asuncion-20260819",
+    "backup": {
+      "archivo": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-preestimado-20260819-160408.sqlite3",
+      "sha256": "502179ce0d8129bfcdad00c67196b7a186ce354ca705a584354c9b994ea01f8c"
+    },
+    "sha256_antes": "ae67faffb7cad9a09fe6000749e27b536edd4098760062f807f38a3ec96f2232",
+    "sha256_despues": "d307e017c86b985b10ba6cb3b72f6d6e355edb75aed52fa4c6f7f0bb4668687c",
+    "efecto": {
+      "000010_ASUNCION": "0 -> 100",
+      "000010_PILAR": "10, intacto",
+      "stock_ASUNCION": "6276 -> 6376",
+      "stock_PILAR": "2776, sin cambios",
+      "total": "9052 -> 9152",
+      "movimientos": "4438 -> 4439",
+      "catalogo": "3595 articulos y 2829 activos, sin cambios"
+    },
+    "sin_efectos_colaterales": "el unico cambio es el derivado de la decision. Catalogo, activos, Caja, historia de V1-008 y el resto del stock, iguales",
+    "idempotencia": "las guardas rechazan un segundo intento sin escribir nada",
+    "si_hay_recuento_real": "la diferencia se corrige con un movimiento compensatorio auditable",
+    "veredicto": "PASS, 0 fallas. Rollback NO"
+  },
+  "estado_final_de_los_cinco_pendientes": {
+    "000010 ASUNCION": "cerrado por ESTIMATED_INITIAL_STOCK, stock 100",
+    "2000056 Par de patillas": "cerrado por NATURE_CORRECTION, stock 0",
+    "2000070 Hilo": "cerrado por NATURE_CORRECTION, stock 0",
+    "2000071 Tornillo": "cerrado por NATURE_CORRECTION, stock 0",
+    "2000072 Plaqueta": "cerrado por NATURE_CORRECTION, stock 0",
+    "abiertos": 0
   }
 }

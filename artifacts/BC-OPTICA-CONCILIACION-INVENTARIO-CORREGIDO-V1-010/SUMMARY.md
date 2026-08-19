@@ -165,6 +165,26 @@ falló con `database is locked` — escribía desde una segunda conexión mientr
 controlador tenía la suya. Se corrigió antes de tocar producción, que es
 exactamente para lo que existía la copia.
 
+## Adenda — los limpia-cristales de Asunción
+
+La decisión llegó cuando V1-010 ya estaba aplicada, así que no se recalculó el
+plan: se agregó un hecho más sobre lo ya escrito. **100 unidades**, y el sistema
+dice de sí mismo que son una estimación, no un conteo.
+
+Eso es la parte que importa. `ESTIMATED_INITIAL_STOCK`, con `es_conteo_fisico:
+false` escrito en el registro y las dos cifras que las fuentes declararon —2.860 y
+2.857, ninguna aceptada— guardadas al lado. Si mañana alguien cuenta y da otra
+cosa, la corrección va a ser un movimiento compensatorio y se va a poder explicar
+por qué hacía falta. Si esto se hubiera registrado como conteo, esa explicación
+se perdía.
+
+ASUNCION 6.276 → **6.376** · PILAR **2.776 intacto** · total **9.152** ·
+movimientos 4.438 → **4.439**. Un solo movimiento, ningún efecto colateral:
+catálogo, activos, Caja y la carga de V1-008 quedaron idénticos.
+
+**Los cinco pendientes están cerrados y no queda ninguno abierto**: cuatro porque
+dejaron de ser inventario, y éste declarando que su número es aproximado.
+
 ## Lo que sigue
 
 Tres slices, en este orden: **013** (retirar `000037` y montar la promoción sobre

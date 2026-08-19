@@ -279,3 +279,80 @@ debería parecer rutina.
 - **La suite completa no se re-corrió.** La misión agrega una herramienta que usa
   los caminos existentes; el dry-run y la aplicación los ejercitaron de punta a
   punta.
+
+---
+
+# Adenda — el stock estimado de `000010` en Asunción
+
+## Primero, una precisión sobre qué es esto
+
+La orden pedía «recalcular el plan final de V1-010 antes de escribir producción».
+**V1-010 ya estaba aplicada** cuando llegó la decisión: producción estaba en
+`ae67faff…` con los 41 altas, los 766 retiros y los 37 ajustes ya escritos.
+
+Así que no se recalculó nada: se agregó **un hecho incremental** sobre lo ya
+escrito. Es la única forma coherente con «no borrar historia» — rehacer el plan
+habría significado deshacer y repetir lo que ya estaba bien.
+
+## Lo que se escribió
+
+| Afirmación | Verificación | Resultado |
+| --- | --- | --- |
+| `000010` en ASUNCION = 100 | suma por destino | ✔ |
+| `000010` en PILAR sigue en 10 | ídem | ✔ intacto |
+| stock ASUNCION 6.276 → 6.376 | radiografía | ✔ |
+| stock PILAR sin cambios | ídem | ✔ 2.776 |
+| movimientos 4.438 → **4.439** | ídem | ✔ un solo movimiento |
+| catálogo sin cambios | 3.595 artículos, 2.829 activos | ✔ |
+| **NO** se registró `PHYSICAL_COUNT_CONFIRMED` | consulta explícita | ✔ 0 |
+| Se registró `ESTIMATED_INITIAL_STOCK` | `admin_audit_log` | ✔ |
+| Las dos cifras fuente quedan guardadas | 2.860 y 2.857 en el `details_json` y en las notas | ✔ |
+| Integridad, FK, negativos, huérfanos, efectos | ✔ 0 |
+| Caja histórica | ✔ 12 / 6.400.000 / 10 / 2 / 8 |
+| V1-008 intacta | ✔ 3.583 movimientos |
+
+`sha256`: `ae67faff…` → `d307e017…`. Backup previo `502179ce…`. **Rollback: NO.**
+
+## Por qué no es un conteo, y por qué importa
+
+Cien unidades son una estimación operativa que el dueño autorizó, no algo que
+alguien contó. Registrarla como `PHYSICAL_COUNT_CONFIRMED` haría indistinguible
+una estimación de una medición: el día que alguien cuente de verdad y dé 63,
+nadie sabría si la corrección es porque se vendieron unidades o porque el número
+original nunca fue un conteo.
+
+Por eso el cierre es `ESTIMATED_INITIAL_STOCK`, con `es_conteo_fisico: false`
+escrito en el registro, las dos cifras fuente rechazadas guardadas al lado, y la
+regla anotada: si más adelante hay un recuento real, la diferencia se corrige con
+un movimiento compensatorio.
+
+## Ningún efecto colateral
+
+La orden pedía detenerse si el recálculo producía algún cambio no derivado
+exclusivamente de esta decisión. **No hubo ninguno**: el único delta es +100 en
+Asunción y un movimiento más. Catálogo, activos, Caja, historia de V1-008 y todo
+el resto del stock quedaron idénticos, verificado uno por uno.
+
+## Los cinco pendientes de V1-008, cerrados
+
+| Sucursal | Código | Stock | Cerrado por |
+| --- | --- | ---: | --- |
+| ASUNCION | `000010` | 100 | `ESTIMATED_INITIAL_STOCK` |
+| PILAR | `2000056` | 0 | `NATURE_CORRECTION` |
+| PILAR | `2000070` | 0 | `NATURE_CORRECTION` |
+| PILAR | `2000071` | 0 | `NATURE_CORRECTION` |
+| PILAR | `2000072` | 0 | `NATURE_CORRECTION` |
+
+**Pendientes abiertos: 0.** Ninguno se cerró inventando una cantidad: cuatro
+porque dejaron de ser inventario, y uno declarando que su número es una
+estimación.
+
+## Idempotencia
+
+Un segundo intento se detiene en las guardas —«ya fue cerrado», «ya tiene
+unidades»— y **no escribe nada**.
+
+## Lo que sigue sin verificarse
+
+- **Nadie contó los limpia-cristales de Asunción.** Las 100 unidades son la mejor
+  cifra disponible, y el sistema dice exactamente eso de sí misma.

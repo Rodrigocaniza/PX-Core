@@ -138,9 +138,19 @@
       "state": "DONE"
     },
     {
+      "step": "adenda: stock estimado de 000010 en ASUNCION",
+      "state": "DONE",
+      "detalle": "V1-010 ya estaba aplicada, asi que no se recalculo el plan: se agrego un hecho incremental. 100 unidades como ESTIMATED_INITIAL_STOCK, no como conteo. PILAR intacto en 10. PASS, 0 fallas, rollback NO"
+    },
+    {
+      "step": "cierre de los cinco pendientes de V1-008",
+      "state": "DONE",
+      "detalle": "uno por ESTIMATED_INITIAL_STOCK y cuatro por NATURE_CORRECTION. Abiertos: 0"
+    },
+    {
       "step": "slices siguientes",
       "state": "NO INICIADOS",
-      "detalle": "013 promo limpia-cristal, 011 Delivery, 012 laboratorio por defecto. En ese orden"
+      "detalle": "013 promo limpia-cristal, 011 Delivery, 012 laboratorio por defecto"
     },
     {
       "step": "merge a main",
@@ -156,5 +166,5 @@
     "pr": "NO",
     "force_push": "NO"
   },
-  "generacion": 3
+  "generacion": 4
 }

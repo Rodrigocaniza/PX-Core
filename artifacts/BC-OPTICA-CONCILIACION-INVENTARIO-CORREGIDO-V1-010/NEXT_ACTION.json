@@ -8,8 +8,8 @@
   "opened_on": "2026-08-19",
   "opened_at": "PC Optica",
   "blocked_on": null,
-  "produccion": "CONCILIADA. 3.595 articulos (2.829 activos), 4.438 movimientos, ASU 6.276 / PIL 2.776, total 9.052. Caja historica intacta",
-  "next_action": "No iniciar nada automaticamente. Orden recomendado: (1) BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013, que retira 000037 y sus 726 unidades ficticias y monta la promocion sobre 000010 + no_cost + salida de stock real; (2) BC-OPTICA-DELIVERY-SERVICE-V1-011, el concepto de envio como servicio con precio editable por venta; (3) BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012. BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009 sigue en SAFE_PAUSE por una sola cantidad: 000010 Limpia Cristal en ASUNCION",
+  "produccion": "CONCILIADA. 3.595 articulos (2.829 activos), 4.439 movimientos, ASU 6.376 / PIL 2.776, total 9.152. Caja historica intacta. Los 5 pendientes de V1-008 quedaron cerrados",
+  "next_action": "No iniciar nada automaticamente. Orden recomendado: (1) BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013, que retira 000037 y sus 726 unidades ficticias y monta la promocion sobre 000010 + no_cost + salida de stock real; (2) BC-OPTICA-DELIVERY-SERVICE-V1-011; (3) BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012. BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009 se cierra: ya no le queda nada pendiente",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
@@ -35,14 +35,14 @@
   ],
   "deudas_explicitas_no_mezcladas": [
     {
-      "id": "V1-009-PAUSADA",
-      "estado": "PAUSADA",
-      "detalle": "solo por 000010 Limpia Cristal en ASUNCION. Los otros cuatro se resolvieron por naturaleza y ya no necesitan conteo"
+      "id": "000010-ASUNCION-ES-UNA-ESTIMACION",
+      "estado": "ABIERTA, no bloqueante",
+      "detalle": "las 100 unidades son una estimacion operativa, no un conteo. Esta marcada como ESTIMATED_INITIAL_STOCK en admin_audit_log y en las notas del articulo. Cuando haya un recuento real, la diferencia se corrige con un movimiento compensatorio"
     },
     {
       "id": "000037-STOCK-FICTICIO",
       "estado": "PENDIENTE, slice 013",
-      "detalle": "726 unidades ficticias (210 ASU / 516 PIL) y precio 0 clavado en el catalogo"
+      "detalle": "726 unidades ficticias (210 ASU / 516 PIL) y precio 0 clavado"
     },
     {
       "id": "DELIVERY-NO-EXISTE",
@@ -50,13 +50,12 @@
     },
     {
       "id": "LABORATORIO-POR-DEFECTO",
-      "estado": "PENDIENTE, slice 012",
-      "detalle": "tabla laboratories vacia; 2000212 ST Fotocromatico sigue sin laboratorio"
+      "estado": "PENDIENTE, slice 012"
     },
     {
       "id": "CENTINELAS-EN-LA-FUENTE",
       "estado": "ACEPTADO",
-      "detalle": "los archivos seguiran trayendo 28 centinelas mientras el sistema viejo los genere. Ninguno entra al ledger"
+      "detalle": "28 centinelas seguiran apareciendo en los archivos. Ninguno entra al ledger"
     },
     {
       "id": "SEIS-SLICES-FUERA-DE-MAIN",
@@ -79,8 +78,10 @@
       "qa": "PASS",
       "auditor": "PASS",
       "artifact_consistency": "PASS"
-    }
+    },
+    "adenda_stock_estimado": "PASS, 0 fallas",
+    "pendientes_abiertos": 0
   },
-  "generacion": 3,
+  "generacion": 4,
   "decisiones_pendientes": []
 }
