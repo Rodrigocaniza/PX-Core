@@ -5150,6 +5150,52 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ).pack(fill="x", padx=16, pady=12, side="bottom")
         return dialogo
 
+    def archivar_completados():
+        """Guarda un trabajo que ya terminó. No es una excepción y no pide motivo.
+
+        El circuito termina en RECIBIDO EN PILAR y ahí no falta ningún hecho: el
+        trabajo volvió. Archivar es sólo sacarlo de la vista, y por eso no
+        corresponde pedir un motivo — pedirlo obligaba a inventar una excepción
+        para registrar algo que salió bien.
+
+        El dominio sólo admite CERRADO desde RECIBIDO EN PILAR, así que un
+        trabajo que quedó a mitad de camino no puede colarse por acá: para eso
+        está «Cerrar por excepción», que sí pide el motivo.
+        """
+        ids = seleccion_actual()
+        if not ids:
+            messagebox.showwarning(
+                "Archivar", "Marcá uno o varios trabajos.", parent=ventana)
+            return
+        filas = [estado_seguimiento["filas"][work_id] for work_id in ids]
+        sin_terminar = [
+            fila for fila in filas
+            if fila.work.status is not TrackingStatus.RECEIVED_IN_PILAR]
+        if sin_terminar:
+            messagebox.showinfo(
+                "Archivar",
+                f"{len(sin_terminar)} de {len(ids)} trabajo(s) todavía no volvieron "
+                "a Pilar.\n\nArchivar es para los que ya terminaron el circuito.\n"
+                "Si hay que cerrar uno que quedó a mitad de camino, usá\n"
+                "«Cerrar por excepción», que pide el motivo.",
+                parent=ventana)
+            return
+        if not messagebox.askyesno(
+                "Archivar",
+                f"¿Archivar {len(ids)} trabajo(s) terminado(s)?\n\n"
+                f"Responsable: {responsable_actual()}\n\n"
+                "Salen de la lista y quedan en el historial.",
+                parent=ventana):
+            return
+        try:
+            for work_id in ids:
+                controller.tracking.close_work(
+                    work_id, responsible=responsable_actual())
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        refrescar_seguimiento()
+
     def cerrar_por_excepcion():
         """Salida para lo que no llegó a completarse. Nunca el cierre normal."""
         ids = seleccion_actual()
@@ -5327,6 +5373,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         menu.add_separator()
         menu.add_command(label="Queda a confirmar", command=marcar_queda_a_confirmar)
         menu.add_command(label="Corregir estado", command=corregir_estado)
+        # Los dos cierres, separados y en ese orden: el normal primero, porque
+        # es el que se usa. La excepcion queda abajo y dice que lo es.
+        menu.add_command(label="Archivar terminados", command=archivar_completados)
         menu.add_command(label="Cerrar por excepción", command=cerrar_por_excepcion)
         menu.add_separator()
         menu.add_command(
