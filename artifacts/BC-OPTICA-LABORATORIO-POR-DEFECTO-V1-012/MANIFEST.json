@@ -1,7 +1,7 @@
 {
   "mision": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012",
-  "generacion": 1,
-  "estado": "APLICADA EN PRODUCCION",
+  "generacion": 2,
+  "estado": "APLICADA EN PRODUCCION -- SAFE PAUSE, transferencia a Casa",
   "tipo": "catalogo canonico de laboratorios y laboratorio por defecto por cristal",
   "fecha": "2026-08-19",
   "base_git": {

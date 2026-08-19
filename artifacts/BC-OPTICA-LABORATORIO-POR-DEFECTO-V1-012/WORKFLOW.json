@@ -1,7 +1,7 @@
 {
   "mision": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012",
-  "generacion": 1,
-  "state": "SAFE_CLOSURE",
+  "generacion": 2,
+  "state": "SAFE_PAUSE_TRANSFERENCIA_A_CASA",
   "steps": [
     {
       "step": "estado productivo verificado",
@@ -85,6 +85,11 @@
     {
       "step": "merge a main",
       "state": "NO EJECUTADA"
+    },
+    {
+      "step": "Safe Pause de transferencia a Casa",
+      "state": "DONE",
+      "detalle": "PASS. Estado declarado verificado contra la base, reglas provisionales comprobadas, worktree limpio, 8 ramas sincronizadas, 0 procesos, WAL en cero, Mission Lease liberada, handoff escrito"
     }
   ]
 }
