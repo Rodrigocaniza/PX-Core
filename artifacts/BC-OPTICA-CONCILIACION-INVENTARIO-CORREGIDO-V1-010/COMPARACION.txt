@@ -1,0 +1,127 @@
+==============================================================================
+PASO 2 -- COMPARACION
+==============================================================================
+  universo (sucursal, sku canonico): 3687
+  UNCHANGED                    2800
+  QUANTITY_CHANGED               54
+  NEW_ARTICLE                    58
+  REMOVED_OR_NOT_PRESENT        775
+  DESCRIPTION_CHANGED           147
+  CATEGORY_CHANGED               37
+  BRAND_CHANGED                  31
+  SOURCE_SENTINEL                28
+
+-- QUE SIGNIFICA 'AUSENTE DEL ARCHIVO CORREGIDO' --
+  filas con stock <= 0 en el corregido: PC=0, P2=0
+  filas con stock <= 0 en el anterior : PC=0, P2=0
+  Los dos informes listan SOLO lo que el sistema viejo cree que tiene stock > 0.
+  Por lo tanto 'ausente' significa 'el sistema viejo dice stock 0', NO 'no existe'
+  y NO es una afirmacion fisica.
+
+  ausentes por sucursal: {'ASUNCION': 647, 'PILAR': 128}
+  categorias de los ausentes: {'Armazones': 641, 'Lente de contacto': 59, 'Lentes de Sol': 59, 'Sujetadores': 9, 'Líquidos Multipropósitos': 3, '(sin cat)': 3, 'Estuche LC': 1}
+  stock que tenian en el anterior: {1: 774, 3: 1}
+  unidades que representaban: 777
+
+-- NUEVOS --
+  por sucursal: {'ASUNCION': 44, 'PILAR': 14}
+  categorias: {'Armazones': 33, 'Composturas': 9, 'Lente de contacto': 6, 'Líquidos Multipropósitos': 5, 'Gotas Oftálmicas': 2, 'Gotas Oftalmicas': 2, 'Estuches': 1}
+  muestra:
+    ASUNCION   0300653145470 Opti free Express 355ml              cat=Líquidos Multipr   stock=2
+    ASUNCION         2000054 Compostura de Patilla Izquierda      cat=Composturas        stock=897
+    ASUNCION         2000055 Compostura de Patilla Derecha        cat=Composturas        stock=929
+    ASUNCION         2000056 Par de patillas                      cat=Composturas        stock=613
+    ASUNCION         2000057 Compostura Simple                    cat=Composturas        stock=411
+    ASUNCION         2000058 Compostura Flex                      cat=Composturas        stock=9222
+    ASUNCION         2000070 Hilo                                 cat=Composturas        stock=949
+    ASUNCION         2000071 Tornillo                             cat=Composturas        stock=708
+    ASUNCION         2000072 Plaqueta                             cat=Composturas        stock=575
+    ASUNCION         2000101 CENTRADO                             cat=Composturas        stock=816
+
+-- CANTIDAD CAMBIADA (muestra de las mayores) --
+    ASUNCION          000037 LIMPIA CRISTAL OBSEQUIO            210 ->     191  (delta -19)  cat=Limpia Cristal
+    ASUNCION          000014 Goma Tipo Trenza Hanis              12 ->      24  (delta +12)  cat=Sujetadores
+    ASUNCION          000040 Mostacilla Hanis                     7 ->      17  (delta +10)  cat=Accesorios
+    PILAR             000037 LIMPIA CRISTAL OBSEQUIO            516 ->     507  (delta -9)  cat=Limpia Cristal
+    ASUNCION          000016 Goma Ajustable Hanis                19 ->      27  (delta +8)  cat=Sujetadores
+    ASUNCION          000002 Estuche LC                          10 ->      15  (delta +5)  cat=Estuches
+    ASUNCION          000017 Cadena Hanis                         8 ->      13  (delta +5)  cat=Sujetadores
+    ASUNCION          000035 Toallitas antiempañanates pa         1 ->       6  (delta +5)  cat=Accesorios
+    PILAR            2000054 Compostura de Patilla Izquie     99637 ->   99633  (delta -4)  cat=Compostura
+    PILAR            2000060 Organico UVX                       690 ->     686  (delta -4)  cat=Compostura
+    ASUNCION          000010 Limpia Cristal                    2860 ->    2857  (delta -3)  cat=Limpia Cristal
+    PILAR             000003 Antideslizantes                     58 ->      55  (delta -3)  cat=Sujetadores
+    PILAR             000010 LIMPIA CRISTAL                      10 ->       7  (delta -3)  cat=Limpia Cristal
+    PILAR             000023 Franela                             10 ->       7  (delta -3)  cat=Paños
+    ... 54 en total
+
+-- CENTINELAS EN EL CORREGIDO --
+  por sucursal: {'ASUNCION': 7, 'PILAR': 21}
+  categorias: {'Compostura': 12, 'Cristales': 9, 'Composturas': 4, 'Sujetadores': 2, 'Estuches': 1}
+  unidades que representan: 842497
+    PILAR            2000070 Hilo                               cat=Compostura         99981
+    PILAR            2000065 Adaptacion de cristal              cat=Compostura         99916
+    PILAR            2000058 Compostura Flex                    cat=Compostura         99884
+    PILAR            2000057 Compostura Simple                  cat=Compostura         99807
+    PILAR            2000101 CENTRADO                           cat=Compostura         99764
+    PILAR            2000054 Compostura de Patilla Izquierda    cat=Compostura         99633
+    PILAR            2000055 Compostura de Patilla Derecha      cat=Compostura         99605
+    PILAR            2000071 Tornillo                           cat=Compostura         99423
+    PILAR            2000063 Kripto (Kto) Organico UVX          cat=Compostura          9479
+    PILAR            2000072 Plaqueta                           cat=Compostura          9391
+    ASUNCION         2000058 Compostura Flex                    cat=Composturas         9222
+    PILAR            2000126 FUTUREX G2                         cat=Cristales            998
+    PILAR            2000067 Bifocal (ST)                       cat=Compostura           997
+    PILAR            2000207 Kto.AR                             cat=Cristales            994
+    ASUNCION         2000144 Estuches                           cat=Estuches             992
+    PILAR            2000074 Progresivo OP                      cat=Cristales            984
+    PILAR            2000125 FUTUREX STEEL                      cat=Cristales            984
+    ASUNCION          000006 Goma Niño                          cat=Sujetadores          978
+    PILAR            2000086 Foto Sunactive                     cat=Cristales            974
+    PILAR            2000075 Futurex Protec                     cat=Cristales            970
+    PILAR            2000213 Org AR                             cat=Cristales            967
+    ASUNCION         2000146 Capuchon                           cat=Sujetadores          952
+
+-- LOS CINCO PENDIENTES, SEGUN EL CORREGIDO --
+  ASUNCION    000010 LIMPIA CRISTAL              
+      antes (008)  : 2860   (declaraba 2860)
+      corregido    : 2857   cat=Limpia Cristales  precio=15000  costo=1000
+      en el ledger : 0
+  PILAR      2000056 Par de patillas             
+      antes (008)  : 526   (declaraba 526)
+      corregido    : 524   cat=Compostura  precio=80000  costo=40000
+      en el ledger : 0
+  PILAR      2000070 Hilo                        
+      antes (008)  : 99981   (declaraba 99981)
+      corregido    : 99981   cat=Compostura  precio=20000  costo=1000
+      en el ledger : 0
+  PILAR      2000071 Tornillo                    
+      antes (008)  : 99425   (declaraba 99425)
+      corregido    : 99423   cat=Compostura  precio=5000  costo=1000
+      en el ledger : 0
+  PILAR      2000072 Plaqueta                    
+      antes (008)  : 9393   (declaraba 9393)
+      corregido    : 9391   cat=Compostura  precio=15000  costo=7500
+      en el ledger : 0
+
+-- LEDGER PRODUCTIVO vs CORREGIDO, para lo que hoy tiene stock --
+  articulos con stock en produccion: 3583
+  coinciden con el corregido       : 2769
+  difieren o no estan              : 814
+      no estan en el corregido     : 774  (776 unidades en produccion)
+      estan con otra cantidad      : 40
+      delta positivo (falta stock) : 8, 47 unidades
+      delta negativo (sobra stock) : 32, 65 unidades
+  mayores diferencias:
+    ASUNCION          000037 LIMPIA CRISTAL OBSEQUIO        produccion=    210 corregido=    191 delta=-19
+    ASUNCION          000014 Goma Tipo Trenza Hanis         produccion=     12 corregido=     24 delta=+12
+    ASUNCION          000040 Mostacilla Hanis               produccion=      7 corregido=     17 delta=+10
+    PILAR             000037 LIMPIA CRISTAL OBSEQUIO        produccion=    516 corregido=    507 delta=-9
+    ASUNCION          000016 Goma Ajustable Hanis           produccion=     19 corregido=     27 delta=+8
+    ASUNCION          000002 Estuche LC                     produccion=     10 corregido=     15 delta=+5
+    ASUNCION          000017 Cadena Hanis                   produccion=      8 corregido=     13 delta=+5
+    ASUNCION          000035 Toallitas antiempañanates pa   produccion=      1 corregido=      6 delta=+5
+    PILAR             000003 Antideslizantes                produccion=     58 corregido=     55 delta=-3
+    PILAR             000010 LIMPIA CRISTAL                 produccion=     10 corregido=      7 delta=-3
+    PILAR             000023 Franela                        produccion=     10 corregido=      7 delta=-3
+    ASUNCION          000043 Kit de Mantenimiento           produccion=     35 corregido=     33 delta=-2

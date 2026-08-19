@@ -1,0 +1,91 @@
+==============================================================================
+PASO 1 -- PERFIL DE LOS INVENTARIOS CORREGIDOS
+==============================================================================
+
+### Inventario PC.xls -> ASUNCION
+  cabecera fila 1        : '2026-08-19 00:00:00'
+  encabezado             : ['Articulo', 'Cod. Barra', 'Categoria', 'Marca', 'CostoA', 'PrecioA', 'Stock A Fecha']
+  filas fisicas          : 1976
+  filas con articulo     : 1974
+  filas vacias           : 0
+  celdas combinadas      : 0
+  formulas               : 0
+  filas sin codigo       : 0
+  filas sin descripcion  : 1
+  codigos duplicados     : 0 []
+  descripciones repetidas: 0
+  'Cod. Barra' coincide con el prefijo de 'Articulo': 1972 de 1974
+  stock numerico         : 1974 de 1974
+  stock <= 0             : 0   (=0: 0, <0: 0)
+  unidades totales       : 24236
+  min / mediana / max    : 1 / 1 / 9222
+  top 10 stock           : [9222, 2857, 992, 978, 952, 949, 929, 897, 816, 708]
+  con PrecioA            : 1965   con CostoA: 1967
+  categorias (15):
+      Armazones                         1650 filas      1650 unidades
+      Lentes de Sol                      193 filas       193 unidades
+      Lente de contacto                   66 filas       100 unidades
+      Sujetadores                         18 filas      2692 unidades
+      Accesorios                          13 filas       111 unidades
+      Líquidos Multipropósitos            13 filas       218 unidades
+      Composturas                          9 filas     15120 unidades
+      Estuches                             3 filas      1009 unidades
+      Gotas Oftálmicas                     2 filas         8 unidades
+      Limpia Cristales                     2 filas      3048 unidades
+      (sin categoria)                      1 filas         1 unidades
+      Marcadores                           1 filas         1 unidades
+      Medicamentos                         1 filas         1 unidades
+      Organizadores                        1 filas         4 unidades
+      Paños                                1 filas        80 unidades
+  marcas distintas       : 102 (sin marca: 6)
+  filas total/subtotal   : 0
+
+### Inventario P2.xls -> PILAR
+  cabecera fila 1        : '2026-08-19 00:00:00'
+  encabezado             : ['Articulo', 'Cod. Barra', 'Categoria', 'Marca', 'CostoA', 'PrecioA', 'Stock A Fecha']
+  filas fisicas          : 940
+  filas con articulo     : 938
+  filas vacias           : 0
+  celdas combinadas      : 0
+  formulas               : 0
+  filas sin codigo       : 0
+  filas sin descripcion  : 0
+  codigos duplicados     : 0 []
+  descripciones repetidas: 0
+  'Cod. Barra' coincide con el prefijo de 'Articulo': 938 de 938
+  stock numerico         : 938 de 938
+  stock <= 0             : 0   (=0: 0, <0: 0)
+  unidades totales       : 837243
+  min / mediana / max    : 1 / 1 / 99981
+  top 10 stock           : [99981, 99916, 99884, 99807, 99764, 99633, 99605, 99423, 9479, 9391]
+  con PrecioA            : 934   con CostoA: 936
+  categorias (13):
+      Armazones                          704 filas       704 unidades
+      Lentes de Sol                       82 filas        82 unidades
+      Lente de contacto                   59 filas        73 unidades
+      Cristales                           24 filas     12366 unidades
+      Compostura                          21 filas    822212 unidades
+      Sujetadores                         20 filas       325 unidades
+      Accesorios                          10 filas       869 unidades
+      Líquidos Multipropósitos            10 filas        58 unidades
+      Gotas Oftalmicas                     2 filas         4 unidades
+      Limpia Cristales                     2 filas       514 unidades
+      Organizadores                        2 filas         2 unidades
+      Estuche LC                           1 filas        27 unidades
+      Paños                                1 filas         7 unidades
+  marcas distintas       : 72 (sin marca: 3)
+  filas total/subtotal   : 0
+
+==============================================================================
+DIFERENCIAS ESTRUCTURALES CON LAS FUENTES DE LA MISION 008
+==============================================================================
+                                                ANTES                        AHORA
+  archivo PC                     PC - Inventario.xlsx            Inventario PC.xls
+  corte declarado                          2026-08-03                   2026-08-19
+  PC filas con articulo                          2586                         1974
+  P2 filas con articulo                          1052                          938
+  columnas               Casilla/Zona/Stock/Art/Marca/Cat/Obs
+                                                      Art/CodBarra/Cat/Marca/Costo/Precio/Stock
+
+  columnas NUEVAS que antes no existian: Cod. Barra, CostoA, PrecioA
+  columnas que DESAPARECEN: Casilla, Zona, Observacion (venian vacias en las 2.586 filas)

@@ -1,0 +1,105 @@
+{
+  "mission": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "HUMAN_GATE",
+  "pc": "Optica",
+  "headless_executor": "NO USADO: el dry run levanta el controlador comercial contra una copia",
+  "lease": {
+    "held": false,
+    "otros_leases_vivos": 0,
+    "nota": "la V1-009 quedo en SAFE_PAUSE, no compite por el mismo recurso"
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "verificacion canonica, perfil, comparacion, reglas y dry run",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "regla_de_corte": "si el dry run fallaba no se llegaba al HUMAN_GATE. Dio PASS con 0 fallas",
+  "steps": [
+    {
+      "step": "Safe Pause de la V1-009",
+      "state": "DONE",
+      "detalle": "dceac1f. Evidencia conservada, herramienta y backup siguen validos, produccion intacta"
+    },
+    {
+      "step": "verificacion canonica y base",
+      "state": "DONE",
+      "detalle": "main en 7db56a0 y detras de produccion; base elegida f5a55b7, tip de la 008"
+    },
+    {
+      "step": "localizacion de los archivos corregidos",
+      "state": "DONE",
+      "detalle": "encontrados automaticamente en Downloads, ambos del 2026-08-19, con sus sha256"
+    },
+    {
+      "step": "conversion del formato legacy",
+      "state": "DONE",
+      "detalle": "son OLE2/BIFF y openpyxl no los lee. Convertidos a xlsx via Excel COM en modo solo lectura, sobre copia en scratchpad. Los originales no se modificaron"
+    },
+    {
+      "step": "paso 1 - perfil de los corregidos",
+      "state": "DONE",
+      "detalle": "hojas, columnas, filas, codigos, duplicados, formulas, merges, centinelas, totales, sin codigo, sin descripcion y diferencias estructurales"
+    },
+    {
+      "step": "paso 2 - comparacion",
+      "state": "DONE",
+      "detalle": "clasificados los 3.687 pares (sucursal, sku). Determinado que 'ausente' significa stock 0 en el sistema viejo, no una afirmacion fisica"
+    },
+    {
+      "step": "paso 3 - reconciliacion de naturalezas",
+      "state": "DONE",
+      "detalle": "una sola cambia: 2000056. Cristales y composturas ya estaban bien y con 0 movimientos"
+    },
+    {
+      "step": "paso 4 - stock actual vs corregido",
+      "state": "DONE",
+      "detalle": "2.769 coinciden, 774 ausentes, 40 con delta (+47 / -65)"
+    },
+    {
+      "step": "paso 5 - reevaluacion de los cinco pendientes",
+      "state": "DONE",
+      "detalle": "uno resuelto sin conteo, tres siguen siendo centinelas, uno con evidencia mucho mas fuerte"
+    },
+    {
+      "step": "paso 6 - dry run completo",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Idempotencia PASS. Historia de la 008 intacta"
+    },
+    {
+      "step": "escritura productiva",
+      "state": "NO EJECUTADA",
+      "detalle": "prohibida por la orden. Espera autorizacion"
+    },
+    {
+      "step": "regla B - laboratorio por defecto",
+      "state": "FUERA DE ALCANCE",
+      "detalle": "falta soporte en el modelo. Slice separado"
+    },
+    {
+      "step": "regla E - Delivery",
+      "state": "FUERA DE ALCANCE",
+      "detalle": "no existe el concepto. Slice separado"
+    },
+    {
+      "step": "regla F - motor promocional",
+      "state": "PARCIAL",
+      "detalle": "el SKU ficticio esta identificado y el modelo ya soporta no_cost. La transicion y el motivo promocional son slice separado"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "escritura_en_produccion": "NO",
+    "descontar_ausencias": "NO",
+    "convertir_centinelas_en_stock": "NO",
+    "borrar_historia": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "force_push": "NO"
+  }
+}

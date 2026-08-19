@@ -1,0 +1,268 @@
+{
+  "mission": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010",
+  "tipo": "conciliacion contra inventarios corregidos. NO escribe produccion",
+  "pc": "Optica",
+  "branch": "feature/bc-optica-conciliacion-inventario-corregido-v1-010",
+  "worktree": ".worktrees/optica-conciliacion-010",
+  "base_commit": "f5a55b7cbcdd41cfb961ba35a79ad61e4ee8e62d",
+  "base_branch": "feature/bc-optica-carga-inicial-catalogo-v1-008",
+  "origin_main": "7db56a082d06c735583a2717da3ad273f4d41a84",
+  "main_tocado": false,
+  "pr": false,
+  "merge_to_main": false,
+  "force_push": false,
+  "estado": "HUMAN_GATE",
+  "mision_pausada": {
+    "cual": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
+    "estado": "SAFE_PAUSE en dceac1f, evidencia conservada, nada escrito"
+  },
+  "base_canonica": {
+    "elegida": "f5a55b7",
+    "por_que_no_origin_main": "main = rc.31 con 21 migraciones y sin Commercial Core. Produccion corre rc.32 con el catalogo cargado",
+    "produccion_por_delante_de_main": true
+  },
+  "estado_productivo_verificado": {
+    "articulos": 3554,
+    "movimientos": 3583,
+    "ASUNCION": 5849,
+    "PILAR": 2899,
+    "cash_entries": 12,
+    "suma_total": 6400000,
+    "sale_items": 10,
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "sha256": "25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658"
+  },
+  "fuentes_corregidas": {
+    "Inventario PC.xls": {
+      "ruta": "C:/Users/Striker/Downloads/Inventario PC.xls",
+      "sucursal": "ASUNCION",
+      "bytes": 356352,
+      "sha256": "13f62244ac659fc4c6ba4d0814677c8ba451a1a35a70dbb42da0f709895151c5",
+      "formato": "OLE2 / BIFF legacy. Convertido a xlsx en scratchpad via Excel COM en modo solo lectura; el original NO se modifico",
+      "fecha_declarada": "2026-08-19",
+      "filas_fisicas": 1976,
+      "filas_con_articulo": 1974,
+      "merges": 0,
+      "formulas": 0,
+      "filas_sin_codigo": 0,
+      "codigos_duplicados": 0,
+      "filas_total_o_subtotal": 0,
+      "stock_menor_o_igual_a_cero": 0,
+      "unidades_declaradas": 24236,
+      "categorias": 15
+    },
+    "Inventario P2.xls": {
+      "ruta": "C:/Users/Striker/Downloads/Inventario P2.xls",
+      "sucursal": "PILAR",
+      "bytes": 183808,
+      "sha256": "a866551f09f4115231998b55698285dc8fdd583c4be7ebc690f2086db9023389",
+      "fecha_declarada": "2026-08-19",
+      "filas_fisicas": 940,
+      "filas_con_articulo": 938,
+      "merges": 0,
+      "formulas": 0,
+      "filas_sin_codigo": 0,
+      "codigos_duplicados": 0,
+      "filas_total_o_subtotal": 0,
+      "stock_menor_o_igual_a_cero": 0,
+      "unidades_declaradas": 837243,
+      "categorias": 13
+    },
+    "diferencias_estructurales": {
+      "columnas_nuevas": [
+        "Cod. Barra",
+        "CostoA",
+        "PrecioA"
+      ],
+      "columnas_que_desaparecen": [
+        "Casilla",
+        "Zona",
+        "Observacion"
+      ],
+      "nota": "las tres que desaparecen venian vacias en las 2.586 filas del archivo anterior",
+      "Cod_Barra_coincide_con_el_prefijo_de_Articulo": "1972 de 1974 en PC, 938 de 938 en P2"
+    }
+  },
+  "comparacion": {
+    "universo": 3687,
+    "UNCHANGED": 2800,
+    "QUANTITY_CHANGED": 54,
+    "NEW_ARTICLE_registros": 58,
+    "NEW_ARTICLE_articulos": 42,
+    "REMOVED_OR_NOT_PRESENT": 775,
+    "DESCRIPTION_CHANGED": 147,
+    "CATEGORY_CHANGED": 37,
+    "BRAND_CHANGED": 31,
+    "SOURCE_SENTINEL": 28,
+    "NATURE_CHANGED": 1,
+    "que_significa_ausente": "los DOS informes listan solo lo que el sistema viejo cree con stock > 0: ninguno trae una sola fila en cero. Ausente significa 'el sistema viejo dice que ya no hay', NO 'no existe' y NO es una afirmacion fisica",
+    "ledger_vs_corregido": {
+      "articulos_con_stock_en_produccion": 3583,
+      "coinciden": 2769,
+      "no_estan_en_el_corregido": 774,
+      "unidades_que_representan": 776,
+      "con_otra_cantidad": 40,
+      "delta_positivo": {
+        "articulos": 8,
+        "unidades": 47
+      },
+      "delta_negativo": {
+        "articulos": 32,
+        "unidades": 65
+      }
+    }
+  },
+  "centinelas": {
+    "articulos": 28,
+    "unidades_declaradas": 842497,
+    "por_sucursal": {
+      "ASUNCION": 7,
+      "PILAR": 21
+    },
+    "hallazgo": "el archivo corregido NO limpio los centinelas. Ademas, Asuncion ahora trae 7 que antes no tenia, incluido 2000058 Compostura Flex con 9.222. La correccion propago el problema a la otra sucursal",
+    "ninguno_entra_al_ledger": true
+  },
+  "reglas_de_negocio": {
+    "A_cristales": {
+      "estado": "YA CUMPLIDA, sin accion",
+      "detalle": "30 articulos de Cristales, todos TRABAJO_BAJO_PEDIDO, 0 movimientos",
+      "compensaciones_necesarias": 0
+    },
+    "C_composturas": {
+      "estado": "CUMPLIDA salvo una correccion",
+      "detalle": "9 servicios de Compostura ya son SERVICIO_NO_STOCKEABLE con 0 movimientos",
+      "correccion": "2000056 Par de patillas: PRODUCTO_STOCKEABLE -> SERVICIO_NO_STOCKEABLE por definicion operativa. NATURE_CORRECTION, sin conteo, sin compensacion (0 movimientos)",
+      "pendiente_de_decision": "Hilo, Tornillo y Plaqueta: sus cifras son centinelas que bajan al usarse. Puede que tampoco lleven stock"
+    },
+    "D_adaptacion_de_cristal": {
+      "estado": "YA CUMPLIDA",
+      "detalle": "ya es SERVICIO_NO_STOCKEABLE"
+    },
+    "B_laboratorio_por_defecto": {
+      "estado": "FALTA SOPORTE, slice separado",
+      "detalle": "la tabla laboratories existe pero esta vacia; sale_items.laboratory es texto libre; articles no tiene campo de laboratorio por defecto",
+      "2000212_ST_Fotocromatico": "sigue sin laboratorio informado. NO se invento"
+    },
+    "E_delivery": {
+      "estado": "NO EXISTE, slice separado",
+      "detalle": "no hay ningun articulo de envio en el catalogo. Crearlo como SERVICIO_NO_STOCKEABLE con precio editable por venta requiere decidir donde vive el precio orientativo de 20.000"
+    },
+    "F_limpia_cristal_promocional": {
+      "estado": "SKU FICTICIO IDENTIFICADO, migracion propuesta y NO aplicada",
+      "sku_real": "000010 Limpia Cristal, costo 1.000, precio 15.000",
+      "sku_ficticio": "000037 LIMPIA CRISTAL OBSEQUIO, precio 0 clavado, costo 4.740",
+      "stock_ficticio_cargado": {
+        "ASUNCION": 210,
+        "PILAR": 516,
+        "total": 726
+      },
+      "el_modelo_ya_soporta_lo_correcto": "sale_items tiene no_cost y article_id: una linea puede apuntar al articulo real con precio cobrado 0. Hoy hay 0 lineas usando no_cost",
+      "falta": "el motivo promocional PROMO_CRISTAL_ARMAZON_LIMPIA y la transicion auditable de 000037",
+      "no_se_borro_ni_se_fusiono": true
+    }
+  },
+  "los_cinco_pendientes": {
+    "000010 Limpia Cristal ASUNCION": {
+      "antes": 2860,
+      "corregido": 2857,
+      "delta": -3,
+      "precio": 15000,
+      "costo": 1000,
+      "lectura": "bajo 3 en 16 dias: se mueve como un consumible real, no como un centinela. Evidencia mucho mas fuerte, pero sigue siendo el mismo sistema fuente"
+    },
+    "2000056 Par de patillas PILAR": {
+      "antes": 526,
+      "corregido": 524,
+      "resuelto": "SI, sin conteo: pasa a servicio por definicion operativa"
+    },
+    "2000070 Hilo PILAR": {
+      "antes": 99981,
+      "corregido": 99981,
+      "lectura": "centinela"
+    },
+    "2000071 Tornillo PILAR": {
+      "antes": 99425,
+      "corregido": 99423,
+      "lectura": "centinela que baja al usarse"
+    },
+    "2000072 Plaqueta PILAR": {
+      "antes": 9393,
+      "corregido": 9391,
+      "lectura": "centinela que baja al usarse"
+    }
+  },
+  "dry_run": {
+    "artefacto": "DRY_RUN.txt",
+    "base": "copia consistente de la base productiva",
+    "veredicto": "PASS, 0 fallas",
+    "alcance_aplicado": "solo lo que la evidencia resuelve sin decision humana",
+    "articulos_creados": 42,
+    "registros_que_los_originaron": 46,
+    "nota_identidad": "4 SKU globales aparecen en las dos sucursales: un articulo con stock en los dos depositos, no dos articulos",
+    "stock_inicial_de_las_altas": {
+      "lineas": 46,
+      "unidades": 1066
+    },
+    "AJUSTE_POSITIVO": {
+      "articulos": 8,
+      "unidades": 47
+    },
+    "AJUSTE_NEGATIVO": {
+      "articulos": 32,
+      "unidades": 65
+    },
+    "motivo_de_los_ajustes": "ERROR_INVENTARIO, el codigo canonico que ya existe. Cada nota lleva stock anterior, cifra corregida, delta, archivo, fila y sucursal",
+    "correccion_de_naturaleza": 1,
+    "resultado": {
+      "articulos": "3554 -> 3596",
+      "movimientos": "3583 -> 3669",
+      "ASUNCION": "5849 -> 6904",
+      "PILAR": "2899 -> 2892"
+    },
+    "historia_intacta": "las dos corridas de la 008 siguen enteras: 3.583 movimientos y 8.748 unidades, verificado por document_id. Los 5 pendientes siguen registrados",
+    "idempotencia": "PASS. Reaplicar deja la copia byte a byte igual",
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "caja_intacta": {
+      "entradas": 12,
+      "suma": 6400000,
+      "sale_items": 10
+    },
+    "base_productiva_intacta": "sha256 25cd7d04... antes y despues"
+  },
+  "requieren_decision_humana": [
+    {
+      "id": "775-AUSENTES",
+      "unidades": 776,
+      "detalle": "647 de Asuncion y 128 de Pilar, 641 armazones, 774 con stock 1. 647 armazones en 16 dias son 40 por dia: parece una limpieza o un filtro distinto, no ventas. NO se descontaron"
+    },
+    {
+      "id": "HILO-TORNILLO-PLAQUETA",
+      "detalle": "sus cifras son centinelas que bajan al usarse. Puede que sean parte del servicio y tampoco lleven stock"
+    },
+    {
+      "id": "LIMPIA-CRISTAL-2857",
+      "detalle": "evidencia mucho mas fuerte que antes, pero misma fuente. Confirmar o corregir"
+    },
+    {
+      "id": "SKU-OBSEQUIO-000037",
+      "unidades": 726,
+      "detalle": "retirarlo implica sacar 726 unidades del deposito y migrar la practica a 000010 + no_cost"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "escritura_en_produccion": "NO",
+    "descontar_los_775_ausentes": "NO. Ausencia no es conteo",
+    "convertir_centinelas_en_stock": "NO",
+    "borrar_o_fusionar_000037": "NO",
+    "inventar_laboratorio_para_2000212": "NO",
+    "rediseno_de_Caja_UI_Delivery_motor_promocional_Gestion_Central_Telegram": "NO, fuera de alcance",
+    "merge_a_main": "NO",
+    "pr": "NO"
+  }
+}
