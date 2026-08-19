@@ -57,3 +57,32 @@ equivalente a la base. El paso productivo vuelve a hacer el suyo igual.
 
 Cinco números, en `HUMAN_GATE.md`. Los que no se cuenten hoy siguen pendientes
 sin bloquear nada.
+
+---
+
+## SAFE PAUSE — 2026-08-19
+
+La misión queda pausada, no descartada. **Nada se escribió en producción**: sigue
+con 3.554 artículos, 3.583 movimientos y el mismo `sha256` `25cd7d04…`, y los
+cinco pendientes siguen abiertos.
+
+**Por qué.** Se pidieron los cinco conteos. Llegó uno —Asunción— pero con el
+marcador literal `[CANTIDAD REAL CONTADA]` en lugar del número, así que no se
+aplicó nada: inventar esa cifra es exactamente lo que estas misiones existen para
+evitar. Y antes de volver a pedirlo, aparecieron dos inventarios corregidos del
+19 de agosto, posteriores a las planillas que usó la 008 y con columnas que
+aquéllas no traían. Contar a mano contra una foto vieja sería trabajo que la
+conciliación puede invalidar.
+
+**Lo que quedó verificado y sigue sirviendo:**
+
+- el camino parcial funciona: aplicar sólo una sucursal cierra ese pendiente y
+  deja los otros abiertos, con 0 cierres y 0 movimientos. Nadie se cierra solo
+- la herramienta, la planilla de conteo, el dry-run completo y el backup
+  (`bc-caja-prerecuento-20260819-142306.sqlite3`, sha256 `71580fc8…`) siguen
+  válidos
+
+**Continúa en** `BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010`, que
+reevalúa los cinco con los archivos nuevos. Uno de ellos ya se resuelve sin
+contar: `2000056 Par de patillas` pasa a servicio por definición operativa del
+negocio.

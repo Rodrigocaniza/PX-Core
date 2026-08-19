@@ -1,7 +1,7 @@
 {
   "mission": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
   "engine": "BC Command Center / Workflow Engine",
-  "state": "HUMAN_GATE",
+  "state": "SAFE_PAUSE",
   "pc": "Optica",
   "headless_executor": "NO USADO: la simulacion levanta el controlador comercial contra una copia de la base productiva",
   "lease": {
@@ -65,18 +65,28 @@
     },
     {
       "step": "conteo fisico",
-      "state": "HUMAN_GATE",
-      "detalle": "cinco numeros. Es lo unico que no puede salir de ningun archivo"
+      "state": "SAFE_PAUSE",
+      "detalle": "se pidieron los cinco numeros. Llego uno con el marcador literal [CANTIDAD REAL CONTADA] sin completar, asi que no se aplico nada. Despues el dueno pauso la mision por los inventarios corregidos"
     },
     {
       "step": "escritura productiva",
       "state": "NO EJECUTADA",
-      "detalle": "espera las cantidades"
+      "detalle": "nunca ejecutada. Produccion quedo con el mismo sha256"
     },
     {
       "step": "merge a main",
       "state": "NO EJECUTADA",
       "detalle": "main sigue en 7db56a0"
+    },
+    {
+      "step": "verificacion del camino parcial",
+      "state": "DONE",
+      "detalle": "probado sobre copia: aplicar solo ASUNCION cierra ese pendiente y deja los cuatro de PILAR abiertos, con 0 cierres y 0 movimientos. Nadie se cierra artificialmente"
+    },
+    {
+      "step": "Safe Pause",
+      "state": "DONE",
+      "detalle": "evidencia conservada, nada descartado, produccion intacta"
     }
   ],
   "no_ejecutado_a_proposito": {

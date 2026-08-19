@@ -1,15 +1,15 @@
 {
   "mission": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
-  "state": "HUMAN_GATE",
+  "state": "SAFE_PAUSE",
   "repository": "PX-Core",
   "worktree": ".worktrees/optica-recuento-009",
   "branch": "feature/bc-optica-recuento-fisico-pendientes-v1-009",
   "base_commit": "f5a55b7cbcdd41cfb961ba35a79ad61e4ee8e62d",
   "opened_on": "2026-08-19",
   "opened_at": "PC Optica",
-  "blocked_on": "las cinco cantidades fisicas. Es lo unico irreducible",
+  "blocked_on": "suspendida por decision del dueno: aparecieron dos inventarios corregidos posteriores a las fuentes de la 008, y hay que conciliarlos antes de seguir contando a mano",
   "produccion": "INTACTA en esta mision. 3.554 articulos, 3.583 movimientos, 8.748 unidades, sha256 sin cambios",
-  "next_action": "Recibir las cinco cantidades contadas y correr tools/recuento_pendientes_optica.py --aplicar conteo.json --confirmar, que hace backup verificable, asienta un INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL por cada cantidad mayor que cero con la fecha del recuento de hoy, registra PHYSICAL_COUNT_CONFIRMED por cada uno incluidos los que den cero, y verifica todo despues de escribir. Si alguna cantidad no llega, ese articulo simplemente sigue pendiente y no pasa nada. Despues, Librarian, QA, Auditor, Artifact Consistency y Safe Closure",
+  "next_action": "NO continuar con los conteos manuales. Retomar solo si la 010 concluye que algun articulo sigue necesitando conteo fisico. Todo lo preparado -herramienta, planilla, dry run y backup- sigue valido y reutilizable",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
@@ -59,5 +59,22 @@
       "auditor": "PASS",
       "artifact_consistency": "PASS"
     }
+  },
+  "paused_on": "2026-08-19",
+  "motivo_de_la_pausa": {
+    "quien": "el dueno",
+    "por_que": "Inventario PC.xls e Inventario P2.xls, del 2026-08-19, son posteriores a las planillas que uso la 008 y traen columnas que aquellas no tenian. Contar a mano cinco articulos contra una foto vieja seria trabajo que la conciliacion podria invalidar",
+    "continua_en": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010",
+    "que_pasa_con_los_cinco": "siguen abiertos en produccion como STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION. La 010 los reevalua con los archivos corregidos y las reglas de negocio nuevas. 2000056 Par de patillas ya no necesita conteo: la definicion operativa lo vuelve servicio"
+  },
+  "produccion_al_pausar": {
+    "articulos": 3554,
+    "movimientos": 3583,
+    "ASUNCION": 5849,
+    "PILAR": 2899,
+    "pendientes_abiertos": 5,
+    "pendientes_cerrados": 0,
+    "sha256": "25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658",
+    "escrito_por_esta_mision": "NADA"
   }
 }
