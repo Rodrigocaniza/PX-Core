@@ -1,0 +1,67 @@
+SMOKE POST-INSTALACION -- BC Caja 1.0.0-rc.32 sobre la base productiva real de la Optica
+PC              : Optica
+ejecutable      : C:\Users\Striker\AppData\Local\Programs\BC-Caja-Pilot\BC-Caja.exe
+version         : BC Caja 1.0.0-rc.32
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+backup previo   : C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-preinstall-1.0.0-rc.32-20260819-113826.sqlite3
+rollback binario: C:\Users\Striker\AppData\Local\Programs\BC-Caja-Pilot.rollback-rc31-20260819-1200
+
+== estado previo, registrado antes de arrancar rc.32 ==
+antes           : 21 migraciones -> 021, 12 entradas, suma 6400000, 10 lineas de venta, 2 dias, 8 pedidos
+sha256 antes    : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+
+== arranque del ejecutable instalado sobre la base productiva ==
+  OK   el ejecutable arranco y no se cayo
+  OK   el ejecutable aplico la cadena 022-027 por su cuenta
+  OK   la ventana principal abrio con titulo 'Caja diaria - Optica'
+  ---  sin captura de pantalla: la ventana quedo tapada por ventanas ajenas y la captura
+       de pantalla incluia datos personales del usuario, asi que se descarto
+
+== esquema tras la instalacion ==
+  OK   27 migraciones instaladas (27 -> 027)
+  OK   las seis nuevas 022-027 estan aplicadas
+  OK   integrity_check ok
+  OK   foreign_key_check sin violaciones
+
+== los datos productivos se preservan ==
+  OK   entradas de Caja sin cambios: 12
+  OK   dinero registrado sin cambios: 6400000
+  OK   lineas de venta sin cambios: 10
+  OK   dias de caja sin cambios: 2
+  OK   pedidos sin cambios: 8
+
+== estructura comercial nueva ==
+  OK   tabla nueva presente: articles
+  OK   tabla nueva presente: stock_movements
+  OK   tabla nueva presente: domain_events
+  OK   tabla nueva presente: event_effects
+  OK   tabla nueva presente: suppliers
+  OK   tabla nueva presente: purchases
+  OK   tabla nueva presente: purchase_lines
+  OK   tabla nueva presente: purchase_line_distributions
+  OK   tabla nueva presente: sale_stock_integrations
+  OK   tabla nueva presente: sale_void_compensations
+  OK   vista nueva presente: stock_actual
+  OK   vista nueva presente: stock_origen_compra
+  OK   vista nueva presente: stock_origen_venta
+  OK   vista nueva presente: stock_origen_anulacion
+  OK   trigger nuevo presente: cash_entries_integrada_sin_anular
+  OK   trigger nuevo presente: cash_entries_anulada_no_revive
+  OK   trigger nuevo presente: sale_void_compensations_sin_reversion_parcial
+  OK   trigger nuevo presente: sale_void_compensations_cuenta_declarada_real
+  OK   trigger nuevo presente: stock_movements_venta_anulada_solo_compensa
+
+== UI ==
+  OK   BC Caja abre sobre la base productiva (smoke de arranque)
+  OK   UI Comercial: Articulos, Proveedores, Compras y el buscador de la linea de venta,
+       validados sobre una copia consistente de la base productiva ya migrada
+  ---  no se cargo ni se modifico ningun dato real: el catalogo sigue vacio a proposito
+
+== rollback disponible ==
+  OK   backup pre-instalacion presente (413696 bytes)
+  OK   carpeta rc.31 conservada como rollback binario
+  OK   el rollback binario es efectivamente rc.31
+
+sha256 base productiva tras la instalacion: aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de
+
+VEREDICTO: PASS (0 fallas)

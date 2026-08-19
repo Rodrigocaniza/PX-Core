@@ -1,0 +1,69 @@
+base de origen  : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 antes    : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+tablas antes    : 24
+migraciones antes: 21 -> 021
+cash_entries    : 12
+sale_items      : 10
+SUM(total)      : 6400000
+
+== backup ==
+  OK   backup consistente en bc_caja.BACKUP.sqlite3
+  OK   el backup tiene las mismas filas que la base de origen
+  OK   el backup tiene el mismo contenido, fila por fila
+
+== upgrade secuencial 021 -> 027 sobre la copia ==
+  OK   ninguna tabla se perdio
+  OK   la cadena aplico 022 023 024 025 026 027
+  OK   21 -> 27 migraciones
+  OK   integrity_check ok
+  OK   foreign_key_check sin violaciones
+  OK   ninguna fila existente cambio (revisadas 24 tablas)
+  OK   cash_entries preservadas
+  OK   sale_items preservadas
+  OK   SUM(cash_entries.total) sin cambios: 6400000
+  OK   tabla nueva presente: articles
+  OK   tabla nueva presente: stock_movements
+  OK   tabla nueva presente: domain_events
+  OK   tabla nueva presente: event_effects
+  OK   tabla nueva presente: suppliers
+  OK   tabla nueva presente: purchases
+  OK   tabla nueva presente: purchase_lines
+  OK   tabla nueva presente: purchase_line_distributions
+  OK   tabla nueva presente: sale_stock_integrations
+  OK   tabla nueva presente: sale_void_compensations
+  OK   vista nueva presente: stock_actual
+  OK   vista nueva presente: stock_origen_compra
+  OK   vista nueva presente: stock_origen_venta
+  OK   vista nueva presente: stock_origen_anulacion
+  OK   trigger nuevo presente: cash_entries_integrada_sin_anular
+  OK   trigger nuevo presente: cash_entries_anulada_no_revive
+  OK   trigger nuevo presente: sale_void_compensations_sin_reversion_parcial
+  OK   trigger nuevo presente: sale_void_compensations_cuenta_declarada_real
+  OK   trigger nuevo presente: stock_movements_venta_anulada_solo_compensa
+
+== escenario real de punta a punta, sobre la copia migrada ==
+  OK   catalogo no es stock: el articulo nace en cero
+  OK   la entrada de mercaderia sube el stock a 3
+  OK   una venta sin articulo vinculado no mueve stock
+  OK   la venta descuenta una unidad del armazon
+  OK   el cristal es trabajo bajo pedido: no mueve stock
+  OK   la venta de servicio no toca el stock
+  OK   anular la venta devuelve exactamente la unidad que saco
+  OK   los SALE_COMPLETED originales siguen estando
+  OK   la anulacion quedo como hecho durable
+  OK   el movimiento VENTA original no se borro
+  OK   de la unidad devuelta se llega a la venta y a quien la anulo
+  OK   la venta anulada sigue en el dia, marcada
+  OK   reguardar el dia no devuelve el stock dos veces
+  OK   Caja descuenta la venta anulada del total y no la cuenta dos veces
+
+== rollback ==
+  OK   la base restaurada es byte a byte el backup
+  OK   la cadena vuelve a 021
+  OK   ninguna de las seis migraciones nuevas quedo aplicada
+  OK   los datos vuelven exactamente a como estaban
+
+sha256 despues  : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+  OK   la base de origen quedo intacta
+
+VEREDICTO: PASS (0 fallas)

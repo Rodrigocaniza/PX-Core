@@ -1,0 +1,115 @@
+{
+  "mission": "BC-OPTICA-INSTALACION-PRODUCTIVA-V1-007",
+  "tipo": "instalacion productiva, sin cambio de codigo",
+  "pc": "Optica",
+  "por_que_solo_aca": "es la unica maquina con la base productiva real; el gate del slice 6 corrio sobre la base local del piloto de PC Casa",
+  "branch": "feature/bc-optica-instalacion-productiva-v1-007",
+  "worktree": ".worktrees/optica-instalacion-007",
+  "base_commit": "5bc1540faa54ed56f04f77fc109af401426fe9f5",
+  "base_branch": "feature/bc-optica-venta-reversible-y-release-gate-v1-006",
+  "origin_main": "7db56a082d06c735583a2717da3ad273f4d41a84",
+  "main_tocado": false,
+  "pr": false,
+  "merge_to_main": false,
+  "force_push": false,
+  "codigo_modificado": "ninguno. Esta mision solo agrega artefactos de evidencia",
+
+  "estado_previo_verificado": {
+    "version_instalada": "BC Caja 1.0.0-rc.31",
+    "migraciones": 21,
+    "base_productiva": "C:/Users/Striker/AppData/Local/BC/Caja/bc_caja.sqlite3",
+    "sha256": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "entradas": 12,
+    "suma_total": 6400000,
+    "sale_items": 10,
+    "cash_days": 2,
+    "orders": 8,
+    "confirmado_distinto_de_pc_casa": "Casa tenia 8 entradas y suma 2115000"
+  },
+
+  "backup": {
+    "mecanismo": "API de backup de SQLite",
+    "archivo": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-preinstall-1.0.0-rc.32-20260819-113826.sqlite3",
+    "sha256": "4768ba6bb6cfb68a7ceea0b3e4e48ed1ae14f0a5b8f259a42deda7b6fee7a95a",
+    "equivalencia_verificada": "por contenido tabla por tabla, no por hash de archivo (la base viva tenia WAL abierto)"
+  },
+
+  "release_gate_sobre_base_real": {
+    "script": "tools/release_gate_optica_022_027.py",
+    "evidencia": "RELEASE_GATE_022_027_OPTICA_REAL.txt",
+    "base": "copia consistente de la base productiva de la Optica",
+    "veredicto": "PASS, 0 fallas",
+    "cadena": "21 -> 27",
+    "integrity_check": "ok",
+    "foreign_key_check": "0 violaciones",
+    "filas_existentes_cambiadas": "ninguna, revisadas 24 tablas",
+    "escenario_punta_a_punta": "14 comprobaciones, incluida la anulacion compensatoria",
+    "rollback": "PASS, byte a byte, de vuelta a 021",
+    "base_de_origen_sha256_antes": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "base_de_origen_sha256_despues": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "base_de_origen_intacta": true
+  },
+
+  "packaging": {
+    "reutilizado_de_pc_casa": false,
+    "motivo": "el zip del slice 6 quedo declarado LOCAL y gitignored; no existe en esta PC y no hay de donde traerlo automaticamente",
+    "reconstruido_desde": "5bc1540, mismo fuente canonico, con pilot/build_pilot.ps1 sin modificar",
+    "zip": "releases/BC-CAJA-1.0.0-rc.32-win64.zip",
+    "zip_sha256_optica": "fca5c0556f43f475d6c6fccd3f73e28a74449f1cf5eb3fdcf29400684714b735",
+    "zip_sha256_casa": "119888956123fded9d5b4d35edaab437c7dc2068e974ce92f115d4f3a1a12336",
+    "hashes_distintos_es_esperado": "PyInstaller no es reproducible byte a byte entre maquinas; la identidad del release es el commit",
+    "smoke_ejecutable_sobre_copia_real": "PASS, tools/smoke_release_006.py",
+    "smoke_ui_comercial": "PASS, tools/smoke_ui_comercial_006.py"
+  },
+
+  "instalacion": {
+    "ejecutada": true,
+    "version_anterior": "1.0.0-rc.31",
+    "version_instalada": "1.0.0-rc.32",
+    "destino": "C:/Users/Striker/AppData/Local/Programs/BC-Caja-Pilot",
+    "rollback_binario": "C:/Users/Striker/AppData/Local/Programs/BC-Caja-Pilot.rollback-rc31-20260819-1200",
+    "acceso_directo": "sin cambios, apunta a la misma ruta"
+  },
+
+  "post_instalacion": {
+    "evidencia": "SMOKE_POST_INSTALACION_OPTICA.txt",
+    "migraciones_finales": 27,
+    "migraciones_nuevas_aplicadas": ["022", "023", "024", "025", "026", "027"],
+    "aplicadas_por": "el propio ejecutable al abrir, sin intervencion",
+    "integrity_check": "ok",
+    "foreign_key_check": "0 violaciones",
+    "datos_preservados": {
+      "entradas": 12,
+      "suma_total": 6400000,
+      "sale_items": 10,
+      "cash_days": 2,
+      "orders": 8,
+      "tablas_previas_perdidas": 0
+    },
+    "sha256_post_instalacion": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
+    "ventana_principal": "Caja diaria - Optica, abrio sobre datos reales",
+    "captura_de_pantalla": "NO tomada: la ventana quedo tapada y la captura incluia datos personales del usuario"
+  },
+
+  "invariantes": {
+    "evidencia": "INVARIANTES_POST_INSTALACION.txt",
+    "veredicto": "PASS, 0 fallas",
+    "stock_negativo": 0,
+    "lineas_de_venta_huerfanas": 0,
+    "movimientos_sin_articulo": 0,
+    "efectos_sin_hecho": 0,
+    "catalogo": "vacio a proposito: 0 articulos, 0 movimientos, 0 hechos, 0 proveedores"
+  },
+
+  "verification": {
+    "suite_comercial_en_esta_pc": "254 passed",
+    "suite_completa": "no re-corrida: esta mision no toca codigo. La corrida completa del slice 6 (934 passed, 2 failed por BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001) sigue siendo la vigente para 5bc1540"
+  },
+
+  "no_ejecutado_a_proposito": {
+    "carga_inicial_de_articulos": "NO. Queda como mision/slice separado, tal como pide la orden",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "alteracion_de_datos_reales": "NINGUNA. Solo se aplicaron las migraciones; no se creo ni modifico un solo hecho de negocio"
+  }
+}

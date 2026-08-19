@@ -1,0 +1,55 @@
+BACKUP Y ROLLBACK -- BC-OPTICA-INSTALACION-PRODUCTIVA-V1-007
+PC: Optica (unica maquina con la base productiva real)
+
+== base productiva real, localizada, no supuesta ==
+resuelta por      : modulos.caja_diaria.config.resolve_data_paths().database
+ruta              : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+tamano antes      : 413.696 bytes
+sha256 antes      : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+migraciones antes : 21 -> 021
+contenido antes   : 12 entradas de Caja, suma 6.400.000, 10 lineas de venta, 2 dias, 8 pedidos
+version instalada : BC Caja 1.0.0-rc.31 (VERSION.txt del ejecutable)
+
+Nota: la base de la Optica NO es la de PC Casa. Casa tenia 8 entradas y suma
+2.115.000. Este es exactamente el motivo por el que el gate de Casa no bastaba.
+
+== backup pre-instalacion ==
+mecanismo         : API de backup de SQLite (no copia de archivo: el WAL se
+                    habria quedado afuera, y el WAL es lo ultimo que la Optica escribio)
+archivo           : C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-preinstall-1.0.0-rc.32-20260819-113826.sqlite3
+sha256 backup     : 4768ba6bb6cfb68a7ceea0b3e4e48ed1ae14f0a5b8f259a42deda7b6fee7a95a
+  OK   mismas tablas que la base de origen
+  OK   mismas 21 migraciones
+  OK   mismas 12 entradas y misma suma 6.400.000
+  OK   mismas 10 lineas de venta
+  OK   integrity_check ok
+  OK   foreign_key_check sin violaciones
+
+El sha256 del backup no coincide con el de la base de origen y eso es correcto:
+la base viva tenia WAL abierto; el backup es una imagen consolidada de su
+contenido. La equivalencia se verifico por contenido, tabla por tabla, no por
+hash del archivo.
+
+== rollback de datos ==
+probado en el gate : restaurar el backup devuelve la base byte a byte, la cadena
+                     vuelve a 021 y ninguna de las seis migraciones nuevas queda aplicada
+disponible ahora   : si, el archivo de backup esta en Backups\ y no se movio
+
+== rollback de binario ==
+convencion previa  : BC-Caja-Pilot.rollback-<version anterior>-<timestamp>
+carpeta conservada : C:\Users\Striker\AppData\Local\Programs\BC-Caja-Pilot.rollback-rc31-20260819-1200
+  OK   contiene BC-Caja.exe
+  OK   su VERSION.txt dice BC Caja 1.0.0-rc.31
+
+== procedimiento de vuelta atras, si hiciera falta ==
+1. cerrar BC Caja
+2. renombrar BC-Caja-Pilot a BC-Caja-Pilot.fallida-rc32
+3. renombrar BC-Caja-Pilot.rollback-rc31-20260819-1200 a BC-Caja-Pilot
+4. reemplazar bc_caja.sqlite3 por el backup pre-instalacion
+   (borrando tambien -wal y -shm)
+5. abrir: rc.31 vuelve a ver 21 migraciones y sus datos exactos
+
+Una vez que se cargue operacion real sobre rc.32, el paso 4 deja de ser gratis:
+volver atras la base implica perder lo cargado despues del backup. El rollback
+de binario solo, sin tocar la base, NO es valido hacia atras: rc.31 no entiende
+las migraciones 022-027.

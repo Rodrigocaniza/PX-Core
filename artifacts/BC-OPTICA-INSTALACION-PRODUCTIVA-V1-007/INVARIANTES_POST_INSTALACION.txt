@@ -1,0 +1,13 @@
+== invariantes economicas y de inventario ==
+  OK   ningun articulo con stock negativo
+  OK   ninguna linea de venta huerfana
+  OK   ningun movimiento de stock sin articulo
+  OK   ningun efecto sin su hecho de origen
+  OK   ninguna anulacion compensatoria pendiente de origen
+  OK   cash_entries consistente
+  ---  catalogo aun vacio, como corresponde antes de la carga inicial: 0 articulos, 0 movimientos, 0 hechos, 0 proveedores
+  ---  datos productivos vivos: 12 entradas, suma 6400000, 10 lineas, 2 dias, 8 pedidos
+
+sha256 base productiva tras la instalacion: aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de
+
+VEREDICTO: PASS (0 fallas)
