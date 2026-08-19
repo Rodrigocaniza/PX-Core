@@ -194,3 +194,88 @@ así queda dicho en vez de afirmar un «byte a byte» que no se cumple.
 - **Los 28 centinelas siguen declarados en los archivos.** Ninguno entró al
   ledger, pero los archivos los seguirán trayendo mientras el sistema viejo los
   genere.
+
+---
+
+# Generación 3 — la conciliación, aplicada en producción
+
+## Pre-guard, los diez puntos
+
+| Guarda | Resultado |
+| --- | --- |
+| base productiva y `sha256` `25cd7d04…` | ✔ coincide |
+| branch / HEAD `c0785e9`, worktree limpio | ✔ |
+| `Inventario PC.xls` `13f62244…`, `P2` `a866551f…` | ✔ sin drift |
+| artefactos del dry-run final | ✔ presentes |
+| estado de partida (3.554 / 3.583 / 5.849 / 2.899 / Caja / 5 pendientes) | ✔ las 9 cifras |
+| BC Caja cerrada, WAL en 0 bytes | ✔ |
+| rollback ejecutable | ✔ backup verificado antes de escribir |
+
+## El sello del plan
+
+La herramienta **recalcula el plan** desde los archivos y la base y lo compara
+contra el sellado en el HUMAN_GATE **antes de escribir**. Las 14 cifras
+coincidieron exactamente. Si alguna no lo hubiera hecho, abortaba sin tocar nada:
+la autorización se dio sobre un plan concreto, y adaptarlo a evidencia nueva
+después del gate sería ejecutar algo que nadie aprobó.
+
+## Aplicación
+
+| Afirmación | Resultado |
+| --- | --- |
+| Backup por la API de backup de SQLite, verificado contra la base | ✔ `71580fc8…` |
+| 41 altas de 45 registros, 1.064 unidades | ✔ |
+| 645 + 128 = 773 unidades compensadas | ✔ |
+| Stock a cero **antes** de retirar, verificado | ✔ 0 pendientes de cero |
+| 766 retirados, 5 no retirables | ✔ |
+| 4 cambios de naturaleza + 4 cierres `NATURE_CORRECTION` | ✔ |
+| 37 ajustes: +47 / −34 | ✔ |
+| Rollback | ✔ **NO** hizo falta |
+
+## Verificación post-producción
+
+Los cinco totales del plan (3.595 / 2.829 / 4.438 / 6.276 / 2.776) y el total
+9.052, todos exactos. `integrity_check` ok · FK 0 · negativos 0 · huérfanos 0 ·
+efectos sin hecho 0 · SKU duplicados 0 · **stock operativo en artículos retirados
+0** · Caja histórica 12 / 6.400.000 / 10 / 2 / 8 · V1-008 intacta (3.583
+movimientos y 8.748 unidades por `document_id`) · los 5 pendientes de la 008
+siguen registrados · `000010` ASUNCION sin unidades y con su pendiente ·
+`000010` PILAR en 10 · `000037` sin stock nuevo y activo · ningún Compostura
+clasificado como producto.
+
+`sha256`: `25cd7d04…` → `ae67faff…`
+
+## Un choque de conexiones, corregido antes de producción
+
+En la validación sobre copia, el script falló con `database is locked`: escribía
+el cierre `NATURE_CORRECTION` desde una segunda conexión mientras el controlador
+todavía tenía la suya abierta. Se movieron esos registros a después de soltar el
+controlador. **El fallo ocurrió sobre una copia, no sobre producción**, que es
+para lo que la copia estaba.
+
+## Idempotencia
+
+El replay **no escribió una sola fila**: artículos, activos, movimientos,
+unidades por sucursal, bitácora y corridas idénticos.
+
+El segundo intento **se rechaza en el pre-guard**, porque el plan recalculado ya
+no coincide con el sellado —las altas y los ajustes ya están aplicados, así que
+dan cero—. Se reporta como falla y **es el comportamiento correcto**: esta
+herramienta ejecuta una autorización de un solo uso, y volver a correrla no
+debería parecer rutina.
+
+## Lo que NO se hizo, y hay que decirlo
+
+- **Nada se borró.** Los 766 retirados están inactivos, con su stock compensado a
+  cero por un movimiento nuevo y toda su historia intacta.
+- **`000010` en Asunción sigue sin cantidad**, por decisión explícita. Ni 2.860,
+  ni 2.857, ni cero inventado.
+- **`000037` y sus 726 unidades ficticias siguen en producción**, sin tocar,
+  esperando el slice 013.
+- **Los 28 centinelas siguen en los archivos fuente.** Ninguno entró al ledger,
+  pero el sistema viejo los seguirá generando.
+- **No se sabe por qué desaparecieron los 773.** El dueño confirmó que el archivo
+  corregido es el correcto; eso es una decisión, no una verificación.
+- **La suite completa no se re-corrió.** La misión agrega una herramienta que usa
+  los caminos existentes; el dry-run y la aplicación los ejercitaron de punta a
+  punta.

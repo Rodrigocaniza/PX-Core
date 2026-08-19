@@ -1,15 +1,15 @@
 {
   "mission": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010",
-  "state": "HUMAN_GATE",
+  "state": "SAFE_CLOSURE",
   "repository": "PX-Core",
   "worktree": ".worktrees/optica-conciliacion-010",
   "branch": "feature/bc-optica-conciliacion-inventario-corregido-v1-010",
   "base_commit": "f5a55b7cbcdd41cfb961ba35a79ad61e4ee8e62d",
   "opened_on": "2026-08-19",
   "opened_at": "PC Optica",
-  "blocked_on": "una sola autorizacion: aplicar la conciliacion recalculada",
-  "produccion": "INTACTA. 3.554 articulos, 3.583 movimientos, sha256 sin cambios",
-  "next_action": "Esperar la autorizacion y aplicar el plan recalculado: 41 altas con 1.064 unidades, 766 retiros con 773 unidades compensadas antes de desactivar, 37 ajustes (+47 / -34) y 4 cambios de naturaleza. Con backup verificable, verificacion post-escritura y rollback, igual que en la 008. Despues quedan tres slices separados -Delivery, laboratorio por defecto y promo limpia-cristal- y la V1-009 pausada por una sola cantidad: los limpia-cristales de Asuncion",
+  "blocked_on": null,
+  "produccion": "CONCILIADA. 3.595 articulos (2.829 activos), 4.438 movimientos, ASU 6.276 / PIL 2.776, total 9.052. Caja historica intacta",
+  "next_action": "No iniciar nada automaticamente. Orden recomendado: (1) BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013, que retira 000037 y sus 726 unidades ficticias y monta la promocion sobre 000010 + no_cost + salida de stock real; (2) BC-OPTICA-DELIVERY-SERVICE-V1-011, el concepto de envio como servicio con precio editable por venta; (3) BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012. BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009 sigue en SAFE_PAUSE por una sola cantidad: 000010 Limpia Cristal en ASUNCION",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
@@ -35,13 +35,28 @@
   ],
   "deudas_explicitas_no_mezcladas": [
     {
-      "id": "V1-009-EN-SAFE-PAUSE",
+      "id": "V1-009-PAUSADA",
       "estado": "PAUSADA",
-      "detalle": "cuatro conteos fisicos. Puede que tres se resuelvan por naturaleza y no haya que contarlos"
+      "detalle": "solo por 000010 Limpia Cristal en ASUNCION. Los otros cuatro se resolvieron por naturaleza y ya no necesitan conteo"
     },
     {
-      "id": "CATEGORIA-VACIA-EN-DOS-ARTICULOS",
-      "estado": "PENDIENTE, no bloqueante"
+      "id": "000037-STOCK-FICTICIO",
+      "estado": "PENDIENTE, slice 013",
+      "detalle": "726 unidades ficticias (210 ASU / 516 PIL) y precio 0 clavado en el catalogo"
+    },
+    {
+      "id": "DELIVERY-NO-EXISTE",
+      "estado": "PENDIENTE, slice 011"
+    },
+    {
+      "id": "LABORATORIO-POR-DEFECTO",
+      "estado": "PENDIENTE, slice 012",
+      "detalle": "tabla laboratories vacia; 2000212 ST Fotocromatico sigue sin laboratorio"
+    },
+    {
+      "id": "CENTINELAS-EN-LA-FUENTE",
+      "estado": "ACEPTADO",
+      "detalle": "los archivos seguiran trayendo 28 centinelas mientras el sistema viejo los genere. Ninguno entra al ledger"
     },
     {
       "id": "SEIS-SLICES-FUERA-DE-MAIN",
@@ -53,17 +68,12 @@
     }
   ],
   "verification": {
-    "estado_canonico": "verificado, sin drift. HEAD e146893, fuentes con sus sha256, produccion en 25cd7d04",
-    "dry_run_generacion_2": "PASS, 0 fallas",
-    "idempotencia": "PASS por contenido, 0 duplicacion",
-    "integrity_check": "ok",
-    "foreign_key_check": 0,
-    "stock_negativo": 0,
-    "huerfanos": 0,
-    "efectos_sin_hecho": 0,
-    "caja_historica": "intacta",
-    "historia_de_la_008": "intacta",
-    "produccion_intacta": "sha256 sin cambios",
+    "pre_guard": "PASS en los 10 puntos",
+    "aplicacion_productiva": "PASS, 0 fallas",
+    "verificacion_post": "PASS",
+    "idempotencia_replay": "PASS, sin filas nuevas",
+    "smoke": "PASS",
+    "rollback_usado": "NO",
     "gates": {
       "librarian": "PASS",
       "qa": "PASS",
@@ -71,6 +81,6 @@
       "artifact_consistency": "PASS"
     }
   },
-  "generacion": 2,
+  "generacion": 3,
   "decisiones_pendientes": []
 }

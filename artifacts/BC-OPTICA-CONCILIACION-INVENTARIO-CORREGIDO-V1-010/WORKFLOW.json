@@ -1,7 +1,7 @@
 {
   "mission": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010",
   "engine": "BC Command Center / Workflow Engine",
-  "state": "HUMAN_GATE",
+  "state": "SAFE_CLOSURE",
   "pc": "Optica",
   "headless_executor": "NO USADO: el dry run levanta el controlador comercial contra una copia",
   "lease": {
@@ -99,14 +99,48 @@
       "detalle": "PASS por contenido: reaplicar no escribe una sola fila"
     },
     {
-      "step": "escritura productiva",
-      "state": "NO EJECUTADA",
-      "detalle": "espera autorizacion"
+      "step": "pre-guard productivo",
+      "state": "DONE",
+      "detalle": "PASS en los 10 puntos: base y HEAD con los hashes esperados, worktree limpio, los dos xls sin drift, BC Caja cerrada, WAL en cero"
     },
     {
-      "step": "slices separados",
+      "step": "sello del plan",
+      "state": "DONE",
+      "detalle": "la herramienta recalculo el plan y lo comparo contra el sellado: las 14 cifras coincidieron. Si no, abortaba"
+    },
+    {
+      "step": "backup verificable",
+      "state": "DONE",
+      "detalle": "bc-caja-preconciliacion-20260819-155227.sqlite3, sha256 71580fc8..., contenido identico a la base"
+    },
+    {
+      "step": "aplicacion productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. 41 altas, 766 retiros, 773 unidades compensadas, 37 ajustes, 4 cambios de naturaleza. Rollback no usado"
+    },
+    {
+      "step": "verificacion post-produccion",
+      "state": "DONE",
+      "detalle": "los 5 totales del plan y las invariantes, todas verdes. Stock operativo en retirados: 0"
+    },
+    {
+      "step": "replay",
+      "state": "DONE",
+      "detalle": "PASS, sin filas nuevas. El segundo intento se rechaza en el pre-guard, que es lo correcto"
+    },
+    {
+      "step": "smoke",
+      "state": "DONE",
+      "detalle": "BC Caja abre y la UI Comercial pasa sus seis comprobaciones"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE"
+    },
+    {
+      "step": "slices siguientes",
       "state": "NO INICIADOS",
-      "detalle": "Delivery (011), laboratorio por defecto (012) y promo limpia-cristal (013)"
+      "detalle": "013 promo limpia-cristal, 011 Delivery, 012 laboratorio por defecto. En ese orden"
     },
     {
       "step": "merge a main",
@@ -122,5 +156,5 @@
     "pr": "NO",
     "force_push": "NO"
   },
-  "generacion": 2
+  "generacion": 3
 }

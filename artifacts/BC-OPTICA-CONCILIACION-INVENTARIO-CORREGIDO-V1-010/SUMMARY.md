@@ -124,6 +124,49 @@ va entero al slice 013.
 41 altas · 766 retiros · 773 unidades compensadas (645 + 128) · 37 ajustes
 (+47 / −34) · 4 cambios de naturaleza. **PASS, 0 fallas.**
 
-## Lo que falta
+## Generación 3 — aplicada
 
-Una autorización. Está en `HUMAN_GATE.md`.
+Autorizada y hecha. **PASS, 0 fallas, sin rollback.**
+
+El pre-guard pasó en los diez puntos, y después la herramienta hizo algo que
+vale la pena contar: **recalculó el plan entero desde los archivos y la base, y
+lo comparó contra el sellado en el gate antes de escribir una sola fila**. Las
+catorce cifras coincidieron. Si alguna no lo hubiera hecho, abortaba — una
+autorización se da sobre un plan concreto, y adaptarlo a evidencia nueva después
+del gate es ejecutar algo que nadie aprobó.
+
+| | antes | después |
+| --- | ---: | ---: |
+| artículos | 3.554 | **3.595** |
+| activos | 3.554 | **2.829** |
+| movimientos | 3.583 | **4.438** |
+| stock ASUNCION | 5.849 | **6.276** |
+| stock PILAR | 2.899 | **2.776** |
+| **total** | **8.748** | **9.052** |
+
+41 altas con 1.064 unidades · 766 retiros con **773 unidades compensadas a cero
+antes de desactivar** · 37 ajustes (+47 / −34) · 4 cambios de naturaleza con sus
+cierres. `sha256`: `25cd7d04…` → `ae67faff…`
+
+**Nada se borró.** Los retirados están inactivos, con su stock llevado a cero por
+un movimiento nuevo y su historia entera. Verificado explícitamente: **stock
+operativo en artículos retirados = 0**.
+
+Caja histórica intacta, la carga de la V1-008 intacta (3.583 movimientos y 8.748
+unidades), `000010` sin cantidad en Asunción y con sus 10 en Pilar, `000037`
+esperando el slice 013, y ningún artículo de Compostura clasificado como
+producto.
+
+El replay no escribió una sola fila. Y BC Caja abre con la UI Comercial
+funcionando sobre la base ya conciliada.
+
+**Un tropiezo que quedó del lado correcto:** al validar sobre copia, el script
+falló con `database is locked` — escribía desde una segunda conexión mientras el
+controlador tenía la suya. Se corrigió antes de tocar producción, que es
+exactamente para lo que existía la copia.
+
+## Lo que sigue
+
+Tres slices, en este orden: **013** (retirar `000037` y montar la promoción sobre
+el limpia-cristal real), **011** (Delivery) y **012** (laboratorio por defecto).
+La V1-009 sigue pausada por una sola cantidad: los limpia-cristales de Asunción.

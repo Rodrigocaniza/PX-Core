@@ -1,6 +1,6 @@
 {
   "mission": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010",
-  "tipo": "conciliacion contra inventarios corregidos. NO escribe produccion",
+  "tipo": "conciliacion contra inventarios corregidos, EJECUTADA",
   "pc": "Optica",
   "branch": "feature/bc-optica-conciliacion-inventario-corregido-v1-010",
   "worktree": ".worktrees/optica-conciliacion-010",
@@ -11,7 +11,7 @@
   "pr": false,
   "merge_to_main": false,
   "force_push": false,
-  "estado": "HUMAN_GATE",
+  "estado": "APLICADA EN PRODUCCION",
   "mision_pausada": {
     "cual": "BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009",
     "estado": "SAFE_PAUSE en dceac1f, evidencia conservada, nada escrito"
@@ -249,7 +249,7 @@
     "merge_a_main": "NO",
     "pr": "NO"
   },
-  "generacion": 2,
+  "generacion": 3,
   "generacion_1": "primer analisis y dry run. Plan OBSOLETO: 42 altas, +47/-65, ASU 6.904, PIL 2.892. No se reutilizo",
   "generacion_2": "decisiones humanas del 2026-08-19 incorporadas y plan recalculado entero",
   "decisiones_humanas": {
@@ -324,5 +324,93 @@
     "codigo_renumerado": "el corregido normaliza algunos codigos de barra a 13 digitos con cero adelante. 300653145470 desaparece y 0300653145470 aparece: es el mismo Opti Free Express. Se busco el patron en los 775 y es el unico caso",
     "cinco_que_siguen_vivos": "un articulo puede faltar en el archivo de una sucursal y tener stock en la otra. Se compensa el deposito ausente y el articulo NO se retira. El producto ya lo impide con una guarda correcta",
     "uno_que_nunca_existio": "ASU-101814 era la fila sin descripcion que la 008 rechazo. No es una baja"
+  },
+  "aplicacion_productiva": {
+    "ejecutada": true,
+    "autorizada_por": "el dueno, 2026-08-19, limitada al plan exacto del ultimo dry run PASS",
+    "herramienta": "tools/conciliacion_inventario_corregido_optica.py --confirmar",
+    "veredicto": "PASS, 0 fallas",
+    "rollback_usado": "NO",
+    "pre_guard": {
+      "base_sha256_esperado": "25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658",
+      "base_sha256_encontrado": "25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658",
+      "HEAD": "c0785e9",
+      "worktree_limpio": true,
+      "Inventario_PC_xls": "13f62244ac659fc4c6ba4d0814677c8ba451a1a35a70dbb42da0f709895151c5",
+      "Inventario_P2_xls": "a866551f09f4115231998b55698285dc8fdd583c4be7ebc690f2086db9023389",
+      "BC_Caja_corriendo": false,
+      "WAL": "0 bytes",
+      "estado_de_partida": "3554 articulos, 3554 activos, 3583 movimientos, ASU 5849, PIL 2899, Caja 12/6400000/10, 5 pendientes",
+      "veredicto": "PASS en los 10 puntos"
+    },
+    "sello_del_plan": {
+      "mecanismo": "la herramienta recalcula el plan desde los archivos y la base, y lo compara contra el plan sellado del HUMAN_GATE antes de escribir. Si no coincide, aborta",
+      "resultado": "las 14 cifras coincidieron exactamente"
+    },
+    "backup": {
+      "archivo": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-preconciliacion-20260819-155227.sqlite3",
+      "sha256": "71580fc835301902ca9c81eb38c0ddea41c386ee1ca1af47801942c80ea73f6c",
+      "bytes": 5906432,
+      "verificado": "contenido identico a la base, abre, integrity_check ok, 0 FK"
+    },
+    "base_sha256_antes": "25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658",
+    "base_sha256_despues": "ae67faffb7cad9a09fe6000749e27b536edd4098760062f807f38a3ec96f2232",
+    "resultado": {
+      "altas": {
+        "articulos": 41,
+        "registros": 45,
+        "unidades": 1064
+      },
+      "retirados": 766,
+      "no_retirables": 5,
+      "compensaciones": {
+        "ASUNCION": 645,
+        "PILAR": 128,
+        "total": 773
+      },
+      "ajustes": {
+        "total": 37,
+        "positivo": 47,
+        "negativo": 34
+      },
+      "cambios_de_nature": 4,
+      "pendientes_cerrados_por_NATURE_CORRECTION": 4,
+      "articulos": 3595,
+      "activos": 2829,
+      "movimientos": 4438,
+      "ASUNCION": 6276,
+      "PILAR": 2776,
+      "total": 9052
+    },
+    "verificacion_post": {
+      "integrity_check": "ok",
+      "foreign_key_check": 0,
+      "stock_negativo": 0,
+      "huerfanos": 0,
+      "efectos_sin_hecho": 0,
+      "sku_duplicados": 0,
+      "stock_operativo_en_retirados": 0,
+      "caja_historica": {
+        "entradas": 12,
+        "suma": 6400000,
+        "sale_items": 10,
+        "cash_days": 2,
+        "orders": 8
+      },
+      "V1_008_intacta": "3.583 movimientos y 8.748 unidades, verificado por document_id",
+      "pendientes_de_V1_008": 5,
+      "000010_ASUNCION": "sin unidades, pendiente conservado",
+      "000010_PILAR": "10 unidades intactas",
+      "000037": "sin stock nuevo, sigue activo, va al slice 013",
+      "ningun_Compostura_como_producto": true
+    },
+    "idempotencia": {
+      "replay": "PASS. Sin filas nuevas: articulos, activos, movimientos, unidades por sucursal, bitacora y corridas identicos",
+      "comportamiento": "el segundo intento se rechaza en el pre-guard porque el plan ya esta aplicado. Es lo correcto para una autorizacion de un solo uso"
+    },
+    "smoke": {
+      "app": "BC Caja abre, ventana 'Caja diaria - Optica'",
+      "ui_comercial": "PASS sobre copia de la base ya conciliada"
+    }
   }
 }
