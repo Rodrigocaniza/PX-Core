@@ -1,15 +1,15 @@
 # Evidencia de pruebas
 
-Regresión completa: **444/444 PASS** (`python -m pytest -q`). El tiempo de reloj depende de la
+Regresión completa: **453/453 PASS** (`python -m pytest -q`). El tiempo de reloj depende de la
 máquina y no se declara: no es una propiedad del código.
-Línea base de la misión anterior: 302. Esta misión suma **142**: 138 de dominio y 4 de interfaz.
+Línea base de la misión anterior: 302. Esta misión suma **151**: 147 de dominio y 4 de interfaz.
 
-Suite del módulo: `tests/gestion_central/` **244/244 PASS**.
-Los seis archivos de comisiones juntos (`test_comisiones.py`,
+Suite del módulo: `tests/gestion_central/` **253/253 PASS**.
+Los siete archivos de comisiones juntos (`test_comisiones.py`,
 `test_comisiones_ui_interactions.py`, `test_comision_rate_boundary.py` —generación 6—,
-`test_comision_period_unpin.py` —generación 7—, `test_comision_legacy_facts.py` —generación 8— y
-`test_comision_rate_coherence.py` —generación 9—): 51 → **193** casos,
-112 + 8 + 24 + 23 + 13 + 13 respectivamente.
+`test_comision_period_unpin.py` —generación 7—, `test_comision_legacy_facts.py` —generación 8—,
+`test_comision_rate_coherence.py` —generación 9— y `test_comision_reconcile_reach.py`
+—generación 10—): 51 → **202** casos, 112 + 8 + 24 + 23 + 13 + 13 + 9 respectivamente.
 
 Todas las cifras anteriores son **casos ejecutados**, que es lo que cuenta pytest. En funciones:
 `test_comisiones.py` pasa de 47 a 94 —se agregan 48 y se elimina
@@ -32,7 +32,24 @@ La **generación 7** suma **23 casos** (395 → 418), todos en `test_comision_pe
 
 La **generación 8** suma **13 casos** (418 → 431), todos en `test_comision_legacy_facts.py`.
 
-La **generación 9** suma **13 casos** (431 → 444), todos en `test_comision_rate_coherence.py`.
+La **generación 9** suma **13 casos** (431 → 444), en 11 funciones —una parametrizada sobre tres
+rutas— todos en `test_comision_rate_coherence.py`.
+
+La **generación 10** suma **9 casos** (444 → 453), todos en `test_comision_reconcile_reach.py`.
+
+## Generación 10 — cierre de L3-g9
+
+Nueve pruebas dirigidas. Dos son **estructurales** y no de comportamiento, que es la novedad: una
+comprueba que las cuatro funciones que escriben `commission_entries.status` reconcilian su período,
+y otra que la lectura del libro existe en un solo sitio. Sostienen por construcción lo que el
+invariante 10 afirmaba sin poder cumplir.
+
+| Grupo | Qué demuestra | Pruebas |
+|---|---|---|
+| Garantía estructural | las cuatro rutas que escriben estado reconcilian; el libro se lee en un solo sitio | 2 |
+| Las tres rutas que no pasan por `_set_status` | `recalculate`, la corrección de origen y la promoción a elegible reconcilian de verdad | 3 |
+| Claves normalizadas | una clave con fecha completa no deja un período fantasma en la auditoría; `recalculate(period=…)` alcanza esas filas | 2 |
+| Auditoría del conflicto | un conflicto nuevo del mismo mes sí se asienta; uno provocado en caliente lleva el nombre de quien lo provocó | 2 |
 
 ## Generación 9 — cierre de AB1-g8
 

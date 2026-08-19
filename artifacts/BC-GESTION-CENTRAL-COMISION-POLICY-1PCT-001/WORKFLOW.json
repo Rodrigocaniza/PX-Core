@@ -4,9 +4,9 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "GENERATION_9_REMEDIATED_PENDING_VERDICTS",
+  "current_state": "GENERATION_10_REMEDIATED_PENDING_VERDICTS",
   "mission_lease": "ACQUIRED",
-  "generation": 9,
+  "generation": 10,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -15,17 +15,18 @@
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "PENDING",
   "tests": {
-    "full_regression": 444,
+    "full_regression": 453,
     "baseline": 302,
-    "added_cases": 142,
-    "module_suite": 244,
-    "commissions_cases": 193,
+    "added_cases": 151,
+    "module_suite": 253,
+    "commissions_cases": 202,
     "generation_5_added_cases": 26,
     "generation_6_added_cases": 26,
     "generation_7_added_cases": 23,
     "generation_8_added_cases": 13,
     "generation_9_added_cases": 13,
-    "generation_9_directed_file": "tests/gestion_central/test_comision_rate_coherence.py"
+    "generation_10_added_cases": 9,
+    "generation_10_directed_file": "tests/gestion_central/test_comision_reconcile_reach.py"
   },
   "decision": {
     "code": "COMISION_GENERAL_1PCT",
@@ -447,10 +448,31 @@
     },
     {
       "generation": 9,
-      "snapshot_commit": null,
-      "status": "REMEDIATED_PENDING_VERDICTS",
+      "snapshot_commit": "f284b6c5fc2d0f31ffce7567146cce9371e9502a",
+      "status": "INVALIDATED",
       "tests": 444,
-      "verdicts": [],
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-009",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "blockers": [
+            "L1-g9",
+            "L2-g9",
+            "L3-g9"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-009",
+          "role": "QA",
+          "verdict": "PASS"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-009",
+          "role": "AUDITOR",
+          "verdict": "PASS"
+        }
+      ],
       "scope": "cerrar AB1-g8 unificando la regla de decision, y L1-g8 y L2-g8",
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-9/",
       "remediation": {
@@ -480,6 +502,37 @@
           "AUDITOR-008 obs 5": "recalculate evalua liquidaciones de ventas anuladas, ya no pagables",
           "QA-008 obs 2": "recalculate puede necesitar dos pasadas cuando la reparacion suelta el propio periodo",
           "QA-008 obs 3": "el KPI Pagado suma tambien lo legado que la comision oficial excluye"
+        }
+      },
+      "outcome": "AB1-g8 cerrado. Primer PASS del Auditor en toda la mision, con 13.200 pasos de fuzz desde bases migradas y 0 violaciones del invariante en las tres direcciones. QA PASS. La generacion queda INVALIDADA solo por el Librarian: tres afirmaciones falsas, ninguna economica."
+    },
+    {
+      "generation": 10,
+      "snapshot_commit": null,
+      "status": "REMEDIATED_PENDING_VERDICTS",
+      "tests": 453,
+      "verdicts": [],
+      "scope": "cerrar L1-g9, L2-g9 y L3-g9, y las observaciones estructurales del Auditor y de QA",
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-10/",
+      "remediation": {
+        "L3-g9": "la garantia 'por construccion' se apoyaba en _set_status como unico punto de paso, y era falsa: recalculate, _apply_source_update y la promocion a elegible escriben status con UPDATE directo. Los cuatro sitios reconcilian ahora, y una prueba estructural comprueba que ninguna funcion que escriba status se olvide",
+        "L1-g9": "la tabla de reglas de MIGRATION.md describia una siembra que ya no existe; tres de sus seis filas eran falsas",
+        "L2-g9": "HANDOFF citaba un rotulo de pantalla retirado en la generacion 7",
+        "auditor_observations": [
+          "O2: la lectura del libro estaba escrita tres veces; ahora es una sola en el repositorio",
+          "O3: la clave del periodo se normaliza tambien al leer el libro, sin periodos fantasma en la auditoria",
+          "O4: un conflicto nuevo del mismo mes ya se asienta; la huella incluye las tasas",
+          "O5: un conflicto en caliente se asienta a nombre de quien lo provoco, no de MIGRACION",
+          "O7: recalculate y list_entries filtran el periodo con la clave normalizada"
+        ],
+        "qa_observations": [
+          "obs 2: el rechazo por politica desfasada nombra la tasa y no solo la version"
+        ],
+        "open": {
+          "AUDITOR-009 O1": "un mes con una PAGADA legada al 7% cobra esa tasa tambien a las ventas registradas despues. Es la consecuencia directa de la decision de propietario de la generacion 9, tomada y escrita; cuantificada en 600.000 Gs por venta de 10.000.000 Gs",
+          "AUDITOR-009 O6": "recalculate puede necesitar dos pasadas sobre un mes migrado ambiguo; sin pago incorrecto",
+          "QA-009 obs 3": "el codigo de politica se llama COMISION_GENERAL_1PCT tambien cuando la tasa fijada es historica",
+          "QA-009 obs 4": "en bases migradas el pin hereda scope del hecho legado, que puede no ser GENERAL"
         }
       }
     }
@@ -862,17 +915,42 @@
       "kind": "DOCUMENTAL",
       "status": "CERRADO_EN_GEN9",
       "summary": "PERIOD_MATCH_SQL tenia un solo usuario: la migracion agrupaba el periodo en Python, fuera del SQL"
+    },
+    {
+      "id": "L1-g9",
+      "role": "LIBRARIAN",
+      "generation": 9,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_GEN10",
+      "summary": "la tabla de reglas de MIGRATION.md describia la siembra anterior; tres filas falsas, entre ellas la garantia de no escribir UNPINNED"
+    },
+    {
+      "id": "L2-g9",
+      "role": "LIBRARIAN",
+      "generation": 9,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_GEN10",
+      "summary": "HANDOFF citaba un rotulo de pantalla que el codigo no produce desde la generacion 7"
+    },
+    {
+      "id": "L3-g9",
+      "role": "LIBRARIAN",
+      "generation": 9,
+      "kind": "ESTRUCTURAL",
+      "status": "CERRADO_EN_GEN10",
+      "summary": "el invariante 10 apoyaba su garantia por construccion en _set_status como unico punto de paso, y hay tres UPDATE directos mas",
+      "closure": "los cuatro sitios reconcilian y una prueba estructural lo comprueba"
     }
   ],
   "next_action": {
-    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN9-VERDICTS",
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN10-VERDICTS",
     "state": "PENDING_INDEPENDENT_VERDICTS",
     "steps": [
-      "1. Publicar el snapshot de la generacion 9 (protected commit y push).",
+      "1. Publicar el snapshot de la generacion 10 (protected commit y push).",
       "2. Relanzar los tres runners independientes sobre ese snapshot.",
-      "3. No reutilizar verdicts de las generaciones 1 a 8.",
+      "3. No reutilizar verdicts de las generaciones 1 a 9.",
       "4. Con 3xPASS: Artifact Consistency, Safe Closure, liberar el lease y persistir el NEXT_ACTION siguiente.",
-      "5. Con cualquier FAIL: abrir la generacion 10 con el alcance exacto."
+      "5. Con cualquier FAIL: abrir la generacion 11 con el alcance exacto."
     ],
     "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 no se abre hasta cerrar esta politica economica."
   },

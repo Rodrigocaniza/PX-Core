@@ -110,9 +110,12 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
    mismo— y el SQL de ambos lados se arma desde `BOUNDARY_SQL_IN`, de modo que no puede divergir.
 10. **La fijación se retira cuando se retira su justificación.** `reconcile_period_rate` lleva el
     libro del período al estado que sus hechos vivos justifican: fija, suelta o refija a otra tasa,
-    según la diferencia entre lo que el libro dice y lo que la regla dice. Se invoca desde
-    `_set_status` —por donde pasa toda transición de estado— y desde la apertura de la base, así
-    que las cuatro rutas de `AB1-g6` y cualquiera futura quedan cubiertas por construcción.
+    según la diferencia entre lo que el libro dice y lo que la regla dice. La invocan **los cuatro
+    sitios que escriben un estado** —`_set_status`, `recalculate`, `_apply_source_update` y la
+    promoción a elegible— y la apertura de la base. `_set_status` **no** es el único punto de paso:
+    afirmarlo era falso, y una prueba estructural comprueba ahora que ninguna función que escriba
+    `commission_entries.status` se olvide de reconciliar, que es lo que sostiene la garantía sobre
+    las rutas futuras.
     **Una `PAGADA` viva conserva la tasa con la que se pagó**: sostiene su mes a **esa** tasa
     aunque la liquidación se observe después o la venta se anule, y no se reinterpreta con la
     política vigente. Lo que no sostiene es una tasa distinta de la suya, que era `AB1-g8`.

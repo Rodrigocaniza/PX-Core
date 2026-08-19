@@ -310,6 +310,58 @@ está en el código.
 
 Los verdicts de las generaciones 1 a 8 **no se reutilizan**.
 
+## Generación 9 — snapshot `f284b6c5fc2d0f31ffce7567146cce9371e9502a`
+
+| Runner | Rol | Verdict | Bloqueantes |
+|---|---|---|---|
+| `LIBRARIAN-IND-COMISION-POLICY-1PCT-009` | Librarian | **FAIL** | `L1-g9`, `L2-g9`, `L3-g9` |
+| `QA-IND-COMISION-POLICY-1PCT-009` | QA | **PASS** | ninguno |
+| `AUDITOR-IND-COMISION-POLICY-1PCT-009` | Auditor | **PASS** | ninguno |
+
+**Resultado: INVALIDADA por el Librarian, y sólo por él.** Es el primer `PASS` del Auditor en las
+nueve generaciones.
+
+**Qué hizo distinto el Auditor.** Tres cosas que conviene retener. Primera: **verificó su propio
+detector antes de usarlo**, con tres bases construidas para violar cada dirección del invariante, y
+comprobó que las señalaba. Segunda: **escribió su propio SQL de vitalidad en vez de importar el del
+módulo**, para no validar el código contra sí mismo. Tercera: arrancó desde bases migradas, como su
+verdict anterior le exigía. Los tres hábitos son la diferencia entre 32.000 pasos que no encuentran
+nada y 13.200 que sí valen.
+
+**Lo que encontró el Librarian, y por qué importa.** `L3-g9` empieza como una frase —«`_set_status`,
+por donde pasa toda transición de estado»— y termina siendo una garantía estructural que no existía.
+Lo demostró **instrumentando**, no leyendo: contó las llamadas. Es la cuarta generación seguida en
+que el rol documental encuentra algo que ni QA ni el Auditor buscaban, y la segunda en que lo que
+encuentra es de código.
+
+**El patrón, revisado.** `AB1-g6`, `AB1-g7` y `AB1-g8` fueron la misma regla en dos sitios.
+`L1-g8` y `L1-g9` son su versión documental: la generación cambia la regla y el documento que la
+describe no se toca. Las dos formas tienen la misma raíz —una afirmación que se sostiene sola en vez
+de estar amarrada a lo que hace el código— y por eso la generación 10 cierra `L3-g9` con una prueba
+estructural y no con una corrección de redacción.
+
+Los verdicts de las generaciones 1 a 9 **no se reutilizan**.
+
+## Generación 10
+
+**Remediada, pendiente de los tres verdicts.** Alcance: `L1-g9`, `L2-g9`, `L3-g9` y las
+observaciones estructurales del Auditor y de QA.
+
+**Qué superficie debe cubrir cada rol:**
+
+- **Librarian.** La generación 10 añade una prueba que verifica una afirmación estructural. La
+  pregunta es si esa prueba comprueba lo que dice comprobar, y si queda alguna otra garantía
+  «por construcción» que no esté amarrada. `MIGRATION.md` volvió a reescribirse entera: contrastarla
+  línea a línea contra el código, que es donde fallaron la 8 y la 9.
+- **Auditor.** El Auditor de la 9 declaró que no puede descartar un quinto disfraz del patrón y que
+  su fuzz no habría encontrado O3 —lo halló construyendo la base a mano—. La 10 cierra O2, O3, O4,
+  O5 y O7. Conviene verificar que cerrarlas no abrió nada, en especial que reconciliar en los tres
+  `UPDATE` directos nuevos no cambia el comportamiento de `recalculate` ni introduce escrituras
+  donde antes no las había.
+- **QA.** Sus observaciones 3 y 4 quedan abiertas a propósito. El eje es que el comportamiento no
+  cambió: la semántica de la generación 9 —7% preservado, 1% prospectivo— debe seguir intacta tras
+  tocar cuatro rutas de escritura de estado.
+
 ## Generación 9
 
 **Remediada, pendiente de los tres verdicts.** Alcance ejecutado: `AB1-g8`, `L1-g8`, `L2-g8` y las

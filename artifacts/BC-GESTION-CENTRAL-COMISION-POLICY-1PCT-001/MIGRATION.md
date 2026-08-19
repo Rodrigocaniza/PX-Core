@@ -97,9 +97,9 @@ que reúne las tres condiciones a la vez:
 * lleva política canónica y una tasa concreta;
 * y se evalúa con **exactamente el mismo SQL que el código en caliente**,
   `comision_policy.LIVE_OFFICIAL_FACT_SQL`, emparejando el período con `PERIOD_MATCH_SQL`. No son
-  dos textos equivalentes: es uno solo. Tenerlo escrito dos veces falló dos generaciones seguidas
-  —en la 6 la migración excluía las `REVERTIDA` y el código no; en la 7 la migración exigía política
-  canónica y el código no, que fue `AB1-g7`—.
+  dos textos equivalentes: es uno solo. Tenerlo escrito dos veces falló **tres** generaciones
+  seguidas: en la 6 la migración excluía las `REVERTIDA` y el código no; en la 7 exigía política
+  canónica y el código no (`AB1-g7`); en la 8 exigía coherencia de tasa y el código no (`AB1-g8`).
 
 **Todo período vuelve a evaluarse**, tenga el libro que tenga. Uno cuyo último evento es `UNPINNED`
 se fija si la base trae evidencia viva; uno fijado a una tasa que ninguno de sus hechos vivos lleva
@@ -112,12 +112,12 @@ Las reglas que la siembra respeta sin excepción:
 
 | Regla | Qué significa |
 |---|---|
-| **No inventa** | un período sin evidencia oficial viva no se siembra: queda **sin fijar** y por lo tanto corregible, que es el estado correcto para algo que hoy nadie avala |
-| **No inventa retiradas** | **no escribe un solo `UNPINNED`**. Una fijación de la generación 5 o 6 que hoy no tiene evidencia viva simplemente no se siembra, y queda asentada como descartada con motivo `SIN_HECHO_ECONOMICO_VIVO`. Afirmar que fue «retirada» sería inventar un hecho que nadie produjo |
+| **No inventa hechos** | un período sin evidencia oficial viva no se fija: queda **sin fijar** y por lo tanto corregible, que es el estado correcto para algo que hoy nadie avala |
+| **Sí aplica la regla** | una fijación heredada que hoy nada sostiene, o fijada a una tasa que ninguno de sus hechos vivos lleva, **se retira con un `UNPINNED`** de `origin='MIGRACION'`. Que no exista un hecho que la respalde es *observable*, no fabricado: aplicar la regla a una observación es lo mismo que hace cada transición, y no hacerlo dejaba a la pantalla declarando fijado un mes que nadie sostenía |
 | **No desempata a ciegas** | si el mismo período muestra tasas oficiales distintas, la evidencia es discrepante y no se fija nada: elegir una sería decidir por el propietario cuál de dos importes ya avalados es el bueno |
 | **No toca dinero** | no escribe una sola vez sobre `commission_entries`: ni importes, ni tasas, ni aprobaciones, ni pagos |
-| **Es idempotente** | sólo mira períodos cuyo último evento no sea ya `PINNED`, y ni la siembra ni el descarte se re-asientan si su asiento ya existe. No hay `INSERT OR IGNORE`: el libro usa `INSERT` normal y la idempotencia sale de consultar el estado, que además no oculta violaciones de esquema |
-| **Es auditable** | todo período sembrado deja `COMMISSION_PERIOD_RATE_SEEDED` y todo período descartado deja `COMMISSION_PERIOD_RATE_SEED_SKIPPED` con su motivo, en `central_audit` |
+| **Es idempotente** | recorre **todos** los períodos, pero `reconcile_period_rate` no escribe cuando el libro ya dice lo que la regla dice. La idempotencia sale de comparar estados, no de filtrar períodos ni de un `INSERT OR IGNORE` |
+| **Es auditable** | cada fijación y cada retirada dejan `COMMISSION_PERIOD_RATE_PINNED` o `COMMISSION_PERIOD_RATE_UNPINNED` —los mismos nombres que en caliente, con el `origin` distinguiendo la ruta— y cada discrepancia deja `COMMISSION_PERIOD_RATE_SEED_SKIPPED` con las tasas en conflicto |
 
 A igualdad de evidencia, un pago manda sobre una aprobación —es el hecho más fuerte del mes— y a
 igualdad de fuerza gana el más antiguo, para que el resultado no dependa del orden de lectura.

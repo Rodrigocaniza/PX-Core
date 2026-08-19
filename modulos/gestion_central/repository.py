@@ -324,8 +324,11 @@ class CentralRepository:
         periods = {row[0] for row in con.execute(
             f"SELECT DISTINCT {comision_policy.PERIOD_KEY_SQL} FROM commission_entries e"
             f" WHERE e.period IS NOT NULL")}
+        # La clave del libro se normaliza igual que la de las liquidaciones: una fila legada con
+        # fecha completa producía un período fantasma que sobrevivía a toda reapertura y que la
+        # publicación siguiente declaraba «protegido» sin existir.
         periods |= {row[0] for row in con.execute(
-            "SELECT DISTINCT period FROM commission_period_rate_events")}
+            f"SELECT DISTINCT {comision_policy.PERIOD_KEY_SQL} FROM commission_period_rate_events e")}
         for period in sorted(periods):
             self.reconcile_period_rate(con, period, "MIGRACION", "MIGRACION",
                                        reason="reconciliacion al abrir la base migrada")
@@ -334,6 +337,7 @@ class CentralRepository:
         # La fila vieja no se toca; sólo se deja dicho por qué no se arrastró.
         known = {row[0] for row in con.execute(
             "SELECT DISTINCT period FROM commission_period_rate_events")}
+        known = {str(row)[:7] for row in known}
         legacy = {str(row[0])[:7] for row in con.execute(
             "SELECT period FROM commission_rated_periods")}
         for period in sorted(legacy - known):
@@ -341,6 +345,37 @@ class CentralRepository:
                 con, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period,
                 {"reason": "SIN_HECHO_ECONOMICO_VIVO",
                  "note": "fijacion heredada de la generacion 5 sin hecho vivo que la justifique"})
+
+    @staticmethod
+    def last_period_rate_event(con, period):
+        """Último evento del período: **la** respuesta a «¿qué dice el libro hoy?».
+
+        Estaba escrita en tres sitios —dos con el mismo SQL copiado literalmente y uno con un
+        `JOIN` sobre `MAX(id)`—. La decisión se unificó en `resolve_period_rate` y la escritura en
+        `record_period_rate_event`, pero la lectura del estado actual se había quedado fuera, que
+        es justo donde una corrección futura puede volver a tocar una mitad y no la otra.
+        """
+        return con.execute(
+            "SELECT * FROM commission_period_rate_events WHERE period=? ORDER BY id DESC LIMIT 1",
+            (str(period)[:7],)).fetchone()
+
+    @staticmethod
+    def pinned_periods_from(con, effective_from):
+        """Períodos hoy fijados cuyo mes no es anterior a esa vigencia.
+
+        Se resuelve con la misma lectura por período, no con un `JOIN` propio: son la misma
+        pregunta hecha sobre muchos períodos.
+        """
+        periods = [row[0] for row in con.execute(
+            f"SELECT DISTINCT {comision_policy.PERIOD_KEY_SQL} AS period_key"
+            "   FROM commission_period_rate_events e"
+            "  WHERE substr(e.period,1,7) >= substr(?,1,7) ORDER BY period_key", (effective_from,))]
+        fijados = []
+        for period in periods:
+            last = CentralRepository.last_period_rate_event(con, period)
+            if last is not None and last["event"] == "PINNED":
+                fijados.append(period)
+        return fijados
 
     def live_official_facts(self, con, period):
         """Hechos económicos oficiales vivos de un período. Una sola consulta para todo el sistema."""
@@ -370,15 +405,13 @@ class CentralRepository:
             return False
         facts = self.live_official_facts(con, period)
         resolution = comision_policy.resolve_period_rate(facts)
-        last = con.execute(
-            "SELECT * FROM commission_period_rate_events WHERE period=? ORDER BY id DESC LIMIT 1",
-            (period,)).fetchone()
+        last = self.last_period_rate_event(con, period)
         current = int(last["rate_bp"]) if last is not None and last["event"] == "PINNED" else None
 
         if resolution is comision_policy.PERIOD_RATE_AMBIGUOUS:
             desired, chosen = None, None
-            self._audit_seed_once(
-                con, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period,
+            self._audit_conflict_once(
+                con, period, actor,
                 {"reason": "EVIDENCIA_DISCREPANTE",
                  "rates_bp": sorted({int(f["rate_bp"]) for f in facts}),
                  "entries": [f["id"] for f in facts]})
@@ -448,6 +481,23 @@ class CentralRepository:
             "rate_bp": int(rate_bp), "origin": origin, "reason": reason, "entry_id": entry_id,
             "sale_id": sale_id, "policy_code": policy_code, "policy_version": policy_version,
             "policy_effective_from": policy_effective_from})
+
+    def _audit_conflict_once(self, con, period, actor, details):
+        """Asienta una discrepancia de tasas, una vez por **conflicto**, no una vez por período.
+
+        `_audit_seed_once` deduplica por acción y objetivo, que es lo correcto para la apertura de
+        la base —corre en cada arranque— pero silenciaba la segunda discrepancia distinta de un
+        mismo mes cuando la reconciliación corre en caliente. Aquí la huella incluye las tasas en
+        conflicto, así que un conflicto nuevo sí se asienta, y el actor es el que lo provocó y no
+        siempre la migración.
+        """
+        huella = json.dumps(details.get("rates_bp"), sort_keys=True)
+        ya = con.execute(
+            "SELECT 1 FROM central_audit WHERE action=? AND target=? AND details_json LIKE ?",
+            ("COMMISSION_PERIOD_RATE_SEED_SKIPPED", period, f'%"rates_bp": {huella}%')).fetchone()
+        if ya:
+            return
+        self.audit(con, actor, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period, details=details)
 
     def _audit_seed_once(self, con, action, target, details):
         """Asienta una decisión de siembra una sola vez.

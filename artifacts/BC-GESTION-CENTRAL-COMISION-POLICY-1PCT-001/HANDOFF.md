@@ -168,8 +168,10 @@ Aportados por la generación 5, abiertos y **no** corregidos:
 29. **La cabecera de la pantalla rotula la política del período en curso**, no la última publicada,
     e indica cuándo el período está fijado. Ningún importe cambia; sí cambia el texto que el
     operador lee. La desactualización de `VISUAL_EVIDENCE.md` que este hallazgo registraba **quedó
-    corregida en la generación 6**: el documento y su captura se regeneraron, y el rótulo real es
-    « · fijada al aprobarse o pagarse» o « · provisional: aún sin aprobación ni pago en el período».
+    corregida en la generación 6**: el documento y su captura se regeneraron. El rótulo real hoy es
+    « · fijada al aprobarse o pagarse» o « · todavía sin tasa fijada: el período sigue siendo
+    corregible»; la segunda redacción cambió en la generación 7, porque la anterior afirmaba que
+    nadie había aprobado y eso es falso en una base con evidencia discrepante.
     Lo que sigue abierto es la prueba de interfaz: comprueba subcadenas, así que no habría detectado
     por sí sola el desfase.
 
@@ -481,10 +483,60 @@ los escritores. La 4 y la 5 son trabajo desperdiciado, no dinero. La 2 de QA —
 `recalculate` cuando la reparación suelta el propio período— tampoco mueve dinero mal. La 3 de QA
 —el KPI «Pagado» suma lo legado que «Comisión oficial» excluye— es defendible: el dinero salió.
 
+## Generación 9 — resultado: INVALIDADA por el Librarian
+
+| Runner | Verdict | Bloqueantes |
+|---|---|---|
+| Librarian | **FAIL** | `L1-g9`, `L2-g9`, `L3-g9` |
+| QA | **PASS** | ninguno |
+| Auditor | **PASS** | **ninguno — el primero de la misión** |
+
+`AB1-g8` cerrado. El Auditor corrió 13.200 pasos de fuzz **desde bases migradas**, con el invariante
+en tres direcciones tras cada paso y un detector que verificó antes de usar; cinco escenarios de
+concurrencia incluida la refijación concurrente; y reprodujo `AB1-g8` y las cuatro rutas de
+`AB1-g6` sobre base discrepante, todas con daño **0 Gs**. Ningún importe pagado cambió de valor en
+ninguna de las 13.600 transiciones.
+
+Los tres bloqueantes del Librarian son afirmaciones falsas, ninguna económica. El más serio es
+`L3-g9`: el invariante 10 apoyaba su garantía «por construcción» en `_set_status` como único punto
+de paso, y hay **tres `UPDATE` directos más** que escriben estado. La prueba de que no era cierto
+estaba en el propio código: `recalculate` tenía que reconciliar por su cuenta.
+
+## Generación 10 — qué se hizo
+
+**`L3-g9`, por los dos lados.** Los cuatro sitios que escriben `commission_entries.status`
+—`_set_status`, `recalculate`, `_apply_source_update` y la promoción a elegible— reconcilian ahora
+su período, y una **prueba estructural** comprueba que ninguna función que escriba estado se olvide
+de hacerlo. La garantía deja de ser una afirmación y pasa a estar sostenida por una guarda que falla
+si alguien la rompe mañana.
+
+**`L1-g9` y `L2-g9`.** La tabla de reglas de `MIGRATION.md` describía la siembra que ya no existe;
+sus seis filas se reescribieron. `HANDOFF.md` citaba un rótulo retirado en la generación 7.
+
+**Las observaciones estructurales del Auditor.** La lectura del libro estaba escrita tres veces
+—dos con el mismo SQL copiado— y ahora es una sola, en el repositorio (O2). La clave del período se
+normaliza también al leer el libro, así que no quedan períodos fantasma en la auditoría (O3). Un
+conflicto nuevo del mismo mes sí se asienta, porque la huella incluye las tasas (O4). Un conflicto
+provocado en caliente se asienta a nombre de quien lo provocó y no de la migración (O5). `recalculate`
+y `list_entries` filtran el período con la clave normalizada (O7). Y de QA: el rechazo por política
+desfasada nombra la tasa y no sólo la versión.
+
+**Lo que queda abierto, y por qué.** La observación **O1 del Auditor** es la consecuencia de la
+decisión de propietario de la generación 9, tomada y escrita: un mes con una `PAGADA` viva al 7%
+cobra el 7% también a las ventas registradas después. Cuantificada: **600.000 Gs por venta de
+10.000.000 Gs**. El Auditor la señala porque la justificación escrita es «no reescribir historia» y
+el efecto observable es que la historia gobierna dinero futuro. No es un defecto del código: es la
+regla funcionando. Queda anotada para que el propietario la confirme antes de producción.
+
+Las observaciones 3 y 4 de QA —el código de política se sigue llamando `COMISION_GENERAL_1PCT`
+cuando la tasa fijada es histórica, y el pin hereda el `scope` del hecho legado— son de vocabulario:
+al admitir tasas distintas del 1%, el nombre del contrato se quedó corto. No mueven dinero y su
+corrección toca el identificador canónico de la política, que es una decisión aparte.
+
 ## Siguiente paso propuesto
 
-**Generación 9 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
-verdict de las generaciones 1 a 8. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
+**Generación 10 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
+verdict de las generaciones 1 a 9. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
 lease.
 
 Sólo después de la Safe Closure vuelve a la cola el cableado de `register_payment` y

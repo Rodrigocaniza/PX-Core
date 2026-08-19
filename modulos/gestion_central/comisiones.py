@@ -27,6 +27,7 @@ from .comision_policy import (
 )
 from .models import Principal, Role, utc_now
 from .repository import CentralRepository
+from .repository import CentralRepository
 from .service import AccessDenied, CentralManagementService
 
 
@@ -122,26 +123,14 @@ PERIOD_RATE_UNPINNED = "UNPINNED"
 
 
 def _last_period_rate_event(con, period):
-    """Último evento del período: es lo que define si hoy está fijado y a qué tasa."""
-    return con.execute(
-        "SELECT * FROM commission_period_rate_events WHERE period=? ORDER BY id DESC LIMIT 1",
-        (str(period)[:7],),
-    ).fetchone()
+    """Delegación a la única lectura del libro, que vive en el repositorio.
 
-
-def _pinned_periods_from(con, effective_from):
-    """Períodos hoy fijados cuyo mes no es anterior a esa vigencia.
-
-    Sirve para dejar constancia de qué queda fuera del alcance real de una publicación. Un período
-    desfijado **no** aparece aquí: la versión nueva sí lo gobierna, que es justamente el efecto de
-    haber retirado su justificación.
+    Estaba escrita tres veces —dos con el mismo SQL copiado literal y una con un `JOIN` sobre
+    `MAX(id)`—. La decisión ya estaba unificada y la escritura también; la lectura del estado
+    actual se había quedado fuera, que es donde una corrección futura puede tocar una mitad y no
+    la otra. Es la forma residual del patrón que costó `AB1-g6`, `AB1-g7` y `AB1-g8`.
     """
-    return [row[0] for row in con.execute(
-        "SELECT e.period FROM commission_period_rate_events e"
-        " JOIN (SELECT period, MAX(id) AS newest FROM commission_period_rate_events GROUP BY period) last"
-        "   ON last.period=e.period AND last.newest=e.id"
-        " WHERE e.event=? AND substr(e.period,1,7)>=substr(?,1,7) ORDER BY e.period",
-        (PERIOD_RATE_PINNED, effective_from))]
+    return CentralRepository.last_period_rate_event(con, period)
 
 
 @dataclass(frozen=True)
@@ -359,9 +348,15 @@ class CommissionService:
         decision = self.policy.decide(branch=entry["branch"], saleswoman=entry["saleswoman"],
                                       period=entry["period"] or "", con=con)
         if (decision.rate_bp, decision.version) != (int(entry["rate_bp"]), entry["policy_version"]):
+            # Nombrar sólo la versión producía mensajes vacíos como «(v1 → v1)» cuando lo que
+            # cambió era el porcentaje. Quien lo lee necesita saber de cuánto a cuánto.
+            antes = rate_percent_text(int(entry["rate_bp"]))
+            ahora = ("sin tasa" if decision.rate_bp is None
+                     else rate_percent_text(int(decision.rate_bp)))
             raise ValueError(
                 f"la política del período cambió desde el cálculo "
-                f"(v{entry['policy_version']} → v{decision.version}): {POLICY_STALE_MESSAGE}")
+                f"({antes} v{entry['policy_version']} → {ahora} v{decision.version}): "
+                f"{POLICY_STALE_MESSAGE}")
 
     # -------------------------------------------------------------- historia
     def _history(self, con, entry_id, sale_id, before, after, actor, action, details=None):
@@ -512,6 +507,9 @@ class CommissionService:
             (sale.saleswoman, sale.kind, sale.total_amount, discount, base, POLICY_ABSENT, target,
              _now(), entry["id"]),
         )
+        # Tercer `UPDATE` directo de estado: se reconcilia igual que los otros dos.
+        self._reconcile_period_pin(con, entry["period"], actor.username, "SOURCE_UPDATED",
+                                   entry_id=entry["id"], sale_id=row["id"])
         source_details = {**details, "commissionable_base": base, "agreement_discount": discount}
         # La corrección retira la tasa y el importe anteriores. Si los había, se asientan: es la
         # única ruta pública por la que un importe heredado —que no tiene asiento previo porque
@@ -641,6 +639,11 @@ class CommissionService:
                 (period, cancellation_date, discount, base, _now(), entry["id"]),
             )
             self._history(con, entry["id"], sale_id, "PENDIENTE_SALDO", "ELEGIBLE", actor, "SALE_CANCELLED", details)
+            # `_set_status` no es el único punto de paso: aquí el estado se escribe con un
+            # `UPDATE` directo. Se reconcilia igual, para que la garantía sea de construcción y
+            # no dependa de recordar hacerlo en cada sitio.
+            self._reconcile_period_pin(con, period, actor, "SALE_CANCELLED",
+                                       entry_id=entry["id"], sale_id=sale_id)
             return
         # Existe una liquidación observada previa: no se reabre en silencio.
         self._history(con, entry["id"], sale_id, entry["status"], entry["status"], actor,
@@ -961,7 +964,7 @@ class CommissionService:
             # congelaba la publicación de todos los meses anteriores a él. Se deja constancia de
             # qué períodos quedan fuera del alcance real de esta versión, para que publicar no sea
             # silencioso.
-            protected = _pinned_periods_from(con, effective_from)
+            protected = self.repository.pinned_periods_from(con, effective_from)
             version = int(con.execute(
                 "SELECT COALESCE(MAX(version),0) FROM commission_policy_versions WHERE policy_id=?",
                 (CANONICAL_POLICY_ID,),
@@ -1032,7 +1035,10 @@ class CommissionService:
                  " AND paid_at IS NULL")
         params: list = []
         if period:
-            query += " AND period=?"
+            # Se filtra por la misma clave normalizada con la que se decide: una base de
+            # procedencia externa puede traer `period` en fecha completa, y un filtro literal
+            # dejaba esas filas fuera del recálculo.
+            query += " AND substr(period,1,7)=?"
             params.append(period)
         if branch:
             query += " AND branch=?"
@@ -1096,14 +1102,14 @@ class CommissionService:
                 self._history(con, entry["id"], entry["sale_id"], entry["status"], "CALCULADA", actor.username,
                               "COMMISSION_POLICY_REPAIRED" if repairing else "COMMISSION_RECALCULATED",
                               details)
-                if repairing:
-                    # Reparar una APROBADA la devuelve a CALCULADA: retira un hecho oficial. Sólo
-                    # ocurre sobre un período sin fijar —si estuviera fijado la liquidación ya sería
-                    # la oficial y no se tocaría—, pero la reconciliación se hace igual, porque la
-                    # regla no puede depender de qué rama nos trajo hasta aquí.
-                    self._reconcile_period_pin(con, entry["period"], actor.username,
-                                               "COMMISSION_POLICY_REPAIRED",
-                                               entry_id=entry["id"], sale_id=entry["sale_id"])
+                # Reparar una `APROBADA` la devuelve a `CALCULADA` y retira un hecho oficial; las
+                # demás ramas no tocan un estado vivo. Se reconcilia **siempre**, porque la regla
+                # no puede depender de qué rama nos trajo hasta aquí, y porque éste es otro
+                # `UPDATE` directo que no pasa por `_set_status`.
+                self._reconcile_period_pin(con, entry["period"], actor.username,
+                                           "COMMISSION_POLICY_REPAIRED" if repairing
+                                           else "COMMISSION_RECALCULATED",
+                                           entry_id=entry["id"], sale_id=entry["sale_id"])
             con.commit()
         return {"evaluated": evaluated, "changed": changed}
 
@@ -1119,7 +1125,7 @@ class CommissionService:
         )
         params: list = []
         if period:
-            query += " AND (e.period=? OR (e.period IS NULL AND substr(s.sale_date,1,7)=?))"
+            query += f" AND ({PERIOD_MATCH_SQL} OR (e.period IS NULL AND substr(s.sale_date,1,7)=?))"
             params += [period, period]
         for clause, value in (("e.branch=?", branch), ("e.saleswoman=?", saleswoman),
                               ("e.status=?", status), ("e.sale_kind=?", kind)):
