@@ -521,11 +521,56 @@ class TrackedWork:
         if self.transitions:
             ultima = self.transitions[-1]
             hora = ultima.recorded_at.astimezone(BUSINESS_TIMEZONE).strftime("%H:%M")
+            # La nota va si la hay: ahi es donde queda escrito el plazo que
+            # regia y si se cumplio. Sin esto, el sello existe en la base pero
+            # la operadora no lo ve en ningun lado, y una evidencia que nadie
+            # puede mirar no demuestra nada.
+            if ultima.note:
+                return f"{hora} — {ultima.to_status.value} — {ultima.note}"
             return f"{hora} — {ultima.to_status.value}"
         return ""
 
     def can_transition_to(self, status: TrackingStatus | str) -> bool:
         return TrackingStatus(status) in ALLOWED_TRANSITIONS[self.status]
+
+    def _nota_con_sello_de_plazo(
+        self, note: str, target: TrackingStatus, momento: datetime,
+    ) -> str:
+        """Deja escrito el plazo que regía, en la transicion que lo termina.
+
+        El plazo pertenece a la estadia en laboratorio y por eso al salir se
+        borra: si quedara, un trabajo que ya llego seguiria figurando atrasado.
+        Pero borrarlo dejaba sin evidencia lo que si paso — cuando un trabajo
+        llegaba tarde, despues no habia forma de demostrarlo, porque la fecha
+        comprometida ya no estaba en ningun lado y la transicion solo decia la
+        hora en que llego.
+
+        Las dos cosas tienen que poder verse a la vez: que llego, y que habia
+        estado atrasado. Se sella en la nota de la transicion, que es inmutable
+        y ya se guarda; no hace falta ninguna columna nueva.
+        """
+        base = str(note or "").strip()
+        if self.status is not TrackingStatus.IN_LABORATORY:
+            return base
+        if target is TrackingStatus.IN_LABORATORY or self.deadline is None:
+            return base
+        plazo = self.deadline
+        comprometido = plazo.astimezone(BUSINESS_TIMEZONE).strftime("%d/%m %H:%M")
+        if momento.tzinfo is None:
+            momento = momento.replace(tzinfo=BUSINESS_TIMEZONE)
+        if momento >= plazo:
+            atraso = momento - plazo
+            dias, horas = atraso.days, atraso.seconds // 3600
+            if dias:
+                demora = f"{dias} día{'s' if dias > 1 else ''} tarde"
+            elif horas:
+                demora = f"{horas} hora{'s' if horas > 1 else ''} tarde"
+            else:
+                demora = "tarde"
+            sello = f"Plazo comprometido {comprometido} · llegó {demora}"
+        else:
+            sello = f"Plazo comprometido {comprometido} · llegó dentro del plazo"
+        return f"{base} · {sello}" if base else sello
 
     # -- comandos ----------------------------------------------------------
 
@@ -542,9 +587,11 @@ class TrackedWork:
             raise InvalidCashDayError(
                 f"transicion invalida: {self.status.value} -> {target.value}"
             )
+        momento = recorded_at or utc_now()
         transicion = TrackingTransition(
             from_status=self.status, to_status=target, responsible=responsible,
-            note=note, recorded_at=recorded_at or utc_now(),
+            note=self._nota_con_sello_de_plazo(note, target, momento),
+            recorded_at=momento,
         )
         cambios: dict = {
             "status": target,
