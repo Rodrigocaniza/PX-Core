@@ -4,9 +4,9 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "GENERATION_6_INVALIDATED_GENERATION_7_OPEN",
+  "current_state": "GENERATION_7_REMEDIATED_PENDING_VERDICTS",
   "mission_lease": "ACQUIRED",
-  "generation": 6,
+  "generation": 7,
   "autochain": [
     "LIBRARIAN",
     "QA",
@@ -15,17 +15,16 @@
   "independent_runners": "AVAILABLE_AND_USED",
   "safe_closure": "PENDING",
   "tests": {
-    "full_regression": 395,
+    "full_regression": 418,
     "baseline": 302,
-    "added_cases": 93,
-    "module_suite": 195,
-    "commissions_cases": 144,
+    "added_cases": 116,
+    "module_suite": 218,
+    "commissions_cases": 167,
     "generation_5_added_cases": 26,
     "generation_6_added_cases": 26,
-    "generation_6_directed_file": "tests/gestion_central/test_comision_rate_boundary.py",
-    "generation_6_directed_cases": 24,
-    "generation_6_ui_cases": 2,
-    "generation_6_rewritten_cases": "23 casos de la generacion 5 reescritos al contrato nuevo; 2 parametrizaciones retiradas (CALCULADA y REVISADA dejaron de ser estados protegidos a proposito)"
+    "generation_7_added_cases": 23,
+    "generation_7_directed_file": "tests/gestion_central/test_comision_period_unpin.py",
+    "generation_7_rewritten_cases": "5 casos de la generacion 6: los cuatro de la matriz cuyo sujeto era la liquidacion que sostenia el pin, y test_the_durable_evidence_has_no_public_eraser, cuya premisa cambio"
   },
   "decision": {
     "code": "COMISION_GENERAL_1PCT",
@@ -325,11 +324,36 @@
     {
       "generation": 7,
       "snapshot_commit": null,
-      "status": "PENDING_REMEDIATION",
-      "tests": null,
+      "status": "REMEDIATED_PENDING_VERDICTS",
+      "tests": 418,
       "verdicts": [],
       "scope": "cerrar AB1-g6 (economico, requiere decision de propietario sobre la salida del boundary)",
-      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-7/"
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-7/",
+      "remediation": {
+        "routes_closed": [
+          "revert de la aprobacion",
+          "void_sale",
+          "revert_payment por cheque rechazado",
+          "observe + revert",
+          "cualquier transicion futura, por estar la reconciliacion en _set_status"
+        ],
+        "audit_events": [
+          "COMMISSION_PERIOD_RATE_PINNED",
+          "COMMISSION_PERIOD_RATE_UNPINNED",
+          "COMMISSION_PERIOD_RATE_SEEDED",
+          "COMMISSION_PERIOD_RATE_SEED_SKIPPED"
+        ],
+        "gen6_observations_addressed": [
+          "AUDITOR-006 obs 1 (venta anulada llegaba al pago)",
+          "AUDITOR-006 obs 2 (INSERT OR IGNORE tragaba NOT NULL)",
+          "QA-006 obs 1 (el rotulo afirmaba que nadie aprobo)",
+          "LIBRARIAN-006 obs 1 (RATING_BOUNDARY_STATES no gobernaba nada)"
+        ],
+        "gen6_observations_declined": {
+          "QA-006 obs 4": "punto decimal en el export y coma en pantalla es deliberado: contrato de datos contra texto en espanol"
+        },
+        "visual_evidence_regenerated": true
+      }
     }
   ],
   "non_blocking_findings_recorded": [
@@ -580,7 +604,7 @@
       "role": "AUDITOR",
       "generation": 6,
       "kind": "ECONOMICO",
-      "status": "ABIERTO",
+      "status": "CERRADO_EN_GEN7_PENDIENTE_DE_VERDICTS",
       "summary": "deshacer una aprobacion no deshace la fijacion del periodo: revert de la aprobacion, void_sale, revert_payment de un cobro rechazado y observe+revert dejan el mes fijado con cero hechos economicos vivos, y no existe ninguna ruta publica que lo corrija. commission_rated_periods tiene dos INSERT y ningun UPDATE ni DELETE",
       "impact": "sobrepago de 9.900.000 Gs por cada venta de 10.000.000 Gs del mes, sin techo, cuando el pin quedo a una tasa mayor que la oficial; subpago de 900.000 Gs por venta en la direccion contraria",
       "false_claims": [
@@ -590,7 +614,9 @@
       "decision_fork": [
         "DESFIJAR_AL_RETIRARSE_EL_ULTIMO_HECHO_VIVO",
         "CREAR_FLUJO_DE_CORRECCION_EXPLICITA_Y_AUDITADA"
-      ]
+      ],
+      "owner_decision": "OPCION_A_DESFIJAR_AL_RETIRARSE_EL_ULTIMO_HECHO_VIVO",
+      "closure": "el periodo permanece fijado mientras exista un hecho economico oficial vivo; retirar el ultimo escribe UNPINNED en el libro append-only y devuelve el periodo al catalogo. Una PAGADA viva nunca desfija. La reconciliacion vive en _set_status, por donde pasa toda transicion, de modo que las cuatro rutas quedan cubiertas por construccion."
     },
     {
       "id": "L1-g6",
@@ -634,20 +660,16 @@
     }
   ],
   "next_action": {
-    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN7",
-    "state": "PENDING_OWNER_DECISION",
-    "blocked_on": "AB1-g6: el propietario debe elegir la salida del boundary",
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN7-VERDICTS",
+    "state": "PENDING_INDEPENDENT_VERDICTS",
     "steps": [
-      "1. Decision de propietario sobre AB1-g6, entre dos opciones excluyentes:",
-      "   (a) DESFIJAR_AL_RETIRARSE_EL_ULTIMO_HECHO_VIVO: retirar el ultimo hecho economico oficial vivo de un periodo retira tambien su fijacion, con asiento COMMISSION_PERIOD_RATE_UNPINNED que conserva la tasa previa y el motivo; la fijacion se reescribe cuando aparece el siguiente hecho. Un periodo con una PAGADA viva nunca se desfija, de modo que el dinero que salio sigue protegido.",
-      "   (b) CREAR_FLUJO_DE_CORRECCION_EXPLICITA_Y_AUDITADA: el pin sigue siendo inmutable por diseno y se abre por fin la operacion de correccion explicita que la documentacion admite que no existe.",
-      "2. Implementar la opcion elegida y cubrirla con pruebas dirigidas sobre las cuatro rutas que AB1-g6 enumera: revert de la aprobacion, void_sale, revert_payment y observe+revert.",
-      "3. Revisar tambien las observaciones del Auditor 1, 2 y 7 y la 1 del QA, que son de la misma familia.",
-      "4. Hacer que RATING_BOUNDARY_STATES gobierne de verdad las tres rutas, en vez de ser una constante decorativa (observacion 1 del Librarian, e invariante 9 de ARCHITECTURE_DELTA, que hoy es impreciso).",
-      "5. Dirigidas, suite del modulo, regresion completa; publicar snapshot y relanzar los tres runners.",
-      "6. No reutilizar verdicts de las generaciones 1 a 6."
+      "1. Publicar el snapshot de la generacion 7 (protected commit y push).",
+      "2. Relanzar los tres runners independientes sobre ese snapshot.",
+      "3. No reutilizar verdicts de las generaciones 1 a 6.",
+      "4. Con 3xPASS: Artifact Consistency, Safe Closure, liberar el lease y persistir el NEXT_ACTION siguiente.",
+      "5. Con cualquier FAIL: abrir la generacion 8 con el alcance exacto."
     ],
-    "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 sigue sin abrirse."
+    "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 no se abre hasta cerrar esta politica economica."
   },
   "policy_decision_b1": {
     "option": "A",
@@ -713,6 +735,31 @@
       "hot_path": "CommissionService._pin_rated_period desde approve() y mark_paid()",
       "migration_path": "CentralRepository._backfill_rated_periods",
       "provisional_predicate": "modulos/gestion_central/comisiones.py::PROVISIONAL_STATES"
+    }
+  },
+  "policy_decision_gen7": {
+    "decided_by": "propietario del repositorio",
+    "option": "(a) DESFIJAR_AL_RETIRARSE_EL_ULTIMO_HECHO_VIVO",
+    "decision": "la tasa del periodo no es inmutable por existir historicamente un hecho que alguna vez la justifico",
+    "rule": "el periodo permanece fijado mientras exista al menos un hecho economico oficial vivo APROBADA o PAGADA que justifique ese pin",
+    "rules": [
+      "si quedan cero hechos oficiales vivos: desfijar y registrar COMMISSION_PERIOD_RATE_UNPINNED",
+      "no borrar ni reescribir el pin historico",
+      "permitir que un hecho oficial futuro vuelva a fijar la tasa",
+      "si existe cualquier PAGADA viva en el periodo, el periodo nunca puede desfijarse",
+      "una reversion de pago valida puede cambiar que hechos estan vivos; solo despues de completarla y si quedan cero vivas puede ocurrir el unpin",
+      "ELEGIBLE, CALCULADA y REVISADA siguen sin fijar tasa despues de un unpin",
+      "la traza PINNED -> hecho -> reversion -> UNPINNED -> causa/actor/fecha -> nuevo PINNED debe poder reconstruirse entera"
+    ],
+    "closes": [
+      "AB1-g6"
+    ],
+    "implementation": {
+      "ledger": "commission_period_rate_events, append-only; el estado vigente de un periodo es su ultimo evento",
+      "frozen": "commission_rated_periods queda congelada: no se lee ni se escribe, y no se borra",
+      "single_writer": "CommissionService._record_period_rate_event",
+      "exit_boundary": "CommissionService._reconcile_period_pin, invocado desde _set_status",
+      "live_fact_predicate": "CommissionService._live_official_facts y comision_policy.BOUNDARY_SQL_IN, el mismo en caliente y en la migracion"
     }
   }
 }

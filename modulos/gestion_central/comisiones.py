@@ -17,12 +17,12 @@ from datetime import date
 from typing import Protocol
 
 from .comision_policy import (
-    AGREEMENT_DISCOUNT_BP, BASIS_POINTS, CANONICAL_CODE, CANONICAL_EFFECTIVE_FROM,
-    CANONICAL_POLICY_ID, CANONICAL_RATE_BP, CANONICAL_SCOPE, CANONICAL_VERSION, CURRENCY,
-    POLICY_ABSENT, POLICY_CANONICAL, POLICY_LEGACY, POLICY_OUT_OF_EFFECT, POLICY_STATUSES,
-    ROUNDING_MODE, PolicyDecision, agreement_discount, apply_basis_points, commission_for,
-    commissionable_base, is_in_effect, normalize_effective_from, rate_decimal_text,
-    rate_percent_text,
+    AGREEMENT_DISCOUNT_BP, BASIS_POINTS, BOUNDARY_SQL_IN, CANONICAL_CODE,
+    CANONICAL_EFFECTIVE_FROM, CANONICAL_POLICY_ID, CANONICAL_RATE_BP, CANONICAL_SCOPE,
+    CANONICAL_VERSION, CURRENCY, POLICY_ABSENT, POLICY_CANONICAL, POLICY_LEGACY,
+    POLICY_OUT_OF_EFFECT, POLICY_STATUSES, RATING_BOUNDARY_STATES, ROUNDING_MODE, PolicyDecision,
+    agreement_discount, apply_basis_points, commission_for, commissionable_base, is_in_effect,
+    normalize_effective_from, rate_decimal_text, rate_percent_text,
 )
 from .models import Principal, Role, utc_now
 from .service import AccessDenied, CentralManagementService
@@ -41,19 +41,21 @@ OPEN_STATES = frozenset({"ELEGIBLE", "CALCULADA", "REVISADA", "APROBADA"})
 # Ya pasaron por revisión humana: una corrección de origen no puede recalcularlos en silencio.
 REVIEWED_STATES = frozenset({"REVISADA", "APROBADA", "PAGADA"})
 # Estados en los que una liquidación ya recibió un porcentaje. Se conservan porque describen el
-# ciclo, pero **no** son la protección de un período: el estado es mutable y cualquier transición
-# posterior lo cambia. La evidencia de que a un período se le aplicó una tasa vive en
-# `commission_rated_periods`, que es durable e independiente del estado.
+# ciclo, pero **no** son la protección de un período: la fijación de la tasa vive en el libro
+# `commission_period_rate_events` y depende de si hay algún hecho oficial **vivo**, no del estado
+# de una liquidación concreta.
 SETTLED_STATES = ("CALCULADA", "REVISADA", "APROBADA", "PAGADA")
 
-# Boundary de fijación de tasa —decisión de propietario de la generación 6—. El período NO queda
-# fijado en el primer cálculo: queda fijado únicamente cuando existe un **hecho económico
-# oficial**, es decir cuando una liquidación de ese período alcanza `APROBADA` o `PAGADA`.
+# `RATING_BOUNDARY_STATES` —el boundary económico— vive en `comision_policy` porque la migración
+# del repositorio necesita exactamente el mismo predicado que el cálculo. Se reexporta aquí para
+# que quien lea este módulo lo encuentre donde lo espera.
 #
-# Un cálculo provisional puede estar mal —una fecha mal tipeada, una venta que después se anula—
-# y fijar el mes con él lo volvía incorregible. Aprobar y pagar, en cambio, son actos humanos
-# deliberados sobre un importe concreto: eso sí es el hecho que compromete dinero.
-RATING_BOUNDARY_STATES = frozenset({"APROBADA", "PAGADA"})
+# El período NO queda fijado en el primer cálculo: se fija cuando una liquidación alcanza
+# `APROBADA` o `PAGADA`, y permanece fijado **mientras alguno de esos hechos siga vivo**. Un
+# cálculo provisional puede estar mal —una fecha mal tipeada, una venta que después se anula— y
+# fijar el mes con él lo volvía incorregible; sostenerlo con un hecho que después se anuló lo
+# volvía incorregible igual, un estado más adelante.
+#
 # Estados provisionales: siguen siendo corregibles y no fijan nada.
 PROVISIONAL_STATES = frozenset({"ELEGIBLE", "CALCULADA", "REVISADA"})
 
@@ -111,6 +113,33 @@ def _reject_paid(entry) -> None:
 
 
 POLICY_STALE_MESSAGE = "recalcule antes de continuar"
+
+# Eventos del libro de tasas por período. Sólo estos dos, y siempre en pares alternos por período.
+PERIOD_RATE_PINNED = "PINNED"
+PERIOD_RATE_UNPINNED = "UNPINNED"
+
+
+def _last_period_rate_event(con, period):
+    """Último evento del período: es lo que define si hoy está fijado y a qué tasa."""
+    return con.execute(
+        "SELECT * FROM commission_period_rate_events WHERE period=? ORDER BY id DESC LIMIT 1",
+        (str(period)[:7],),
+    ).fetchone()
+
+
+def _pinned_periods_from(con, effective_from):
+    """Períodos hoy fijados cuyo mes no es anterior a esa vigencia.
+
+    Sirve para dejar constancia de qué queda fuera del alcance real de una publicación. Un período
+    desfijado **no** aparece aquí: la versión nueva sí lo gobierna, que es justamente el efecto de
+    haber retirado su justificación.
+    """
+    return [row[0] for row in con.execute(
+        "SELECT e.period FROM commission_period_rate_events e"
+        " JOIN (SELECT period, MAX(id) AS newest FROM commission_period_rate_events GROUP BY period) last"
+        "   ON last.period=e.period AND last.newest=e.id"
+        " WHERE e.event=? AND substr(e.period,1,7)>=substr(?,1,7) ORDER BY e.period",
+        (PERIOD_RATE_PINNED, effective_from))]
 
 
 @dataclass(frozen=True)
@@ -197,23 +226,29 @@ class CanonicalCommissionPolicy:
         return applicable[-1] if applicable else None
 
     def pinned_for(self, period: str) -> dict | None:
-        """Tasa con la que ese período quedó **fijado**, si algún hecho económico lo fijó.
+        """Tasa con la que ese período está fijado **ahora**, si un hecho económico vivo la sostiene.
 
-        Es la evidencia durable: vive en `commission_rated_periods`, se escribe una sola vez y no
-        depende del estado en que haya quedado después la liquidación que la produjo. Observar,
-        revertir, anular o corregir el origen cambian el estado; no cambian esto.
+        Se resuelve por el **último evento** del libro `commission_period_rate_events`: si es
+        `PINNED`, ésa es la tasa del período; si es `UNPINNED` —o si no hay ningún evento— el
+        período no está fijado y vuelve a resolverse por catálogo.
 
-        Se escribe únicamente en el boundary `APROBADA`/`PAGADA` (ver `RATING_BOUNDARY_STATES`).
-        Un período que sólo tiene cálculos provisionales **no** tiene fila aquí, y por eso sigue
-        siendo corregible: es la diferencia entre un número todavía en revisión y dinero avalado.
+        La tasa de un período **no es inmutable por haber existido alguna vez un hecho que la
+        justificó**. Se fija en el boundary `APROBADA`/`PAGADA` y se sostiene mientras quede al
+        menos un hecho oficial vivo. Cuando el último se retira —una aprobación revertida, una venta
+        anulada, un cobro que se cae— la justificación desaparece y el período vuelve a ser
+        resoluble; el rastro de que estuvo fijado no desaparece nunca, porque el libro es
+        append-only.
+
+        Un período que sólo tiene cálculos provisionales nunca tuvo evento, y por eso sigue siendo
+        corregible: es la diferencia entre un número todavía en revisión y dinero avalado.
         """
         if not period:
             return None
         with self.repository.connection() as con:
-            row = con.execute(
-                "SELECT * FROM commission_rated_periods WHERE period=?", (str(period)[:7],)
-            ).fetchone()
-        return None if row is None else dict(row)
+            row = _last_period_rate_event(con, str(period)[:7])
+        if row is None or row["event"] != "PINNED":
+            return None
+        return dict(row)
 
     def decide(self, *, branch: str, saleswoman: str, period: str) -> PolicyDecision:
         # Un período ya **fijado** conserva su tasa. Publicar una versión nueva no lo reescribe,
@@ -269,6 +304,25 @@ class CommissionService:
         self.core._require(actor, "reviews.manage")
 
     # -------------------------------------------------------------- guardas
+    def _reject_voided_sale(self, entry) -> None:
+        """Regla aprobada 8, defendida también donde sale el dinero.
+
+        `void_sale` mueve la liquidación a `REVERTIDA` u `OBSERVADA`, así que por ruta pública no
+        se llega aquí con una venta anulada. Una base legada de procedencia externa sí puede traer
+        esa fila, y hasta la generación 7 el sistema la revisaba, la aprobaba y la pagaba. Una venta
+        anulada no genera comisión: tampoco cuando la incoherencia llega de fuera.
+        """
+        with self.repository.connection() as con:
+            voided = con.execute("SELECT voided FROM commission_sales WHERE id=?",
+                                 (entry["sale_id"],)).fetchone()
+        if voided is not None and voided[0]:
+            raise ValueError("la venta de origen está anulada: no genera comisión")
+
+    def _require_official_and_live(self, entry) -> None:
+        """Guarda de la cadena de pago: la venta existe de verdad y el importe es el oficial."""
+        self._reject_voided_sale(entry)
+        self._require_current_policy(entry)
+
     def _require_current_policy(self, entry) -> None:
         """Nadie revisa, aprueba ni paga un importe que no sea el oficial vigente hoy.
 
@@ -660,40 +714,131 @@ class CommissionService:
         values.append(entry["id"])
         con.execute(f"UPDATE commission_entries SET {','.join(assignments)} WHERE id=?", values)
         self._history(con, entry["id"], entry["sale_id"], entry["status"], target, actor, action, details)
+        # Toda transición de estado pasa por aquí, así que aquí es donde se comprueba si el período
+        # se quedó sin hechos económicos vivos. Ponerlo en el choke point y no en cada operación es
+        # lo que hace que las cuatro rutas de `AB1-g6` —y cualquiera futura— queden cubiertas por
+        # construcción en vez de una por una.
+        self._reconcile_period_pin(con, entry["period"], actor, action)
+
+    # ------------------------------------------------- fijación de la tasa del período
+    #
+    # Todo lo que fija o desfija un período pasa por aquí. Es deliberado que ningún otro sitio del
+    # módulo escriba `commission_period_rate_events`: la regla económica es una sola y no puede
+    # divergir entre quien aprueba, quien revierte y quien migra.
+
+    @staticmethod
+    def _live_official_facts(con, period):
+        """Hechos económicos oficiales **vivos** del período, en orden.
+
+        Un hecho está vivo si hoy sostiene dinero: la liquidación está `APROBADA` o `PAGADA` sobre
+        una venta que no fue anulada, **o** conserva `paid_at`, que significa que el dinero salió de
+        verdad. Lo pagado cuenta aunque después se observe o se anule la venta: observar no devuelve
+        una transferencia.
+
+        `ELEGIBLE`, `CALCULADA`, `REVISADA`, `OBSERVADA` sin pago y `REVERTIDA` no son hechos vivos.
+        Una aprobación revertida deja de sostener nada, y ése es exactamente el punto: era el
+        bloqueante `AB1-g6`.
+
+        La migración usa esta misma definición, en SQL equivalente, para que migrar una base y
+        reconstruirla operando den el mismo resultado.
+        """
+        return con.execute(
+            "SELECT e.id,e.status,e.rate_bp,e.paid_at FROM commission_entries e"
+            " JOIN commission_sales s ON s.id=e.sale_id"
+            " WHERE e.period=? AND (e.paid_at IS NOT NULL"
+            f"        OR (e.status IN {BOUNDARY_SQL_IN} AND COALESCE(s.voided,0)=0))"
+            " ORDER BY e.id",
+            (str(period)[:7],),
+        ).fetchall()
+
+    def _record_period_rate_event(self, con, period, event, *, rate_bp, policy_code, policy_version,
+                                  policy_effective_from, policy_scope, origin, actor, reason,
+                                  entry_id=None, sale_id=None):
+        """Único escritor del libro de tasas. Append-only: nunca actualiza ni borra.
+
+        Escribe el evento y su asiento en `central_audit` en la misma transacción, de modo que no
+        existe un estado en el que uno esté sin el otro. Que sea el único escritor es lo que permite
+        afirmar que la secuencia `PINNED` → `UNPINNED` → `PINNED` de un período está completa.
+        """
+        action = ("COMMISSION_PERIOD_RATE_PINNED" if event == PERIOD_RATE_PINNED
+                  else "COMMISSION_PERIOD_RATE_UNPINNED")
+        con.execute(
+            "INSERT INTO commission_period_rate_events(period,event,rate_bp,policy_code,policy_version,"
+            "policy_effective_from,policy_scope,origin,entry_id,sale_id,reason,actor,recorded_at)"
+            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (period, event, int(rate_bp), policy_code or CANONICAL_CODE, policy_version,
+             policy_effective_from or CANONICAL_EFFECTIVE_FROM, policy_scope or CANONICAL_SCOPE,
+             origin, entry_id, sale_id, reason, actor, _now()),
+        )
+        self.repository.audit(con, actor, action, period, details={
+            "rate_bp": int(rate_bp), "origin": origin, "reason": reason, "entry_id": entry_id,
+            "sale_id": sale_id, "policy_code": policy_code, "policy_version": policy_version,
+            "policy_effective_from": policy_effective_from})
 
     def _pin_rated_period(self, con, entry, actor, boundary):
         """Fija la tasa del período al alcanzarse un hecho económico oficial.
 
-        Se llama sólo desde `approve` y `mark_paid` —el boundary `APROBADA`/`PAGADA`—. El
-        primer cálculo no fija nada: mientras la liquidación es provisional el mes sigue
-        siendo corregible, que es justamente lo que permite deshacer una fecha mal tipeada
-        o una venta que después se anula.
+        Se llama sólo desde `approve` y `mark_paid` —el boundary `RATING_BOUNDARY_STATES`—. El
+        primer cálculo no fija nada: mientras la liquidación es provisional el mes sigue siendo
+        corregible, que es lo que permite deshacer una fecha mal tipeada o una venta que después se
+        anula.
 
-        La tasa que se graba es la de **esta** liquidación, que la guarda de transición ya
-        verificó idéntica a la oficial del período. `INSERT OR IGNORE` sobre la clave del
-        período hace la operación idempotente: reintentar la aprobación, o aprobar una
-        segunda liquidación del mismo mes, no reescribe la fijación ni duplica el asiento.
+        La tasa que se graba es la de **esta** liquidación, que la guarda de transición ya verificó
+        idéntica a la oficial del período. Es idempotente por el estado del libro: si el período ya
+        está fijado no se escribe nada, así que aprobar una segunda liquidación del mismo mes, o
+        reintentar la misma aprobación, no duplica ni el evento ni el asiento.
+
+        Después de un `UNPINNED` esta misma función vuelve a fijar: refijar no es un caso especial,
+        es el contrato normal aplicado al siguiente hecho oficial.
         """
+        if boundary not in RATING_BOUNDARY_STATES:
+            # Nadie debería llamar aquí desde otro estado, y si alguien lo intenta el sistema
+            # tiene que decirlo, no fijar un mes en silencio desde un hecho que no lo justifica.
+            raise ValueError(f"solo un hecho economico oficial fija un periodo: {boundary}")
         period = str(entry["period"] or "")[:7]
         if not period or entry["rate_bp"] is None or entry["policy_status"] != POLICY_CANONICAL:
             return False
-        cursor = con.execute(
-            "INSERT OR IGNORE INTO commission_rated_periods(period,rate_bp,policy_code,policy_version,"
-            "policy_effective_from,policy_scope,first_rated_by,first_rated_at,origin)"
-            " VALUES(?,?,?,?,?,?,?,?,?)",
-            (period, int(entry["rate_bp"]), entry["policy_code"] or CANONICAL_CODE,
-             entry["policy_version"], entry["policy_effective_from"] or CANONICAL_EFFECTIVE_FROM,
-             entry["policy_scope"] or CANONICAL_SCOPE, actor, _now(), boundary),
-        )
-        if not cursor.rowcount:
-            # El período ya estaba fijado: la fijación es de una sola vez y no se re-audita.
+        last = _last_period_rate_event(con, period)
+        if last is not None and last["event"] == PERIOD_RATE_PINNED:
             return False
-        # Fijar un mes compromete dinero hacia adelante: queda asentado con su origen.
-        self.repository.audit(con, actor, "COMMISSION_PERIOD_RATE_PINNED", period, details={
-            "rate_bp": int(entry["rate_bp"]), "boundary": boundary, "entry_id": entry["id"],
-            "sale_id": entry["sale_id"], "policy_code": entry["policy_code"],
-            "policy_version": entry["policy_version"],
-            "policy_effective_from": entry["policy_effective_from"]})
+        self._record_period_rate_event(
+            con, period, PERIOD_RATE_PINNED, rate_bp=int(entry["rate_bp"]),
+            policy_code=entry["policy_code"], policy_version=entry["policy_version"],
+            policy_effective_from=entry["policy_effective_from"], policy_scope=entry["policy_scope"],
+            origin=boundary, actor=actor, entry_id=entry["id"], sale_id=entry["sale_id"],
+            reason=f"hecho economico oficial: la liquidacion alcanzo {boundary}")
+        return True
+
+    def _reconcile_period_pin(self, con, period, actor, action, reason=""):
+        """Retira la fijación cuando desaparece el último hecho oficial vivo que la sostenía.
+
+        Es el **boundary de salida**, y el único sitio del sistema que desfija. Se invoca desde
+        `_set_status`, que es por donde pasa toda transición de estado, de modo que las cuatro rutas
+        que retiran un hecho —revertir la aprobación, `void_sale`, la reversa de un cobro que
+        arrastra la liquidación, y `observe` seguido de `revert`— quedan cubiertas por construcción
+        y no una por una. Cualquier ruta futura que mueva un estado queda cubierta también.
+
+        **Una `PAGADA` viva nunca desfija**: `_live_official_facts` cuenta `paid_at`, así que el
+        dinero consolidado sostiene el período aunque la liquidación se observe después o la venta
+        se anule. Un pago sólo deja de sostener si su reversión se completa de verdad.
+
+        No borra ni reescribe el `PINNED` anterior: escribe un `UNPINNED` detrás, con la tasa que se
+        retira, la causa y el actor. Es idempotente: si el período no está fijado, no hace nada.
+        """
+        period = str(period or "")[:7]
+        if not period:
+            return False
+        last = _last_period_rate_event(con, period)
+        if last is None or last["event"] != PERIOD_RATE_PINNED:
+            return False
+        if self._live_official_facts(con, period):
+            return False
+        self._record_period_rate_event(
+            con, period, PERIOD_RATE_UNPINNED, rate_bp=int(last["rate_bp"]),
+            policy_code=last["policy_code"], policy_version=last["policy_version"],
+            policy_effective_from=last["policy_effective_from"], policy_scope=last["policy_scope"],
+            origin=action, actor=actor,
+            reason=reason or "sin hechos economicos oficiales vivos que sostengan la tasa del periodo")
         return True
 
     def _transition(self, actor, entry_id, allowed, target, action, details=None, guard=None,
@@ -725,7 +870,7 @@ class CommissionService:
         política oficial ya esté aplicada: nada sin porcentaje entra a la cadena de pago.
         """
         return self._transition(actor, entry_id, {"CALCULADA"}, "REVISADA", "CALCULATION_REVIEWED",
-                                {"note": note}, guard=self._require_current_policy,
+                                {"note": note}, guard=self._require_official_and_live,
                                 reviewed_by=actor.username, reviewed_at=_now())
 
     def approve(self, actor: Principal, entry_id: str, responsible: str):
@@ -734,7 +879,7 @@ class CommissionService:
             raise ValueError("responsable obligatorio")
         # Aprobar es el primer hecho económico oficial: aquí queda fijada la tasa del período.
         return self._transition(actor, entry_id, {"REVISADA"}, "APROBADA", "COMMISSION_APPROVED",
-                                {"responsible": responsible}, guard=self._require_current_policy,
+                                {"responsible": responsible}, guard=self._require_official_and_live,
                                 pin_period=True, approved_by=responsible, approved_at=_now())
 
     def mark_paid(self, actor: Principal, entry_id: str, payment_date: str, reference: str):
@@ -747,7 +892,7 @@ class CommissionService:
         # puede quedar sin fijar sólo porque el asiento de aprobación no exista.
         return self._transition(actor, entry_id, {"APROBADA"}, "PAGADA", "COMMISSION_PAID",
                                 {"payment_date": payment_date, "reference": reference},
-                                guard=self._require_current_policy, pin_period=True,
+                                guard=self._require_official_and_live, pin_period=True,
                                 paid_at=payment_date, payment_reference=reference)
 
     def observe(self, actor: Principal, entry_id: str, reason: str):
@@ -823,16 +968,20 @@ class CommissionService:
         respecto de la última publicada, que ordena el historial.
 
         La protección de lo ya comprometido vive en otro sitio y es de otra naturaleza: cada
-        período en el que una liquidación alcanzó `APROBADA` o `PAGADA` queda grabado en
-        `commission_rated_periods`, y `decide()` resuelve ese período contra esa evidencia y no
-        contra el catálogo. Una versión nueva no lo reescribe aunque su vigencia lo abarque. Es
-        deliberado que la protección **no** dependa del estado *posterior* de la liquidación:
-        observar, revertir, anular o corregir el origen cambian el estado, y la evidencia sigue ahí.
+        período en el que una liquidación alcanzó `APROBADA` o `PAGADA` queda fijado en el libro
+        `commission_period_rate_events`, y `decide()` resuelve ese período contra ese libro y no
+        contra el catálogo. Una versión nueva no lo reescribe aunque su vigencia lo abarque.
+
+        La protección dura **mientras haya un hecho oficial vivo que la sostenga**. No depende del
+        estado de ninguna liquidación en particular —dos aprobaciones sostienen el mes y revertir
+        una no lo suelta— pero tampoco sobrevive a que no quede ninguna: revertir la última
+        aprobación, anular la venta o que se caiga el cobro escriben un `UNPINNED` y el período
+        vuelve a resolverse por catálogo. Un pago consolidado nunca se suelta.
 
         Lo que **sí** alcanza una versión nueva son los períodos que aún no fueron aprobados ni
-        pagados: ahí no hay dinero avalado y el recálculo debe poder corregirlos. Fijar en el
-        primer cálculo era el defecto de la generación 5: un mes lejano tipeado por error quedaba
-        fijado para siempre, y la siembra de la migración copiaba tasas de ventas anuladas.
+        pagados, y los que dejaron de estarlo: ahí no hay dinero avalado y el recálculo debe poder
+        corregirlos. Fijar en el primer cálculo era el defecto de la generación 5; fijar para
+        siempre por un hecho que después se anuló era el de la 6.
 
         Bloquear la publicación era la defensa anterior y fallaba por los dos lados. Por
         abajo, porque cualquier transición que sacara la liquidación de los estados liquidados
@@ -875,9 +1024,7 @@ class CommissionService:
             # congelaba la publicación de todos los meses anteriores a él. Se deja constancia de
             # qué períodos quedan fuera del alcance real de esta versión, para que publicar no sea
             # silencioso.
-            protected = [row[0] for row in con.execute(
-                "SELECT period FROM commission_rated_periods"
-                " WHERE substr(period,1,7)>=substr(?,1,7) ORDER BY period", (effective_from,))]
+            protected = _pinned_periods_from(con, effective_from)
             version = int(con.execute(
                 "SELECT COALESCE(MAX(version),0) FROM commission_policy_versions WHERE policy_id=?",
                 (CANONICAL_POLICY_ID,),
@@ -1011,6 +1158,13 @@ class CommissionService:
                 self._history(con, entry["id"], entry["sale_id"], entry["status"], "CALCULADA", actor.username,
                               "COMMISSION_POLICY_REPAIRED" if repairing else "COMMISSION_RECALCULATED",
                               details)
+                if repairing:
+                    # Reparar una APROBADA la devuelve a CALCULADA: retira un hecho oficial. Sólo
+                    # ocurre sobre un período sin fijar —si estuviera fijado la liquidación ya sería
+                    # la oficial y no se tocaría—, pero la reconciliación se hace igual, porque la
+                    # regla no puede depender de qué rama nos trajo hasta aquí.
+                    self._reconcile_period_pin(con, entry["period"], actor.username,
+                                               "COMMISSION_POLICY_REPAIRED")
             con.commit()
         return {"evaluated": evaluated, "changed": changed}
 
@@ -1249,9 +1403,12 @@ class CommissionService:
                 f"una liquidación alcanza APROBADA o PAGADA, y hasta entonces el cálculo es "
                 f"provisional y corregible. Se informa sólo la base comisionable. " + common
             )
+        # Se describe la **ausencia de fijación**, no la ausencia de aprobaciones. Afirmar que
+        # nadie aprobó ni pagó es falso en una base legada con evidencia discrepante, que no fija
+        # el período justamente porque contiene dos hechos oficiales que no coinciden.
         fixed = (" · tasa ya fijada por un hecho económico oficial (aprobación o pago)"
                  if policy.get("pinned") else
-                 " · todavía provisional: ninguna liquidación del período fue aprobada ni pagada")
+                 " · el período todavía no tiene una tasa fijada y sigue siendo corregible")
         return (
             f"Comisión oficial {policy['rate_percent']}% de la base comisionable "
             f"({policy['code']} v{policy['version']}, vigente desde {policy['effective_from']})"

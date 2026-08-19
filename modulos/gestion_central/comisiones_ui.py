@@ -256,8 +256,10 @@ class CommissionsPanel(tk.Frame):
             return self._policy_labels_tail(policy)
         percent = rate_percent_text(policy["rate_bp"])
         # El rótulo dice de dónde viene la tasa: fijarla es un hecho económico, no un cálculo.
+        # La rama sin fijar describe la **ausencia de fijación**, no la ausencia de aprobaciones:
+        # una base legada con evidencia discrepante tiene aprobaciones y aun así no fija.
         fixed = (" · fijada al aprobarse o pagarse" if policy.get("pinned")
-                 else " · provisional: aún sin aprobación ni pago en el período")
+                 else " · todavía sin tasa fijada: el período sigue siendo corregible")
         self.policy_label.config(
             text=f"Comisión oficial {percent} de la base · {policy['code']} v{policy['version']} · "
                  f"vigente desde {policy['effective_from']}{fixed} · "

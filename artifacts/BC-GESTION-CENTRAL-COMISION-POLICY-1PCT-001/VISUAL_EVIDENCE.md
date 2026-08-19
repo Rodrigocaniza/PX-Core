@@ -1,10 +1,11 @@
 # Evidencia visual
 
-`screenshots/comision-1pct-1920x1080.png` — 1920×1080, RGB, 93.725 bytes.
-SHA-256 `1c9a1e5e5fafec09cd55d1c2d619761240d7abedaf33a14fe83a49f702b07906`.
+`screenshots/comision-1pct-1920x1080.png` — 1920×1080, RGB, 93.665 bytes.
+SHA-256 `f0919e28ac9a60911357ab6db29c1af9e374cc77a2b1038e522de2f078d93dc6`.
 
-**Regenerada en la generación 6** (`L6-g5`): el rótulo del encabezado cambió al cambiar la regla
-de fijación, así que la captura de la generación 3 dejó de coincidir con la pantalla real.
+**Regenerada en la generación 7.** La 6 ya la había regenerado porque el rótulo cambió al cambiar
+la regla de fijación (`L6-g5`); la 7 vuelve a hacerlo porque cambió la redacción de la rama sin
+fijar.
 
 Generada por `python tools/capture_gestion_central_comisiones.py <destino>` sobre una base
 temporal con el piloto sintético. El capturador ya no configura porcentaje: la política oficial
@@ -26,8 +27,10 @@ fijada por un hecho económico oficial.
 El mismo rótulo tiene otras dos formas, que la captura no muestra porque esta base no las
 produce y que verifican las pruebas de interfaz:
 
-- **Período todavía provisional** —ninguna liquidación del mes fue aprobada ni pagada—:
-  «… · provisional: aún sin aprobación ni pago en el período». El mes sigue siendo corregible.
+- **Período todavía sin tasa fijada**: «… · todavía sin tasa fijada: el período sigue siendo
+  corregible». Describe la **ausencia de fijación** y no la ausencia de aprobaciones, porque una
+  base legada con evidencia discrepante tiene aprobaciones y aun así no queda fijada: afirmar que
+  nadie aprobó sería falso ahí. Lo observó QA sobre la generación 6.
 - **Período sin tasa en vigor** —anterior a toda vigencia publicada—: «Sin tasa oficial en vigor
   para AAAA-MM · se fija cuando una liquidación se aprueba o se paga · se informa sólo la base
   comisionable · redondeo HALF_UP a Gs. enteros», y el KPI pasa a «COMISIÓN OFICIAL — SIN TASA EN

@@ -317,24 +317,53 @@ La justificación de la decisión de propietario —«un tipeo que será anulado
 ni `PAGADA`, así que no puede fijar un mes»— **es falsa contra el código**: un tipeo que sí llega a
 `APROBADA` y después se anula fija el mes igual de para siempre que en la generación 5.
 
+## Generación 7 — qué se hizo
+
+Cierra `AB1-g6` con la decisión de propietario: **el período permanece fijado mientras exista al
+menos un hecho económico oficial vivo que lo justifique**. Si no queda ninguno, se suelta.
+
+**El cambio de fondo es de representación.** La generación 5 guardaba el *estado* de la fijación
+en `commission_rated_periods`, una fila por período. Un estado de una sola fila no puede expresar
+que una fijación se retiró sin borrarla, y borrarla habría perdido el rastro. La generación 7 lo
+convierte en un **libro append-only**, `commission_period_rate_events`, con dos eventos: `PINNED`
+y `UNPINNED`. El estado vigente de un período es su último evento; nada se actualiza y nada se
+borra; refijar es un evento más. La tabla vieja queda congelada, sin leer ni escribir, y sin
+borrar.
+
+**El boundary de salida está en un solo sitio.** `_reconcile_period_pin` se invoca desde
+`_set_status`, que es por donde pasa **toda** transición de estado. Las cuatro rutas que el Auditor
+enumeró —revertir la aprobación, `void_sale`, la reversa de un cobro rechazado y `observe` seguido
+de `revert`— quedan cubiertas por construcción, no una por una, y cualquier ruta futura que mueva
+un estado queda cubierta también. Escribir el libro es competencia de un único método,
+`_record_period_rate_event`, con tres llamadores.
+
+**Una `PAGADA` viva nunca suelta.** `_live_official_facts` cuenta `paid_at`, así que el dinero
+consolidado sostiene su mes aunque después se observe la liquidación o se anule la venta: observar
+no devuelve una transferencia.
+
+**Migrar y operar ahora coinciden.** Ambos lados usan el mismo predicado, y el SQL de los dos se
+arma desde `BOUNDARY_SQL_IN`, derivado de `RATING_BOUNDARY_STATES`, que se mudó a
+`comision_policy.py` porque es donde viven las constantes que el repositorio y el cálculo comparten.
+Que la constante existiera sin gobernar nada fue una observación del Librarian.
+
+**Observaciones de la generación 6 atendidas.** La 1 del Auditor —una venta anulada de una base
+legada llegaba al pago— con una guarda en `review`/`approve`/`mark_paid`. La 2 —`INSERT OR IGNORE`
+tragaba violaciones `NOT NULL`— desaparece: el libro usa `INSERT` normal y la idempotencia sale de
+consultar el último evento. La 1 de QA —el rótulo afirmaba que nadie había aprobado, falso en una
+base legada discrepante— reescribiendo pantalla y export para describir la ausencia de fijación.
+La 4 de QA se deja como está a propósito: el export usa punto decimal porque es contrato de datos,
+la pantalla coma porque es texto en español.
+
+**Lo que no se hizo.** No se abrió el flujo de corrección explícita de un período fijado **que sí
+tiene** un hecho vivo detrás: sigue sin existir y sigue siendo otra decisión. `comision_policy.py`
+sólo gana el boundary compartido: la aritmética `Decimal` y el único `HALF_UP` siguen intactos
+desde la generación 3.
+
 ## Siguiente paso propuesto
 
-**Generación 7, bloqueada en una decisión de propietario.** `AB1-g6` no tiene una corrección obvia:
-son dos opciones excluyentes, y elegir por el propietario sería decidir sobre dinero.
-
-- **(a) Desfijar al retirarse el último hecho vivo.** Retirar el último hecho económico oficial vivo
-  de un período retira también su fijación, con asiento `COMMISSION_PERIOD_RATE_UNPINNED` que
-  conserva la tasa previa y el motivo; la fijación se reescribe cuando aparece el hecho siguiente.
-  Un período con una `PAGADA` viva nunca se desfija, así que el dinero que salió sigue protegido.
-- **(b) Mantener el pin inmutable y abrir el flujo de corrección explícita y auditada** que la
-  propia documentación admite que no existe.
-
-No es la decisión que el propietario ya tomó —aquélla era sobre **cuándo se fija**; ésta es sobre
-**si puede soltarse**— y por eso se plantea en vez de resolverse.
-
-Junto con `AB1-g6` conviene tratar las observaciones de la misma familia: la 1, 2 y 7 del Auditor,
-la 1 del QA, y la 1 del Librarian —que `RATING_BOUNDARY_STATES` no gobierna nada y el invariante 9
-de `ARCHITECTURE_DELTA` es impreciso al llamarlo «un solo predicado»—.
+**Generación 7 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
+verdict de las generaciones 1 a 6. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
+lease.
 
 Sólo después de la Safe Closure vuelve a la cola el cableado de `register_payment` y
 `sync_review_sales` desde el producto (heredado 11), que sigue siendo lo único que impide que el

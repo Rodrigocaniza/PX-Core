@@ -1,12 +1,13 @@
 # Evidencia de pruebas
 
-Regresión completa: **395/395 PASS** (`python -m pytest -q`, 44,00 s).
-Línea base de la misión anterior: 302. Esta misión suma **93**: 89 de dominio y 4 de interfaz.
+Regresión completa: **418/418 PASS** (`python -m pytest -q`, 39,93 s).
+Línea base de la misión anterior: 302. Esta misión suma **116**: 112 de dominio y 4 de interfaz.
 
-Suite del módulo: `tests/gestion_central/` **195/195 PASS**.
-Los tres archivos de comisiones juntos (`test_comisiones.py`, `test_comisiones_ui_interactions.py`
-y `test_comision_rate_boundary.py`, este último nuevo en la generación 6): 51 → **144** casos,
-112 + 8 + 24 respectivamente.
+Suite del módulo: `tests/gestion_central/` **218/218 PASS**.
+Los cuatro archivos de comisiones juntos (`test_comisiones.py`,
+`test_comisiones_ui_interactions.py`, `test_comision_rate_boundary.py` —generación 6— y
+`test_comision_period_unpin.py` —generación 7—): 51 → **167** casos, 112 + 8 + 24 + 23
+respectivamente.
 
 Todas las cifras anteriores son **casos ejecutados**, que es lo que cuenta pytest. En funciones:
 `test_comisiones.py` pasa de 47 a 94 —se agregan 48 y se elimina
@@ -23,8 +24,38 @@ La **generación 6** suma **26 casos** (371 → 395): las 24 pruebas dirigidas d
 `test_comision_rate_boundary.py` y 2 de interfaz. Además reescribe 23 casos de la generación 5 al
 contrato nuevo y retira 2 parametrizaciones —`CALCULADA` y `REVISADA` en
 `test_a_rated_period_is_never_re_rated`— porque esos estados **dejaron de estar protegidos a
-propósito**: son provisionales y deben poder corregirse. Que sigan siendo corregibles se prueba
-ahora explícitamente, no se da por supuesto.
+propósito**: son provisionales y deben poder corregirse.
+
+La **generación 7** suma **23 casos** (395 → 418), todos en `test_comision_period_unpin.py`.
+
+## Generación 7 — cierre de AB1-g6
+
+`tests/gestion_central/test_comision_period_unpin.py`, 23 pruebas dirigidas. El escenario base es
+el del Auditor: una tasa promocional del 100% con un cero de más, aprobada sobre una venta de
+10.000.000 Gs.
+
+| Grupo | Qué demuestra | Pruebas |
+|---|---|---|
+| Fijación | una `APROBADA` fija el período | 1 |
+| La fijación no cuelga de una liquidación | con dos aprobaciones, revertir una no suelta nada | 1 |
+| Retirar el último hecho suelta | revertir la última `APROBADA` escribe `UNPINNED` y el mes vuelve a resolverse por catálogo | 1 |
+| `PAGADA` viva nunca suelta | observar y anular la venta después de pagada no sueltan; revertir una `PAGADA` ni siquiera es transición legal | 2 |
+| Cobro rechazado | el cheque que rebota después de aprobar suelta el período: no salió un guaraní y no hay nada que proteger | 1 |
+| `void_sale` | anular la venta del último hecho suelta el mes — regla aprobada 8 | 1 |
+| `observe` + `revert` | observar ya retira el hecho; revertir después no escribe un segundo evento | 1 |
+| Idempotencia | encadenar transiciones deja un solo `UNPINNED`; repetir la anulación es un no-op sin rastro nuevo; una transición inválida no mueve el libro | 3 |
+| Refijación | el hecho oficial siguiente vuelve a fijar, y los provisionales entre medio siguen sin fijar | 2 |
+| Trazabilidad | `PINNED → UNPINNED → PINNED` completo, con tasa, origen, liquidación causante, razón, actor y fecha, y los tres en `central_audit` | 1 |
+| Dinero intacto | soltar no toca importe ni aval; una `PAGADA` de otra liquidación impide el unpin por construcción | 2 |
+| Migración | no escribe ningún `UNPINNED`; migrar y operar coinciden; sigue sin inventar ni desempatar; reabrir es idempotente; la fila legada sigue intacta | 4 |
+| Regla aprobada 8 | una venta anulada de una base legada no llega al pago | 1 |
+| El daño medido | el sobrepago de 9.900.000 Gs por venta queda eliminado, y el subpago de la dirección contraria también | 2 |
+
+La generación 7 además reescribe 5 casos de la 6: los cuatro de la matriz de transiciones cuyo
+sujeto era la propia liquidación que sostenía el pin —ahora la matriz separa el ancla del sujeto,
+que es lo que le devuelve su pregunta original— y
+`test_the_durable_evidence_has_no_public_eraser`, cuya premisa cambió: ahora **sí** existe una
+operación pública que suelta un período, pero no borra ni reescribe nada.
 
 ## Generación 5 — cierre de B1-g4 y B2-g4
 

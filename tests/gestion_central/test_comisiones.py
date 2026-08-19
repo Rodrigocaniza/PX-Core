@@ -47,25 +47,29 @@ def active(service, sale_id, actor=SOL):
 
 
 def clear_rated_periods(service):
-    """Borra la evidencia durable, simulando una base migrada de una instalación anterior.
+    """Vacía el libro de tasas, simulando una base migrada de una instalación anterior.
 
-    No hay ruta pública que la borre —ése es justamente el punto de `commission_rated_periods`—,
-    así que las pruebas que necesitan un período sin fijar lo hacen por SQL. Sirve para ejercitar
-    las defensas que siguen haciendo falta cuando la evidencia no existe todavía.
+    El libro es append-only y ninguna ruta pública lo borra: desfijar escribe un `UNPINNED`
+    detrás, no elimina el `PINNED`. Estas pruebas necesitan un período que **nunca** fue fijado,
+    que es distinto de uno que se soltó, y eso sólo se construye por SQL.
     """
     import sqlite3
 
     with sqlite3.connect(service.repository.database_path) as con:
-        con.execute("DELETE FROM commission_rated_periods")
+        con.execute("DELETE FROM commission_period_rate_events")
         con.commit()
 
 
 def rated_periods(service):
+    """Períodos fijados **ahora**: el último evento de cada uno, si es `PINNED`."""
     import sqlite3
 
     with sqlite3.connect(service.repository.database_path) as con:
-        return {row[0]: row[1] for row in
-                con.execute("SELECT period,rate_bp FROM commission_rated_periods ORDER BY period")}
+        rows = con.execute(
+            "SELECT e.period,e.rate_bp,e.event FROM commission_period_rate_events e"
+            " JOIN (SELECT period, MAX(id) AS newest FROM commission_period_rate_events GROUP BY period)"
+            "   last ON last.period=e.period AND last.newest=e.id ORDER BY e.period")
+        return {row[0]: row[1] for row in rows if row[2] == "PINNED"}
 
 
 def _inject_policy_version(service, *, version, rate_bp, effective_from):
@@ -1505,23 +1509,26 @@ def rate_a_period(service, *, envelope="S-100", source="matriz"):
 def subject_in_rated_period(service, status):
     """Segunda liquidación del mes ya fijado, llevada al estado desde el que se transiciona.
 
-    La liquidación que fijó el mes y la que sufre la transición se separan: así la matriz
-    cubre también las transiciones desde estados provisionales, que ya no fijan nada.
+    La liquidación que fijó el mes y la que sufre la transición se separan a propósito. Desde la
+    generación 7 la fijación dura mientras quede **algún** hecho oficial vivo, así que separarlas
+    es lo que hace que la matriz siga preguntando lo que quiere preguntar: que mover el estado de
+    una liquidación cualquiera no suelte un período que otra sigue sosteniendo. Que retirar el
+    **último** hecho sí lo suelte se prueba aparte, en `test_comision_period_unpin.py`.
     """
     sale_id, _ = service.register_sale(
         SOL, common(source_sale_id="sujeto", envelope="S-SUJ", initial_paid=400_000))
     service.recalculate(SOL)
     entry_id = active(service, sale_id)["id"]
     if status == "CALCULADA":
-        return entry_id
+        return sale_id, entry_id
     service.review(SOL, entry_id)
     if status == "REVISADA":
-        return entry_id
+        return sale_id, entry_id
     service.approve(SOL, entry_id, "Sol")
     if status == "APROBADA":
-        return entry_id
+        return sale_id, entry_id
     service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-OK")
-    return entry_id
+    return sale_id, entry_id
 
 
 def try_to_re_rate(service, *, rate_bp=10_000, effective_from="2099-04-01"):
@@ -1554,13 +1561,13 @@ TRANSITIONS = (
     ("void_sale_desde_APROBADA", "APROBADA", lambda s, sale, eid: s.void_sale(SOL, sale, "venta anulada")),
     ("void_sale_desde_PAGADA", "PAGADA", lambda s, sale, eid: s.void_sale(SOL, sale, "venta anulada")),
     ("correccion_de_sobre", "CALCULADA",
-     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="matriz", envelope="S-NUEVO",
+     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="sujeto", envelope="S-NUEVO",
                                                       initial_paid=400_000))),
     ("correccion_de_total", "CALCULADA",
-     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="matriz", envelope="S-100",
+     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="sujeto", envelope="S-SUJ",
                                                       total_amount=900_000, initial_paid=900_000))),
     ("reapertura_de_saldo", "CALCULADA",
-     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="matriz", envelope="S-100",
+     lambda s, sale, eid: s.register_sale(SOL, common(source_sale_id="sujeto", envelope="S-SUJ",
                                                       total_amount=400_000, initial_paid=100_000))),
     ("cobro_adicional", "CALCULADA",
      lambda s, sale, eid: s.register_payment(SOL, sale, 50_000, "2099-04-20", "extra")),
@@ -1576,8 +1583,8 @@ def test_no_public_transition_reopens_a_rated_period(service, name, base_status,
     una PAGADA —o `void_sale`, o `revert`, o una corrección de sobre— devolvía el período al
     catálogo y con él la fuga entera. La evidencia durable no depende del estado.
     """
-    sale_id, _ = rate_a_period(service)
-    entry_id = subject_in_rated_period(service, base_status)
+    rate_a_period(service)
+    sale_id, entry_id = subject_in_rated_period(service, base_status)
 
     try:
         transition(service, sale_id, entry_id)
@@ -1615,14 +1622,27 @@ def test_observing_a_paid_settlement_does_not_reopen_its_period(service):
 
 
 def test_the_durable_evidence_has_no_public_eraser(service):
-    """La evidencia es append-only: ninguna operación pública la borra ni la reescribe."""
+    """El libro es append-only: soltar un período **añade** un evento, nunca borra el anterior.
+
+    Desde la generación 7 sí existe una operación pública que suelta un período —retirar su
+    último hecho económico vivo— pero no borra ni reescribe nada: escribe un `UNPINNED` detrás,
+    con la tasa que retira y su causa, de modo que la secuencia entera sigue siendo legible.
+    """
+    import sqlite3
+
     _, entry_id = rate_a_period(service)
-    before = rated_periods(service)
-    service.observe(SOL, entry_id, "control")
+    service.observe(SOL, entry_id, "control")           # retira el único hecho vivo del mes
     service.set_general_rate(SOL, 7_500, "2099-04-01", "otra tasa")
     for _ in range(3):
         service.recalculate(SOL)
-    assert rated_periods(service) == before
+    with sqlite3.connect(service.repository.database_path) as con:
+        rows = [tuple(row) for row in con.execute(
+            "SELECT event,rate_bp,origin FROM commission_period_rate_events"
+            " WHERE period='2099-04' ORDER BY id")]
+    assert rows == [("PINNED", CANONICAL_RATE_BP, "APROBADA"),
+                    ("UNPINNED", CANONICAL_RATE_BP, "COMMISSION_OBSERVED")]
+    # El período vuelve a ser resoluble, que es lo que se decidió; el rastro no se pierde.
+    assert rated_periods(service) == {}
 
 
 # ---------------------------------------- hallazgo 25: sin frontera global por MAX(period)

@@ -154,7 +154,7 @@ def test_the_header_says_whether_the_rate_is_fixed_or_still_provisional(app, roo
     window.show_commissions(); root.update()
     panel = window.commissions_panel
     # Nadie aprobó ni pagó nada todavía: el mes sigue siendo corregible y así se rotula.
-    assert "provisional: aún sin aprobación ni pago en el período" in panel.policy_label.cget("text")
+    assert "todavía sin tasa fijada" in panel.policy_label.cget("text")
 
     entry_id = entry_of(panel, ids["settled"])
     service.review(sol, entry_id)

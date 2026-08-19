@@ -179,10 +179,10 @@ class CentralRepository:
               note TEXT NOT NULL DEFAULT '', actor TEXT NOT NULL, recorded_at TEXT NOT NULL,
               UNIQUE(policy_id,version)
             );
-            -- Evidencia durable de que a un período se le aplicó una tasa. Una fila por período,
-            -- escrita la primera vez que se tarifa y nunca actualizada ni borrada: es lo que
-            -- protege al período de ser re-tarifado, con independencia de en qué estado quede
-            -- después la liquidación que lo tarifó. El estado es mutable; esto no.
+            -- Tabla de la generación 5, congelada en la 6: guardaba **el estado** de la fijación,
+            -- una fila por período. Ya no se lee ni se escribe. No se borra —nada de lo que el
+            -- sistema afirmó alguna vez se borra— pero la verdad vive ahora en el libro de eventos
+            -- de abajo, que sí puede expresar que una fijación se retiró.
             CREATE TABLE IF NOT EXISTS commission_rated_periods(
               period TEXT PRIMARY KEY,
               rate_bp INTEGER NOT NULL, policy_code TEXT NOT NULL, policy_version INTEGER NOT NULL,
@@ -190,10 +190,36 @@ class CentralRepository:
               first_rated_by TEXT NOT NULL, first_rated_at TEXT NOT NULL,
               origin TEXT NOT NULL DEFAULT 'RATED'
             );
+            -- Libro append-only de la tasa de cada período: `PINNED` cuando un hecho económico
+            -- oficial la fija, `UNPINNED` cuando desaparece el último hecho vivo que la justificaba.
+            --
+            -- Es un libro y no un estado porque la tasa de un período **no es inmutable por haber
+            -- existido alguna vez un hecho que la justificó**: si esa aprobación se revierte o esa
+            -- venta se anula, la justificación desaparece y el período vuelve a ser resoluble. Lo
+            -- que no desaparece nunca es el rastro: cada fijación y cada retirada quedan aquí, con
+            -- su causa, su actor y su fecha, y la secuencia completa
+            -- `PINNED → UNPINNED → PINNED` se lee entera.
+            --
+            -- El estado vigente de un período es su **último** evento. Nada se actualiza y nada se
+            -- borra: volver a fijar es un evento más, no una reescritura del anterior.
+            CREATE TABLE IF NOT EXISTS commission_period_rate_events(
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              period TEXT NOT NULL,
+              event TEXT NOT NULL,
+              rate_bp INTEGER NOT NULL,
+              policy_code TEXT NOT NULL, policy_version INTEGER NOT NULL,
+              policy_effective_from TEXT NOT NULL, policy_scope TEXT NOT NULL,
+              origin TEXT NOT NULL,
+              entry_id TEXT, sale_id TEXT,
+              reason TEXT NOT NULL DEFAULT '',
+              actor TEXT NOT NULL, recorded_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_commission_period_rate_events
+              ON commission_period_rate_events(period,id);
             """)
             self._add_missing_columns(con)
             self._migrate_commission_policy(con)
-            self._backfill_rated_periods(con)
+            self._backfill_period_rate_events(con)
             con.commit()
 
     @staticmethod
@@ -277,40 +303,46 @@ class CentralRepository:
                 (comision_policy.POLICY_ABSENT, status),
             )
 
-    def _backfill_rated_periods(self, con):
-        """Siembra la fijación de tasa **sólo** desde hechos económicos oficiales.
+    def _backfill_period_rate_events(self, con):
+        """Siembra el libro de tasas **sólo** desde hechos económicos oficiales que siguen vivos.
 
-        Una migración no puede inventar una tasa. Sembrar desde el primer cálculo que encontrara
-        —lo que hacía la versión anterior— fijaba meses enteros con la tasa de una liquidación
-        `REVERTIDA`, o de una venta anulada, y contradecía lo que ese mismo mes ya había pagado.
-        Aquí sólo cuenta como evidencia una liquidación que:
+        Una migración no puede inventar una tasa. Sólo cuenta como evidencia una liquidación que:
 
-        * está en `APROBADA` o `PAGADA` —el mismo boundary que fija en caliente—;
+        * está en `APROBADA` o `PAGADA`, o conserva `paid_at` —dinero que efectivamente salió—;
         * lleva la política canónica y una tasa concreta;
-        * no está revertida, y su venta de origen no está anulada.
+        * y cuya venta de origen no está anulada, salvo que el pago ya se hubiera hecho.
+
+        Es la **misma** definición de hecho vivo que usa el código en caliente
+        (`CommissionService._live_official_facts`), de modo que migrar una base y reconstruirla
+        operando dan el mismo resultado. En la generación 6 no era así: la migración excluía las
+        `REVERTIDA` pero el código en caliente conservaba el pin de una aprobación revertida, y esa
+        divergencia era la mitad de `AB1-g6`.
 
         Reglas que la siembra respeta sin excepción:
 
-        * **No inventa.** Un período sin ninguna evidencia oficial no se siembra: queda sin fijar
-          y por lo tanto corregible, que es el estado correcto para algo que nadie avaló.
-        * **No desempata a ciegas.** Si el mismo período muestra tasas oficiales distintas, la
+        * **No inventa.** Un período sin evidencia oficial viva no se siembra: queda sin fijar y por
+          lo tanto resoluble, que es el estado correcto para algo que hoy nadie avala.
+        * **No desempata a ciegas.** Si el mismo período muestra tasas oficiales vivas distintas, la
           evidencia es discrepante y no se fija nada: elegir una sería decidir por el propietario
-          cuál de dos importes ya avalados es el bueno. Queda asentado para que se resuelva a mano.
+          cuál de dos importes ya avalados es el bueno.
+        * **No inventa retiradas.** No escribe un solo `UNPINNED`. Una fijación de la generación 5
+          que hoy no tiene evidencia viva simplemente **no se siembra**, y queda asentada como
+          descartada con su motivo. Afirmar que fue «retirada» sería inventar un hecho que nadie
+          produjo.
         * **No toca dinero.** No escribe una sola vez sobre `commission_entries`: ni importes, ni
-          tasas, ni aprobaciones, ni pagos. Es puramente aditiva sobre `commission_rated_periods`.
-        * **Es idempotente.** `INSERT OR IGNORE` sobre la clave del período, y ni la siembra ni el
-          descarte se re-asientan si su asiento ya existe: arrancar mil veces deja lo mismo que
-          arrancar una.
+          tasas, ni aprobaciones, ni pagos.
+        * **Es idempotente.** Sólo siembra períodos que no tienen ningún evento todavía, y ni la
+          siembra ni el descarte se re-asientan si su asiento ya existe.
         * **Es auditable.** Todo período sembrado y todo período descartado deja fila en
           `central_audit` con su motivo.
         """
         rows = con.execute(
-            "SELECT e.id,e.period,e.rate_bp,e.policy_code,e.policy_version,e.policy_effective_from,"
-            "       e.policy_scope,e.status,e.created_at"
+            "SELECT e.id,e.sale_id,e.period,e.rate_bp,e.policy_code,e.policy_version,"
+            "       e.policy_effective_from,e.policy_scope,e.status,e.paid_at,e.created_at"
             "  FROM commission_entries e JOIN commission_sales s ON s.id=e.sale_id"
-            " WHERE e.period IS NOT NULL AND e.rate_bp IS NOT NULL"
-            "   AND e.policy_status=? AND e.status IN ('APROBADA','PAGADA')"
-            "   AND COALESCE(s.voided,0)=0"
+            " WHERE e.period IS NOT NULL AND e.rate_bp IS NOT NULL AND e.policy_status=?"
+            "   AND (e.paid_at IS NOT NULL"
+            f"        OR (e.status IN {comision_policy.BOUNDARY_SQL_IN} AND COALESCE(s.voided,0)=0))"
             " ORDER BY e.period,e.created_at,e.id",
             (comision_policy.POLICY_CANONICAL,),
         ).fetchall()
@@ -319,14 +351,15 @@ class CentralRepository:
         for row in rows:
             official.setdefault(str(row["period"])[:7], []).append(row)
 
-        already = {row[0] for row in con.execute("SELECT period FROM commission_rated_periods")}
+        seeded = {row[0] for row in con.execute(
+            "SELECT DISTINCT period FROM commission_period_rate_events")}
+        legacy = {row[0] for row in con.execute("SELECT period FROM commission_rated_periods")}
+
         for period, evidence in sorted(official.items()):
-            if period in already:
+            if period in seeded:
                 continue
             rates = {int(row["rate_bp"]) for row in evidence}
             if len(rates) > 1:
-                # Dos importes oficiales distintos para el mismo mes: no hay una tasa del período
-                # que la migración pueda afirmar. Se deja sin fijar y se asienta el conflicto.
                 self._audit_seed_once(
                     con, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period,
                     {"reason": "EVIDENCIA_DISCREPANTE", "rates_bp": sorted(rates),
@@ -334,25 +367,40 @@ class CentralRepository:
                 continue
             # Un pago manda sobre una aprobación: es el hecho más fuerte del mes. A igualdad de
             # fuerza gana el más antiguo, así el resultado no depende del orden de lectura.
-            chosen = sorted(evidence, key=lambda row: (row["status"] != "PAGADA",
+            chosen = sorted(evidence, key=lambda row: (row["paid_at"] is None and row["status"] != "PAGADA",
                                                        str(row["created_at"]), str(row["id"])))[0]
-            con.execute(
-                "INSERT OR IGNORE INTO commission_rated_periods(period,rate_bp,policy_code,policy_version,"
-                "policy_effective_from,policy_scope,first_rated_by,first_rated_at,origin)"
-                " VALUES(?,?,?,?,?,?,'MIGRACION',?,'BACKFILL')",
-                (period, int(chosen["rate_bp"]),
-                 chosen["policy_code"] or comision_policy.CANONICAL_CODE,
-                 chosen["policy_version"] if chosen["policy_version"] is not None
-                 else comision_policy.CANONICAL_VERSION,
-                 chosen["policy_effective_from"] or comision_policy.CANONICAL_EFFECTIVE_FROM,
-                 chosen["policy_scope"] or comision_policy.CANONICAL_SCOPE,
-                 chosen["created_at"]),
-            )
+            self._record_seed_event(con, period, chosen)
+
+        # Una fijación heredada de la generación 5 sin evidencia viva no se arrastra. Se deja dicho
+        # por qué, con el mismo mecanismo que el resto de los descartes: la fila vieja sigue en
+        # `commission_rated_periods`, intacta, y el período queda resoluble hasta que aparezca un
+        # hecho económico real.
+        for period in sorted(legacy - seeded - set(official)):
             self._audit_seed_once(
-                con, "COMMISSION_PERIOD_RATE_SEEDED", period,
-                {"rate_bp": int(chosen["rate_bp"]), "boundary": chosen["status"],
-                 "entry_id": chosen["id"], "evidence_entries": len(evidence),
-                 "policy_code": chosen["policy_code"], "policy_version": chosen["policy_version"]})
+                con, "COMMISSION_PERIOD_RATE_SEED_SKIPPED", period,
+                {"reason": "SIN_HECHO_ECONOMICO_VIVO",
+                 "note": "fijacion heredada de la generacion 5 sin APROBADA ni PAGADA viva que la justifique"})
+
+    def _record_seed_event(self, con, period, chosen):
+        """Escribe el `PINNED` de la migración y lo asienta. Un solo sitio, un solo formato."""
+        boundary = "PAGADA" if (chosen["paid_at"] is not None or chosen["status"] == "PAGADA") else "APROBADA"
+        con.execute(
+            "INSERT INTO commission_period_rate_events(period,event,rate_bp,policy_code,policy_version,"
+            "policy_effective_from,policy_scope,origin,entry_id,sale_id,reason,actor,recorded_at)"
+            " VALUES(?,'PINNED',?,?,?,?,?,'BACKFILL',?,?,?,'MIGRACION',?)",
+            (period, int(chosen["rate_bp"]),
+             chosen["policy_code"] or comision_policy.CANONICAL_CODE,
+             chosen["policy_version"] if chosen["policy_version"] is not None
+             else comision_policy.CANONICAL_VERSION,
+             chosen["policy_effective_from"] or comision_policy.CANONICAL_EFFECTIVE_FROM,
+             chosen["policy_scope"] or comision_policy.CANONICAL_SCOPE,
+             chosen["id"], chosen["sale_id"], f"hecho economico vivo {boundary} en la base migrada",
+             chosen["created_at"]),
+        )
+        self._audit_seed_once(
+            con, "COMMISSION_PERIOD_RATE_SEEDED", period,
+            {"rate_bp": int(chosen["rate_bp"]), "boundary": boundary, "entry_id": chosen["id"],
+             "policy_code": chosen["policy_code"], "policy_version": chosen["policy_version"]})
 
     def _audit_seed_once(self, con, action, target, details):
         """Asienta una decisión de siembra una sola vez.

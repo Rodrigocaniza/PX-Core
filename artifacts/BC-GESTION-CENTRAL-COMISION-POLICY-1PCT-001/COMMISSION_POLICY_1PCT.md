@@ -84,10 +84,26 @@ Cambiar el porcentaje es un hecho versionado, no una edición:
   La única guarda que queda en `set_general_rate` es que la vigencia **no puede retroceder**
   respecto de la última publicada, que ordena el historial.
 - **La tasa de un período se fija cuando existe un hecho económico oficial, no en el cálculo.**
-  Boundary: la liquidación alcanza `APROBADA` o `PAGADA`. Ahí se graba una fila en
-  `commission_rated_periods` —una por período, escrita una sola vez, nunca actualizada ni
-  borrada— y `decide()` resuelve ese período contra esa fila, no contra el catálogo de versiones.
-  Una versión nueva no lo reescribe aunque su vigencia lo abarque.
+  Boundary: la liquidación alcanza `APROBADA` o `PAGADA`. Ahí se escribe un evento `PINNED` en el
+  libro `commission_period_rate_events`, y `decide()` resuelve ese período contra el **último**
+  evento del libro, no contra el catálogo de versiones. Una versión nueva no lo reescribe aunque
+  su vigencia lo abarque.
+- **La fijación dura mientras algún hecho oficial siga vivo.** La tasa de un período **no es
+  inmutable por haber existido alguna vez un hecho que la justificó**. Si se retira el último
+  —revertir la aprobación, anular la venta, un cobro que se cae— se escribe un evento `UNPINNED`
+  y el período vuelve a ser resoluble por catálogo. Mientras quede otro hecho vivo, no pasa nada:
+  con dos aprobaciones en el mes, revertir una no suelta nada.
+- **Una `PAGADA` viva nunca suelta el período.** El dinero efectivamente consolidado está
+  protegido: una liquidación con `paid_at` sostiene su mes aunque después se observe o se anule la
+  venta. Observar no devuelve una transferencia. Sólo una reversión de pago que se complete de
+  verdad cambia qué hechos están vivos.
+- **Refijar es el contrato normal, no un caso especial.** Después de un `UNPINNED`, la siguiente
+  transición oficial a `APROBADA` o `PAGADA` vuelve a fijar el período con la tasa de ese hecho,
+  por el mismo camino que la primera vez.
+- **Nada se borra y nada se reescribe.** El libro es append-only: el `PINNED` original conserva su
+  tasa, su origen y la liquidación que lo causó; el `UNPINNED` dice qué tasa se retira, por qué y
+  quién. La secuencia `PINNED → UNPINNED → PINNED` de cualquier período se lee entera, y los tres
+  eventos están además en `central_audit`.
 - **Los estados provisionales siguen siendo corregibles y no fijan nada.** `ELEGIBLE`, `CALCULADA`
   y `REVISADA` son cálculos, no dinero avalado: una publicación posterior más un `recalculate` los
   corrige. Fijar en el primer cálculo era el defecto de la generación 5, y de ahí salieron sus dos

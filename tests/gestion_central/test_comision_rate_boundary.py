@@ -47,9 +47,21 @@ def active(service, sale_id):
 
 
 def rated_periods(service):
+    """Períodos fijados **ahora**: el último evento de cada uno, si es `PINNED`."""
     with sqlite3.connect(service.repository.database_path) as con:
-        return {row[0]: row[1] for row in
-                con.execute("SELECT period,rate_bp FROM commission_rated_periods")}
+        rows = con.execute(
+            "SELECT e.period,e.rate_bp,e.event FROM commission_period_rate_events e"
+            " JOIN (SELECT period, MAX(id) AS newest FROM commission_period_rate_events GROUP BY period)"
+            "   last ON last.period=e.period AND last.newest=e.id")
+        return {row[0]: row[1] for row in rows if row[2] == "PINNED"}
+
+
+def rate_events(service, period=None):
+    """Libro completo, en orden: es la traza que no se borra nunca."""
+    with sqlite3.connect(service.repository.database_path) as con:
+        query = ("SELECT period,event,rate_bp,origin,reason,actor FROM commission_period_rate_events"
+                 + (" WHERE period=?" if period else "") + " ORDER BY id")
+        return [tuple(row) for row in con.execute(query, (period,) if period else ())]
 
 
 def audits(service, action):
@@ -135,7 +147,7 @@ def test_pagar_fija_el_periodo_aunque_la_aprobacion_llegara_migrada(service):
     sale_id, _ = service.register_sale(SOL, sale())
     entry_id = approve_entry(service, sale_id)
     with sqlite3.connect(service.repository.database_path) as con:
-        con.execute("DELETE FROM commission_rated_periods")
+        con.execute("DELETE FROM commission_period_rate_events")
         con.commit()
     service.mark_paid(SOL, entry_id, "2099-05-05", "TRANSF-1")
     assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
@@ -153,10 +165,19 @@ def test_un_periodo_fijado_ya_no_se_re_tarifa_por_una_publicacion_posterior(serv
     assert entry["approved_by"] == "Sol"
 
 
-def test_observar_o_revertir_despues_de_aprobar_no_desfija_el_periodo(service):
-    """La fijación es durable: no cuelga del estado en que quede después la liquidación."""
-    sale_id, _ = service.register_sale(SOL, sale())
-    entry_id = approve_entry(service, sale_id)
+def test_la_fijacion_no_cuelga_del_estado_mientras_quede_otro_hecho_vivo(service):
+    """Dos aprobaciones sostienen el mes: retirar una no lo suelta.
+
+    Es la mitad del contrato que sí es durable. La otra mitad —que retirar la **última** sí
+    suelta— vive en `test_comision_period_unpin.py`, que es el alcance de la generación 7.
+    """
+    first, _ = service.register_sale(SOL, sale())
+    second, _ = service.register_sale(SOL, sale(source_sale_id="venta-002", sale_date="2099-04-20"))
+    entry_id = approve_entry(service, first)
+    service.recalculate(SOL)
+    other = active(service, second)["id"]
+    service.review(SOL, other)
+    service.approve(SOL, other, "Sol")
     service.observe(SOL, entry_id, "consulta de la vendedora")
     service.revert(SOL, entry_id, "se rehace la liquidación")
     assert rated_periods(service) == {"2099-04": CANONICAL_RATE_BP}
@@ -207,7 +228,7 @@ def migrated(tmp_path, entries, *, voided_sales=()):
     path = tmp_path / "legado.sqlite3"
     CommissionService(CentralManagementService(CentralRepository(path)))
     with sqlite3.connect(path) as con:
-        con.execute("DELETE FROM commission_rated_periods")
+        con.execute("DELETE FROM commission_period_rate_events")
         for index, spec in enumerate(entries):
             sale_id = f"sale-{index}"
             con.execute(
@@ -298,6 +319,9 @@ def test_la_migracion_asienta_cada_periodo_sembrado(tmp_path):
     assert len(seeded) == 1 and seeded[0]["target"] == "2099-04"
     assert '"boundary": "PAGADA"' in seeded[0]["details_json"]
     assert '"rate_bp": 500' in seeded[0]["details_json"]
+    assert rate_events(service, "2099-04") == [
+        ("2099-04", "PINNED", 500, "BACKFILL",
+         "hecho economico vivo PAGADA en la base migrada", "MIGRACION")]
 
 
 def test_la_migracion_es_idempotente_y_no_duplica_su_auditoria(tmp_path):
@@ -350,7 +374,7 @@ def test_la_fijacion_deja_trazabilidad_completa(service):
     assert len(pinned) == 1
     row = pinned[0]
     assert row["target"] == "2099-04" and row["actor"] == "sol"
-    for fragment in ('"boundary": "APROBADA"', '"rate_bp": 100', f'"entry_id": "{entry_id}"',
+    for fragment in ('"origin": "APROBADA"', '"rate_bp": 100', f'"entry_id": "{entry_id}"',
                      f'"policy_code": "{CANONICAL_CODE}"'):
         assert fragment in row["details_json"]
 
@@ -375,6 +399,6 @@ def test_un_periodo_sin_tasa_en_vigor_no_se_rotula_con_la_politica_global(servic
 def test_el_export_distingue_una_tasa_fijada_de_una_todavia_provisional(service):
     sale_id, _ = service.register_sale(SOL, sale())
     service.recalculate(SOL)
-    assert "todavía provisional" in service.export_summary(SOL, "2099-04")["policy_disclaimer"]
+    assert "todavía no tiene una tasa fijada" in service.export_summary(SOL, "2099-04")["policy_disclaimer"]
     approve_entry(service, sale_id)
     assert "ya fijada" in service.export_summary(SOL, "2099-04")["policy_disclaimer"]

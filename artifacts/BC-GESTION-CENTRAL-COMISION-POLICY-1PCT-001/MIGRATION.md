@@ -79,24 +79,29 @@ posterior trayéndola a 4.750 porque no estaba pagada.
 `test_the_official_commission_survives_reopening_the_database` comprueba que reabrir vuelve a
 migrar sin duplicar políticas ni versiones y sin cambiar nada (`changed == 0`).
 
-## Paso 5 — siembra de la fijación de tasa por período (generación 6)
+## Paso 5 — siembra del libro de tasas por período (generación 7)
 
-`_backfill_rated_periods` siembra `commission_rated_periods`, una fila por período, con
-`INSERT OR IGNORE` sobre la clave primaria. Es aditiva e idempotente: no actualiza filas
-existentes y correr la migración otra vez no cambia nada.
+`_backfill_period_rate_events` siembra `commission_period_rate_events` con un evento `PINNED` por
+período. Es aditiva e idempotente: sólo toca períodos que no tienen ningún evento todavía, y correr
+la migración otra vez no cambia nada.
 
 **Una migración no puede inventar una tasa.** Por eso sólo cuenta como evidencia una liquidación
 que reúne las tres condiciones a la vez:
 
-* está en `APROBADA` o `PAGADA` —el mismo boundary económico que fija en caliente—;
+* sostiene un **hecho económico vivo**: está en `APROBADA` o `PAGADA` sobre una venta no anulada,
+  o conserva `paid_at`, que significa que el dinero salió de verdad;
 * lleva política canónica y una tasa concreta;
-* su venta de origen no está anulada.
+* y se evalúa con **el mismo predicado que el código en caliente** —`BOUNDARY_SQL_IN`, derivado de
+  `RATING_BOUNDARY_STATES`—, de modo que migrar una base y reconstruirla operando dan el mismo
+  resultado. En la generación 6 no era así: la migración excluía las `REVERTIDA` pero el código en
+  caliente conservaba el pin de una aprobación revertida, y esa divergencia era media `AB1-g6`.
 
 Las reglas que la siembra respeta sin excepción:
 
 | Regla | Qué significa |
 |---|---|
-| **No inventa** | un período sin ninguna evidencia oficial no se siembra: queda **sin fijar** y por lo tanto corregible, que es el estado correcto para algo que nadie avaló |
+| **No inventa** | un período sin evidencia oficial viva no se siembra: queda **sin fijar** y por lo tanto corregible, que es el estado correcto para algo que hoy nadie avala |
+| **No inventa retiradas** | **no escribe un solo `UNPINNED`**. Una fijación de la generación 5 o 6 que hoy no tiene evidencia viva simplemente no se siembra, y queda asentada como descartada con motivo `SIN_HECHO_ECONOMICO_VIVO`. Afirmar que fue «retirada» sería inventar un hecho que nadie produjo |
 | **No desempata a ciegas** | si el mismo período muestra tasas oficiales distintas, la evidencia es discrepante y no se fija nada: elegir una sería decidir por el propietario cuál de dos importes ya avalados es el bueno |
 | **No toca dinero** | no escribe una sola vez sobre `commission_entries`: ni importes, ni tasas, ni aprobaciones, ni pagos |
 | **Es idempotente** | `INSERT OR IGNORE` por período; ni la siembra ni el descarte se re-asientan si su asiento ya existe |
@@ -105,9 +110,15 @@ Las reglas que la siembra respeta sin excepción:
 A igualdad de evidencia, un pago manda sobre una aprobación —es el hecho más fuerte del mes— y a
 igualdad de fuerza gana el más antiguo, para que el resultado no dependa del orden de lectura.
 
-**Qué cambió respecto de la generación 5 y por qué.** La siembra anterior miraba `rate_bp IS NOT
+La tabla `commission_rated_periods` de la generación 5 queda **congelada**: no se lee ni se
+escribe, y no se borra. Sus filas sin evidencia viva no se arrastran, y cada descarte queda
+asentado, de modo que una base que venía con una fijación injustificada la pierde al migrar —que es
+exactamente la corrección de `AB1-g6` aplicada hacia atrás— sin que nada de lo que el sistema
+afirmó alguna vez desaparezca.
+
+**Qué cambió respecto de la generación 5 y por qué.** La siembra de entonces miraba `rate_bp IS NOT
 NULL` y agrupaba por período tomando la liquidación **más antigua**, sin mirar su estado ni su
 venta. De ahí salió `AB1-g5`: un mes pagado dos veces al 5% quedaba fijado al 1% desde una
 liquidación `REVERTIDA` cuya venta estaba anulada, bajando una `APROBADA` de 500.000 a 100.000 Gs.
-y borrándole el aval, sin una sola fila de auditoría. Ahora la siembra depende del mismo hecho
-económico que la fijación en caliente, y no del orden de creación.
+y borrándole el aval, sin una sola fila de auditoría. La generación 6 lo corrigió apoyándose en el
+boundary; la 7 completa la corrección exigiendo que el hecho siga **vivo**.

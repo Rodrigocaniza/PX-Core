@@ -43,15 +43,18 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
   `policy_scope` (todas anulables: una liquidación aún sin recalcular no tiene traza).
 - `commission_policy_versions` **(tabla nueva)** — historial append-only con
   `UNIQUE(policy_id, version)`.
-- `commission_rated_periods` **(tabla nueva, generación 5; semántica redefinida en la 6)** —
-  evidencia durable de que la tasa de un período **quedó fijada por un hecho económico oficial**.
-  `period` es la clave primaria, de modo que hay **una fila por período**; se escribe con
-  `INSERT OR IGNORE` y no se actualiza ni se borra nunca. Guarda la tasa y la traza de política con
-  la que ese período quedó fijado, más quién, cuándo y en qué boundary (`origin`).
-  Se escribe en exactamente dos lugares: `approve()` y `mark_paid()` en caliente, y la siembra de
-  la migración desde liquidaciones que ya están en `APROBADA`/`PAGADA`. **Calcular no escribe
-  aquí**: mientras el mes sólo tiene cálculos provisionales no tiene fila, y por eso sigue siendo
-  corregible.
+- `commission_rated_periods` **(tabla de la generación 5, congelada en la 7)** — guardaba el
+  *estado* de la fijación, una fila por período. Ya no se lee ni se escribe. No se borra —nada de
+  lo que el sistema afirmó alguna vez se borra— pero un estado de una sola fila no puede expresar
+  que una fijación se retiró, y eso es justamente lo que hacía falta.
+- `commission_period_rate_events` **(tabla nueva, generación 7)** — libro append-only de la tasa de
+  cada período. Dos eventos: `PINNED` cuando un hecho económico oficial la fija, `UNPINNED` cuando
+  desaparece el último hecho vivo que la justificaba. Guarda la tasa, la traza de política, el
+  origen, la liquidación causante, la razón, el actor y la fecha. **El estado vigente de un período
+  es su último evento**; nada se actualiza y nada se borra, así que volver a fijar es un evento
+  más y no una reescritura. Lo escribe un solo método —`_record_period_rate_event`— desde tres
+  llamadores: `_pin_rated_period` (`approve`/`mark_paid`), `_reconcile_period_pin` (el boundary de
+  salida) y la siembra de la migración. **Calcular no escribe aquí.**
 
 ## Invariantes que esta misión agrega
 
@@ -72,16 +75,16 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
    liquidación sin importe, una cuyo `policy_status` no sea `CANONICA_APROBADA`, y una cuyo
    porcentaje y versión grabados no coincidan con la política que rige hoy su período. El sello se
    graba al calcular y puede quedar atrás: comprobar sólo el sello no alcanza.
-5. **Un período fijado conserva su tasa, y la protección es durable.** La tasa de un período se
+5. **Un período fijado conserva su tasa mientras algún hecho oficial la sostenga.** La tasa se
    fija cuando una liquidación alcanza `APROBADA` o `PAGADA` —el boundary económico oficial—: ahí
-   se graba una fila en `commission_rated_periods`, y `decide()` resuelve ese período contra esa
-   fila antes que contra el catálogo. `set_general_rate` ya **no** bloquea: publicar siempre es
-   posible y no reescribe lo fijado. La protección **no** se apoya en el estado *posterior* de la
-   liquidación —`observe`, `revert`, `void_sale` y la corrección de origen lo cambian y la
-   evidencia sigue ahí— ni en una frontera global: es el conjunto de períodos fijados, de modo que
-   una fecha errónea aprobada protege su propio mes y no congela ningún otro.
-   `paid_at IS NULL` sigue colgando del `WHERE` entero de `recalculate`, así que nada que haya
-   movido dinero es alcanzable aunque su estado se hubiera alterado por otra vía.
+   se escribe un `PINNED`, y `decide()` resuelve ese período contra el último evento del libro
+   antes que contra el catálogo. `set_general_rate` ya **no** bloquea: publicar siempre es posible
+   y no reescribe lo fijado. La protección no se apoya en el estado de **una** liquidación
+   concreta —con dos aprobaciones en el mes, revertir una no suelta nada— ni en una frontera
+   global: es el conjunto de períodos hoy fijados, de modo que una fecha errónea aprobada protege
+   su propio mes y no congela ningún otro. `paid_at IS NULL` sigue colgando del `WHERE` entero de
+   `recalculate`, así que nada que haya movido dinero es alcanzable aunque su estado se hubiera
+   alterado por otra vía.
 6. **La resolución es por período, no por «última publicada».** Cada liquidación se calcula con la
    versión de vigencia más reciente que no supera su período. Programar el porcentaje del mes que
    viene no puede reescribir el mes en curso.
@@ -97,18 +100,34 @@ Aditivo. Nada se borra ni se reescribe salvo lo que la migración retira explíc
 8. **La comisión oficial no se mezcla.** `report` y el export separan `commission_amount` —sólo
    `CANONICA_APROBADA`— de `non_official_amount`. Ningún agregado rotulado «oficial 1,00%» incluye
    un importe calculado con otra política.
-9. **Lo provisional es corregible; lo avalado, no.** `ELEGIBLE`, `CALCULADA` y `REVISADA` no fijan
-   nada: una publicación posterior más un `recalculate` los corrige, y ésa es la propiedad que
-   permite deshacer una fecha mal tipeada o una venta que después se anula. `APROBADA` y `PAGADA`
-   sí fijan, y desde ese momento ninguna publicación, recálculo ni migración reinterpreta su
-   importe. La frontera es un solo predicado —`RATING_BOUNDARY_STATES`— y se aplica igual en
-   caliente y en la migración.
-10. **La migración nunca inventa ni desempata.** La siembra sólo lee liquidaciones `APROBADA`/
-    `PAGADA` con política canónica y venta no anulada; ante evidencia ausente o discrepante deja el
-    período **sin fijar** y lo asienta. No escribe una sola vez sobre `commission_entries`.
-11. **Fijar deja traza.** `COMMISSION_PERIOD_RATE_PINNED` en caliente,
-    `COMMISSION_PERIOD_RATE_SEEDED` y `COMMISSION_PERIOD_RATE_SEED_SKIPPED` en la migración. Los
-    tres son idempotentes: no se re-asientan si su asiento ya existe.
+9. **Lo provisional es corregible; lo avalado, mientras el aval siga en pie.** `ELEGIBLE`,
+   `CALCULADA` y `REVISADA` no fijan nada. `APROBADA` y `PAGADA` sí, y desde ese momento ninguna
+   publicación, recálculo ni migración reinterpreta su importe. La frontera es un solo predicado
+   —`RATING_BOUNDARY_STATES`, en `comision_policy.py` porque la migración necesita exactamente el
+   mismo— y el SQL de ambos lados se arma desde `BOUNDARY_SQL_IN`, de modo que no puede divergir.
+10. **La fijación se retira cuando se retira su justificación.** Si un período se queda sin ningún
+    hecho oficial vivo, `_reconcile_period_pin` escribe un `UNPINNED` y el período vuelve a ser
+    resoluble. Se invoca desde `_set_status`, por donde pasa toda transición de estado, así que las
+    cuatro rutas de `AB1-g6` —y cualquiera futura— quedan cubiertas por construcción y no una por
+    una. **Una `PAGADA` viva nunca desfija**: `paid_at` cuenta como hecho vivo aunque la
+    liquidación se observe después o la venta se anule.
+11. **Migrar y operar dan el mismo resultado.** La siembra usa la misma definición de hecho vivo
+    que el código en caliente. En la generación 6 no era así —la migración excluía las `REVERTIDA`
+    y el código conservaba el pin de una aprobación revertida— y esa divergencia era media
+    `AB1-g6`.
+12. **La migración nunca inventa ni desempata, ni siquiera retiradas.** La siembra sólo lee
+    liquidaciones con un hecho vivo y política canónica; ante evidencia ausente o discrepante deja
+    el período **sin fijar** y lo asienta. **No escribe un solo `UNPINNED`**: afirmar que una
+    fijación fue retirada sería inventar un hecho que nadie produjo. No escribe una sola vez sobre
+    `commission_entries`.
+13. **Fijar y soltar dejan traza.** `COMMISSION_PERIOD_RATE_PINNED` y
+    `COMMISSION_PERIOD_RATE_UNPINNED` en caliente, `COMMISSION_PERIOD_RATE_SEEDED` y
+    `COMMISSION_PERIOD_RATE_SEED_SKIPPED` en la migración. Todos idempotentes: no se re-asientan si
+    su asiento ya existe.
+14. **Una venta anulada no llega al pago.** `review`, `approve` y `mark_paid` rechazan una
+    liquidación cuya venta de origen está anulada. Por ruta pública no se llega ahí —`void_sale`
+    mueve la liquidación— pero una base legada de procedencia externa sí puede traer esa fila, y
+    hasta la generación 7 el sistema la pagaba.
 
 ## Límites que se mantienen
 

@@ -31,6 +31,18 @@ CANONICAL_VERSION = 1
 CANONICAL_EFFECTIVE_FROM = "2026-08-01"
 CANONICAL_POLICY_ID = str(uuid.uuid5(uuid.NAMESPACE_URL, "bc-comision-politica:GENERAL:"))
 
+# ------------------------------------------------------------------ boundary económico
+# Estados en los que una liquidación es un **hecho económico oficial**: alguien comprometió
+# dinero sobre un importe concreto. Sólo estos fijan la tasa de un período, y sólo mientras
+# alguno siga vivo la sostienen.
+#
+# Vive aquí, y no en `comisiones.py`, porque el cálculo en caliente y la migración del
+# repositorio tienen que usar exactamente el mismo predicado: que la constante gobernara sólo
+# al primero y el segundo repitiera la lista a mano fue una observación del Librarian sobre la
+# generación 6. `BOUNDARY_SQL_IN` existe para que ni siquiera el SQL pueda divergir.
+RATING_BOUNDARY_STATES = ("APROBADA", "PAGADA")
+BOUNDARY_SQL_IN = "(" + ",".join(f"'{state}'" for state in RATING_BOUNDARY_STATES) + ")"
+
 # Estados de política que puede llevar una liquidación.
 POLICY_CANONICAL = "CANONICA_APROBADA"
 POLICY_OUT_OF_EFFECT = "FUERA_DE_VIGENCIA"

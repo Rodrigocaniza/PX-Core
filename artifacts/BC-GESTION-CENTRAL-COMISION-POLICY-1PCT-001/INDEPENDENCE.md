@@ -223,3 +223,28 @@ adelante. Cerrarlo exige decidir si un período puede **desfijarse**, que es una
 la que el propietario ya tomó y que la generación 7 debe plantear antes de escribir código.
 
 Los verdicts de las generaciones 1 a 6 **no se reutilizan** en la generación 7.
+
+## Generación 7
+
+**Remediada, pendiente de los tres verdicts.** Alcance ejecutado: `AB1-g6`, con la decisión de
+propietario —opción (a), desfijar al retirarse el último hecho vivo— y las observaciones de la
+generación 6 que pertenecen a su misma familia.
+
+**Qué superficie debe cubrir cada rol, a la vista de lo que cada uno no cubrió antes:**
+
+- **Auditor.** Encontró `AB1-g6` leyendo el código y dijo que su propio fuzz no podía detectarlo,
+  porque validaba el pin contra el historial y el historial conserva la aprobación revertida. El
+  invariante correcto ahora es **contra los hechos vivos**, no contra el historial: un período está
+  fijado si y sólo si tiene al menos un `APROBADA`/`PAGADA` vivo o un `paid_at`. La superficie nueva
+  es la simetría del boundary —¿existe alguna ruta que suelte un período que **sí** tiene un hecho
+  vivo, o que deje fijado uno que no lo tiene?— y la concurrencia entre soltar y fijar.
+- **QA.** Su matriz de once celdas dio PASS y no encontró nada, porque el defecto estaba en una
+  dimensión que su matriz no tenía: el tiempo. La matriz de esta generación necesita el eje
+  **secuencia**: fijar → retirar → refijar, y qué dice el rótulo en cada punto.
+- **Librarian.** Cinco documentales en la generación 6, tres de ellos entradas de backlog que
+  describían como pendiente algo ya hecho. Esta generación vuelve a cambiar la **semántica** de la
+  fijación y además cambia la **representación**, así que toda afirmación sobre
+  `commission_rated_periods` es sospechosa por defecto, y los recuentos del paquete se movieron
+  otra vez.
+
+Los verdicts de las generaciones 1 a 6 **no se reutilizan**.

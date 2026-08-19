@@ -65,13 +65,17 @@ Los dos últimos son medio guaraní hacia arriba: `3.166,66 → 3.167` y `12.345
 - **Cada liquidación se resuelve contra la versión de su propio período.** Programar el porcentaje
   del mes que viene no reescribe el mes en curso.
 - **La tasa de un período se fija ante un hecho económico oficial, no en el primer cálculo.**
-  Boundary: la liquidación alcanza `APROBADA` o `PAGADA`. Ahí queda grabada en
-  `commission_rated_periods` —una fila por período, escrita una sola vez, nunca actualizada ni
-  borrada— y la resolución de ese período pasa por ahí antes que por el catálogo de versiones.
-  Publicar siempre es posible y no reescribe lo fijado. La protección **no** depende del estado
-  *posterior*: observar, revertir, anular la venta o corregir el origen cambian el estado y la
-  evidencia sigue ahí. Tampoco hay frontera global. Corregir la tasa de un período ya fijado exige
-  un flujo de corrección explícita y auditada, que hoy no existe.
+  Boundary: la liquidación alcanza `APROBADA` o `PAGADA`. Ahí se escribe un `PINNED` en el libro
+  append-only `commission_period_rate_events`, y la resolución del período pasa por su último
+  evento antes que por el catálogo de versiones. Publicar siempre es posible y no reescribe lo
+  fijado. No hay frontera global.
+- **La fijación dura mientras algún hecho oficial siga vivo.** La tasa de un período no es
+  inmutable por haber existido alguna vez un hecho que la justificó: si se retira el último se
+  escribe un `UNPINNED` y el mes vuelve a ser resoluble. Con dos aprobaciones, revertir una no
+  suelta nada. **Una `PAGADA` viva nunca suelta**: el dinero consolidado sostiene su mes aunque
+  después se observe la liquidación o se anule la venta. Refijar es el contrato normal aplicado al
+  hecho siguiente, y nada se borra: la secuencia `PINNED → UNPINNED → PINNED` se lee entera, con
+  causa, actor y fecha.
 - **Los estados provisionales siguen siendo corregibles.** `ELEGIBLE`, `CALCULADA` y `REVISADA` no
   fijan nada: publicar y recalcular los corrige. Ésa es la propiedad que permite deshacer una fecha
   mal tipeada o una venta que después se anula, y su ausencia era el origen de los dos bloqueantes
@@ -99,6 +103,6 @@ viaja aparte en `current_policy`. Rotular un período con la tasa global declara
 porcentaje que en ese mes no rige, y un período sin tasa en vigor se dice como tal —en pantalla, en
 el KPI y en el `policy_disclaimer`— en vez de emitir un porcentaje inexistente.
 
-Regresión completa **395/395 PASS** (302 de línea base + 93 de esta misión: 89 de dominio y 4 de
-interfaz, de los cuales 26 son de la generación 5 y 26 de la generación 6). Sin nómina, sin bancos,
+Regresión completa **418/418 PASS** (302 de línea base + 116 de esta misión: 112 de dominio y 4 de
+interfaz, de los cuales 26 son de la generación 5, 26 de la 6 y 23 de la 7). Sin nómina, sin bancos,
 sin datos de clientes, sin proveedor externo, sin red, sin producción, sin merge a `main`.
