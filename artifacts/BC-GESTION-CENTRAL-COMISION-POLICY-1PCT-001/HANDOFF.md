@@ -101,9 +101,12 @@ Aportados por las observaciones no bloqueantes de la generación 3, abiertos y *
 Detectado en la generación 4 sobre el propio paquete:
 
 23. **`MANIFEST.sha256` sólo verifica en el worktree donde se genera.** Detectado en la generación
-    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio devuelve 20 de los 40
-    ficheros con CRLF —18 de los 26 `.md` y dos `.py`— y sus hashes dejan de
-    coincidir; el propio
+    4. Con `core.autocrlf=true` y sin `.gitattributes`, un checkout limpio reescribe los **34** de
+    los **41** ficheros que hoy llevan LF —25 `.md`, 7 `.py` y los 2 `.json`— y sus hashes dejan de
+    coincidir. Sólo se salvan siete: los seis que ya traen CRLF en el worktree
+    —`COMMISSION_RULES.md`, los tres `PROMPT_*.txt` y las dos herramientas de `tools/`— y el PNG,
+    que es binario. **Estas cifras se recalculan en cada generación que toque el paquete**: quedaron
+    desfasadas en la 5 y otra vez en la 6, y por eso el bloqueante `L4-g6` volvió a abrirse. El propio
     manifest llega con CRLF y `sha256sum -c` no puede analizarlo. Es heredado de cómo se construyó
     el paquete desde la generación 1, no lo introduce esta generación. El ZIP sí conserva los bytes
     exactos. Corrección propuesta, fuera del alcance de B1/B2: fijar `-text` para el paquete con un
@@ -116,12 +119,14 @@ corregidos:
     no tenía importe ni porcentaje que retirar, el bloque se escribe igual con `rate_bp: None` y
     `commission_amount: None`. Registra un dato cierto, pero es ruido: un lector del historial ve un
     `replaced` donde no hubo retiro de valor.
-25. **Una venta con fecha futura mal tipeada.** AUDITOR-004 O1 y QA-004 O4 lo describieron como una
-    congelación de la publicación: la guarda usaba `MAX(period)` global. **Esa forma quedó cerrada en
-    la generación 5**, que retiró la guarda; ya no existe ningún `MAX(period)` en el código y la
-    publicación no se congela. Pero el problema de fondo **sigue abierto y empeoró**: ahora la fecha
-    errónea fija ese mes para siempre y lo hace pagar mal en silencio. Está registrado como el
-    bloqueante económico `AB2-g5`.
+25. **Una venta con fecha futura mal tipeada. CERRADO en la generación 6.** AUDITOR-004 O1 y
+    QA-004 O4 lo describieron como una congelación de la publicación: la guarda usaba `MAX(period)`
+    global. Esa forma quedó cerrada en la generación 5, que retiró la guarda. La generación 5 lo
+    empeoró por otra vía —la fecha errónea fijaba ese mes para siempre, `AB2-g5`— y **la generación
+    6 lo cierra por la raíz**: un cálculo provisional ya no fija nada, de modo que un tipeo que
+    nadie aprueba deja el mes corregible. Verificado de forma independiente por los tres runners de
+    la generación 6. Queda una forma distinta y **abierta**, `AB1-g6`: un tipeo que **sí** se
+    aprueba y después se anula fija el mes igual de para siempre.
 26. **Observar una liquidación pagada retira su importe del KPI `paid_amount`.** AUDITOR-004 O2:
     `report()` lo calcula sobre `status == "PAGADA"`, de modo que dinero que efectivamente salió deja
     de verse en el reporte del período. Es además lo que vuelve invisible en pantalla la fuga B1-g4.
@@ -155,16 +160,17 @@ recuperables.
 Aportados por la generación 5, abiertos y **no** corregidos:
 
 28. **El export sube a `contract_version: 3`.** El bloque `policy` pasa a ser el del período
-    exportado, con la marca `pinned` de si quedó fijado al tarifarse, y la política vigente al
+    exportado, con la marca `pinned` de si su tasa ya quedó fijada, y la política vigente al
     exportar viaja aparte en `current_policy`. Rotular un período con la tasa global declararía
     oficial ahí un porcentaje que en ese mes no rige. Cualquier consumidor del contrato 2 debe
     adaptarse; dentro del piloto no hay ninguno.
 29. **La cabecera de la pantalla rotula la política del período en curso**, no la última publicada,
     e indica cuándo el período está fijado. Ningún importe cambia; sí cambia el texto que el
-    operador lee. **`VISUAL_EVIDENCE.md` quedó desactualizado**: el capturador tarifa el período, de
-    modo que la cabecera real ahora incluye « · fijada al tarifarse» y la captura de la generación 3
-    ya no coincide. La prueba de interfaz sólo comprueba subcadenas y no lo detecta. Debe
-    regenerarse en la generación 6.
+    operador lee. La desactualización de `VISUAL_EVIDENCE.md` que este hallazgo registraba **quedó
+    corregida en la generación 6**: el documento y su captura se regeneraron, y el rótulo real es
+    « · fijada al aprobarse o pagarse» o « · provisional: aún sin aprobación ni pago en el período».
+    Lo que sigue abierto es la prueba de interfaz: comprueba subcadenas, así que no habría detectado
+    por sí sola el desfase.
 
 ## Generación 4 — resultado: INVALIDADA
 
@@ -281,11 +287,54 @@ fijado: sigue sin existir y sigue siendo otra decisión, no un cambio de políti
 `comision_policy.py`: la aritmética `Decimal` y el único `HALF_UP` canónico siguen intactos desde la
 generación 3.
 
+## Generación 6 — resultado: INVALIDADA
+
+| Runner | Verdict | Bloqueantes |
+|---|---|---|
+| Librarian | **FAIL** | `L1-g6` … `L5-g6`, documentales, **cerrados en este commit de registro** |
+| QA | **PASS** | ninguno |
+| Auditor | **FAIL** | `AB1-g6`, económico, **abierto** |
+
+Lo que sí quedó cerrado y verificado por los tres: `AB1-g5`, `AB2-g5`, `QB1-g5` y `QB2-g5`. El
+Auditor reprodujo los dos escenarios económicos exactos de la generación 5 y midió que los 400.000 Gs
+de diferencia desaparecen en ambos.
+
+### `AB1-g6` — el boundary de salida
+
+La generación 6 movió el boundary de **entrada** de `CALCULADA` a `APROBADA`. No tocó el de
+**salida**: la evidencia se crea con un hecho económico y **no se retira cuando ese hecho se
+retira**. `commission_rated_periods` tiene dos `INSERT` y ningún `UPDATE` ni `DELETE` en todo el
+sistema.
+
+Cuatro rutas públicas independientes dejan el mes fijado con **cero hechos económicos vivos**:
+revertir la aprobación, `void_sale`, `revert_payment` de un cobro rechazado, y `observe` + `revert`.
+Ninguna es exótica: `revert_payment` es simplemente lo que pasa cuando un cheque rebota después de
+aprobada la comisión. En ese momento no salió un guaraní, no hay nada que proteger, y el mes queda
+inmovilizado para siempre. Daño medido: **9.900.000 Gs de sobrepago por cada venta de 10.000.000 Gs**
+del mes, sin techo.
+
+La justificación de la decisión de propietario —«un tipeo que será anulado nunca alcanza `APROBADA`
+ni `PAGADA`, así que no puede fijar un mes»— **es falsa contra el código**: un tipeo que sí llega a
+`APROBADA` y después se anula fija el mes igual de para siempre que en la generación 5.
+
 ## Siguiente paso propuesto
 
-**Generación 6 publicada y pendiente de los tres verdicts independientes.** No se reutiliza ningún
-verdict de las generaciones 1 a 5. Con 3×PASS: Artifact Consistency, Safe Closure y liberación del
-lease. Con cualquier FAIL: generación 7 con el alcance exacto de los bloqueantes.
+**Generación 7, bloqueada en una decisión de propietario.** `AB1-g6` no tiene una corrección obvia:
+son dos opciones excluyentes, y elegir por el propietario sería decidir sobre dinero.
+
+- **(a) Desfijar al retirarse el último hecho vivo.** Retirar el último hecho económico oficial vivo
+  de un período retira también su fijación, con asiento `COMMISSION_PERIOD_RATE_UNPINNED` que
+  conserva la tasa previa y el motivo; la fijación se reescribe cuando aparece el hecho siguiente.
+  Un período con una `PAGADA` viva nunca se desfija, así que el dinero que salió sigue protegido.
+- **(b) Mantener el pin inmutable y abrir el flujo de corrección explícita y auditada** que la
+  propia documentación admite que no existe.
+
+No es la decisión que el propietario ya tomó —aquélla era sobre **cuándo se fija**; ésta es sobre
+**si puede soltarse**— y por eso se plantea en vez de resolverse.
+
+Junto con `AB1-g6` conviene tratar las observaciones de la misma familia: la 1, 2 y 7 del Auditor,
+la 1 del QA, y la 1 del Librarian —que `RATING_BOUNDARY_STATES` no gobierna nada y el invariante 9
+de `ARCHITECTURE_DELTA` es impreciso al llamarlo «un solo predicado»—.
 
 Sólo después de la Safe Closure vuelve a la cola el cableado de `register_payment` y
 `sync_review_sales` desde el producto (heredado 11), que sigue siendo lo único que impide que el

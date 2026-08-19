@@ -4,7 +4,7 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "GENERATION_6_REMEDIATED_PENDING_VERDICTS",
+  "current_state": "GENERATION_6_INVALIDATED_GENERATION_7_OPEN",
   "mission_lease": "ACQUIRED",
   "generation": 6,
   "autochain": [
@@ -270,10 +270,36 @@
     },
     {
       "generation": 6,
-      "snapshot_commit": null,
-      "status": "REMEDIATED_PENDING_VERDICTS",
+      "snapshot_commit": "a5d6955828850b322c7ea00f5b46e3b5e7f3d7e4",
+      "status": "INVALIDATED",
       "tests": 395,
-      "verdicts": [],
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-006",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "blockers": [
+            "L1-g6",
+            "L2-g6",
+            "L3-g6",
+            "L4-g6",
+            "L5-g6"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-006",
+          "role": "QA",
+          "verdict": "PASS"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-006",
+          "role": "AUDITOR",
+          "verdict": "FAIL",
+          "blockers": [
+            "AB1-g6"
+          ]
+        }
+      ],
       "scope": "cerrar AB1-g5 y AB2-g5 (economicos, requieren decision de propietario), QB1-g5 y QB2-g5 (rotulado) y L1..L6-g5 (documentales)",
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-6/",
       "remediation": {
@@ -293,7 +319,17 @@
           "COMMISSION_PERIOD_RATE_SEED_SKIPPED"
         ],
         "visual_evidence_regenerated": true
-      }
+      },
+      "outcome": "AB1-g5 y AB2-g5 cerrados y verificados por los tres runners; QB1-g5 y QB2-g5 cerrados. La generacion queda INVALIDADA por AB1-g6 (economico, abierto) y por cinco documentales del Librarian, que se cierran en este commit de registro."
+    },
+    {
+      "generation": 7,
+      "snapshot_commit": null,
+      "status": "PENDING_REMEDIATION",
+      "tests": null,
+      "verdicts": [],
+      "scope": "cerrar AB1-g6 (economico, requiere decision de propietario sobre la salida del boundary)",
+      "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-7/"
     }
   ],
   "non_blocking_findings_recorded": [
@@ -319,9 +355,9 @@
     "20. LIBRARIAN-003 obs 1: el checker de consistencia no inspecciona el ZIP ni cuenta observaciones de los verdicts, que es donde sobrevivio L1",
     "21. LIBRARIAN-003 obs 3: el parrafo de cabecera de INDEPENDENCE sigue citando solo el snapshot de la generacion 1",
     "22. LIBRARIAN-003 obs 5: MIGRATION paso 1 atribuye commission_policy_versions a _add_missing_columns; la crea migrate()",
-    "23. MANIFEST.sha256 solo verifica en el worktree donde se genera: con core.autocrlf=true y sin .gitattributes, un checkout limpio devuelve 20 de los 40 ficheros con CRLF —18 de 26 .md y 2 de 8 .py— y el propio manifest llega con CRLF. Heredado de la generacion 1; el ZIP si conserva los bytes exactos.",
+    "23. MANIFEST.sha256 solo verifica en el worktree donde se genera: con core.autocrlf=true y sin .gitattributes, un checkout limpio reescribe los 34 de los 41 ficheros que hoy llevan LF (25 .md, 7 .py y los 2 .json) y sus hashes dejan de coincidir; solo se salvan los 6 que ya traen CRLF y el PNG binario. El propio manifest llega con CRLF. Heredado de la generacion 1; el ZIP si conserva los bytes exactos. Las cifras deben recalcularse en cada generacion que toque el paquete: quedaron desfasadas en la 5 y en la 6.",
     "24. QA-004 O3: en la rama de reparacion el bloque replaced se asienta con rate_bp y commission_amount nulos cuando no hubo importe que retirar; ruido en el historial, sin impacto economico",
-    "25. Una venta con fecha futura mal tipeada. La forma que reportaron AUDITOR-004 O1 y QA-004 O4 —congelacion de la publicacion por MAX(period) global— quedo cerrada en la generacion 5, que retiro la guarda. El problema de fondo sigue abierto y empeoro: ahora fija ese mes para siempre y lo hace pagar mal en silencio. Ver el bloqueante economico AB2-g5.",
+    "25. Una venta con fecha futura mal tipeada. CERRADO en la generacion 6. La forma que reportaron AUDITOR-004 O1 y QA-004 O4 (congelacion de la publicacion por MAX(period) global) quedo cerrada en la generacion 5. La forma que la generacion 5 introdujo (el calculo fijaba el mes para siempre, AB2-g5) queda cerrada en la 6: un calculo provisional ya no fija nada. Queda abierta una forma distinta, AB1-g6: un tipeo que si se aprueba y despues se anula fija el mes igual de para siempre.",
     "26. AUDITOR-004 O2: observar una liquidacion pagada retira su importe del KPI paid_amount, de modo que dinero que salio deja de verse en el reporte del periodo",
     "27. LIBRARIAN-004 obs 6: SUMMARY declara la comision de la venta con saldo como 0 y verified_examples como null; ninguna es falsa pero el mismo caso se declara de dos formas",
     "28. El export sube a contract_version 3: el bloque policy pasa a ser el del periodo exportado, con la marca pinned, y la politica vigente al exportar viaja aparte en current_policy. Cualquier consumidor del contrato 2 debe adaptarse.",
@@ -538,17 +574,78 @@
       "kind": "DOCUMENTAL",
       "status": "CERRADO_EN_COMMIT_DE_REGISTRO",
       "summary": "seis afirmaciones falsas, todas por no actualizar la documentacion al retirar la guarda por estado: reliquia de la asercion 'ya fue liquidado' en TEST_EVIDENCE; 'cuatro pruebas' donde se enumeran seis; hallazgo 23 de WORKFLOW congelado en '21 de 33'; hallazgo 25 declarado abierto describiendo un MAX(period) que ya no existe; COMMISSION_POLICY invocando la guarda retirada; y la justificacion falsa de que el rotulo de la captura coincide, cuando ahora lleva 'fijada al tarifarse'"
+    },
+    {
+      "id": "AB1-g6",
+      "role": "AUDITOR",
+      "generation": 6,
+      "kind": "ECONOMICO",
+      "status": "ABIERTO",
+      "summary": "deshacer una aprobacion no deshace la fijacion del periodo: revert de la aprobacion, void_sale, revert_payment de un cobro rechazado y observe+revert dejan el mes fijado con cero hechos economicos vivos, y no existe ninguna ruta publica que lo corrija. commission_rated_periods tiene dos INSERT y ningun UPDATE ni DELETE",
+      "impact": "sobrepago de 9.900.000 Gs por cada venta de 10.000.000 Gs del mes, sin techo, cuando el pin quedo a una tasa mayor que la oficial; subpago de 900.000 Gs por venta en la direccion contraria",
+      "false_claims": [
+        "SAFE_PAUSE.md: 'un tipeo que sera anulado nunca alcanza APROBADA ni PAGADA, asi que no puede fijar un mes'"
+      ],
+      "owner_decision_needed": true,
+      "decision_fork": [
+        "DESFIJAR_AL_RETIRARSE_EL_ULTIMO_HECHO_VIVO",
+        "CREAR_FLUJO_DE_CORRECCION_EXPLICITA_Y_AUDITADA"
+      ]
+    },
+    {
+      "id": "L1-g6",
+      "role": "LIBRARIAN",
+      "generation": 6,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_COMMIT_DE_REGISTRO",
+      "summary": "ARTIFACT_CONSISTENCY declaraba 33 de 41 ficheros con CRLF en un clon nuevo; son 34, y se clasificaba a si mismo como CRLF teniendo CR=0"
+    },
+    {
+      "id": "L2-g6",
+      "role": "LIBRARIAN",
+      "generation": 6,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_COMMIT_DE_REGISTRO",
+      "summary": "HANDOFF 29 y WORKFLOW conservaban 'fijada al tarifarse' como el rotulo real y pedian regenerar VISUAL_EVIDENCE, ya regenerado"
+    },
+    {
+      "id": "L3-g6",
+      "role": "LIBRARIAN",
+      "generation": 6,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_COMMIT_DE_REGISTRO",
+      "summary": "HANDOFF 25 y WORKFLOW declaraban vigente el dano de AB2-g5, que la generacion 6 elimino, contradiciendo a blockers_open del mismo fichero"
+    },
+    {
+      "id": "L4-g6",
+      "role": "LIBRARIAN",
+      "generation": 6,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_COMMIT_DE_REGISTRO",
+      "summary": "HANDOFF 23 y WORKFLOW congelados en '20 de 40' ficheros CRLF; ninguna de las cuatro cifras era correcta"
+    },
+    {
+      "id": "L5-g6",
+      "role": "LIBRARIAN",
+      "generation": 6,
+      "kind": "DOCUMENTAL",
+      "status": "CERRADO_EN_COMMIT_DE_REGISTRO",
+      "summary": "reliquias de 'fijado al tarifarse' en TEST_EVIDENCE y en HANDOFF 28"
     }
   ],
   "next_action": {
-    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6-VERDICTS",
-    "state": "PENDING_INDEPENDENT_VERDICTS",
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN7",
+    "state": "PENDING_OWNER_DECISION",
+    "blocked_on": "AB1-g6: el propietario debe elegir la salida del boundary",
     "steps": [
-      "1. Publicar el snapshot de la generacion 6 (protected commit y push).",
-      "2. Relanzar los tres runners independientes sobre ese snapshot: Librarian, QA y Auditor.",
-      "3. No reutilizar verdicts de las generaciones 1 a 5.",
-      "4. Con 3xPASS: Artifact Consistency, Safe Closure, liberar el lease y persistir el NEXT_ACTION siguiente.",
-      "5. Con cualquier FAIL: abrir la generacion 7 con el alcance exacto de los bloqueantes."
+      "1. Decision de propietario sobre AB1-g6, entre dos opciones excluyentes:",
+      "   (a) DESFIJAR_AL_RETIRARSE_EL_ULTIMO_HECHO_VIVO: retirar el ultimo hecho economico oficial vivo de un periodo retira tambien su fijacion, con asiento COMMISSION_PERIOD_RATE_UNPINNED que conserva la tasa previa y el motivo; la fijacion se reescribe cuando aparece el siguiente hecho. Un periodo con una PAGADA viva nunca se desfija, de modo que el dinero que salio sigue protegido.",
+      "   (b) CREAR_FLUJO_DE_CORRECCION_EXPLICITA_Y_AUDITADA: el pin sigue siendo inmutable por diseno y se abre por fin la operacion de correccion explicita que la documentacion admite que no existe.",
+      "2. Implementar la opcion elegida y cubrirla con pruebas dirigidas sobre las cuatro rutas que AB1-g6 enumera: revert de la aprobacion, void_sale, revert_payment y observe+revert.",
+      "3. Revisar tambien las observaciones del Auditor 1, 2 y 7 y la 1 del QA, que son de la misma familia.",
+      "4. Hacer que RATING_BOUNDARY_STATES gobierne de verdad las tres rutas, en vez de ser una constante decorativa (observacion 1 del Librarian, e invariante 9 de ARCHITECTURE_DELTA, que hoy es impreciso).",
+      "5. Dirigidas, suite del modulo, regresion completa; publicar snapshot y relanzar los tres runners.",
+      "6. No reutilizar verdicts de las generaciones 1 a 6."
     ],
     "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 sigue sin abrirse."
   },

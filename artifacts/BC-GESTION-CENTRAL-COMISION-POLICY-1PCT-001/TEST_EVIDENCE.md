@@ -205,8 +205,9 @@ La generación 4 modifica **una sola** prueba, y era propia de esta misión, no 
 
 - `test_a_settlement_calculated_under_an_older_version_is_never_paid` (añadida en la generación 3
   para el bloqueante G2-A1). Construía la deriva de versión publicando una tasa que gobernaba un
-  período ya liquidado. Desde la generación 5 esa deriva no es alcanzable publicando —el período
-  queda fijado al tarifarse—, así que la prueba conserva su intención —una liquidación con sello
+  período ya liquidado. Desde la generación 5 esa deriva no es alcanzable publicando sobre un
+  período fijado —y desde la generación 6 «fijado» significa que una liquidación suya alcanzó
+  `APROBADA` o `PAGADA`—, así que la prueba conserva su intención —una liquidación con sello
   desfasado no llega al pago— y reconstruye el estado borrando la evidencia del período con
   `clear_rated_periods`, que es como llega una base migrada de una instalación anterior. La
   aserción de excepción que tuvo en la generación 4 **ya no existe**: publicar dejó de rechazarse.

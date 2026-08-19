@@ -6,26 +6,29 @@
 Resultado: **consistente**, verificado también por
 `python tools/check_mission_package_consistency.py artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001`.
 
-- `MANIFEST.sha256` fija **41 archivos**: los siete de código y pruebas tocados por la misión
+- `MANIFEST.sha256` fija **44 archivos**: los siete de código y pruebas tocados por la misión
   —uno más que en la generación 5, el archivo dirigido `test_comision_rate_boundary.py`—, los dos
-  de herramientas, el contrato anterior anotado, y los 31 del paquete. `sha256sum -c`:
-  **41/41 OK** ejecutado en el worktree donde se genera el paquete.
+  de herramientas, el contrato anterior anotado, y los 34 del paquete, que incluyen los tres
+  verdicts de `generation-6/`. `sha256sum -c`: **44/44 OK** ejecutado en el worktree donde se
+  genera el paquete.
 - **Alcance exacto de esa verificación.** Los hashes se toman sobre los bytes del worktree. Este
   repositorio corre con `core.autocrlf=true` y sin `.gitattributes`, de modo que git reescribe los
-  finales de línea al hacer checkout: en un clon nuevo **33 de los 41 ficheros** —24 `.md`, siete
-  `.py` y los dos `.json`— llegan con CRLF y sus hashes no coinciden. Los ocho restantes no
-  cambian: siete ya traen CRLF en el worktree —`ARTIFACT_CONSISTENCY.md`, `COMMISSION_RULES.md`,
-  los tres `PROMPT_*.txt` y las dos herramientas de `tools/`— y el octavo es el PNG, que es
-  binario. El recuento cambió respecto de la generación 5 porque esta generación reescribió con
-  finales LF todos los documentos que tocó. El propio `MANIFEST.sha256` llega con CRLF, que
-  `sha256sum -c` ni siquiera puede analizar. El manifest acredita integridad
+  finales de línea al hacer checkout: en un clon nuevo **37 de los 44 ficheros** —28 de los 29
+  `.md`, siete `.py` y los dos `.json`— llegan con CRLF y sus hashes no coinciden. Los siete
+  restantes no cambian: seis ya traen CRLF en el worktree —`COMMISSION_RULES.md`, los tres
+  `PROMPT_*.txt` y las dos herramientas de `tools/`— y el séptimo es el PNG, que es binario.
+  **`ARTIFACT_CONSISTENCY.md` es uno de los 37, no uno de los siete**: la generación 6 lo reescribió
+  con finales LF y su primera redacción se clasificó a sí misma al revés, que es el bloqueante
+  `L1-g6`. Estas cifras dependen de qué ficheros toque cada generación y hay que **recalcularlas
+  cada vez**: quedaron desfasadas en la 5 y otra vez en la 6. El propio `MANIFEST.sha256` llega con
+  CRLF, que `sha256sum -c` ni siquiera puede analizar. El manifest acredita integridad
   **del paquete tal como se produce**, no reproducibilidad byte a byte entre checkouts. Es una
   propiedad heredada de cómo se construyó el paquete desde la generación 1, no algo que introduzca
   la generación 4; queda registrada como hallazgo abierto 23 y su corrección —fijar `-text` por
   `.gitattributes`— excede el alcance de esta generación, que es sólo B1 y B2.
 - Quedan fuera del manifest exactamente dos archivos, por imposibilidad lógica: `MANIFEST.sha256`
   y el ZIP. El ZIP se reconstruyó después de escribir todos los documentos y se verificó miembro a
-  miembro contra el worktree: **42 miembros, 42 byte-idénticos, 0 mismatch** — los 41 del manifest
+  miembro contra el worktree: **45 miembros, 45 byte-idénticos, 0 mismatch** — los 44 del manifest
   más el propio `MANIFEST.sha256`. El ZIP guarda los bytes del worktree, así que es el entregable
   que sí reproduce el paquete exactamente, con independencia de lo que git haga en un checkout.
 - Base idéntica en `SUMMARY.md`, `MISSION_LEASE.json` y `WORKFLOW.json`:
@@ -34,8 +37,9 @@ Resultado: **consistente**, verificado también por
   `WORKFLOW.generations[].snapshot_commit` fija cada snapshot **ya sometido a revisión**; el de la
   generación en curso viaja en `null` hasta el commit de registro posterior, porque un commit no
   puede contener su propio SHA. Así quedaron fijadas las generaciones 1 a 5 —la 5 en
-  `2ac9f5c93ec99ed506133310ee6cd19f6779b971`—, y por eso la generación 6, que es la que queda en
-  revisión, figura en `null` hasta su propio commit de registro.
+  `2ac9f5c93ec99ed506133310ee6cd19f6779b971` y la 6 en
+  `a5d6955828850b322c7ea00f5b46e3b5e7f3d7e4`, por este commit de registro—, y por eso la generación
+  7, que es la que queda abierta, figura en `null`.
 - Cifras coherentes en todos los documentos: **395/395** de regresión, 302 de línea base, **+93**
   casos, **195** en la suite del módulo, **144** casos entre los tres archivos de comisiones
   (112 + 8 + 24). De esos 93, **26 son de la generación 5** (345 → 371) y **26 de la generación 6**
@@ -79,25 +83,35 @@ Resultado: **consistente**, verificado también por
   cierran en este commit de registro.
 - Las **dos afirmaciones que la generación 5 conservó demostradas falsas a propósito quedan
   corregidas en la 6**, cada una con la evidencia a la vista: la de `MIGRATION.md` y
-  `ARCHITECTURE_DELTA.md` sobre lo que la siembra fija —ahora la siembra depende del mismo hecho
-  económico que la fijación en caliente, y ante evidencia ausente o discrepante no fija nada— y la
-  lectura implícita de que una fecha errónea quedaba resuelta —un cálculo ya no graba una fijación,
-  de modo que un tipeo que nadie aprueba no fija ningún mes—. Este paquete **ya no conserva ninguna
-  afirmación demostrada falsa**.
+  `ARCHITECTURE_DELTA.md` sobre lo que la siembra fija, y la lectura implícita de que una fecha
+  errónea quedaba resuelta. Las **cinco** que el Librarian de la generación 6 halló —`L1-g6` a
+  `L5-g6`, todas documentales— se cierran en este commit de registro.
+- **Queda una afirmación demostrada falsa y se conserva a propósito**, para que la generación 7 la
+  corrija con la evidencia a la vista: la justificación de la decisión de propietario que recogen
+  `SAFE_PAUSE.md` y `HANDOFF.md`, «un tipeo que será anulado nunca alcanza `APROBADA` ni `PAGADA`,
+  así que no puede fijar un mes». El Auditor la refutó con cuatro rutas públicas: un tipeo que sí se
+  aprueba y después se anula fija el mes igual de para siempre. Es el bloqueante `AB1-g6`, y **no se
+  corrige aquí porque su corrección depende de una decisión de propietario que todavía no existe**.
 - La generación 6 toca **seis ficheros** fuera de `artifacts/`: `comisiones.py` —el boundary
   explícito, `_pin_rated_period` desde `approve`/`mark_paid`, la retirada de la fijación en
   `recalculate` y el `policy_disclaimer` propio—, `repository.py` —la siembra reescrita y
   `_audit_seed_once`—, `comisiones_ui.py` —el rótulo de ausencia de tasa—, y los tres de pruebas,
   uno de ellos nuevo. **`comision_policy.py` sigue sin cambiar**: la aritmética `Decimal` y el
   único `HALF_UP` canónico son exactamente los de la generación 3.
-- Los **quince** verdicts existen en `generation-1/` … `generation-5/` y coinciden con
-  `WORKFLOW.generations[]` y con `INDEPENDENCE.md`; se conservan sin retocar y **no se reutilizan**
-  como aprobación de la generación 6. `generation-6/` recibe los tres verdicts propios de esta
-  generación.
+- **La generación 6 fue INVALIDADA.** Librarian **FAIL** con cinco documentales, QA **PASS** sin
+  bloqueantes, Auditor **FAIL** con `AB1-g6`, económico. Los tres confirmaron por separado que
+  `AB1-g5` y `AB2-g5` están cerrados, y el Auditor midió los 400.000 Gs de diferencia
+  desapareciendo en los dos escenarios exactos de la generación 5. Lo que invalida la generación es
+  el boundary de **salida**, que esta generación no tocó: la evidencia se crea con un hecho
+  económico y no se retira cuando el hecho se retira.
+- Los **dieciocho** verdicts existen en `generation-1/` … `generation-6/` y coinciden con
+  `WORKFLOW.generations[]` y con `INDEPENDENCE.md`; los quince anteriores se conservan sin retocar y
+  **no se reutilizan** como aprobación de ninguna generación posterior.
 - La misión **no** está en Safe Closure y **no** está cerrada. `WORKFLOW.current_state` es
-  `GENERATION_6_REMEDIATED_PENDING_VERDICTS`, `safe_closure` sigue `PENDING` y el `MISSION_LEASE`
-  está `ACQUIRED` en PC Casa. Remediar no cierra nada: el cierre depende de tres verdicts
-  independientes sobre este snapshot.
+  `GENERATION_6_INVALIDATED_GENERATION_7_OPEN`, `safe_closure` sigue `PENDING` y el `MISSION_LEASE`
+  está `ACQUIRED` en PC Casa. La generación 7 está **bloqueada en una decisión de propietario**
+  sobre `AB1-g6`, planteada en `HANDOFF.md` y en `WORKFLOW.next_action` como dos opciones
+  excluyentes, sin resolver por cuenta propia porque decide sobre dinero.
 - Captura 1920×1080 RGB, con su SHA-256 y su tamaño declarados en `VISUAL_EVIDENCE.md`, que también
   advierte que el PNG no es reproducible byte a byte porque el historial muestra marcas de tiempo
   reales.

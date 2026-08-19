@@ -186,30 +186,40 @@ Los seis bloqueantes documentales se cierran en el commit de registro. Las **die
 observaciones no bloqueantes de los tres verdicts —siete del Librarian, cuatro de QA y seis del
 Auditor— quedan registradas, no corregidas.
 
-## Generación 6
+## Generación 6 — snapshot `a5d6955828850b322c7ea00f5b46e3b5e7f3d7e4`
 
-**Remediada, pendiente de los tres verdicts.** Alcance ejecutado: `AB1-g5`, `AB2-g5`, `QB1-g5` y
-`QB2-g5`, más la regeneración de la evidencia visual (`L6-g5`) y la corrección de las dos
-afirmaciones que la generación 5 conservó demostradas falsas a propósito.
+| Runner | Rol | Verdict | Bloqueantes |
+|---|---|---|---|
+| `LIBRARIAN-IND-COMISION-POLICY-1PCT-006` | Librarian | **FAIL** | `L1-g6` … `L5-g6`, documentales |
+| `QA-IND-COMISION-POLICY-1PCT-006` | QA | **PASS** | ninguno |
+| `AUDITOR-IND-COMISION-POLICY-1PCT-006` | Auditor | **FAIL** | `AB1-g6`, económico |
 
-La decisión de propietario que la generación 5 dejó pendiente —qué hecho fija un período— quedó
-resuelta y persistida antes de esta generación: **la tasa se fija al alcanzar `APROBADA` o
-`PAGADA`, nunca en el primer cálculo**. No se volvió a consultar.
+**Resultado: INVALIDADA.** Los tres confirmaron, cada uno por su cuenta, que `AB1-g5` y `AB2-g5`
+están cerrados: el Auditor reprodujo los dos escenarios exactos de la generación 5 y midió que los
+400.000 Gs de diferencia desaparecen en ambos. `QB1-g5` y `QB2-g5` también quedan cerrados,
+verificados por QA sobre widgets Tk reales. Lo que invalida la generación es otra cosa.
 
-**Qué superficie debe cubrir cada rol en esta generación, a la vista de lo que cada uno no cubrió
-antes:**
+**Qué cubrió cada uno, y por dónde entró el fallo.**
 
-- **Librarian.** Las cinco generaciones anteriores acumulan doce hallazgos documentales, todos por
-  documentación que no se actualizó al cambiar el código. Esta generación cambia la **semántica**
-  de `commission_rated_periods`, no sólo su implementación: cada afirmación sobre «tarifar» en los
-  cinco documentos de contrato es sospechosa por defecto. Verificar también las cifras de pruebas
-  (395 / 195 / 144) y los recuentos del paquete.
-- **QA.** La generación 5 encontró los dos de rotulado leyendo la pantalla y el export en un
-  período sin tasa. Aquí conviene la matriz de transiciones completa **más** el eje nuevo:
-  provisional contra fijado, y qué se rotula en cada combinación.
-- **Auditor.** Los cuatro bloqueantes económicos de las generaciones 3 a 5 salieron de perseguir el
-  dinero a través de rutas que el diseño no había considerado. La superficie nueva es la migración
-  reescrita y la transacción de `approve`/`mark_paid`: fuzz sobre bases legadas, concurrencia real
-  sobre el boundary, y el caso de evidencia discrepante.
+- **QA** construyó una matriz propia de dos ejes —once celdas de estado × fijado— más nueve bases
+  legadas a mano y mil reaperturas, y comprobó en cada celda que el dinero y el rótulo dicen lo
+  mismo. No encontró ningún bloqueante. Declaró no haber ejercitado concurrencia ni el paquete
+  documental: las dos superficies donde sí había fallos.
+- **El Librarian** contrastó afirmación por afirmación contra el código y encontró cinco
+  documentales, todos de la misma familia que los doce anteriores: **documentación que no se
+  actualizó al cambiar la semántica**. Tres de ellos —`L2-g6`, `L3-g6`, `L4-g6`— son entradas del
+  backlog que describían como pendiente algo que esta misma generación había hecho, o como vigente
+  un daño que había eliminado. Declaró explícitamente no haber intentado romper el boundary.
+- **El Auditor** encontró `AB1-g6` **leyendo el código, no fuzzeando**, y lo dijo: sus 85 corridas
+  de fuzz validaban el pin contra el historial, y el historial conserva la aprobación después de
+  revertirla, de modo que el defecto era invisible para su propio arnés. Es la observación más
+  valiosa del ciclo: un invariante mal elegido convierte 17.000 pasos limpios en ninguna evidencia.
 
-Los verdicts de las generaciones 1 a 5 **no se reutilizan**.
+**La lección estructural de esta generación.** La 5 fallaba porque fijaba demasiado pronto. La 6
+mueve el boundary de entrada de `CALCULADA` a `APROBADA` y eso es correcto y está verificado. Pero
+no toca el boundary de **salida**: la evidencia se crea con un hecho económico y no se retira
+cuando ese hecho se retira. `AB1-g6` es el mismo defecto estructural que `AB2-g5`, un estado más
+adelante. Cerrarlo exige decidir si un período puede **desfijarse**, que es una decisión distinta de
+la que el propietario ya tomó y que la generación 7 debe plantear antes de escribir código.
+
+Los verdicts de las generaciones 1 a 6 **no se reutilizan** en la generación 7.
