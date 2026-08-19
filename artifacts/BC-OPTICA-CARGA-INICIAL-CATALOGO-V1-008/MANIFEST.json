@@ -1,0 +1,187 @@
+{
+  "mission": "BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008",
+  "tipo": "analisis, normalizacion y simulacion. NO carga productiva",
+  "pc": "Optica",
+  "branch": "feature/bc-optica-carga-inicial-catalogo-v1-008",
+  "worktree": ".worktrees/optica-carga-catalogo-008",
+  "base_commit": "a7b685c163952e056d3109fae71b31576339821c",
+  "base_branch": "feature/bc-optica-instalacion-productiva-v1-007",
+  "origin_main": "7db56a082d06c735583a2717da3ad273f4d41a84",
+  "main_tocado": false,
+  "pr": false,
+  "merge_to_main": false,
+  "force_push": false,
+  "codigo_de_producto_modificado": "ninguno. Esta mision solo agrega artefactos",
+
+  "base_canonica": {
+    "elegida": "a7b685c",
+    "por_que_no_origin_main": "main = 7db56a0 = rc.31 con 21 migraciones. Produccion corre rc.32 con 27. Crear la mision desde main habria eliminado las migraciones 022-027 que produccion usa: no habria existido ni la tabla articles",
+    "commit_de_codigo_de_la_rc32_instalada": "5bc1540faa54ed56f04f77fc109af401426fe9f5",
+    "a7b685c_contiene_5bc1540": true,
+    "cadena_verificada": "7db56a0 -> ed0dbba -> 54f5f06 -> ecc0c7b -> b580e50 -> a8443a3 -> 5bc1540 -> a7b685c",
+    "produccion_por_delante_de_main": true
+  },
+
+  "estado_productivo_verificado": {
+    "version": "BC Caja 1.0.0-rc.32",
+    "migraciones": 27,
+    "cash_entries": 12,
+    "suma_total": 6400000,
+    "sale_items": 10,
+    "cash_days": 2,
+    "orders": 8,
+    "articles": 0,
+    "stock_movements": 0,
+    "domain_events": 0,
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "sha256": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de"
+  },
+
+  "mapping_de_sucursales": {
+    "estado": "VALIDADO CONTRA EL ESTADO CANONICO, no supuesto",
+    "fuente": "tabla cash_register_branches en la base productiva, sembrada por las migraciones 018 y 020",
+    "PC": "ASUNCION",
+    "P2": "PILAR",
+    "corroboracion": "los 8 pedidos reales de esta instalacion tienen orders.branch = 'PC'",
+    "nota": "la orden autorizaba PC->ASUNCION solo como hipotesis; dejo de serlo al encontrarlo en el vinculo canonico que ya existia en produccion"
+  },
+
+  "fuentes": {
+    "PC - Inventario.xlsx": {
+      "ruta": "C:/Users/Striker/Downloads/Inventarios 2026/PC - Inventario.xlsx",
+      "hoja": "PC",
+      "sucursal": "ASUNCION",
+      "corte": "2026-08-03",
+      "filas_fisicas": 8459,
+      "filas_vacias": 5871,
+      "filas_con_articulo": 2586,
+      "normalizadas": 2576,
+      "rechazadas": 10,
+      "columnas_vacias_en_todo_el_archivo": ["Casilla", "Zona", "Observacion"]
+    },
+    "P2 - Inventario.xlsx": {
+      "ruta": "C:/Users/Striker/Downloads/Inventarios 2026/P2 - Inventario.xlsx",
+      "hoja": "Sheet1",
+      "sucursal": "PILAR",
+      "corte": "2026-08-10",
+      "filas_fisicas": 1054,
+      "filas_vacias": 0,
+      "filas_con_articulo": 1052,
+      "normalizadas": 1051,
+      "rechazadas": 1
+    }
+  },
+
+  "anomalias": {
+    "8459_filas_de_PC": "EXPLICADA: 5.871 filas totalmente vacias. Los articulos reales son 2.586, coherente con los ~2.000 que la documentacion esperaba de Asuncion. Cero filas de total, subtotal, encabezado repetido o historico",
+    "837403_unidades_de_P2": "EXPLICADA: 8 filas de Compostura declaran ~99.900 cada una. Es el centinela con que el sistema viejo modela un servicio inagotable. 11 filas concentran 818.867 de 837.403. No se corrigio a mano: con la naturaleza correcta un servicio no puede llevar stock",
+    "codigo_no_es_identificador_global": "CRITICA Y RESUELTA: de 107 codigos de armazon compartidos entre archivos, uno solo describe el mismo marco. Tratar el codigo como SKU global habria fusionado armazones distintos y sumado stock sobre algo inexistente",
+    "duplicados_dentro_de_cada_archivo": "NINGUNO: 0 nombres exactos repetidos, 0 normalizados repetidos, 0 codigos repetidos, en los dos archivos",
+    "valores_altos_sin_forma_de_centinela": "5 casos, el mayor 2.860 limpia-cristales en Asuncion. Plausibles pero conviene confirmarlos: van al HUMAN_GATE"
+  },
+
+  "regla_de_identidad_de_articulo": {
+    "global": "codigos de barras de fabricante (11 a 13 digitos), catalogo interno 00xxxx (6 digitos) y 2000xxx (7 digitos)",
+    "por_sucursal": "todo lo demas, con prefijo ASU- o PIL-",
+    "evidencia": {
+      "codigos_de_barra_compartidos": "42 de 42 son el mismo producto; los 16 que difieren difieren en prolijidad del texto",
+      "catalogo_interno_compartido": "31 compartidos, 29 con descripcion identica",
+      "armazones_compartidos": "107 compartidos, 1 solo describe el mismo articulo"
+    }
+  },
+
+  "nature_por_categoria": {
+    "artefacto": "MAPPING_CATEGORIAS_NATURE.md",
+    "categorias_cubiertas": 15,
+    "PRODUCTO_STOCKEABLE": ["Armazones", "Lentes de Sol", "Lente de contacto", "Sujetadores", "Accesorios", "Liquidos Multipropositos", "Estuches", "Estuche LC", "Limpia Cristales", "Marcadores", "Medicamentos", "Organizadores", "Panos"],
+    "TRABAJO_BAJO_PEDIDO": ["Cristales"],
+    "REQUIRES_POLICY_DECISION": ["Compostura", "(sin categoria)"],
+    "regla": "la naturaleza sale de la categoria, nunca de la descripcion de la fila"
+  },
+
+  "normalizacion": {
+    "registros_normalizados": 3627,
+    "filas_rechazadas": 11,
+    "articulos_canonicos": 3529,
+    "con_identificador_global": 226,
+    "con_prefijo_de_sucursal": 3303,
+    "presentes_en_las_dos_sucursales": 73,
+    "en_espera_de_decision": 25,
+    "campos_por_registro": ["sku canonico", "descripcion canonica", "categoria", "marca", "sucursal", "stock inicial", "nature", "idempotency key", "archivo de origen", "hoja", "fila fisica original", "corte del inventario", "texto original completo"],
+    "conflictos_entre_sucursales": {
+      "sku_en_ambos_archivos": 180,
+      "descripcion_distinta": 139,
+      "categoria_distinta": 19,
+      "naturaleza_distinta": 0
+    }
+  },
+
+  "dry_run": {
+    "artefacto": "DRY_RUN.txt",
+    "base": "copia consistente de la base productiva, por la API de backup de SQLite",
+    "mecanismo": "el real de dos pasos: planificar_carga_de_articulos + aplicar_carga_de_articulos, y despues cargar_stock_inicial",
+    "veredicto": "PASS, 0 fallas",
+    "plan_catalogo": "3529 altas, 0 actualizaciones, 0 rechazadas",
+    "catalogo_no_es_stock": "tras crear 3.529 articulos, 0 movimientos",
+    "categorias_creadas": 13,
+    "marcas_creadas": 136,
+    "movimientos": 3579,
+    "unidades_ASUNCION": 8705,
+    "unidades_PILAR": 2897,
+    "kind": "INGRESO_ADMINISTRATIVO en los 3.579",
+    "reason_code": "INVENTARIO_INICIAL en los 3.579",
+    "document_kind": "CARGA_INICIAL",
+    "fecha_grabada": "2026-08-03 en las 2.572 de Asuncion, 2026-08-10 en las 1.007 de Pilar. No la fecha de hoy",
+    "movimientos_sin_nota": 0,
+    "movimientos_sin_actor": 0,
+    "idempotencia": {
+      "reaplicar_el_archivo": "rechazado por sha256 ya cargado",
+      "repetir_el_recuento": "devuelve la misma corrida, no crea otra",
+      "movimientos_duplicados": 0,
+      "unidades_duplicadas": 0,
+      "articulos_duplicados": 0
+    },
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "movimientos_huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "caja_intacta": {"cash_entries": 12, "suma": 6400000, "sale_items": 10},
+    "base_productiva_sha256_antes": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
+    "base_productiva_sha256_despues": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de"
+  },
+
+  "entregables_reutilizables": {
+    "catalogo_canonico.csv": {
+      "filas": 3529,
+      "formato": "docs/PLANTILLA_ARTICULOS.csv",
+      "sha256": "226a724553d66a0b6918c85232b7b7c18810ee82357f6b560a7d28ac4e3de15f",
+      "nota": "este sha256 ES la clave de idempotencia del paso de catalogo: si el archivo cambia, cambia la clave"
+    },
+    "recuento_ASUNCION.json": {
+      "lineas": 2572,
+      "unidades": 8705,
+      "sha256": "65334221ca0827d9959fb9175fd74a05e02d592e31129d1692930c6237885786"
+    },
+    "recuento_PILAR.json": {
+      "lineas": 1007,
+      "unidades": 2897,
+      "sha256": "3062a50652d4b9c3a597690f81192ec474d98ca25d8e560f973ce6191c57bce1"
+    }
+  },
+
+  "verification": {
+    "suite_comercial_en_esta_pc": "254 passed",
+    "suite_completa": "no re-corrida: la mision no toca codigo de producto. Vale la del slice 6 sobre 5bc1540"
+  },
+
+  "no_ejecutado_a_proposito": {
+    "carga_sobre_produccion": "NO. Prohibida por la orden de esta generacion",
+    "resolver_Compostura_por_inferencia": "NO. Va al HUMAN_GATE",
+    "asignar_naturaleza_por_texto_de_la_descripcion": "NO. Es lo que el sistema prohibe",
+    "inventar_codigos_para_las_11_filas_sin_SKU": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO"
+  }
+}

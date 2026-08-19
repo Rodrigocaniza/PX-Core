@@ -1,0 +1,101 @@
+{
+  "mission": "BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "HUMAN_GATE",
+  "pc": "Optica",
+  "headless_executor": "NO USADO: la simulacion arranca el controlador comercial y toca una copia de la base productiva; corrio en sesion",
+  "lease": {
+    "held": false,
+    "otros_leases_vivos": 0,
+    "nota": "no habia mision 008 previa ni artefactos suyos; la mision se inicia"
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "orquestacion, verificacion canonica, analisis, normalizacion, dry run",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "regla_de_corte": "si el dry run fallaba, no se llegaba al HUMAN_GATE. Dio PASS con 0 fallas",
+  "prohibicion_respetada": "esta generacion NO estaba autorizada a cargar sobre produccion, y no cargo: produccion sigue en 0 articulos y 0 movimientos",
+  "steps": [
+    {
+      "step": "verificacion canonica y eleccion de base",
+      "state": "DONE",
+      "detalle": "fetch, origin/main 7db56a0, slice 6 en 5bc1540, mision 007 en a7b685c, ancestria lineal verificada, 007 NO esta en main. Base elegida a7b685c porque main habria eliminado las migraciones 022-027 que produccion usa"
+    },
+    {
+      "step": "verificacion del estado productivo",
+      "state": "DONE",
+      "detalle": "rc.32, 27 migraciones, 12 entradas, 6.400.000, 10 lineas, 2 dias, 8 pedidos, 0 articulos, integridad ok, 0 FK"
+    },
+    {
+      "step": "worktree propio",
+      "state": "DONE",
+      "detalle": ".worktrees/optica-carga-catalogo-008 desde a7b685c"
+    },
+    {
+      "step": "fase 1 - perfil automatico de los dos XLSX",
+      "state": "DONE",
+      "detalle": "filas fisicas, vacias, pobladas, unicos, duplicados exactos y normalizados, codigos repetidos, categorias, marcas, distribucion de stock, extremos, historicos, totales y subtotales. Las 8.459 filas de PC quedaron explicadas: 5.871 vacias"
+    },
+    {
+      "step": "fase 1b - anomalia de los 837.403 de P2",
+      "state": "DONE",
+      "detalle": "8 filas de Compostura con ~99.900 cada una. Centinelas de servicio inagotable, no conteos"
+    },
+    {
+      "step": "fase 1c - identidad del articulo entre sucursales",
+      "state": "DONE",
+      "detalle": "hallazgo critico: de 107 codigos de armazon compartidos, uno solo describe el mismo marco. El codigo no es un SKU global"
+    },
+    {
+      "step": "fase 2 - naturaleza por categoria",
+      "state": "DONE",
+      "detalle": "15 categorias cubiertas: 13 directas, Cristales justificada, Compostura y (sin categoria) marcadas REQUIRES_POLICY_DECISION sin adivinar"
+    },
+    {
+      "step": "fase 3 - representacion canonica",
+      "state": "DONE",
+      "detalle": "3.627 registros normalizados, 11 rechazos con motivo, 3.529 articulos canonicos, trazabilidad hasta la fila fisica del XLSX y el corte de cada archivo"
+    },
+    {
+      "step": "validacion del mapping de sucursales",
+      "state": "DONE",
+      "detalle": "no se supuso: cash_register_branches ya liga PC->ASUNCION y P2->PILAR, y los 8 pedidos reales estan en PC"
+    },
+    {
+      "step": "fase 4 - dry run sobre copia de la base productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Mecanismo real de dos pasos, idempotencia probada, integridad y FK limpias, Caja intacta, base de origen con el mismo sha256"
+    },
+    {
+      "step": "suite comercial",
+      "state": "DONE",
+      "detalle": "254 passed"
+    },
+    {
+      "step": "gates y artefactos",
+      "state": "DONE"
+    },
+    {
+      "step": "carga sobre produccion",
+      "state": "NO EJECUTADA",
+      "detalle": "prohibida por la orden. Requiere las tres decisiones del HUMAN_GATE"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA",
+      "detalle": "main sigue en 7db56a0"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "carga_productiva": "NO",
+    "clasificacion_por_texto_de_la_descripcion": "NO",
+    "resolucion_automatica_de_Compostura": "NO",
+    "invencion_de_codigos": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "force_push": "NO"
+  }
+}

@@ -1,0 +1,61 @@
+DRY RUN -- CARGA INICIAL DEL CATALOGO SOBRE COPIA DE LA BASE PRODUCTIVA
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 antes    : aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de
+copia aislada   : C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\55fef905-3b6d-44f0-bf35-8b120350484f\scratchpad\m008\verif\dry_run.sqlite3
+antes           : 0 articulos, 0 movimientos, 12 entradas de Caja, suma 6400000
+
+== paso 1 -- planificar el catalogo (no escribe) ==
+  archivo : catalogo_canonico.csv
+  sha256  : 226a724553d66a0b6918c85232b7b7c18810ee82357f6b560a7d28ac4e3de15f
+  plan    : 3529 altas, 0 actualizaciones, 0 rechazadas
+  OK   el plan no tiene rechazos: es aplicable entero
+
+== paso 1b -- aplicar el catalogo (crea articulos, NI UNA unidad) ==
+  corrida : 06ab0292-0c34-49f9-8a9d-2dbda9d91a36 (APLICADA)
+  OK   3529 articulos creados
+  OK   catalogo no es stock: cero movimientos tras crear el catalogo
+  categorias: 13, marcas: 136
+
+== paso 2 -- inventario inicial como hecho auditado ==
+  OK   todos los articulos se resuelven por SKU
+  OK   ASUNCION: todas las lineas del recuento resuelven a un articulo
+  ASUNCION : 2572 lineas cargadas
+  OK   PILAR: todas las lineas del recuento resuelven a un articulo
+  PILAR    : 1007 lineas cargadas
+
+== stock resultante por sucursal ==
+  OK   ASUNCION: 8705 unidades (esperado 8705)
+  OK   PILAR: 2897 unidades (esperado 2897)
+  OK   3579 movimientos, uno por linea de recuento
+
+== el hecho quedo con origen, causa, actor y fecha ==
+  OK   todo entro como INGRESO_ADMINISTRATIVO, ninguna compra falseada
+  OK   el unico motivo es INVENTARIO_INICIAL
+  OK   ningun movimiento sin explicacion escrita
+  OK   ningun movimiento sin actor
+  fecha de corte grabada: {'2026-08-03': 2572, '2026-08-10': 1007}
+  OK   cada sucursal quedo con la fecha de su recuento, no con la de hoy
+
+== idempotencia: repetir exactamente lo mismo ==
+  OK   reaplicar el mismo archivo se rechaza: este archivo ya se cargó (catalogo_canonico.csv). Volver a a
+  OK   ASUNCION: repetir devuelve la misma corrida, no una nueva
+  OK   PILAR: repetir devuelve la misma corrida, no una nueva
+  OK   repetir no duplico movimientos: siguen 3579
+  OK   repetir no duplico articulos
+
+== invariantes e integridad ==
+  OK   integrity_check ok (ok)
+  OK   foreign_key_check sin violaciones (0)
+  OK   stock negativo: 0
+  OK   movimientos sin articulo: 0
+  OK   efectos sin hecho: 0
+
+== los datos de Caja no se tocaron ==
+  OK   entradas de Caja: 12
+  OK   dinero registrado: 6400000
+  OK   lineas de venta: 10
+
+sha256 base productiva despues: aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de
+  OK   la base productiva quedo intacta: nunca se abrio para escribir
+
+VEREDICTO: PASS (0 fallas)

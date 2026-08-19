@@ -1,0 +1,6044 @@
+[
+ {
+  "sku": "000001",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#883",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000002",
+  "cantidad": 27,
+  "fuente": "P2 - Inventario.xlsx#882",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000003",
+  "cantidad": 58,
+  "fuente": "P2 - Inventario.xlsx#1041",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000004",
+  "cantidad": 16,
+  "fuente": "P2 - Inventario.xlsx#1042",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000006",
+  "cantidad": 12,
+  "fuente": "P2 - Inventario.xlsx#1043",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000007",
+  "cantidad": 20,
+  "fuente": "P2 - Inventario.xlsx#1035",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000008",
+  "cantidad": 12,
+  "fuente": "P2 - Inventario.xlsx#1038",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000009",
+  "cantidad": 5,
+  "fuente": "P2 - Inventario.xlsx#1039",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000010",
+  "cantidad": 10,
+  "fuente": "P2 - Inventario.xlsx#1021",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000011",
+  "cantidad": 19,
+  "fuente": "P2 - Inventario.xlsx#1036",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000012",
+  "cantidad": 13,
+  "fuente": "P2 - Inventario.xlsx#1037",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000013",
+  "cantidad": 29,
+  "fuente": "P2 - Inventario.xlsx#1044",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000014",
+  "cantidad": 5,
+  "fuente": "P2 - Inventario.xlsx#1048",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000015",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1046",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000016",
+  "cantidad": 9,
+  "fuente": "P2 - Inventario.xlsx#1045",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000017",
+  "cantidad": 19,
+  "fuente": "P2 - Inventario.xlsx#1047",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000018",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#1054",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000020",
+  "cantidad": 16,
+  "fuente": "P2 - Inventario.xlsx#1052",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000021",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#1053",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000023",
+  "cantidad": 10,
+  "fuente": "P2 - Inventario.xlsx#1034",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000025",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#1049",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000027",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1032",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000030",
+  "cantidad": 4,
+  "fuente": "P2 - Inventario.xlsx#1051",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000031",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1033",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000033",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#1050",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000034",
+  "cantidad": 4,
+  "fuente": "P2 - Inventario.xlsx#4",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000035",
+  "cantidad": 3,
+  "fuente": "P2 - Inventario.xlsx#5",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000036",
+  "cantidad": 6,
+  "fuente": "P2 - Inventario.xlsx#6",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000037",
+  "cantidad": 516,
+  "fuente": "P2 - Inventario.xlsx#1022",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000039",
+  "cantidad": 5,
+  "fuente": "P2 - Inventario.xlsx#11",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000040",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#7",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000041",
+  "cantidad": 4,
+  "fuente": "P2 - Inventario.xlsx#10",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000042",
+  "cantidad": 5,
+  "fuente": "P2 - Inventario.xlsx#8",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000043",
+  "cantidad": 4,
+  "fuente": "P2 - Inventario.xlsx#9",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "000044",
+  "cantidad": 4,
+  "fuente": "P2 - Inventario.xlsx#12",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "2000140",
+  "cantidad": 835,
+  "fuente": "P2 - Inventario.xlsx#3",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "2000146",
+  "cantidad": 82,
+  "fuente": "P2 - Inventario.xlsx#1040",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "2000212",
+  "cantidad": 99,
+  "fuente": "P2 - Inventario.xlsx#809",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "300650370707",
+  "cantidad": 8,
+  "fuente": "P2 - Inventario.xlsx#1027",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "300653145470",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1023",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "300653611005",
+  "cantidad": 7,
+  "fuente": "P2 - Inventario.xlsx#1031",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "310119033227",
+  "cantidad": 12,
+  "fuente": "P2 - Inventario.xlsx#1025",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "310119033340",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#1026",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "310119037805",
+  "cantidad": 3,
+  "fuente": "P2 - Inventario.xlsx#1024",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821598041",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#947",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821598232",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#892",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821599345",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#954",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821599963",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#889",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821599987",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#951",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821600003",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#940",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821600386",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#949",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821600515",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#944",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821690646",
+  "cantidad": 3,
+  "fuente": "P2 - Inventario.xlsx#893",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "730821690738",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#939",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905577147",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#957",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905670800",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#946",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810015",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#952",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810039",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#922",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810053",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#923",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810077",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#924",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810091",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#925",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810114",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#920",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810138",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#930",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810152",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#933",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810176",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#898",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810190",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#886",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810213",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#909",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810237",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#934",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810251",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#890",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810275",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#885",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810299",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#929",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810312",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#919",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810336",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#927",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810350",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#926",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810374",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#884",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810398",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#928",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810411",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#903",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810435",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#932",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810459",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#931",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810510",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#950",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810596",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#958",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905810619",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#905",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905992957",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#961",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905992964",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#960",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "733905992995",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#959",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "7841134010342",
+  "cantidad": 16,
+  "fuente": "P2 - Inventario.xlsx#1029",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "785810979967",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#921",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "7909023005630",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#899",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "7909023006392",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#901",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "7909023006415",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#942",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "7909023006491",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#943",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "7909023007153",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#955",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "7909023008587",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#900",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "7909023008976",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#956",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "829196965753",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#945",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "829196968464",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#935",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "829196970801",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#948",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "829196970962",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#941",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "8431306062119",
+  "cantidad": 3,
+  "fuente": "P2 - Inventario.xlsx#1028",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "8431306067374",
+  "cantidad": 3,
+  "fuente": "P2 - Inventario.xlsx#1030",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566835119",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#937",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566836017",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#936",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566836918",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#953",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566837816",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#938",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917488",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#915",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917495",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#887",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917501",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#897",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917518",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#891",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917525",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#914",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917532",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#904",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917549",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#888",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917556",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#911",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917563",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#913",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917570",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#916",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917587",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#896",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917594",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#918",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917600",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#908",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917617",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#895",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917624",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#902",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917648",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#907",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917655",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#910",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917662",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#917",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917679",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#906",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917686",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#894",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "846566917693",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#912",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100051",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#608",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100052",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#609",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100108",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#613",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100114",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#601",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100132",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#688",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100138",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#610",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100178",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#602",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100241",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#614",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100271",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#689",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100283",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#607",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100285",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#623",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100310",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#611",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100312",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#604",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100318",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#612",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100508",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#638",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100535",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#636",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100536",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#637",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100573",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#639",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100601",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#640",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100656",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#645",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100665",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#646",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100679",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#643",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100694",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#641",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100704",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#644",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100708",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#642",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100713",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#647",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100724",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#648",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100729",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#653",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100735",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#652",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100740",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#654",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100742",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#649",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100743",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#650",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100790",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#663",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100796",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#651",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100797",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#656",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100848",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#655",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100856",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#660",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100859",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#664",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100862",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#659",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100872",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#658",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100877",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#661",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100878",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#662",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100892",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#666",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100901",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#665",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100921",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#671",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100932",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#667",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100935",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#668",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-100999",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#672",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101001",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#669",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101011",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#629",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101022",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#670",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101050",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#673",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101052",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#674",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101111",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#687",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101113",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#677",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101127",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#679",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101142",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#676",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101151",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#678",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101179",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#628",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101199",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#631",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101229",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#630",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101239",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#686",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101247",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#632",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101271",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#633",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101279",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#685",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101348",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#684",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101360",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#681",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101378",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1019",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101392",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1017",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101405",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#683",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101406",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1018",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101423",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#680",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101431",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#682",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101448",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#690",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101449",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1015",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101490",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1016",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101503",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1020",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101526",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#791",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101531",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#790",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101539",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#795",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101542",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#699",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101562",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#693",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101599",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#675",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101650",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#793",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101652",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#692",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101677",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#789",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101683",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#801",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101702",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#695",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101705",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#697",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101708",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#691",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101732",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#792",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101742",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#694",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101760",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#696",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101780",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#794",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101781",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#698",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101787",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#788",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101800",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#700",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101877",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#800",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101902",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#797",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101905",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#798",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101958",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#799",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101983",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#796",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-101998",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#802",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102004",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#811",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102007",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#810",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102009",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#813",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102028",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#814",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102048",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#815",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102050",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#812",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102051",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#606",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102078",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#824",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102084",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#822",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102094",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#817",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102100",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#709",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102101",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#635",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102106",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#837",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102109",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#713",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102111",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#828",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102116",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#634",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102123",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#816",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102139",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#621",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102143",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#657",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102145",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#803",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102163",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#829",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102164",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#826",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102174",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#805",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102197",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#808",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102228",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#804",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102241",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#827",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102243",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#807",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102271",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#806",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102319",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#823",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102352",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#820",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102354",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#819",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102369",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#825",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102381",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#818",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102386",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#821",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102401",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#836",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102413",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#712",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102424",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#833",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102425",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#832",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102429",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#835",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102438",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#830",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102440",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#710",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102443",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#834",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102456",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#831",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102504",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#711",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102509",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#715",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102516",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#720",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102517",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#719",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102520",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#718",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102524",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#717",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102525",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#721",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102535",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#702",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102545",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#714",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102551",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#716",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102557",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#727",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102567",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#724",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102587",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#701",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102599",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#708",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102643",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#546",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102644",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#706",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102645",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#543",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102646",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#707",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102647",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#703",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102648",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#704",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102650",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#563",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102651",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#555",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102653",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#552",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102655",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#553",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102663",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#544",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102675",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#745",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102676",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#705",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102682",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#722",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102690",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#723",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102692",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#561",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102697",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#560",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102699",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#725",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102700",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#548",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102701",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#542",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102707",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#726",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102710",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#550",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102713",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#549",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102715",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#736",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102720",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#554",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102721",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1012",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102722",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#557",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102730",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#547",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102731",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#545",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102734",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#556",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102735",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#562",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102738",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#558",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102742",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#564",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102745",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#551",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102750",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#559",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102754",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#734",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102760",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#730",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102761",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#733",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102763",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#732",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102768",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#731",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102769",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#729",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102775",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#728",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102779",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#735",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102781",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1011",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102787",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#737",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102794",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#746",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102798",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#744",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102815",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#741",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102822",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#743",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102827",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#742",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102834",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#740",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102856",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#738",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102860",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#739",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102878",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#747",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102881",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#752",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102882",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#750",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102898",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#753",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102900",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#749",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102908",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#751",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102949",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#748",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102955",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#755",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102959",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#756",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102963",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#757",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102970",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#758",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-102980",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#783",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103015",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#759",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103032",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#754",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103036",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#762",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103037",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#760",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103050",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#761",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103057",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#787",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103062",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#780",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103063",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#763",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103067",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#784",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103075",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#779",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103079",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#786",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103088",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#781",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103097",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#782",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103104",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#785",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103118",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#567",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103127",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#568",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103135",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#566",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103144",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#569",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103145",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#571",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103159",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#565",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103161",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#768",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103163",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1014",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103171",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#766",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103174",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#764",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103177",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#765",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103191",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#767",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103199",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#772",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103210",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#775",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103212",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#776",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103230",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#778",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103232",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#777",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103238",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#570",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103243",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1013",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103244",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#769",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103259",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#773",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103263",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#774",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103265",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#771",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103267",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#501",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103272",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#770",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103287",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#577",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103289",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#578",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103301",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#580",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103303",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#579",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103309",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#581",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103311",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#975",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103323",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#573",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103334",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#572",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103342",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#576",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103346",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#575",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103348",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#574",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103353",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#964",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103354",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#502",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103363",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#963",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103372",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#962",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103384",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#586",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103389",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#965",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103402",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#976",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103409",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#504",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103412",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#503",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103422",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#505",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103437",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#595",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103439",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#587",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103441",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#520",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103443",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#585",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103450",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#589",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103477",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#583",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103482",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#521",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103483",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#596",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103490",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#584",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103491",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#582",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103496",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#588",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103516",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#518",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103542",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#597",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103543",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#590",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103544",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#591",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103546",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#592",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103548",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#593",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103551",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#519",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103563",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#599",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103564",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#600",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103569",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#594",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103580",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#517",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103581",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#598",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103595",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#509",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103596",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#516",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103597",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#512",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103604",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#506",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103605",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#507",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103609",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#535",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103612",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#449",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103614",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#442",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103618",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#533",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103629",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#508",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103632",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#522",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103633",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#515",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103642",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#539",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103655",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#510",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103669",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#513",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103671",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#514",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103672",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#511",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103679",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#536",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103695",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#529",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103708",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#541",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103716",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#540",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103720",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#452",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103721",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#523",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103725",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#537",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103727",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#526",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103731",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#532",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103734",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#528",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103737",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#527",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103739",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#534",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103742",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#538",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103743",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#531",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103746",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#530",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103750",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#524",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103752",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#525",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103754",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#447",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103756",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#457",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103757",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#446",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103758",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#450",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103760",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#453",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103761",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#456",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103762",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#458",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103765",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#298",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103769",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#445",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103775",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#972",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103776",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#973",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103781",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#451",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103785",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#974",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103798",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#969",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103799",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#967",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103801",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#968",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103804",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#454",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103805",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#448",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103807",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#441",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103808",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#970",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103811",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#440",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103815",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#439",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103816",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#966",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103817",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#971",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103819",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#455",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103822",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#443",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103823",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#444",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103837",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#459",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103841",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#500",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103844",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#463",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103845",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#461",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103846",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#462",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103848",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#464",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103851",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#460",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103853",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#424",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103858",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#425",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103873",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#427",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103874",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#428",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103875",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#429",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103879",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#426",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103882",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#430",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103896",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#431",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103897",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#468",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103898",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#483",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103901",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#465",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103906",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#466",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103916",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#471",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103918",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#467",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103924",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#484",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103926",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#469",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103933",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#474",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103936",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#470",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103938",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#475",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103939",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#486",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103941",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#473",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103943",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#472",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103946",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#498",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103955",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#487",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103960",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#476",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103961",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#485",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103962",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#490",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103965",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#499",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103968",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#477",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103969",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#482",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103970",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#989",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103975",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#488",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103978",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#481",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103979",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#489",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103984",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#479",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103985",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#478",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103991",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#480",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103994",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#497",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103997",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#495",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-103999",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#496",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104001",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#987",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104003",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#979",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104019",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#990",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104022",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#300",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104023",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#977",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104025",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#986",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104028",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#980",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104029",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#981",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104032",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#984",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104035",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#493",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104040",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#494",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104041",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#492",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104045",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#978",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104046",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#491",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104055",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#299",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104057",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#301",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104062",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#988",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104066",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#985",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104070",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#982",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104071",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#983",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104082",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#302",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104088",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#303",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104092",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#304",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104093",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#305",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104103",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#436",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104106",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#438",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104108",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#306",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104113",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#433",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104119",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#308",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104124",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#432",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104127",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#48",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104130",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#437",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104131",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#434",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104134",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#307",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104149",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#435",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104155",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#49",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104157",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#332",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104161",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1005",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104167",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#314",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104168",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#326",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104176",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#991",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104177",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#318",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104179",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#50",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104182",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#54",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104184",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1009",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104186",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#327",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104187",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#55",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104194",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#312",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104196",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1010",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104200",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#325",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104203",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1004",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104205",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1001",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104206",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#313",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104207",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#319",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104208",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#315",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104212",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#295",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104216",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#316",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104218",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#296",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104219",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#310",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104221",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1007",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104224",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#297",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104227",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#317",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104228",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#311",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104230",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#309",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104235",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#51",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104241",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#331",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104247",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#52",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104248",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#329",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104252",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#63",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104255",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#333",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104258",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#320",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104263",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#322",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104270",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#330",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104272",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1006",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104275",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#58",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104278",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#57",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104281",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#61",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104285",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#321",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104288",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#324",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104292",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#56",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104299",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1008",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104300",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#60",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104303",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#53",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104304",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1002",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104305",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#328",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104307",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#62",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104308",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1003",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104310",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#323",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104311",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#59",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104317",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#72",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104319",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#70",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104322",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#356",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104326",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#71",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104329",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#346",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104331",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#67",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104332",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#68",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104335",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#360",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104336",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#64",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104343",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#66",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104344",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#127",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104346",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#15",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104350",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#75",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104351",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#77",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104355",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#342",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104356",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#349",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104361",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#354",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104362",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#167",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104363",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#272",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104364",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#347",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104366",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#99",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104367",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#76",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104368",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#348",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104370",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#45",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104371",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#74",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104373",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#355",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104374",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#357",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104375",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#339",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104376",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#69",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104377",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#65",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104378",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#78",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104379",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#95",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104386",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#73",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104387",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#262",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104392",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#351",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104393",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#362",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104394",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#418",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104395",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#423",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104397",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#92",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104400",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#29",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104402",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#405",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104403",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#100",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104404",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#376",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104407",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#352",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104409",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#363",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104410",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#366",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104411",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#14",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104412",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#365",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104413",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#91",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104415",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#341",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104416",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#367",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104418",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#364",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104419",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#371",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104421",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#390",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104422",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#393",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104424",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#422",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104426",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#388",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104427",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#389",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104428",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#379",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104429",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#383",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104430",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#415",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104431",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#373",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104432",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#402",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104433",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#337",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104436",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#126",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104437",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#340",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104438",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#368",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104439",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#361",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104443",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#358",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104445",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#395",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104448",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#353",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104451",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#380",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104452",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#370",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104453",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#374",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104454",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#375",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104455",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#406",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104456",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#407",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104460",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#338",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104461",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#412",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104465",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#414",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104466",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#408",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104470",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#384",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104472",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#369",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104473",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#397",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104474",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#345",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104478",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#403",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104479",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#404",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104481",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#394",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104482",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#409",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104483",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#398",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104485",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#113",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104488",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#254",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104489",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#114",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104490",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#335",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104491",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#18",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104493",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#411",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104495",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#416",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104496",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#111",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104499",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#343",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104503",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#336",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104504",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#350",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104506",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#419",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104507",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#386",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104508",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#413",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104509",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#421",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104511",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#359",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104512",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#344",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104513",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#382",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104514",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#392",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104515",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#372",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104517",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#141",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104518",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#377",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104519",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#115",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104520",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#89",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104521",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#378",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104523",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#385",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104524",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#381",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104525",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#401",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104528",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#96",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104530",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#156",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104533",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#410",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104534",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#399",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104537",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#387",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104538",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#334",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104539",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#125",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104540",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#124",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104541",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#396",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104542",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#417",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104544",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#107",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104545",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#90",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104546",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#420",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104548",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#109",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104549",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#30",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104550",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#191",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104551",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#400",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104552",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#391",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104557",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#101",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104560",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#104",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104562",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#85",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104563",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#119",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104566",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#84",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104567",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#97",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104568",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#102",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104569",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#93",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104571",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#118",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104572",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#116",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104573",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#87",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104575",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#88",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104576",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#103",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104577",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#86",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104578",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#120",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104579",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#106",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104580",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#121",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104581",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#112",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104582",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#98",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104583",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#110",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104585",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#108",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104586",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#83",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104587",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#117",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104589",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#128",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104591",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#174",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104592",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#94",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104593",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#182",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104594",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#13",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104595",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#168",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104596",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#1000",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104597",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#285",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104598",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#997",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104599",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#179",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104601",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#194",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104602",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#165",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104603",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#266",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104604",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#279",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104607",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#80",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104608",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#25",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104610",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#183",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104611",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#79",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104613",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#81",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104617",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#17",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104619",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#82",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104622",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#37",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104624",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#258",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104625",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#122",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104627",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#999",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104628",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#249",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104629",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#269",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104630",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#193",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104631",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#123",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104639",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#158",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104640",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#277",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104641",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#166",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104642",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#186",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104643",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#187",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104644",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#152",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104645",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#998",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104646",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#289",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104647",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#234",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104649",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#287",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104651",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#41",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104656",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#153",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104657",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#208",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104658",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#261",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104659",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#33",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104660",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#19",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104661",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#176",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104662",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#188",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104666",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#163",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104669",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#170",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104670",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#192",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104671",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#178",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104673",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#173",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104674",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#34",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104675",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#159",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104676",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#264",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104677",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#181",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104678",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#146",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104679",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#151",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104680",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#177",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104681",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#155",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104682",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#280",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104683",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#145",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104684",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#154",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104686",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#129",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104687",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#164",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104688",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#175",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104689",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#169",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104690",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#172",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104691",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#144",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104693",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#171",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104697",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#257",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104698",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#142",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104701",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#180",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104702",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#268",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104703",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#27",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104704",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#143",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104705",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#150",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104707",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#149",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104708",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#185",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104710",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#16",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104712",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#157",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104714",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#271",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104715",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#162",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104716",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#139",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104717",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#137",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104718",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#140",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104719",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#290",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104720",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#28",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104721",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#130",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104722",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#292",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104723",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#147",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104724",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#161",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104725",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#148",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104727",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#160",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104728",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#190",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104730",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#189",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104732",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#136",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104733",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#132",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104734",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#131",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104735",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#23",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104736",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#293",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104737",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#252",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104738",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#133",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104739",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#253",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104740",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#291",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104741",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#232",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104742",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#26",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104745",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#135",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104746",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#134",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104747",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#138",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104748",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#263",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104750",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#278",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104752",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#224",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104756",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#273",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104757",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#274",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104759",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#22",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104760",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#46",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104761",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#40",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104763",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#32",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104764",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#42",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104765",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#21",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104766",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#996",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104767",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#992",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104768",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#36",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104769",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#281",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104770",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#31",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104771",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#283",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104772",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#282",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104773",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#20",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104774",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#196",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104776",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#38",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104777",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#213",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104778",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#214",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104779",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#294",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104780",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#993",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104783",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#35",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104784",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#197",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104785",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#24",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104787",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#245",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104788",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#184",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104789",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#195",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104790",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#215",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104791",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#216",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104793",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#994",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104794",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#284",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104796",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#995",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104798",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#251",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104800",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#265",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104801",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#236",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104802",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#243",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104803",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#240",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104805",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#239",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104806",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#270",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104807",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#44",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104809",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#246",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104810",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#247",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104811",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#47",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104812",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#43",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104813",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#260",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104814",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#275",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104815",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#267",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104817",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#242",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104820",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#241",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104821",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#210",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104822",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#212",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104823",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#39",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104824",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#288",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104825",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#244",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104826",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#211",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104827",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#259",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104828",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#199",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104829",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#205",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104832",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#276",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104833",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#204",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104835",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#203",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104836",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#198",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104837",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#219",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104838",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#250",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104839",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#206",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104843",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#202",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104844",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#217",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104845",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#221",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104847",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#207",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104848",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#226",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104849",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#230",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104850",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#227",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104851",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#238",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104852",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#225",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104853",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#200",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104854",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#209",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104855",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#256",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104856",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#235",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104857",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#255",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104858",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#222",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104860",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#237",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104861",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#231",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104862",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#218",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104863",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#201",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104864",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#228",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104865",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#248",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104866",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#229",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104867",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#233",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104868",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#223",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104871",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#220",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-104872",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#286",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-36689",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#626",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-38562",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#627",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-43838",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#605",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-49647",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#622",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-70319",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#603",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-75183",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#620",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-78977",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#618",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-79310",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#615",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-79383",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#619",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-82040",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#617",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-82323",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#616",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-83003",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#625",
+  "corte": "2026-08-10"
+ },
+ {
+  "sku": "PIL-83207",
+  "cantidad": 1,
+  "fuente": "P2 - Inventario.xlsx#624",
+  "corte": "2026-08-10"
+ }
+]

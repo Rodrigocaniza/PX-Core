@@ -1,0 +1,69 @@
+FASE 3 -- REPRESENTACION CANONICA (no toca produccion)
+
+registros normalizados : 3627
+filas rechazadas       : 11
+SKU canonicos (union)  : 3447
+
+--- PC - Inventario.xlsx -> ASUNCION (VALIDADA por cash_register_branches (migracion 018)), corte 2026-08-03 ---
+    normalizados: 2576   rechazados: 10
+      PRODUCTO_STOCKEABLE         2572 articulos       8705 unidades declaradas
+      REQUIRES_POLICY_DECISION       4 articulos          4 unidades declaradas
+
+--- P2 - Inventario.xlsx -> PILAR (VALIDADA por cash_register_branches (migracion 020)), corte 2026-08-10 ---
+    normalizados: 1051   rechazados: 1
+      PRODUCTO_STOCKEABLE         1007 articulos       2897 unidades declaradas
+      TRABAJO_BAJO_PEDIDO           23 articulos      12272 unidades declaradas
+      REQUIRES_POLICY_DECISION      21 articulos     822233 unidades declaradas
+
+--- rechazos, uno por uno (son pocos, no 9.000) ---
+    PC fila     8  sin codigo: no se puede derivar un SKU              'AC PAC FIJA AZUL'
+    PC fila     9  sin codigo: no se puede derivar un SKU              'Armazon'
+    PC fila  2544  sin codigo: no se puede derivar un SKU              'AC PAT FIJA TRANSPARENTE 66008 55-18-150 C6'
+    PC fila  2548  sin codigo: no se puede derivar un SKU              'AC PAT FLEX ROJO TL 53-16-140 C3'
+    PC fila  4212  sin codigo: no se puede derivar un SKU              'AC PAT FLEX NARANJA RGE026 51-16-140 C4'
+    PC fila  4215  sin codigo: no se puede derivar un SKU              'AC PAT FIJA AZUL G7071 54-16-145 C3'
+    PC fila  4241  sin codigo: no se puede derivar un SKU              'AC PAT FLEX AZUL'
+    PC fila  8074  codigo sin descripcion: no hay nombre de articulo   '101814'
+    PC fila  8114  sin codigo: no se puede derivar un SKU              'AC PAT FIJA NEGRO 140 145 COL.B1'
+    PC fila  8116  sin codigo: no se puede derivar un SKU              'AC PAT FIJA ROSA 54-20-140 COL.BCT6'
+    P2 fila   105  codigo sin descripcion: no hay nombre de articulo   '104561'
+
+--- conflictos entre sucursales (SKU presente en los dos archivos) ---
+    SKU en ambos archivos    : 180
+    con descripcion distinta : 139
+    con categoria distinta   : 19
+    con NATURALEZA distinta  : 0   <-- los unicos que bloquean
+
+    muestra de categoria distinta:
+      104627: [('ASUNCION', 'Armazones'), ('PILAR', 'Lentes de Sol')]
+      000033: [('ASUNCION', 'Accesorios'), ('PILAR', 'Sujetadores')]
+      102721: [('ASUNCION', 'Armazones'), ('PILAR', 'Lentes de Sol')]
+      104304: [('ASUNCION', 'Armazones'), ('PILAR', 'Lentes de Sol')]
+      103808: [('ASUNCION', 'Armazones'), ('PILAR', 'Lentes de Sol')]
+      104066: [('ASUNCION', 'Armazones'), ('PILAR', 'Lentes de Sol')]
+      104272: [('ASUNCION', 'Armazones'), ('PILAR', 'Lentes de Sol')]
+      104766: [('ASUNCION', 'Armazones'), ('PILAR', 'Lentes de Sol')]
+      104767: [('ASUNCION', 'Armazones'), ('PILAR', 'Lentes de Sol')]
+      000002: [('ASUNCION', 'Estuches'), ('PILAR', 'Estuche LC')]
+      000025: [('ASUNCION', 'Estuches'), ('PILAR', 'Sujetadores')]
+      100601: [('ASUNCION', 'Lentes de Sol'), ('PILAR', 'Armazones')]CATALOGO CANONICO -- regla de identidad aplicada
+
+articulos canonicos            : 3529
+  identificador global          : 226
+  con prefijo de sucursal       : 3303
+registros fuente que consolidan: 3602
+articulos en las dos sucursales: 73
+
+naturaleza del catalogo:
+  PRODUCTO_STOCKEABLE         3506
+  TRABAJO_BAJO_PEDIDO           23
+
+excluidos del recuento por naturaleza que no mueve stock:
+  TRABAJO_BAJO_PEDIDO           23 registros      12272 unidades declaradas que NO entran
+
+recuento ASUNCION :  2572 lineas       8705 unidades
+recuento PILAR    :  1007 lineas       2897 unidades
+
+registros en espera de decision (REQUIRES_POLICY_DECISION): 25
+  PILAR     Compostura               21 registros,   822233 unidades declaradas
+  ASUNCION  (sin categoria)           4 registros,        4 unidades declaradas
