@@ -3,11 +3,12 @@
 000002,Estuche LC,PRODUCTO_STOCKEABLE,Estuche LC,,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#7450@2026-08-03 | PILAR=P2 - Inventario.xlsx#882@2026-08-10
 000003,Antideslizantes,PRODUCTO_STOCKEABLE,Sujetadores,Proray,,,,,UNIDAD,variante en ASUNCION (PC - Inventario.xlsx fila 8449): Antideslizante || origen: ASUNCION=PC - Inventario.xlsx#8449@2026-08-03 | PILAR=P2 - Inventario.xlsx#1041@2026-08-10
 000004,Cordon Proray,PRODUCTO_STOCKEABLE,Sujetadores,Proray,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#1042@2026-08-10
+000005,Mostacillas,PRODUCTO_STOCKEABLE,Sujetadores,Proray,,,,,UNIDAD,"naturaleza por evidencia: 000012 Mostacilla, misma marca Proray, en Sujetadores en PC y P2 (el archivo la tenía en «Compostura») || origen: PILAR=P2 - Inventario.xlsx#853@2026-08-10"
 000006,Goma Niño,PRODUCTO_STOCKEABLE,Sujetadores,Proray,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#8425@2026-08-03 | PILAR=P2 - Inventario.xlsx#1043@2026-08-10
 000007,Goma Niño,PRODUCTO_STOCKEABLE,Sujetadores,Proray,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#8450@2026-08-03 | PILAR=P2 - Inventario.xlsx#1035@2026-08-10
 000008,Cordon,PRODUCTO_STOCKEABLE,Sujetadores,Proray,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#8451@2026-08-03 | PILAR=P2 - Inventario.xlsx#1038@2026-08-10
 000009,Goma Deportiva,PRODUCTO_STOCKEABLE,Sujetadores,Proray,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#8452@2026-08-03 | PILAR=P2 - Inventario.xlsx#1039@2026-08-10
-000010,LIMPIA CRISTAL,PRODUCTO_STOCKEABLE,Limpia Cristales,Óptica Puppilent`s,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#8397@2026-08-03 | PILAR=P2 - Inventario.xlsx#1021@2026-08-10
+000010,LIMPIA CRISTAL,PRODUCTO_STOCKEABLE,Limpia Cristales,Óptica Puppilent`s,,,,,UNIDAD,cantidad en suspenso en ASUNCION: 2.860 declarados: pendiente de confirmación humana || origen: ASUNCION=PC - Inventario.xlsx#8397@2026-08-03 | PILAR=P2 - Inventario.xlsx#1021@2026-08-10
 000011,Sujetador,PRODUCTO_STOCKEABLE,Sujetadores,Óptica Puppilent`s,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#8453@2026-08-03 | PILAR=P2 - Inventario.xlsx#1036@2026-08-10
 000012,Mostacilla,PRODUCTO_STOCKEABLE,Sujetadores,Proray,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#8454@2026-08-03 | PILAR=P2 - Inventario.xlsx#1037@2026-08-10
 000013,Goma Deportiva Hanis,PRODUCTO_STOCKEABLE,Sujetadores,Hanis,,,,,UNIDAD,variante en PILAR (P2 - Inventario.xlsx fila 1044): Goma Depotiva || origen: ASUNCION=PC - Inventario.xlsx#8426@2026-08-03 | PILAR=P2 - Inventario.xlsx#1044@2026-08-10
@@ -41,16 +42,35 @@
 000043,Kit de mantenimiento,PRODUCTO_STOCKEABLE,Accesorios,Optica Puppilents,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#13@2026-08-03 | PILAR=P2 - Inventario.xlsx#9@2026-08-10
 000044,Cordon  Sujetador de Lente,PRODUCTO_STOCKEABLE,Accesorios,AliExpress,,,,,UNIDAD,variante en PILAR (P2 - Inventario.xlsx fila 12): cordón sujetador de lente || origen: ASUNCION=PC - Inventario.xlsx#14@2026-08-03 | PILAR=P2 - Inventario.xlsx#12@2026-08-10
 100000000004,LUPA MAGNIFIER X2 X4,PRODUCTO_STOCKEABLE,Accesorios,MAGNIFIER,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#26@2026-08-03
+2000054,Compostura de Patilla Izquierda,SERVICIO_NO_STOCKEABLE,Compostura,Optica San Cayetano,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#840@2026-08-10
+2000055,Compostura de Patilla Derecha,SERVICIO_NO_STOCKEABLE,Compostura,Optica San Cayetano,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#841@2026-08-10
+2000057,Compostura Simple,SERVICIO_NO_STOCKEABLE,Compostura,Optica San Cayetano,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#843@2026-08-10
+2000058,Compostura Flex,SERVICIO_NO_STOCKEABLE,Compostura,Optica San Cayetano,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#844@2026-08-10
+2000060,Organico UVX,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,naturaleza por decisión humana (el archivo la tenía en «Compostura») || origen: PILAR=P2 - Inventario.xlsx#845@2026-08-10
+2000061,Fotocromático (AR),TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,naturaleza por decisión humana (el archivo la tenía en «Compostura») || origen: PILAR=P2 - Inventario.xlsx#846@2026-08-10
+2000062,Multifocal (OP),TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,naturaleza por decisión humana (el archivo la tenía en «Compostura») || origen: PILAR=P2 - Inventario.xlsx#847@2026-08-10
+2000063,Kripto (Kto) Organico UVX,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,naturaleza por decisión humana (el archivo la tenía en «Compostura») || origen: PILAR=P2 - Inventario.xlsx#848@2026-08-10
+2000064,Blue Ar,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,naturaleza por decisión humana (el archivo la tenía en «Compostura») || origen: PILAR=P2 - Inventario.xlsx#849@2026-08-10
+2000065,Adaptacion de cristal,SERVICIO_NO_STOCKEABLE,Compostura,Laboratorio Optilab,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#850@2026-08-10
+2000066,Solamax,TRABAJO_BAJO_PEDIDO,Cristales,Optica San Cayetano,,,,,UNIDAD,naturaleza por decisión humana (el archivo la tenía en «Compostura») || origen: PILAR=P2 - Inventario.xlsx#851@2026-08-10
+2000067,Bifocal (ST),TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,naturaleza por decisión humana (el archivo la tenía en «Compostura») || origen: PILAR=P2 - Inventario.xlsx#852@2026-08-10
+2000070,Hilo,PRODUCTO_STOCKEABLE,Sujetadores,Laboratorio Optilab,,,,,UNIDAD,"naturaleza por decisión humana (el archivo la tenía en «Compostura») || cantidad en suspenso en PILAR: 99.981 declarados: valor centinela, no un conteo. Falta recuento real || origen: PILAR=P2 - Inventario.xlsx#854@2026-08-10"
+2000071,Tornillo,PRODUCTO_STOCKEABLE,Sujetadores,Optica San Cayetano,,,,,UNIDAD,"naturaleza por decisión humana (el archivo la tenía en «Compostura») || cantidad en suspenso en PILAR: 99.425 declarados: valor centinela, no un conteo. Falta recuento real || origen: PILAR=P2 - Inventario.xlsx#855@2026-08-10"
+2000072,Plaqueta,PRODUCTO_STOCKEABLE,Sujetadores,Optica San Cayetano,,,,,UNIDAD,"naturaleza por decisión humana (el archivo la tenía en «Compostura») || cantidad en suspenso en PILAR: 9.393 declarados: valor centinela, no un conteo. Falta recuento real || origen: PILAR=P2 - Inventario.xlsx#856@2026-08-10"
 2000073,Multiblue,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#859@2026-08-10
 2000074,Progresivo OP,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#860@2026-08-10
 2000075,Futurex Protec,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Servi Optical,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#861@2026-08-10
 2000076,Blue Protec,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Servi Optical,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#862@2026-08-10
 2000086,Foto Sunactive,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Servi Optical,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#863@2026-08-10
+2000101,CENTRADO,SERVICIO_NO_STOCKEABLE,Compostura,Óptica Puppilent`s,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#839@2026-08-10
 2000125,FUTUREX STEEL,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Servi Optical,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#865@2026-08-10
 2000126,FUTUREX G2,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Servi Optical,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#881@2026-08-10
 2000127,Green AR,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#864@2026-08-10
 2000140,Estuches para Anteojos,PRODUCTO_STOCKEABLE,Accesorios,Proray,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#3@2026-08-10
 2000146,Capuchon,PRODUCTO_STOCKEABLE,Sujetadores,Optica San Cayetano,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#8424@2026-08-03 | PILAR=P2 - Inventario.xlsx#1040@2026-08-10
+2000147,Compostura de Porta Plaquetas,SERVICIO_NO_STOCKEABLE,Compostura,Optica San Cayetano,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#858@2026-08-10
+2000148,Compostura del Puente del Armazon,SERVICIO_NO_STOCKEABLE,Compostura,Optica San Cayetano,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#857@2026-08-10
+2000149,Compostura del Aro del Armazon,SERVICIO_NO_STOCKEABLE,Compostura,Optica San Cayetano,,,,,UNIDAD,naturaleza por decisión humana || origen: PILAR=P2 - Inventario.xlsx#838@2026-08-10
 2000206,Kto.Invisible,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#874@2026-08-10
 2000207,Kto.AR,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#875@2026-08-10
 2000208,Kto.Blue AR,TRABAJO_BAJO_PEDIDO,Cristales,Laboratorio Optilab,,,,,UNIDAD,origen: PILAR=P2 - Inventario.xlsx#876@2026-08-10
@@ -244,6 +264,7 @@ ASU-100074,AC PAT FLEX MARRON H9663 49-21-138 C601,PRODUCTO_STOCKEABLE,Armazones
 ASU-100080,AC PAT FLEX TRANSP H2384 54-18-142 C601,PRODUCTO_STOCKEABLE,Armazones,Unicity,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#3891@2026-08-03
 ASU-100083,AC PAT FLEX NEGRO K9772 54-16-143 C502,PRODUCTO_STOCKEABLE,Armazones,Steffani,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#3904@2026-08-03
 ASU-100092,AC PAT FLEX ROSA K9771 53-17-143 C524,PRODUCTO_STOCKEABLE,Armazones,Steffani,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#3902@2026-08-03
+ASU-100093,AC PAT FLEX NEGRO K9771 53-17-143 C502,PRODUCTO_STOCKEABLE,Armazones,Steffani,,,,,UNIDAD,"naturaleza por evidencia: marca Steffani, en Armazones en las 585 filas donde aparece || origen: ASUNCION=PC - Inventario.xlsx#6@2026-08-03"
 ASU-100100,AC PAT FLEX NEGRO 9157 47-16-130 C2,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#4079@2026-08-03
 ASU-100104,AC PAT FIJA TRANSP G7076 C2 52-16-140,PRODUCTO_STOCKEABLE,Armazones,Graffiti,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#4111@2026-08-03
 ASU-100112,AH PAT FLEX GRIS SK799-1 54-19-135 C5,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#4099@2026-08-03
@@ -266,6 +287,7 @@ ASU-100219,AC PAT FIJA VERDE RGB005 C1 51-17-140,PRODUCTO_STOCKEABLE,Armazones,G
 ASU-100221,AC PAT FIJA NEGRO G7034 C1 53-18-140,PRODUCTO_STOCKEABLE,Armazones,Graffiti,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#3937@2026-08-03
 ASU-100223,AC PAT FLEX GRIS +2.25,PRODUCTO_STOCKEABLE,Armazones,Proray,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#3923@2026-08-03
 ASU-100230,AC PAT FLEX NEGRO TRANSP RGE050 C1 54-16-140,PRODUCTO_STOCKEABLE,Armazones,Graffiti,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#3947@2026-08-03
+ASU-100240,AC APT FLEX ROSA 9151 44-20-130 C12,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,"naturaleza por evidencia: marca Betania, en Armazones en las 357 filas donde aparece || origen: ASUNCION=PC - Inventario.xlsx#7@2026-08-03"
 ASU-100242,AC PAT FIJA ROSA RGB005 C4 51-17-140,PRODUCTO_STOCKEABLE,Armazones,Graffiti,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#3933@2026-08-03
 ASU-100246,AH PAT FLEX LILA K9524 51-17-140 C508,PRODUCTO_STOCKEABLE,Armazones,Steffani,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#4165@2026-08-03
 ASU-100249,AH PAT FLEX MARRON SL80134 50-17-135,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#4093@2026-08-03
@@ -427,6 +449,7 @@ ASU-101148,AH PAT FLEX BLANCO SL6014 51-18-135,PRODUCTO_STOCKEABLE,Armazones,Bet
 ASU-101150,AC PAT FLEX MARRON G8251 C4 55-16-140,PRODUCTO_STOCKEABLE,Armazones,Graffiti,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#2410@2026-08-03
 ASU-101154,AT PAT FIJA PLATEADO DP020-008 C35,PRODUCTO_STOCKEABLE,Armazones,Discovery,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#2351@2026-08-03
 ASU-101178,AC PAT FIJA NEGRO K9740 56-18-140 C502,PRODUCTO_STOCKEABLE,Armazones,Steffani,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#4721@2026-08-03
+ASU-101181,AC PAT FLEX NEGRO K9416 51-21-140 C206,PRODUCTO_STOCKEABLE,,,,,,,UNIDAD,"naturaleza por evidencia: prefijo AC PAT, stockeable en las 3.065 filas del universo || origen: ASUNCION=PC - Inventario.xlsx#5@2026-08-03"
 ASU-101199,AC PAT FLEX GRIS V1138 58-18-145 CF206,PRODUCTO_STOCKEABLE,Armazones,Vicrola,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#2388@2026-08-03
 ASU-101229,AC PAT FLEX NEGRO BI634 60-19-130 C4,PRODUCTO_STOCKEABLE,Armazones,Bacchio,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#2338@2026-08-03
 ASU-101245,AC PAT FIJA CELESTE 7016 C2 52-19-140,PRODUCTO_STOCKEABLE,Armazones,Eme,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#2400@2026-08-03
@@ -2394,6 +2417,7 @@ ASU-107998,AC PAT FLEX GRIS 28217 53-147-140 C.4,PRODUCTO_STOCKEABLE,Armazones,B
 ASU-107999,AC PAT FLEX BORDO XH22031 52-18-145 C.3,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#249@2026-08-03
 ASU-108000,AC PAT FLEX BLANCO TB20035 55-16-145 C.4,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#361@2026-08-03
 ASU-108002,AC PAT FLEX NEGRO 28174 51-18-140 C.1,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#364@2026-08-03
+ASU-108004,AC PAT FLEX NEGRO 28174 51-18-140 C.2,PRODUCTO_STOCKEABLE,,,,,,,UNIDAD,"naturaleza por evidencia: prefijo AC PAT, stockeable en las 3.065 filas del universo || origen: ASUNCION=PC - Inventario.xlsx#11@2026-08-03"
 ASU-108006,AC PAT FLEX NEGRO 28022 51-72-140 C.2,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#297@2026-08-03
 ASU-108007,AC PAT FLEX NEGRO 28023 54-17-140 C.3,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#299@2026-08-03
 ASU-108008,AC PAT FLEX VERDE XH22042 54-17-145 C.4,PRODUCTO_STOCKEABLE,Armazones,Betania,,,,,UNIDAD,origen: ASUNCION=PC - Inventario.xlsx#318@2026-08-03

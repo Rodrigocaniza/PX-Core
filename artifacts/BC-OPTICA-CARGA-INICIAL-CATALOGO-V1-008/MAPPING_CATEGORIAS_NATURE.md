@@ -40,52 +40,62 @@ Lo confirma el propio dato: los stocks declarados son 949, 967, 974, 984, 994,
 acabe nunca. **12.272 unidades declaradas que no entran al depósito**, y no
 entran porque un cristal recetado nunca estuvo ahí.
 
-## Sin resolver — `REQUIRES_POLICY_DECISION`
+## Resueltas fila por fila — `Compostura` y `(sin categoría)`
 
-### 1. `Compostura` — 21 filas en P2, 822.233 unidades declaradas
+Ver `EXCEPCIONES_RESUELTAS.md` para la evidencia de cada una. El resumen:
 
-No hay una sola naturaleza honesta para esta categoría: adentro hay tres cosas
-distintas.
+### `Compostura` — 21 filas en P2
 
-**(a) Servicios puros — 11 filas.** CENTRADO, Compostura Simple, Compostura
-Flex, Compostura de Patilla Izquierda / Derecha, Compostura del Aro / del Puente
-/ de Porta Plaquetas, Adaptación de cristal. Aquí caen **los ocho valores de
-~99.900**: son servicios marcados como inagotables por el sistema viejo.
-→ correspondería `SERVICIO_NO_STOCKEABLE`.
+Decisión humana del 19/08/2026: la categoría se abre en tres.
 
-**(b) Tipos de cristal — 7 filas.** Organico UVX, Fotocromático (AR),
-Multifocal (OP), Kripto (Kto) Organico UVX, Blue Ar, Solamax, Bifocal (ST). Son
-lo mismo que la categoría `Cristales`, sólo que archivadas en otro lado.
-→ correspondería `TRABAJO_BAJO_PEDIDO`.
+| Grupo | Filas | `nature` |
+| --- | ---: | --- |
+| Servicios | 9 | `SERVICIO_NO_STOCKEABLE` |
+| Tipos de cristal | 7 | `TRABAJO_BAJO_PEDIDO` |
+| Repuestos físicos — Hilo, Tornillo, Plaqueta | 3 | `PRODUCTO_STOCKEABLE` |
+| `000005 Mostacillas` — resuelto por evidencia | 1 | `PRODUCTO_STOCKEABLE` |
+| `2000056 Par de patillas` — **sin resolver** | 1 | — |
 
-**(c) Repuestos físicos — 3 filas.** Hilo, Tornillo, Plaqueta. Y `Par de
-patillas`, que puede ser repuesto o el servicio de cambiarlas.
-→ correspondería `PRODUCTO_STOCKEABLE`, salvo Par de patillas.
+> **Corrección de una afirmación de este mismo artefacto.** La versión anterior
+> decía que los ocho valores de ~99.900 caían todos en el grupo de servicios.
+> Es falso: `Hilo` (99.981) y `Tornillo` (99.425) son dos de esos ocho, y están
+> en el grupo de repuestos físicos. La naturaleza que se les aprobó es correcta
+> — un hilo y un tornillo son cosas —, pero su **cantidad** es un centinela, no
+> un conteo. Por eso los tres repuestos entran al catálogo con las unidades en
+> suspenso. El error importa: sin corregirlo, la carga habría metido 108.799
+> unidades fantasma en el depósito de Pilar.
 
-**(d) Una fila mal archivada.** `000005 Mostacillas`, marca Proray, stock 2. En
-el otro archivo el mismo tipo de artículo está en `Sujetadores`.
+### `(sin categoría)` — 4 filas normalizables en PC
 
-**Qué se necesita:** una sola decisión — *«Compostura se abre en estos tres
-grupos»* — y el sistema reclasifica las 21 filas. No hay que mirar fila por fila:
-los tres grupos están listados arriba.
+Las cuatro quedaron en `PRODUCTO_STOCKEABLE` sin intervención humana, porque la
+evidencia lo determina: las **3.065** filas del universo cuya descripción empieza
+con `AC PAT` / `AC APT` / `AC PAC` son `Armazones` (2.773) o `Lentes de Sol`
+(289). No hay una tercera posibilidad, y **las dos categorías son
+`PRODUCTO_STOCKEABLE`**: la naturaleza no depende de cuál sea.
 
-### 2. `(sin categoría)` — 6 filas en PC, 6 unidades
+La categoría sí se pudo determinar en dos de ellas y en dos no:
 
-Las seis dicen `AC PAT FLEX …`, `AC PAC FIJA …` o directamente `Armazon`, así
-que **parecen** armazones. Pero deducir la naturaleza del texto de la
-descripción es precisamente lo que el sistema prohíbe: el día que alguien
-escriba «armazón de cristal», el cristal se pondría a descontar stock.
+| Código | Categoría | Evidencia |
+| --- | --- | --- |
+| `100093` | Armazones | marca Steffani, en `Armazones` en las 585 filas donde aparece |
+| `100240` | Armazones | marca Betania, en `Armazones` en las 357 filas donde aparece |
+| `101181` | *(vacía)* | sin marca; `AC PAT` se reparte 2.773/289 entre las dos |
+| `108004` | *(vacía)* | ídem |
 
-Dos de las seis además no tienen código y ya están rechazadas por eso.
-
-**Qué se necesita:** decir «esas cuatro son Armazones». No es una inferencia si
-lo dice una persona.
+Las dos sin categoría entran con la categoría vacía en vez de inventada. Un dato
+ausente se completa después; uno inventado no se detecta nunca. No cambia nada
+del stock: la naturaleza, que es lo que decide si el artículo se mueve, está
+determinada en las cuatro.
 
 ## Cómo se hizo, y cómo no
 
-- La naturaleza sale **de la categoría**, no de la descripción.
-- Ninguna categoría se dejó sin cubrir: 13 resueltas, 1 resuelta con
-  justificación, 2 explícitamente sin resolver.
-- Ninguna categoría ambigua se resolvió «para que cierre». Las 822.237 unidades
-  en suspenso son el precio de no adivinar, y se recuperan en cuanto haya
-  decisión.
+- La naturaleza sale **de la categoría**. Donde la categoría no informaba —
+  porque no había, o porque era un cajón de sastre — se resolvió fila por fila
+  con decisión humana o con evidencia del propio universo de datos, y quedó
+  escrito cuál de las dos fue en cada caso.
+- Ninguna categoría quedó sin cubrir, y ya no queda ninguna en
+  `REQUIRES_POLICY_DECISION`.
+- Lo que sigue sin resolverse es **una fila** (`2000056 Par de patillas`) y
+  **cuatro cantidades**, no cuatro naturalezas. La diferencia importa: una
+  naturaleza equivocada rompe el comportamiento del sistema; una cantidad en
+  suspenso sólo espera que alguien cuente.

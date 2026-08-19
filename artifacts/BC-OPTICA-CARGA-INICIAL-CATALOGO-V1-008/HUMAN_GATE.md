@@ -1,95 +1,86 @@
-# HUMAN_GATE — autorizar la carga inicial del catálogo
+# HUMAN_GATE mínimo — quedan dos cosas
 
-**Nada se cargó todavía.** Producción sigue con 0 artículos y 0 movimientos. Lo
-que sigue es lo que entraría, y las tres decisiones que faltan.
+Todo lo demás está resuelto y el dry-run volvió a dar **PASS con 0 fallas**.
+Producción sigue intacta: 0 artículos, 0 movimientos.
 
-## Lo que entraría si autorizás tal cual
+Las decisiones de Compostura y las 4 filas sin categoría ya están aplicadas. La
+evidencia de cada una está en `EXCEPCIONES_RESUELTAS.md`.
 
-| | ASUNCION (caja PC) | PILAR (caja P2) | Total |
-| --- | ---: | ---: | ---: |
-| filas en el archivo | 8.459 | 1.054 | 9.513 |
-| filas con artículo | 2.586 | 1.052 | 3.638 |
-| filas descartadas (vacías) | 5.871 | 0 | 5.871 |
-| filas rechazadas | 10 | 1 | 11 |
-| en espera de decisión | 4 | 21 | 25 |
-| **artículos canónicos** | | | **3.529** |
-| **líneas de recuento** | **2.572** | **1.007** | **3.579** |
-| **unidades al depósito** | **8.705** | **2.897** | **11.602** |
+---
 
-De los 3.529 artículos, 226 tienen identificador global (código de barras o
-catálogo interno) y 3.303 llevan prefijo de sucursal. 73 existen en las dos
-sucursales y son **un** artículo con stock en los dos depósitos.
+## A. `2000056 Par de patillas` — sigue ambigua
 
-Además se crearían 13 categorías y 136 marcas, todas por nombre, todas tomadas
-del archivo.
+| Código | Descripción | Marca | Stock | Recomendación | Evidencia |
+| --- | --- | --- | ---: | --- | --- |
+| `2000056` | Par de patillas | Óptica San Cayetano | 526 (P2) · 616 (base 08-04) | **sin recomendación** | las vecinas 2000054/55 ya son los servicios de cambiar patilla, lo que sugiere que ésta es la pieza; pero la cantidad no discrimina (en esta categoría los números saltan en las dos direcciones sin ser conteos), la marca aparece en Compostura y en Sujetadores, y no está en ningún otro archivo |
 
-**Cómo entra el stock:** 3.579 movimientos `INGRESO_ADMINISTRATIVO` con motivo
-`INVENTARIO_INICIAL`, cada uno con la fecha real de su recuento —
-2026-08-03 para Asunción, 2026-08-10 para Pilar, no la fecha de hoy — con actor,
-con la explicación escrita de qué recuento y de qué planilla salió, y con el
-número de fila del XLSX de origen. Ninguna compra falseada. Ni un guaraní movido.
+**Lo que hace falta:** ¿es el repuesto físico que se entrega, o el servicio de
+cambiar las patillas?
 
-## Las tres decisiones que faltan
+- **repuesto** → `PRODUCTO_STOCKEABLE`, y hará falta un conteo real (los 526 no
+  son un conteo)
+- **servicio** → `SERVICIO_NO_STOCKEABLE`, sin unidades
 
-### 1. `Compostura` (Pilar, 21 filas) — cómo se abre
+Mientras tanto queda afuera del catálogo. Es una fila.
 
-La categoría mezcla tres cosas. Alcanza con aprobar el corte, no hace falta
-mirar fila por fila:
+---
 
-- **11 servicios** → `SERVICIO_NO_STOCKEABLE`
-  CENTRADO · Compostura Simple · Compostura Flex · Compostura de Patilla
-  Izquierda · Compostura de Patilla Derecha · Compostura del Aro · Compostura del
-  Puente · Compostura de Porta Plaquetas · Adaptación de cristal
-- **7 tipos de cristal** → `TRABAJO_BAJO_PEDIDO`
-  Organico UVX · Fotocromático (AR) · Multifocal (OP) · Kripto (Kto) Organico
-  UVX · Blue Ar · Solamax · Bifocal (ST)
-- **3 repuestos físicos** → `PRODUCTO_STOCKEABLE`
-  Hilo · Tornillo · Plaqueta
-- **2 sueltas:** `Par de patillas` (¿repuesto o el servicio de cambiarlas?) y
-  `000005 Mostacillas`, que en el otro archivo está en `Sujetadores`
+## B. `000010 Limpia Cristal = 2.860` — `LIKELY_REAL_BUT_REQUIRES_HUMAN_CONFIRMATION`
 
-Las 822.233 «unidades» de esta categoría son centinelas de servicio, no stock:
-con esta clasificación entrarían a lo sumo las de los repuestos físicos.
+**Valor fuente exacto:** celda `C8397` de `PC - Inventario.xlsx`, entero literal
+`2860`. Sin fórmula, sin merge, sin subtotal, sin arrastre, sin observación. La
+hoja no tiene un solo rango combinado.
 
-### 2. `(sin categoría)` (Asunción, 4 filas) — confirmar que son armazones
+**Interpretación:** es un número capturado, no un artefacto de planilla.
+`inventario_base.xlsx` (corte 08-04) trae el mismo 2.860 — pero los 2.577 códigos
+comunes con PC coinciden **todos**, así que eso confirma transcripción fiel del
+sistema, no que el depósito los tenga.
 
-Las cuatro dicen `AC PAT FLEX …` / `AC PAC FIJA …`. Parecen armazones, pero el
-sistema no deduce la naturaleza del texto. Con que lo digas vos, entran.
+**Evidencia encontrada:**
 
-### 3. `000010 Limpia Cristal` en Asunción: 2.860 unidades
+- a favor — no tiene forma de centinela (los de este juego de datos son ~99.900 o
+  ~999); es marca propia, un consumible de bulto; y el vecino
+  `000037 LIMPIA CRISTAL OBSEQUIO` llega a 516 en Pilar, así que los cientos son
+  normales en esta familia
+- en contra — es **2,9×** el segundo valor más alto de todo Asunción
+  (`Goma Niño`, 978); son **el 33% de todo el inventario de la sucursal**; Pilar
+  declara **10** del mismo artículo; y ningún archivo dice si son frascos,
+  sachets o mililitros
 
-No tiene forma de centinela, así que entraría tal cual. Es mucho: confirmalo o
-corregilo antes, porque una vez asentado sólo se arregla compensando.
+**Recomendación concreta:** `CONFIRMAR 2860` **o** `NO IMPORTAR 2860`.
 
-## Lo que ya está resuelto y no requiere nada tuyo
+No se propone una corrección: no existe evidencia documental de otro valor, y
+cambiarlo a ojo sería inventar un conteo.
 
-- **Sucursales.** No fue una hipótesis: producción ya lo dice. La tabla
-  `cash_register_branches` (migraciones 018 y 020) liga `PC → ASUNCION` y
-  `P2 → PILAR`, y los 8 pedidos reales de esta instalación están en `PC`.
-- **Las 8.459 filas de PC.** 5.871 están vacías. Son 2.586 artículos.
-- **Duplicados.** 0 nombres repetidos, 0 códigos repetidos dentro de cada
-  archivo. Entre archivos, el código de armazón no significa lo mismo en las dos
-  sucursales, así que lleva prefijo — ver `ANOMALIAS.md` §3.
-- **Naturalezas.** 13 categorías directas, `Cristales` justificada, 2 en espera.
-- **Dry-run.** PASS, 0 fallas, sobre copia de la base productiva real.
-- **Idempotencia.** Repetir el archivo se rechaza por sha256; repetir el
-  recuento devuelve la misma corrida. 0 duplicación.
+---
 
-## Para autorizar
+## Y algo que la investigación destapó, para que lo sepas
 
-Respondé con las tres decisiones. Por ejemplo:
+`Hilo` y `Tornillo` — dos de los tres repuestos que aprobaste como
+`PRODUCTO_STOCKEABLE` — resultaron ser **dos de los ocho valores de ~99.900**. Un
+artefacto anterior de esta misión decía que los ocho eran servicios; era falso y
+quedó corregido.
 
-> 1. Compostura: aprobado el corte propuesto. `Par de patillas` es servicio.
->    `000005 Mostacillas` va a Sujetadores.
-> 2. Las 4 sin categoría son Armazones.
-> 3. Limpia Cristal 2.860 confirmado / corregir a N.
-> Autorizo la carga sobre producción.
+**La naturaleza que aprobaste sigue siendo correcta**: un hilo y un tornillo son
+cosas y se venden. Lo que no sirve es la cantidad. `inventario_base` los tenía en
+949 y 708 el 4 de agosto; el 10 aparecen en 99.981 y 99.425. Nadie compró 99.000
+hilos: alguien los puso en «no se acaba nunca».
 
-Con eso Command Center regenera el catálogo con las 25 filas incorporadas,
-vuelve a correr el dry-run completo sobre copia, y recién si vuelve a dar PASS
-aplica sobre producción con backup previo.
+Los tres entran al catálogo con **las unidades en suspenso**. Sin eso, la carga
+habría metido 108.799 unidades fantasma en Pilar. No hace falta que decidas nada:
+esperan un recuento real, como cualquier artículo sin contar.
 
-Si preferís cargar sólo lo que ya está limpio y dejar las 25 para después,
-también se puede: son 3.529 artículos y 11.602 unidades sin ninguna decisión
-pendiente. Pero conviene lo primero — cargar dos veces deja dos hechos donde
-hubo un solo recuento.
+---
+
+## Estado si respondés sólo esto
+
+| | ASUNCION | PILAR |
+| --- | ---: | ---: |
+| líneas de recuento | 2.575 | 1.008 |
+| unidades | **5.849** | **2.899** |
+
+3.553 artículos · 3.583 movimientos `INVENTARIO_INICIAL` · dry-run **PASS**.
+
+Con `Par de patillas` resuelta y `Limpia Cristal` confirmada o descartada, se
+regenera, se vuelve a correr el dry-run y se te devuelve el **HUMAN_GATE final de
+importación** con el impacto exacto, el backup previsto y el rollback.

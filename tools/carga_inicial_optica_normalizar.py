@@ -54,11 +54,81 @@ NATURE_POR_CATEGORIA = {
     # sistema para que algo no se acabe nunca. Un cristal se pide con la receta.
     "cristales": "TRABAJO_BAJO_PEDIDO",
     # Mezcla servicios, tipos de cristal y repuestos físicos en una sola
-    # categoría. Cualquier asignación única sería falsa.
+    # categoría. Cualquier asignación única sería falsa: se resuelve fila por
+    # fila en DECISIONES_POR_SKU, con decisión humana o con evidencia.
     "compostura": REQUIERE_DECISION,
-    # Seis filas de PC sin categoría. Parecen armazones por la descripción, que
-    # es exactamente el motivo por el que no se les asigna nada.
+    # Filas de PC sin categoría. Parecen armazones por la descripción, que es
+    # exactamente el motivo por el que la categoría no decide nada acá.
     "": REQUIERE_DECISION,
+}
+
+#: Excepciones resueltas una por una, cada una con de dónde salió. Existen
+#: porque la categoría del archivo no alcanzaba: o no había, o era un cajón de
+#: sastre. No son un atajo alrededor de la regla — son la regla admitiendo que
+#: en estas filas la categoría no informa, y dejando por escrito qué sí informó.
+DECISIONES_POR_SKU: dict[tuple[str, str], tuple[str, str, str]] = {
+    # -- Compostura: los nueve servicios. Decisión humana, 19/08/2026.
+    ("PILAR", "2000101"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000054"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000055"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000057"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000058"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000065"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000149"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000148"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    ("PILAR", "2000147"): ("SERVICIO_NO_STOCKEABLE", "Compostura", "decisión humana"),
+    # -- Compostura: los siete tipos de cristal. Decisión humana, 19/08/2026.
+    ("PILAR", "2000060"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
+    ("PILAR", "2000061"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
+    ("PILAR", "2000062"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
+    ("PILAR", "2000063"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
+    ("PILAR", "2000064"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
+    ("PILAR", "2000066"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
+    ("PILAR", "2000067"): ("TRABAJO_BAJO_PEDIDO", "Cristales", "decisión humana"),
+    # -- Compostura: los tres repuestos físicos. Decisión humana, 19/08/2026.
+    #    La naturaleza es de la decisión; la cantidad NO, y por eso quedan en
+    #    CANTIDAD_EN_SUSPENSO: 99.981 hilos y 99.425 tornillos no son un conteo.
+    ("PILAR", "2000070"): ("PRODUCTO_STOCKEABLE", "Sujetadores", "decisión humana"),
+    ("PILAR", "2000071"): ("PRODUCTO_STOCKEABLE", "Sujetadores", "decisión humana"),
+    ("PILAR", "2000072"): ("PRODUCTO_STOCKEABLE", "Sujetadores", "decisión humana"),
+    # -- Mostacillas: resuelto por evidencia, no por decisión humana.
+    #    Los otros tres artículos llamados «Mostacilla*» del universo están en
+    #    Sujetadores o Accesorios, y el más cercano (000012 Mostacilla) comparte
+    #    la marca Proray y está en Sujetadores en los dos archivos.
+    ("PILAR", "000005"): ("PRODUCTO_STOCKEABLE", "Sujetadores",
+                          "evidencia: 000012 Mostacilla, misma marca Proray, en Sujetadores en PC y P2"),
+    # -- Las filas sin categoría de PC. Las 3.065 filas del universo cuya
+    #    descripción empieza con AC PAT / AC APT / AC PAC son Armazones (2.773)
+    #    o Lentes de Sol (289): no hay una tercera posibilidad, y las dos son
+    #    PRODUCTO_STOCKEABLE. La naturaleza no depende de cuál sea.
+    ("ASUNCION", "100093"): ("PRODUCTO_STOCKEABLE", "Armazones",
+                             "evidencia: marca Steffani, en Armazones en las 585 filas donde aparece"),
+    ("ASUNCION", "100240"): ("PRODUCTO_STOCKEABLE", "Armazones",
+                             "evidencia: marca Betania, en Armazones en las 357 filas donde aparece"),
+    #    Sin marca: la naturaleza está determinada, la categoría no. Se deja
+    #    vacía en vez de inventarla — un dato ausente se completa después; uno
+    #    inventado no se detecta nunca.
+    ("ASUNCION", "101181"): ("PRODUCTO_STOCKEABLE", "",
+                             "evidencia: prefijo AC PAT, stockeable en las 3.065 filas del universo"),
+    ("ASUNCION", "108004"): ("PRODUCTO_STOCKEABLE", "",
+                             "evidencia: prefijo AC PAT, stockeable en las 3.065 filas del universo"),
+}
+
+#: El artículo entra al catálogo; sus unidades NO. Un número que no es un conteo
+#: no puede convertirse en stock: quedaría un depósito que nadie contó y que
+#: sólo se corrige compensando.
+CANTIDAD_EN_SUSPENSO: dict[tuple[str, str], str] = {
+    ("PILAR", "2000070"): "99.981 declarados: valor centinela, no un conteo. Falta recuento real",
+    ("PILAR", "2000071"): "99.425 declarados: valor centinela, no un conteo. Falta recuento real",
+    ("PILAR", "2000072"): "9.393 declarados: valor centinela, no un conteo. Falta recuento real",
+    ("ASUNCION", "000010"): "2.860 declarados: pendiente de confirmación humana",
+}
+
+#: Ni la categoría ni la evidencia alcanzan. No entra al catálogo hasta que se
+#: decida: puede ser el repuesto físico o el servicio de cambiarlo, y las dos
+#: filas vecinas ya cubren la mano de obra.
+SIN_RESOLVER: set[tuple[str, str]] = {
+    ("PILAR", "2000056"),  # Par de patillas
 }
 
 MUEVEN_STOCK = {"PRODUCTO_STOCKEABLE", "PRODUCCION_INTERNA"}
@@ -143,11 +213,23 @@ def normalizar(archivos: dict[str, Path]) -> tuple[list[dict], list[dict]]:
                 cantidad = int(fila["stock"])
             except ValueError:
                 cantidad = None
+            clave = (meta["sucursal"], sku)
+            if clave in SIN_RESOLVER:
+                rechazos.append(dict(fuente=tag, fila=fila["fila_fisica"],
+                                     articulo=fila["articulo"],
+                                     motivo="sin resolver: espera decisión humana"))
+                continue
+            categoria, motivo = fila["categoria"], ""
+            if clave in DECISIONES_POR_SKU:
+                nature, categoria, motivo = DECISIONES_POR_SKU[clave]
+            else:
+                nature = NATURE_POR_CATEGORIA.get(_clave_categoria(fila["categoria"]),
+                                                  REQUIERE_DECISION)
             registros.append(dict(
-                sku=sku, nombre=nombre, categoria=fila["categoria"], marca=fila["marca"],
-                sucursal=meta["sucursal"], corte=meta["corte"],
-                nature=NATURE_POR_CATEGORIA.get(_clave_categoria(fila["categoria"]),
-                                                REQUIERE_DECISION),
+                sku=sku, nombre=nombre, categoria=categoria, marca=fila["marca"],
+                sucursal=meta["sucursal"], corte=meta["corte"], nature=nature,
+                decision=motivo, categoria_original=fila["categoria"],
+                stock_en_suspenso=CANTIDAD_EN_SUSPENSO.get(clave, ""),
                 stock_inicial=cantidad, fuente_archivo=ruta.name,
                 fuente_fila=fila["fila_fisica"], texto_original=fila["articulo"]))
     return registros, rechazos
@@ -183,17 +265,28 @@ def consolidar(registros: list[dict]) -> tuple[list[dict], dict, list[dict]]:
         origen = " | ".join(
             f"{r['sucursal']}={r['fuente_archivo']}#{r['fuente_fila']}@{r['corte']}"
             for r in iguales)
+        decidido = "; ".join(
+            f"naturaleza por {r['decision']}"
+            + (f" (el archivo la tenía en «{r['categoria_original']}»)"
+               if r["categoria_original"] and r["categoria_original"] != r["categoria"] else "")
+            for r in iguales if r.get("decision"))
+        suspendido = "; ".join(
+            f"cantidad en suspenso en {r['sucursal']}: {r['stock_en_suspenso']}"
+            for r in iguales if r.get("stock_en_suspenso"))
+        anotaciones = " || ".join(x for x in (notas, decidido, suspendido) if x)
         catalogo.append(dict(
             sku=sku, name=principal["nombre"], nature=principal["nature"],
             category=principal["categoria"], brand=principal["marca"],
             sale_price="", location="", min_stock="", barcode="", unit="UNIDAD",
-            notes=(notas + " || " if notas else "") + "origen: " + origen))
+            notes=(anotaciones + " || " if anotaciones else "") + "origen: " + origen))
 
     recuentos = {s: [] for s in PREFIJO_SUCURSAL}
     for articulo in catalogo:
         for registro in por_canonico[articulo["sku"]]:
             if registro["nature"] not in MUEVEN_STOCK:
                 continue  # un servicio o un trabajo bajo pedido no lleva stock
+            if registro.get("stock_en_suspenso"):
+                continue  # el artículo existe; sus unidades esperan un conteo real
             if not registro["stock_inicial"] or registro["stock_inicial"] <= 0:
                 continue
             recuentos[registro["sucursal"]].append(dict(
@@ -235,6 +328,13 @@ def main() -> int:
     for sucursal, lineas in recuentos.items():
         print(f"recuento {sucursal:9}: {len(lineas):>5} lineas, "
               f"{sum(x['cantidad'] for x in lineas):>7} unidades")
+    suspendidos = [r for r in registros if r.get("stock_en_suspenso")]
+    if suspendidos:
+        print(f"unidades en suspenso   : {len(suspendidos)} articulos, "
+              f"{sum(r['stock_inicial'] or 0 for r in suspendidos)} unidades declaradas que NO entran")
+        for r in suspendidos:
+            print(f"    {r['sucursal']:9} {r['sku']:>8} {r['nombre'][:28]:30} "
+                  f"declara {r['stock_inicial']:>7} -- {r['stock_en_suspenso']}")
     print(f"en espera de decision  : {len(pendientes)}")
     for clave, cuantos in Counter(
             (r["sucursal"], r["categoria"] or "(sin categoria)") for r in pendientes).most_common():

@@ -1,0 +1,225 @@
+==============================================================================
+A. LAS DOS EXCEPCIONES DE COMPOSTURA
+==============================================================================
+
+  P2 fila 842: sku=2000056 nombre='Par de patillas' cat='Compostura' marca='Optica San Cayetano' stock=526
+      vecina fila 840: 'Compostura de Patilla Izquierda' cat='Compostura' stock=99637
+      vecina fila 841: 'Compostura de Patilla Derecha' cat='Compostura' stock=99608
+      vecina fila 843: 'Compostura Simple' cat='Compostura' stock=99808
+      vecina fila 844: 'Compostura Flex' cat='Compostura' stock=99884
+  PC: el codigo 2000056 NO aparece
+
+  P2 fila 853: sku=000005 nombre='Mostacillas' cat='Compostura' marca='Proray' stock=2
+      vecina fila 851: 'Solamax' cat='Compostura' stock=776
+      vecina fila 852: 'Bifocal (ST)' cat='Compostura' stock=997
+      vecina fila 854: 'Hilo' cat='Compostura' stock=99981
+      vecina fila 855: 'Tornillo' cat='Compostura' stock=99425
+  PC: el codigo 000005 NO aparece
+
+  -- otros articulos cuyo nombre menciona 'patilla' --
+    PC fila    17 sku=  000039 LINTERNA O LUZ CHICA CON SUJETADOR PARA PATILL   cat=Accesorios   marca=Óptica Puppilent`s     stock=11
+    P2 fila    11 sku=  000039 linterna o luz chica con sujetador p/ patilla    cat=Accesorios   marca=AliExpress             stock=5
+    P2 fila   840 sku= 2000054 Compostura de Patilla Izquierda                  cat=Compostura   marca=Optica San Cayetano    stock=99637
+    P2 fila   841 sku= 2000055 Compostura de Patilla Derecha                    cat=Compostura   marca=Optica San Cayetano    stock=99608
+    P2 fila   842 sku= 2000056 Par de patillas                                  cat=Compostura   marca=Optica San Cayetano    stock=526
+
+  -- otros articulos cuyo nombre menciona 'mostacilla' --
+    PC fila    18 sku=  000040 Mostacilla Hanis                                 cat=Accesorios   marca=Hanis                  stock=7
+    PC fila  8454 sku=  000012 Mostacilla                                       cat=Sujetadores  marca=Proray                 stock=130
+    P2 fila     7 sku=  000040 Mostacilla Hanis                                 cat=Accesorios   marca=Hanis                  stock=1
+    P2 fila   853 sku=  000005 Mostacillas                                      cat=Compostura   marca=Proray                 stock=2
+    P2 fila  1037 sku=  000012 Mostacilla                                       cat=Sujetadores  marca=Proray                 stock=13
+
+  -- marcas de la categoria Compostura en P2, y que categorias usan esas marcas --
+    Optica San Cayetano          en Compostura:  11  | esa marca aparece en: {'Compostura': 11, 'Sujetadores': 2}
+    Laboratorio Optilab          en Compostura:   8  | esa marca aparece en: {'Armazones': 1, 'Compostura': 8, 'Cristales': 14}
+    Óptica Puppilent`s           en Compostura:   1  | esa marca aparece en: {'Accesorios': 5, 'Compostura': 1, 'Limpia Cristales': 4, 'Sujetadores': 2}
+    Proray                       en Compostura:   1  | esa marca aparece en: {'Accesorios': 8, 'Armazones': 84, 'Compostura': 1, 'Paños': 2, 'Sujetadores': 17, 'Estuches': 1}
+
+==============================================================================
+B. LAS FILAS SIN CATEGORIA DE PC
+==============================================================================
+  filas sin categoria: 6 (de las cuales 4 llegan a normalizarse)
+
+  fila     5 | sku=      101181 | AC PAT FLEX NEGRO K9416 51-21-140 C206         | marca=(vacia)      | stock=1
+        -> el codigo NO aparece en P2
+        vecina fila 6: 'AC PAT FLEX NEGRO K9771 53-17-143 C5' cat='(vacia)'
+        vecina fila 7: 'AC APT FLEX ROSA 9151 44-20-130 C12' cat='(vacia)'
+  fila     6 | sku=      100093 | AC PAT FLEX NEGRO K9771 53-17-143 C502         | marca=Steffani     | stock=1
+        -> el codigo NO aparece en P2
+        vecina fila 5: 'AC PAT FLEX NEGRO K9416 51-21-140 C2' cat='(vacia)'
+        vecina fila 7: 'AC APT FLEX ROSA 9151 44-20-130 C12' cat='(vacia)'
+        vecina fila 8: 'AC PAC FIJA AZUL' cat='(vacia)'
+  fila     7 | sku=      100240 | AC APT FLEX ROSA 9151 44-20-130 C12            | marca=Betania      | stock=1
+        -> el codigo NO aparece en P2
+        vecina fila 5: 'AC PAT FLEX NEGRO K9416 51-21-140 C2' cat='(vacia)'
+        vecina fila 6: 'AC PAT FLEX NEGRO K9771 53-17-143 C5' cat='(vacia)'
+        vecina fila 8: 'AC PAC FIJA AZUL' cat='(vacia)'
+        vecina fila 9: 'Armazon' cat='(vacia)'
+  fila     8 | sku=(sin codigo) | AC PAC FIJA AZUL                               | marca=(vacia)      | stock=1
+        -> el codigo NO aparece en P2
+        vecina fila 6: 'AC PAT FLEX NEGRO K9771 53-17-143 C5' cat='(vacia)'
+        vecina fila 7: 'AC APT FLEX ROSA 9151 44-20-130 C12' cat='(vacia)'
+        vecina fila 9: 'Armazon' cat='(vacia)'
+  fila     9 | sku=(sin codigo) | Armazon                                        | marca=(vacia)      | stock=1
+        -> el codigo NO aparece en P2
+        vecina fila 7: 'AC APT FLEX ROSA 9151 44-20-130 C12' cat='(vacia)'
+        vecina fila 8: 'AC PAC FIJA AZUL' cat='(vacia)'
+        vecina fila 11: 'AC PAT FLEX NEGRO 28174 51-18-140 C.' cat='(vacia)'
+  fila    11 | sku=      108004 | AC PAT FLEX NEGRO 28174 51-18-140 C.2          | marca=(vacia)      | stock=1
+        -> el codigo NO aparece en P2
+        vecina fila 9: 'Armazon' cat='(vacia)'
+        vecina fila 12: 'Destornillador Llavero' cat='Accesorios'
+        vecina fila 13: 'Kit de Mantenimiento' cat='Accesorios'
+
+  -- que categoria tienen las filas cuya descripcion empieza igual --
+    fila     5 prefijo 'ac pat'         -> categorias de las 3065 filas con ese prefijo: {'Armazones': 2773, 'Lentes de Sol': 289, '(sin categoria)': 3}
+    fila     6 prefijo 'ac pat'         -> categorias de las 3065 filas con ese prefijo: {'Armazones': 2773, 'Lentes de Sol': 289, '(sin categoria)': 3}
+    fila     7 prefijo 'ac apt'         -> categorias de las 1 filas con ese prefijo: {'(sin categoria)': 1}
+    fila     8 prefijo 'ac pac'         -> categorias de las 1 filas con ese prefijo: {'(sin categoria)': 1}
+    fila     9 prefijo 'armazon'        -> categorias de las 1 filas con ese prefijo: {'(sin categoria)': 1}
+    fila    11 prefijo 'ac pat'         -> categorias de las 3065 filas con ese prefijo: {'Armazones': 2773, 'Lentes de Sol': 289, '(sin categoria)': 3}
+
+  -- las marcas Steffani y Betania, en que categorias aparecen --
+    Steffani     -> {'Armazones': 585, '(sin categoria)': 1}
+    Betania      -> {'Armazones': 357, '(sin categoria)': 1}
+
+==============================================================================
+C. 000010 LIMPIA CRISTAL = 2860
+==============================================================================
+  fila fisica en PC: 8397
+    fila 8395: stock_valor=None tipo='n' formula=None formato='#,##0.00' articulo=''
+    fila 8396: stock_valor=None tipo='n' formula=None formato='#,##0.00' articulo=''
+    fila 8397: stock_valor=2860 tipo='n' formula=2860 formato='#,##0.00' articulo='000010 Limpia Cristal'
+    fila 8398: stock_valor=210 tipo='n' formula=210 formato='#,##0.00' articulo='000037 LIMPIA CRISTAL OBSEQUIO'
+    fila 8399: stock_valor=3 tipo='n' formula=3 formato='#,##0.00' articulo='300653145470 Opti free Express 355ml'
+  celda objetivo C8397: valor=2860 python=int data_type='n' number_format='#,##0.00'
+  merges en la hoja: 0
+  la celda esta en un merge: False
+  columna Observacion en esa fila: None
+  Casilla/Zona en esa fila: None / None
+
+  -- el mismo articulo en el otro archivo --
+    P2 fila 1021: 'LIMPIA CRISTAL' cat='Limpia Cristales' marca='Óptica Puppilent`s' stock=10
+
+  -- todos los articulos de la categoria Limpia Cristales --
+    PC fila  8397 sku=  000010 Limpia Cristal                             marca=Óptica Puppilent`s       stock=2860
+    PC fila  8398 sku=  000037 LIMPIA CRISTAL OBSEQUIO                    marca=Óptica Puppilent`s       stock=210
+    P2 fila  1021 sku=  000010 LIMPIA CRISTAL                             marca=Óptica Puppilent`s       stock=10
+    P2 fila  1022 sku=  000037 LIMPIA CRISTAL OBSEQUIO                    marca=Óptica Puppilent`s       stock=516
+
+  -- 'limpia' o 'cristal' en el nombre, en cualquier categoria --
+    PC fila  8397 sku=  000010 Limpia Cristal                             cat=Limpia Cristales   stock=2860
+    PC fila  8398 sku=  000037 LIMPIA CRISTAL OBSEQUIO                    cat=Limpia Cristales   stock=210
+    P2 fila  1021 sku=  000010 LIMPIA CRISTAL                             cat=Limpia Cristales   stock=10
+    P2 fila  1022 sku=  000037 LIMPIA CRISTAL OBSEQUIO                    cat=Limpia Cristales   stock=516
+
+  -- otra fuente de inventario: inventario_base.xlsx --
+    fila 2249: '2000056 Par de patillas' cat='Composturas' marca='Óptica San Cayetano' stock='616.0'
+    fila 2666: '000037 LIMPIA CRISTAL OBSEQUIO' cat='Limpia Cristales' marca='Óptica Puppilent`s' stock='210.0'
+    fila 2667: '000010 Limpia Cristal' cat='Limpia Cristales' marca='Óptica Puppilent`s' stock='2860.0'
+    coincidencias: 3
+
+  -- distribucion de stock en PC, para ubicar 2860 --
+    top 12: [2860, 978, 953, 210, 141, 130, 122, 97, 90, 88, 80, 59]
+    2860 es 2.9 veces el segundo valor mas alto (978)==============================================================================
+LA TERCERA FUENTE: inventario_base.xlsx (BC-Inventario-Control, corte 2026-08-04)
+==============================================================================
+  filas con articulo : 2710
+  codigos distintos  : 2701
+  categorias         : {'Armazones': 2225, 'Lentes de Sol': 269, 'Lente de contacto': 104, 'Cristales': 33, 'Sujetadores': 27, 'Líquidos Multipropósitos': 14, 'Accesorios': 13, 'Composturas': 9, '(sin categoria)': 5, 'Estuches': 3, 'Limpia Cristales': 2, 'Adaptaciones': 1, 'Envios': 1, 'Marcadores': 1, 'Medicamentos': 1, 'Organizadores': 1, 'Paños': 1}
+
+  codigos de BASE que estan en PC        : 2577
+  codigos de BASE que estan en P2        : 227
+  codigos de BASE SOLO en PC (no en P2)  : 2397
+  codigos de BASE SOLO en P2 (no en PC)  : 47
+  codigos de BASE que no estan en ninguno: 77
+
+==============================================================================
+A. LAS DOS EXCEPCIONES, CONTRASTADAS CONTRA LA TERCERA FUENTE
+==============================================================================
+  -- Par de patillas (2000056) --
+    PC   @2026-08-03: no aparece
+    P2   @2026-08-10: stock=       526 cat='Compostura' marca='Optica San Cayetano'
+    BASE @2026-08-04: stock=     616.0 cat='Composturas' marca='Óptica San Cayetano'
+  -- Mostacillas (000005) --
+    PC   @2026-08-03: no aparece
+    P2   @2026-08-10: stock=         2 cat='Compostura' marca='Proray'
+    BASE @2026-08-04: no aparece
+
+  -- se mueve el stock entre cortes? servicios vs cosas fisicas --
+    articulo                                 P2 (08-10)   BASE (08-04)   movio?
+    Compostura del Aro del Armazon                   84        no esta        -
+    CENTRADO                                      99764          816.0       SI
+    Compostura de Patilla Izquierda               99637          899.0       SI
+    Compostura de Patilla Derecha                 99608          931.0       SI
+    Par de patillas                                 526          616.0       SI
+    Compostura Simple                             99808          411.0       SI
+    Compostura Flex                               99884         9228.0       SI
+    Organico UVX                                    690         8752.0       SI
+    Fotocromático (AR)                              707          625.0       SI
+    Multifocal (OP)                                 934          714.0       SI
+    Kripto (Kto) Organico UVX                      9480          402.0       SI
+    Blue Ar                                         456          632.0       SI
+    Adaptacion de cristal                         99916          936.0       SI
+    Solamax                                         776          606.0       SI
+    Bifocal (ST)                                    997          920.0       SI
+    Mostacillas                                       2        no esta        -
+    Hilo                                          99981          949.0       SI
+    Tornillo                                      99425          708.0       SI
+    Plaqueta                                       9393          575.0       SI
+    Compostura del Puente del Armazon                78        no esta        -
+    Compostura de Porta Plaquetas                    87        no esta        -
+
+==============================================================================
+B. DISCRIMINADOR ENTRE Armazones Y Lentes de Sol
+==============================================================================
+  Las dos categorias son PRODUCTO_STOCKEABLE, asi que la NATURALEZA no depende
+  de cual sea. Igual se busca si algo del texto las separa.
+
+    Armazones      (3004 filas) prefijos: {'ac pat': 2773, 'ah pat': 186, 'at pat': 17, 'altania ac': 3, 'terminado 1': 3, 'terminado 3': 3}
+    Lentes de Sol  (300 filas) prefijos: {'ac pat': 289, 'ah pat': 6, 'at pat': 2, 'pat fija': 2, '': 1}
+
+  -- filas 'AC PAT' que son Lentes de Sol: como se ven --
+      'AC PAT FIJA NEGRO DCP23013 54-20-141 COL.CF1' marca=Discovery
+      'AC PAT FIJA NEGRO BOL2517 135-145 F1' marca=Bosani
+      'AC PAT FIJA NEGRO-AMARILLO BOL2505 54-17-145 B1' marca=Bosani
+      'AC PAT FIJA PLATEADO DCP23003 59-16-144 CCET13' marca=Discovery
+      'AC PAT FIJA NEGRO-ROJO BOL2515 55-21-145 B1F7' marca=Bosani
+      'AC PAT FLEX TRANSPARENTE B5754 49-20-140 C512' marca=Alfani
+      (total 289)
+
+  -- las 4 filas sin categoria, contra BASE --
+    101181: PC cat='' marca='' | BASE cat='' marca='' stock=1.0
+    100093: PC cat='' marca='Steffani' | BASE cat='' marca='Steffani' stock=1.0
+    100240: PC cat='' marca='Betania' | BASE cat='' marca='Betania' stock=1.0
+    108004: PC cat='' marca='' | BASE cat='' marca='' stock=1.0
+
+==============================================================================
+C. LIMPIA CRISTAL 2860, CONTRASTADO
+==============================================================================
+  -- Limpia Cristal (000010) --
+    PC   @2026-08-03: stock=      2860 cat='Limpia Cristales' marca='Óptica Puppilent`s'
+    P2   @2026-08-10: stock=        10 cat='Limpia Cristales' marca='Óptica Puppilent`s'
+    BASE @2026-08-04: stock=    2860.0 cat='Limpia Cristales' marca='Óptica Puppilent`s'
+  -- Limpia Cristal OBSEQUIO (000037) --
+    PC   @2026-08-03: stock=       210 cat='Limpia Cristales' marca='Óptica Puppilent`s'
+    P2   @2026-08-10: stock=       516 cat='Limpia Cristales' marca='Óptica Puppilent`s'
+    BASE @2026-08-04: stock=     210.0 cat='Limpia Cristales' marca='Óptica Puppilent`s'
+
+  -- otros articulos de PC con stock alto, comparados con BASE --
+    articulo                                       PC       BASE       P2
+    Limpia Cristal                               2860     2860.0       10
+    Goma Niño                                     978      978.0       12
+    Capuchon                                      953      953.0       82
+    LIMPIA CRISTAL OBSEQUIO                       210      210.0      516
+    Acuatear  10ml                                141      141.0       16
+    Mostacilla                                    130      130.0       13
+    Cordon                                        122      122.0       12
+    Goma Adulto                                    97       97.0        2
+    Goma Deportiva                                 90       90.0        5
+    Sujetador                                      88       88.0       19
+    Franela                                        80       80.0       10
+
+  -- cuantos codigos coinciden exactamente entre PC y BASE --
+    codigos comunes PC/BASE: 2577 | mismo stock: 2577 | distinto: 0

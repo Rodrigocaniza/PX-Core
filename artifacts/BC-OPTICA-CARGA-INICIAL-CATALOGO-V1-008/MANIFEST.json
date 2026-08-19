@@ -12,7 +12,6 @@
   "merge_to_main": false,
   "force_push": false,
   "codigo_de_producto_modificado": "ninguno. Esta mision solo agrega artefactos",
-
   "base_canonica": {
     "elegida": "a7b685c",
     "por_que_no_origin_main": "main = 7db56a0 = rc.31 con 21 migraciones. Produccion corre rc.32 con 27. Crear la mision desde main habria eliminado las migraciones 022-027 que produccion usa: no habria existido ni la tabla articles",
@@ -21,7 +20,6 @@
     "cadena_verificada": "7db56a0 -> ed0dbba -> 54f5f06 -> ecc0c7b -> b580e50 -> a8443a3 -> 5bc1540 -> a7b685c",
     "produccion_por_delante_de_main": true
   },
-
   "estado_productivo_verificado": {
     "version": "BC Caja 1.0.0-rc.32",
     "migraciones": 27,
@@ -37,7 +35,6 @@
     "foreign_key_check": 0,
     "sha256": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de"
   },
-
   "mapping_de_sucursales": {
     "estado": "VALIDADO CONTRA EL ESTADO CANONICO, no supuesto",
     "fuente": "tabla cash_register_branches en la base productiva, sembrada por las migraciones 018 y 020",
@@ -46,7 +43,6 @@
     "corroboracion": "los 8 pedidos reales de esta instalacion tienen orders.branch = 'PC'",
     "nota": "la orden autorizaba PC->ASUNCION solo como hipotesis; dejo de serlo al encontrarlo en el vinculo canonico que ya existia en produccion"
   },
-
   "fuentes": {
     "PC - Inventario.xlsx": {
       "ruta": "C:/Users/Striker/Downloads/Inventarios 2026/PC - Inventario.xlsx",
@@ -58,7 +54,11 @@
       "filas_con_articulo": 2586,
       "normalizadas": 2576,
       "rechazadas": 10,
-      "columnas_vacias_en_todo_el_archivo": ["Casilla", "Zona", "Observacion"]
+      "columnas_vacias_en_todo_el_archivo": [
+        "Casilla",
+        "Zona",
+        "Observacion"
+      ]
     },
     "P2 - Inventario.xlsx": {
       "ruta": "C:/Users/Striker/Downloads/Inventarios 2026/P2 - Inventario.xlsx",
@@ -68,19 +68,17 @@
       "filas_fisicas": 1054,
       "filas_vacias": 0,
       "filas_con_articulo": 1052,
-      "normalizadas": 1051,
-      "rechazadas": 1
+      "normalizadas": 1050,
+      "rechazadas": 2
     }
   },
-
   "anomalias": {
     "8459_filas_de_PC": "EXPLICADA: 5.871 filas totalmente vacias. Los articulos reales son 2.586, coherente con los ~2.000 que la documentacion esperaba de Asuncion. Cero filas de total, subtotal, encabezado repetido o historico",
-    "837403_unidades_de_P2": "EXPLICADA: 8 filas de Compostura declaran ~99.900 cada una. Es el centinela con que el sistema viejo modela un servicio inagotable. 11 filas concentran 818.867 de 837.403. No se corrigio a mano: con la naturaleza correcta un servicio no puede llevar stock",
+    "837403_unidades_de_P2": "EXPLICADA: 8 filas de Compostura declaran ~99.900 cada una. Es el valor centinela con que el sistema viejo marca algo como inagotable. inventario_base, del 04/08, traia esas mismas filas entre 411 y 949: el salto ocurrio en seis dias, asi que nadie compro 99.000 hilos. Seis de los ocho son servicios y no pueden llevar stock; los otros dos (Hilo y Tornillo) si son fisicos, y por eso entran al catalogo con la cantidad en suspenso en vez de con el centinela",
     "codigo_no_es_identificador_global": "CRITICA Y RESUELTA: de 107 codigos de armazon compartidos entre archivos, uno solo describe el mismo marco. Tratar el codigo como SKU global habria fusionado armazones distintos y sumado stock sobre algo inexistente",
     "duplicados_dentro_de_cada_archivo": "NINGUNO: 0 nombres exactos repetidos, 0 normalizados repetidos, 0 codigos repetidos, en los dos archivos",
-    "valores_altos_sin_forma_de_centinela": "5 casos, el mayor 2.860 limpia-cristales en Asuncion. Plausibles pero conviene confirmarlos: van al HUMAN_GATE"
+    "valores_altos_sin_forma_de_centinela": "resueltos salvo uno. Goma Nino 978, Capuchon 953, Estuches para Anteojos 835 y LIMPIA CRISTAL OBSEQUIO 516 quedan como estan: son insumos de bulto y coherentes entre fuentes. 000010 Limpia Cristal 2.860 va al HUMAN_GATE como LIKELY_REAL_BUT_REQUIRES_HUMAN_CONFIRMATION"
   },
-
   "regla_de_identidad_de_articulo": {
     "global": "codigos de barras de fabricante (11 a 13 digitos), catalogo interno 00xxxx (6 digitos) y 2000xxx (7 digitos)",
     "por_sucursal": "todo lo demas, con prefijo ASU- o PIL-",
@@ -90,25 +88,57 @@
       "armazones_compartidos": "107 compartidos, 1 solo describe el mismo articulo"
     }
   },
-
   "nature_por_categoria": {
     "artefacto": "MAPPING_CATEGORIAS_NATURE.md",
     "categorias_cubiertas": 15,
-    "PRODUCTO_STOCKEABLE": ["Armazones", "Lentes de Sol", "Lente de contacto", "Sujetadores", "Accesorios", "Liquidos Multipropositos", "Estuches", "Estuche LC", "Limpia Cristales", "Marcadores", "Medicamentos", "Organizadores", "Panos"],
-    "TRABAJO_BAJO_PEDIDO": ["Cristales"],
-    "REQUIRES_POLICY_DECISION": ["Compostura", "(sin categoria)"],
-    "regla": "la naturaleza sale de la categoria, nunca de la descripcion de la fila"
+    "PRODUCTO_STOCKEABLE": [
+      "Armazones",
+      "Lentes de Sol",
+      "Lente de contacto",
+      "Sujetadores",
+      "Accesorios",
+      "Liquidos Multipropositos",
+      "Estuches",
+      "Estuche LC",
+      "Limpia Cristales",
+      "Marcadores",
+      "Medicamentos",
+      "Organizadores",
+      "Panos"
+    ],
+    "TRABAJO_BAJO_PEDIDO": [
+      "Cristales"
+    ],
+    "REQUIRES_POLICY_DECISION": [],
+    "regla": "la naturaleza sale de la categoria. Donde la categoria no informaba se resolvio fila por fila, con decision humana o con evidencia del propio universo de datos, y quedo escrito cual de las dos fue. Nunca de la descripcion de la fila",
+    "resueltas_fila_por_fila": {
+      "Compostura": "21 filas: 9 servicios, 7 tipos de cristal, 3 repuestos fisicos (decision humana), 1 por evidencia (000005 Mostacillas), 1 sin resolver (2000056 Par de patillas)",
+      "(sin categoria)": "4 filas, todas PRODUCTO_STOCKEABLE por evidencia; categoria determinada en 2 y dejada vacia en 2"
+    }
   },
-
   "normalizacion": {
-    "registros_normalizados": 3627,
-    "filas_rechazadas": 11,
-    "articulos_canonicos": 3529,
-    "con_identificador_global": 226,
-    "con_prefijo_de_sucursal": 3303,
+    "registros_normalizados": 3626,
+    "filas_rechazadas": 12,
+    "articulos_canonicos": 3553,
+    "con_identificador_global": 246,
+    "con_prefijo_de_sucursal": 3307,
     "presentes_en_las_dos_sucursales": 73,
-    "en_espera_de_decision": 25,
-    "campos_por_registro": ["sku canonico", "descripcion canonica", "categoria", "marca", "sucursal", "stock inicial", "nature", "idempotency key", "archivo de origen", "hoja", "fila fisica original", "corte del inventario", "texto original completo"],
+    "en_espera_de_decision": 0,
+    "campos_por_registro": [
+      "sku canonico",
+      "descripcion canonica",
+      "categoria",
+      "marca",
+      "sucursal",
+      "stock inicial",
+      "nature",
+      "idempotency key",
+      "archivo de origen",
+      "hoja",
+      "fila fisica original",
+      "corte del inventario",
+      "texto original completo"
+    ],
     "conflictos_entre_sucursales": {
       "sku_en_ambos_archivos": 180,
       "descripcion_distinta": 139,
@@ -116,30 +146,28 @@
       "naturaleza_distinta": 0
     }
   },
-
   "dry_run": {
     "artefacto": "DRY_RUN.txt",
     "base": "copia consistente de la base productiva, por la API de backup de SQLite",
     "mecanismo": "el real de dos pasos: planificar_carga_de_articulos + aplicar_carga_de_articulos, y despues cargar_stock_inicial",
     "veredicto": "PASS, 0 fallas",
-    "plan_catalogo": "3529 altas, 0 actualizaciones, 0 rechazadas",
-    "catalogo_no_es_stock": "tras crear 3.529 articulos, 0 movimientos",
-    "categorias_creadas": 13,
+    "plan_catalogo": "3553 altas, 0 actualizaciones, 0 rechazadas",
+    "catalogo_no_es_stock": "tras crear 3.553 articulos, 0 movimientos",
+    "categorias_creadas": 14,
     "marcas_creadas": 136,
-    "movimientos": 3579,
-    "unidades_ASUNCION": 8705,
-    "unidades_PILAR": 2897,
-    "kind": "INGRESO_ADMINISTRATIVO en los 3.579",
-    "reason_code": "INVENTARIO_INICIAL en los 3.579",
+    "movimientos": 3583,
+    "unidades_ASUNCION": 5849,
+    "unidades_PILAR": 2899,
+    "kind": "INGRESO_ADMINISTRATIVO en los 3.583",
+    "reason_code": "INVENTARIO_INICIAL en los 3.583",
     "document_kind": "CARGA_INICIAL",
-    "fecha_grabada": "2026-08-03 en las 2.572 de Asuncion, 2026-08-10 en las 1.007 de Pilar. No la fecha de hoy",
+    "fecha_grabada": "2026-08-03 en las 2.575 de Asuncion, 2026-08-10 en las 1.008 de Pilar",
     "movimientos_sin_nota": 0,
     "movimientos_sin_actor": 0,
     "idempotencia": {
       "reaplicar_el_archivo": "rechazado por sha256 ya cargado",
       "repetir_el_recuento": "devuelve la misma corrida, no crea otra",
       "movimientos_duplicados": 0,
-      "unidades_duplicadas": 0,
       "articulos_duplicados": 0
     },
     "integrity_check": "ok",
@@ -147,35 +175,37 @@
     "stock_negativo": 0,
     "movimientos_huerfanos": 0,
     "efectos_sin_hecho": 0,
-    "caja_intacta": {"cash_entries": 12, "suma": 6400000, "sale_items": 10},
+    "caja_intacta": {
+      "cash_entries": 12,
+      "suma": 6400000,
+      "sale_items": 10
+    },
     "base_productiva_sha256_antes": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
-    "base_productiva_sha256_despues": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de"
+    "base_productiva_sha256_despues": "aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de",
+    "generacion": 2
   },
-
   "entregables_reutilizables": {
     "catalogo_canonico.csv": {
-      "filas": 3529,
+      "filas": 3553,
       "formato": "docs/PLANTILLA_ARTICULOS.csv",
-      "sha256": "226a724553d66a0b6918c85232b7b7c18810ee82357f6b560a7d28ac4e3de15f",
-      "nota": "este sha256 ES la clave de idempotencia del paso de catalogo: si el archivo cambia, cambia la clave"
+      "sha256": "be2a07bf48819e9a2ec3a4074dc83afd98a0cb49aa445a3984540b420b46969d",
+      "nota": "este sha256 ES la clave de idempotencia del paso de catalogo. Cambio respecto de la generacion 1 (226a7245...) porque el archivo cambio, y eso es correcto"
     },
     "recuento_ASUNCION.json": {
-      "lineas": 2572,
-      "unidades": 8705,
-      "sha256": "65334221ca0827d9959fb9175fd74a05e02d592e31129d1692930c6237885786"
+      "lineas": 2575,
+      "unidades": 5849,
+      "sha256": "f6c85d32d863b2ddd8ae1a2c7094b6303fe20a5ddc7bcc42929bfc08d2021530"
     },
     "recuento_PILAR.json": {
-      "lineas": 1007,
-      "unidades": 2897,
-      "sha256": "3062a50652d4b9c3a597690f81192ec474d98ca25d8e560f973ce6191c57bce1"
+      "lineas": 1008,
+      "unidades": 2899,
+      "sha256": "759b41bff84d3a770fbd23ccd0626bfba28432d6427704d79ef5892a0837aff5"
     }
   },
-
   "verification": {
-    "suite_comercial_en_esta_pc": "254 passed",
+    "suite_comercial_en_esta_pc": "254 passed en la generacion 1. No re-corrida: esta generacion no toca codigo de producto, solo tablas de decision del normalizador, y el dry run ejercita ese camino de punta a punta",
     "suite_completa": "no re-corrida: la mision no toca codigo de producto. Vale la del slice 6 sobre 5bc1540"
   },
-
   "no_ejecutado_a_proposito": {
     "carga_sobre_produccion": "NO. Prohibida por la orden de esta generacion",
     "resolver_Compostura_por_inferencia": "NO. Va al HUMAN_GATE",
@@ -183,5 +213,68 @@
     "inventar_codigos_para_las_11_filas_sin_SKU": "NO",
     "merge_a_main": "NO",
     "pr": "NO"
+  },
+  "generacion": 2,
+  "generacion_1": "analisis, normalizacion y dry run con 25 filas en REQUIRES_POLICY_DECISION. Commit a21c304",
+  "generacion_2": "decision humana de Compostura aplicada, las dos excepciones restantes investigadas con evidencia, 4 filas sin categoria resueltas, cantidades centinela puestas en suspenso, dry run vuelto a correr",
+  "decisiones_incorporadas": {
+    "compostura_decision_humana_19_08_2026": {
+      "SERVICIO_NO_STOCKEABLE": 9,
+      "TRABAJO_BAJO_PEDIDO": 7,
+      "PRODUCTO_STOCKEABLE": [
+        "2000070 Hilo",
+        "2000071 Tornillo",
+        "2000072 Plaqueta"
+      ]
+    },
+    "000005_Mostacillas": {
+      "resultado": "PRODUCTO_STOCKEABLE, categoria Sujetadores",
+      "resuelto_por": "evidencia, sin intervencion humana",
+      "evidencia": "los otros tres articulos llamados Mostacilla* del universo son bienes fisicos; el mas cercano, 000012 Mostacilla, comparte la marca Proray y esta en Sujetadores en PC y en P2. Su stock, 2, tiene forma de conteo"
+    },
+    "cuatro_filas_sin_categoria": {
+      "resultado": "las cuatro PRODUCTO_STOCKEABLE",
+      "resuelto_por": "evidencia, sin intervencion humana",
+      "evidencia_naturaleza": "las 3.065 filas del universo cuya descripcion empieza con AC PAT / AC APT / AC PAC son Armazones (2.773) o Lentes de Sol (289). No hay tercera posibilidad y las dos son PRODUCTO_STOCKEABLE",
+      "categoria_determinada": {
+        "100093": "Armazones por marca Steffani (585/585)",
+        "100240": "Armazones por marca Betania (357/357)"
+      },
+      "categoria_no_determinada": [
+        "101181",
+        "108004"
+      ],
+      "criterio": "la categoria queda vacia en vez de inventada; no afecta el comportamiento de stock"
+    }
+  },
+  "correccion_de_un_artefacto_propio": {
+    "que_decia": "MAPPING_CATEGORIAS_NATURE.md afirmaba que los ocho valores de ~99.900 caian todos en el grupo de servicios",
+    "que_es_cierto": "Hilo (99.981) y Tornillo (99.425) son dos de esos ocho y estan en el grupo de repuestos fisicos",
+    "impacto": "la naturaleza aprobada sigue siendo correcta, pero la cantidad de los tres repuestos es un centinela y no un conteo. Sin corregirlo la carga habria metido 108.799 unidades fantasma en Pilar",
+    "corregido_en": "MAPPING_CATEGORIAS_NATURE.md y EXCEPCIONES_RESUELTAS.md"
+  },
+  "cantidades_en_suspenso": {
+    "criterio": "el articulo entra al catalogo; sus unidades no. Un numero que no es un conteo no puede convertirse en stock",
+    "articulos": 4,
+    "unidades_declaradas_que_no_entran": 211659,
+    "detalle": {
+      "2000070 Hilo (PILAR)": "99.981 declarados, centinela. inventario_base traia 949 el 04/08",
+      "2000071 Tornillo (PILAR)": "99.425 declarados, centinela. inventario_base traia 708 el 04/08",
+      "2000072 Plaqueta (PILAR)": "9.393 declarados, centinela. inventario_base traia 575 el 04/08",
+      "000010 Limpia Cristal (ASUNCION)": "2.860 declarados, pendiente de confirmacion humana"
+    }
+  },
+  "sin_resolver": {
+    "2000056 Par de patillas": {
+      "estado": "fuera del catalogo hasta que se decida",
+      "por_que": "puede ser el repuesto fisico o el servicio de cambiarlo. Las filas vecinas 2000054 y 2000055 ya son los servicios de patilla, lo que sugiere que esta es la pieza, pero es inferencia por vecindad. La cantidad no discrimina: en esta categoria los numeros saltan en las dos direcciones sin ser conteos. La marca aparece en Compostura y en Sujetadores. No esta en PC ni en ninguna otra fuente"
+    }
+  },
+  "tercera_fuente_hallada": {
+    "archivo": "BC-Inventario-Control/data/inventario_base.xlsx",
+    "corte": "2026-08-04",
+    "filas": 2710,
+    "aporta": "227 codigos de P2 con valores de otra fecha, que fue lo que dejo ver el salto de los centinelas",
+    "no_es_conteo_independiente": "de los 2.577 codigos que comparte con PC, los 2.577 traen exactamente el mismo stock. Es otra extraccion del mismo sistema"
   }
 }

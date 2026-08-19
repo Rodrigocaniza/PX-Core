@@ -24,6 +24,12 @@
   "corte": "2026-08-10"
  },
  {
+  "sku": "000005",
+  "cantidad": 2,
+  "fuente": "P2 - Inventario.xlsx#853",
+  "corte": "2026-08-10"
+ },
+ {
   "sku": "000006",
   "cantidad": 12,
   "fuente": "P2 - Inventario.xlsx#1043",

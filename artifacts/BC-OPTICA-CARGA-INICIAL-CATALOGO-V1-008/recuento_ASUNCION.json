@@ -36,12 +36,6 @@
   "corte": "2026-08-03"
  },
  {
-  "sku": "000010",
-  "cantidad": 2860,
-  "fuente": "PC - Inventario.xlsx#8397",
-  "corte": "2026-08-03"
- },
- {
   "sku": "000011",
   "cantidad": 88,
   "fuente": "PC - Inventario.xlsx#8453",
@@ -1020,6 +1014,12 @@
   "corte": "2026-08-03"
  },
  {
+  "sku": "ASU-100093",
+  "cantidad": 1,
+  "fuente": "PC - Inventario.xlsx#6",
+  "corte": "2026-08-03"
+ },
+ {
   "sku": "ASU-100100",
   "cantidad": 1,
   "fuente": "PC - Inventario.xlsx#4079",
@@ -1149,6 +1149,12 @@
   "sku": "ASU-100230",
   "cantidad": 1,
   "fuente": "PC - Inventario.xlsx#3947",
+  "corte": "2026-08-03"
+ },
+ {
+  "sku": "ASU-100240",
+  "cantidad": 1,
+  "fuente": "PC - Inventario.xlsx#7",
   "corte": "2026-08-03"
  },
  {
@@ -2115,6 +2121,12 @@
   "sku": "ASU-101178",
   "cantidad": 1,
   "fuente": "PC - Inventario.xlsx#4721",
+  "corte": "2026-08-03"
+ },
+ {
+  "sku": "ASU-101181",
+  "cantidad": 1,
+  "fuente": "PC - Inventario.xlsx#5",
   "corte": "2026-08-03"
  },
  {
@@ -13917,6 +13929,12 @@
   "sku": "ASU-108002",
   "cantidad": 1,
   "fuente": "PC - Inventario.xlsx#364",
+  "corte": "2026-08-03"
+ },
+ {
+  "sku": "ASU-108004",
+  "cantidad": 1,
+  "fuente": "PC - Inventario.xlsx#11",
   "corte": "2026-08-03"
  },
  {

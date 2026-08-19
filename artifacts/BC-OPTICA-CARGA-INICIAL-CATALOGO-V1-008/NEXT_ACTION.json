@@ -1,75 +1,95 @@
 {
   "mission": "BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008",
+  "generacion": 2,
   "state": "HUMAN_GATE",
   "repository": "PX-Core",
   "worktree": ".worktrees/optica-carga-catalogo-008",
   "branch": "feature/bc-optica-carga-inicial-catalogo-v1-008",
   "base_commit": "a7b685c163952e056d3109fae71b31576339821c",
-  "base_branch": "feature/bc-optica-instalacion-productiva-v1-007",
+  "generacion_1_commit": "a21c3046ba444dc6157a767fc76314638ab822ef",
   "closed_on": "2026-08-19",
   "closed_at": "PC Optica",
-  "blocked_on": "tres decisiones humanas, en HUMAN_GATE.md",
-  "produccion": "INTACTA. rc.32, 27 migraciones, 0 articulos, 0 movimientos. Esta mision no escribio una sola fila",
+  "blocked_on": "dos decisiones, en HUMAN_GATE.md. Ninguna es una naturaleza: una es una fila y la otra es una cantidad",
+  "produccion": "INTACTA. rc.32, 27 migraciones, 0 articulos, 0 movimientos, sha256 sin cambios",
 
-  "next_action": "Responder las tres decisiones de HUMAN_GATE.md y autorizar. Con la respuesta, Command Center: (1) reincorpora las 25 filas hoy en REQUIRES_POLICY_DECISION con la naturaleza que se decida; (2) regenera catalogo_canonico.csv y los dos recuentos -- OJO: al cambiar el archivo cambia su sha256, que es la clave de idempotencia del paso de catalogo, asi que el nuevo archivo es un import distinto y eso es correcto; (3) vuelve a correr el dry-run completo sobre copia de la base productiva; (4) solo si vuelve a dar PASS, hace backup verificable de la base real e importa sobre produccion en los dos pasos, con run_id fijo por sucursal para que la carga sea repetible sin duplicar; (5) verifica stock por sucursal, integridad, FK e invariantes sobre produccion; (6) cierra con Librarian, QA, Auditor y Artifact Consistency. NO hace falta que el dueno prepare, corrija ni mire ningun archivo: los dos XLSX ya estan leidos y los entregables ya estan generados",
+  "next_action": "Responder las dos de HUMAN_GATE.md: (1) si 2000056 Par de patillas es el repuesto fisico o el servicio de cambiarlo; (2) CONFIRMAR 2860 o NO IMPORTAR 2860 para 000010 Limpia Cristal en Asuncion. Con eso Command Center agrega la decision a DECISIONES_POR_SKU / CANTIDAD_EN_SUSPENSO en tools/carga_inicial_optica_normalizar.py, regenera catalogo y recuentos, vuelve a correr tools/carga_inicial_optica_dry_run.py, y si da PASS devuelve el HUMAN_GATE FINAL DE IMPORTACION con articulos a crear, unidades por sucursal, movimientos, excepciones descartadas, backup previsto, impacto exacto y rollback. La carga sobre produccion sigue sin autorizar",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
 
+  "resuelto_en_esta_generacion": {
+    "compostura_9_servicios": "SERVICIO_NO_STOCKEABLE, decision humana",
+    "compostura_7_cristales": "TRABAJO_BAJO_PEDIDO, decision humana",
+    "compostura_3_repuestos": "PRODUCTO_STOCKEABLE, decision humana. Cantidad en suspenso: los tres declaran centinelas",
+    "000005_Mostacillas": "PRODUCTO_STOCKEABLE / Sujetadores, por evidencia y sin intervencion",
+    "4_filas_sin_categoria": "PRODUCTO_STOCKEABLE las cuatro, por evidencia y sin intervencion. Categoria Armazones en 2, vacia en 2",
+    "en_espera_de_decision": 0
+  },
+
   "decisiones_pendientes": [
     {
-      "id": "COMPOSTURA-SE-ABRE-EN-TRES",
-      "filas": 21,
+      "id": "PAR-DE-PATILLAS",
+      "sku": "2000056",
       "sucursal": "PILAR",
-      "unidades_declaradas_en_suspenso": 822233,
-      "propuesta": {
-        "SERVICIO_NO_STOCKEABLE": ["CENTRADO", "Compostura Simple", "Compostura Flex", "Compostura de Patilla Izquierda", "Compostura de Patilla Derecha", "Compostura del Aro del Armazon", "Compostura del Puente del Armazon", "Compostura de Porta Plaquetas", "Adaptacion de cristal"],
-        "TRABAJO_BAJO_PEDIDO": ["Organico UVX", "Fotocromatico (AR)", "Multifocal (OP)", "Kripto (Kto) Organico UVX", "Blue Ar", "Solamax", "Bifocal (ST)"],
-        "PRODUCTO_STOCKEABLE": ["Hilo", "Tornillo", "Plaqueta"],
-        "sin_definir": ["Par de patillas: repuesto o el servicio de cambiarlas", "000005 Mostacillas: en el otro archivo esta en Sujetadores"]
-      }
-    },
-    {
-      "id": "CUATRO-FILAS-SIN-CATEGORIA",
-      "filas": 4,
-      "sucursal": "ASUNCION",
-      "unidades": 4,
-      "propuesta": "son Armazones. El sistema no lo asume solo porque la descripcion diga AC PAT FLEX: deducir la naturaleza del texto es lo que esta prohibido"
+      "estado": "fuera del catalogo hasta que se decida",
+      "pregunta": "repuesto fisico o servicio de cambiar las patillas",
+      "si_repuesto": "PRODUCTO_STOCKEABLE, y la cantidad va en suspenso: los 526 no son un conteo",
+      "si_servicio": "SERVICIO_NO_STOCKEABLE, sin unidades",
+      "por_que_no_se_resolvio": "las vecinas 2000054 y 2000055 ya son los servicios de patilla, lo que sugiere que esta es la pieza, pero es inferencia por vecindad. La cantidad no discrimina (526 el 10/08 contra 616 el 04/08, y en esa categoria los numeros saltan en las dos direcciones sin ser conteos). La marca aparece en Compostura y en Sujetadores. No esta en PC ni en ninguna otra fuente"
     },
     {
       "id": "LIMPIA-CRISTAL-2860",
+      "sku": "000010",
       "sucursal": "ASUNCION",
-      "propuesta": "confirmar o corregir la cantidad antes de asentarla. No tiene forma de centinela, asi que entraria tal cual, y despues solo se corrige compensando"
+      "clasificacion": "LIKELY_REAL_BUT_REQUIRES_HUMAN_CONFIRMATION",
+      "estado": "el articulo entra al catalogo; sus 2.860 unidades estan en suspenso",
+      "valor_fuente": "celda C8397 de PC - Inventario.xlsx, entero literal 2860, sin formula, sin merge, sin subtotal, sin arrastre, sin observacion. La hoja no tiene un solo rango combinado",
+      "corroboracion": "inventario_base.xlsx del 04/08 trae el mismo 2.860, pero los 2.577 codigos comunes con PC coinciden todos: prueba transcripcion fiel del sistema, no que el deposito los tenga",
+      "a_favor": "no tiene forma de centinela; es marca propia y consumible de bulto; el vecino 000037 LIMPIA CRISTAL OBSEQUIO llega a 516 en Pilar",
+      "en_contra": "es 2,9 veces el segundo valor mas alto de Asuncion (Goma Nino, 978); son el 33% de todo el inventario de la sucursal; Pilar declara 10 del mismo articulo; ningun archivo dice si son frascos, sachets o mililitros",
+      "recomendacion": "CONFIRMAR 2860 o NO IMPORTAR 2860. No se propone corregir el numero: no hay evidencia documental de otro valor y cambiarlo a ojo seria inventar un conteo"
     }
   ],
 
-  "totales_que_entrarian_si_se_autoriza_tal_cual": {
-    "articulos_canonicos": 3529,
-    "categorias": 13,
+  "totales_actuales_del_dry_run": {
+    "articulos_canonicos": 3553,
+    "categorias": 14,
     "marcas": 136,
-    "movimientos": 3579,
-    "ASUNCION": {"filas_fuente": 8459, "con_articulo": 2586, "descartadas_vacias": 5871, "rechazadas": 10, "en_espera": 4, "lineas_de_recuento": 2572, "unidades": 8705},
-    "PILAR": {"filas_fuente": 1054, "con_articulo": 1052, "descartadas_vacias": 0, "rechazadas": 1, "en_espera": 21, "lineas_de_recuento": 1007, "unidades": 2897},
-    "unidades_totales": 11602
+    "movimientos": 3583,
+    "ASUNCION": {"lineas": 2575, "unidades": 5849},
+    "PILAR": {"lineas": 1008, "unidades": 2899},
+    "unidades_totales": 8748,
+    "unidades_en_suspenso": 211659,
+    "filas_rechazadas": 12
   },
 
   "por_que_este_next_action_y_no_otro": {
-    "evaluado_cargar_solo_lo_limpio_ahora": "SE PUEDE pero no conviene. Serian 3.529 articulos y 11.602 unidades sin ninguna decision pendiente. El problema es que cargar dos veces deja dos hechos INVENTARIO_INICIAL donde hubo un solo recuento, y despues nadie sabe cual de los dos era el conteo",
-    "evaluado_resolver_Compostura_automaticamente": "NO. La categoria mezcla servicios, cristales y repuestos. Cualquier asignacion unica seria falsa, y una equivocada pone un servicio a descontar stock",
-    "evaluado_recuperar_las_11_filas_sin_SKU": "NO automaticamente. Nueve no tienen codigo y dos no tienen descripcion. Inventar cualquiera de los dos es crear un articulo que nadie puede rastrear",
-    "evaluado_merge_a_main": "NO. Sigue siendo una decision propia, no un tramite de esta mision"
+    "evaluado_resolver_Par_de_patillas_por_vecindad": "NO. Que las dos filas de al lado sean los servicios de patilla sugiere que esta es la pieza, pero sugerir no es determinar, y la orden pedia no adivinar si la evidencia no alcanza",
+    "evaluado_confirmar_2860_por_estar_en_dos_archivos": "NO. Los dos archivos son la misma extraccion: coinciden en los 2.577 codigos comunes. Confirma la transcripcion, no el deposito",
+    "evaluado_cargar_los_tres_repuestos_con_su_centinela": "NO. Habria metido 108.799 unidades fantasma en Pilar",
+    "evaluado_importar_ya_lo_que_esta_limpio": "NO. La orden lo prohibe y ademas cargar dos veces deja dos hechos INVENTARIO_INICIAL donde hubo un solo recuento"
   },
 
   "deudas_explicitas_no_mezcladas": [
     {
+      "id": "RECUENTO-REAL-DE-LOS-TRES-REPUESTOS",
+      "estado": "PENDIENTE, no bloqueante",
+      "detalle": "Hilo, Tornillo y Plaqueta quedan en el catalogo con 0 unidades. Entran cuando alguien los cuente, por el mismo camino INGRESO_ADMINISTRATIVO / INVENTARIO_INICIAL"
+    },
+    {
+      "id": "CATEGORIA-VACIA-EN-DOS-ARTICULOS",
+      "estado": "PENDIENTE, no bloqueante",
+      "detalle": "ASU-101181 y ASU-108004 entran sin categoria. La naturaleza esta determinada; la categoria se completa despues sin tocar historia"
+    },
+    {
       "id": "PRECIOS-Y-UBICACIONES-AUSENTES",
       "estado": "PENDIENTE, no bloqueante",
-      "detalle": "los 3.529 articulos entran sin precio de venta y sin ubicacion: los XLSX no los traen. El sistema los guarda como ausentes, no como cero, y se completan despues"
+      "detalle": "los XLSX no los traen. El sistema los guarda como ausentes, no como cero"
     },
     {
       "id": "SEIS-SLICES-FUERA-DE-MAIN",
       "estado": "PENDIENTE, no bloqueante",
-      "detalle": "heredada de la mision 007. main sigue en 7db56a0 mientras produccion corre rc.32"
+      "detalle": "heredada de la mision 007"
     },
     {
       "id": "ANULACION-EN-DIA-CERRADO",
@@ -79,20 +99,16 @@
   ],
 
   "verification": {
-    "perfil_xlsx": "COMPLETO, los dos archivos",
-    "anomalia_8459_filas": "EXPLICADA",
-    "anomalia_837403_unidades": "EXPLICADA",
-    "mapping_de_sucursales": "VALIDADO contra cash_register_branches",
-    "duplicados": "TRATADOS por regla de identidad con evidencia",
-    "nature": "RESUELTA salvo 2 excepciones explicitas",
-    "dry_run": "PASS, 0 fallas",
+    "sin_drift": "HEAD a21c304, artefactos de la generacion 1 con sus sha256, XLSX y base productiva sin cambios. No se repitio ningun analisis valido",
+    "dry_run_generacion_2": "PASS, 0 fallas",
     "idempotencia": "PASS",
     "integrity_check": "ok",
     "foreign_key_check": 0,
     "stock_negativo": 0,
     "articulos_huerfanos": 0,
-    "trazabilidad": "COMPLETA: cada movimiento llega a su fila fisica del XLSX, su archivo y su corte",
-    "suite_comercial": "254 passed",
+    "efectos_sin_hecho": 0,
+    "produccion_intacta": "sha256 aa13f36e... antes y despues",
+    "trazabilidad": "COMPLETA. Cada excepcion resuelta lleva escrito en el articulo si fue decision humana o evidencia, y que decia el archivo",
     "gates": {
       "librarian": "PASS",
       "qa": "PASS",
