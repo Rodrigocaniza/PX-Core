@@ -232,9 +232,12 @@ def clasificar(articulo: dict, marca_corregida: str | None,
     if marca_corregida and norm(marca_corregida) not in MARCAS_QUE_SON_LABORATORIO:
         return (FUENTE_REAL, marca_corregida,
                 f"la fuente corregida del 19/08 dice «{marca_corregida}»")
-    if marca_corregida is not None and not marca_corregida:
-        # La fuente corregida está a mano y deja la marca vacía. Eso también es
-        # un dato, y coincide con limpiar.
+    if (marca_corregida is not None and not marca_corregida
+            and categoria == CATEGORIA_CONFIRMADA):
+        # La fuente corregida está a mano y deja la marca vacía. Para un cristal
+        # eso confirma lo que ya sabíamos. Fuera de Cristales no confirma nada:
+        # una celda en blanco es «no sé», no «no tiene marca», y limpiar por una
+        # celda vacía sería inventar una decisión que nadie tomó.
         return (CONFIRMADO, None,
                 "la fuente corregida del 19/08 deja la marca vacía")
 

@@ -343,3 +343,36 @@ def test_una_venta_de_agosto_no_se_reescribe_al_limpiar_la_marca(base, optica):
     assert linea.lens_article_id == optica["2000075"].id
     assert recargada.entries[0].total == 250000
     assert _fila(base, "2000075")["brand_id"] is None
+
+
+# --------------------------------------------------------------------------
+# El caso ambiguo, aislado
+# --------------------------------------------------------------------------
+
+def test_una_celda_vacia_en_la_fuente_no_limpia_un_armazon(base, optica):
+    """Una celda «Marca» en blanco dice «no sé», no «no tiene marca». Para un
+    cristal confirma lo que ya sabíamos; para `2000212`, que es un armazón y
+    podría tener un fabricante real, no alcanza. Se queda como está."""
+    plan, _ = plan_por_sku(base, {"2000212": "", "2000060": ""})
+    assert plan["2000212"]["clase"] == herramienta.AMBIGUO
+    assert plan["2000212"]["cambia"] is False
+    assert plan["2000060"]["clase"] == herramienta.CONFIRMADO
+
+
+def test_la_fuente_corregida_puede_cerrar_el_caso_del_armazon(base, optica):
+    """Si la planilla del 19/08 le da al mismo código una marca real, el gate se
+    cierra solo: no hace falta que nadie decida nada."""
+    plan, _ = plan_por_sku(base, {"2000212": "Optica San Cayetano"})
+    caso = plan["2000212"]
+    assert caso["clase"] == herramienta.FUENTE_REAL
+    assert caso["marca_propuesta"] == "Optica San Cayetano"
+
+
+def test_el_ambiguo_no_frena_a_los_demas(base, optica):
+    """`2000212` queda sin resolver y los otros se aplican igual. Un caso que
+    espera una decisión no es un motivo para no hacer el resto."""
+    antes = _fila(base, "2000212")
+    assert correr(base, confirmar=True) == 0
+    assert _fila(base, "2000212") == antes, "se tocó el que había que dejar quieto"
+    assert _fila(base, "2000060")["brand_id"] is None
+    assert _fila(base, "2000070")["brand_id"] is not None
