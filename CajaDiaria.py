@@ -349,6 +349,12 @@ COBRO_PAGO = (
 SKU_LIMPIA_CRISTAL = "000010"
 PROMO_LIMPIA_CRISTAL = "PROMO_CRISTAL_ARMAZON_LIMPIA"
 
+#: El envío se cobra casi siempre lo mismo, pero no es una tarifa: cambia con la
+#: distancia y con lo que se acuerde. Por eso el importe vive en la línea de la
+#: venta y esto es sólo lo que aparece propuesto en el cuadro.
+SKU_DELIVERY = "SERV-DELIVERY"
+PRECIO_DELIVERY_SUGERIDO = 20000
+
 CAMPOS_MONETARIOS_UI = (
     "caja_inicial", "armazon", "cristal", "total", "efectivo",
     "tarjeta_cheque", "transferencia", "monto_convenio", "saldo", "salida_monto",
@@ -1840,6 +1846,58 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             ventana, comercial,
             unidad=campos_manual["unidad"].get().strip(), al_elegir=elegir)
 
+    def agregar_delivery():
+        """El envío como concepto de la venta, no como cosa del depósito.
+
+        El precio se pregunta con 20.000 puesto: es lo que se cobra casi siempre,
+        pero no es una tarifa. Cambia con la distancia y con lo que se haya
+        acordado, así que el importe pertenece a esta venta y no al catálogo.
+        """
+        try:
+            from modulos.comercial.application.comercial_controller import (
+                build_comercial_controller,
+            )
+        except ImportError:
+            messagebox.showinfo(
+                "Artículos", "El módulo comercial no está disponible en esta "
+                "instalación.", parent=ventana)
+            return
+
+        comercial = build_comercial_controller(resolve_data_paths().ensure().database)
+        try:
+            articulo = comercial.articulo_por_sku(SKU_DELIVERY)
+            if articulo is None or not articulo.active:
+                messagebox.showwarning(
+                    "Delivery", f"No hay un concepto activo con el código {SKU_DELIVERY}. "
+                    "Cargalo en el catálogo antes de cobrarlo.", parent=ventana)
+                return
+            sugerido = articulo.sale_price or PRECIO_DELIVERY_SUGERIDO
+            nombre = articulo.name
+            article_id = articulo.id
+        finally:
+            comercial.close()
+
+        respuesta = simpledialog.askstring(
+            "Delivery / Envío", "Importe a cobrar por el envío:",
+            initialvalue=formatear_importe_ui(sugerido), parent=ventana)
+        if respuesta is None:
+            return
+        try:
+            precio = int(str(respuesta).replace(".", "").replace(" ", "").strip() or 0)
+        except ValueError:
+            messagebox.showwarning("Delivery", f"«{respuesta}» no es un importe.",
+                                   parent=ventana)
+            return
+        if precio < 0:
+            messagebox.showwarning("Delivery", "El envío no puede cobrarse en negativo.",
+                                   parent=ventana)
+            return
+
+        items_venta.append(SaleItem(
+            description=nombre, item_type="DELIVERY", code=SKU_DELIVERY,
+            frame_price=precio, article_id=article_id))
+        refrescar_items()
+
     def agregar_limpia_cristal_de_regalo():
         """El obsequio sobre el frasco real, no sobre un artículo inventado.
 
@@ -1971,6 +2029,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         hover_color="#166B3C",
     )
     boton_regalo_limpia.pack(side="left", padx=(0, 3))
+    boton_delivery = ctk.CTkButton(
+        acciones_item, text="Delivery / Envío", width=130, height=22,
+        command=agregar_delivery, fg_color="#7A4DBF", hover_color="#5F3A99",
+    )
+    boton_delivery.pack(side="left", padx=(0, 3))
     # Elegir del catalogo es lo que hace que la venta descuente stock. Escribir
     # a mano sigue funcionando igual que siempre, y no descuenta nada.
     boton_buscar_articulo = ctk.CTkButton(

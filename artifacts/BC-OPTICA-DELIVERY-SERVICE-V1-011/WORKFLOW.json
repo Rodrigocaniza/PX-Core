@@ -1,0 +1,91 @@
+{
+  "mission": "BC-OPTICA-DELIVERY-SERVICE-V1-011",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "SAFE_CLOSURE",
+  "pc": "Optica",
+  "headless_executor": "NO USADO",
+  "lease": {
+    "held": false,
+    "otros_leases_vivos": 0
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "verificacion canonica, investigacion del modelo, pruebas, UI y alta",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "steps": [
+    {
+      "step": "verificacion canonica y base",
+      "state": "DONE",
+      "detalle": "main detras; base 3d03dcf, tip de V1-013. Estado productivo sin drift"
+    },
+    {
+      "step": "worktree propio",
+      "state": "DONE",
+      "detalle": ".worktrees/optica-delivery-011"
+    },
+    {
+      "step": "investigacion del modelo",
+      "state": "DONE",
+      "detalle": "13 servicios ya existen; el precio vive en la linea, no en el articulo; tracks_stock ya excluye el servicio del inventario. No habia concepto de Delivery"
+    },
+    {
+      "step": "pruebas dirigidas primero",
+      "state": "DONE",
+      "detalle": "17 casos escritos antes de tocar nada. Pasaron sin cambiar codigo de producto"
+    },
+    {
+      "step": "accion de UI",
+      "state": "DONE",
+      "detalle": "boton «Delivery / Envío» que pregunta el importe con 20.000 puesto y lo deja cambiar"
+    },
+    {
+      "step": "herramienta de alta",
+      "state": "DONE",
+      "detalle": "tools/alta_delivery_optica.py, con guarda de no duplicar y de conceptos equivalentes"
+    },
+    {
+      "step": "dry run sobre copia real",
+      "state": "DONE",
+      "detalle": "PASS. Stock, Caja y movimientos identicos; venta con Delivery a 25.000 verificada; anulacion sin compensar inventario"
+    },
+    {
+      "step": "suite y ciclo de ventana",
+      "state": "DONE",
+      "detalle": "285 passed; BC_CAJA_WINDOW_LIFECYCLE_OK"
+    },
+    {
+      "step": "alta productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Un articulo y una categoria; ni una unidad de stock. Autorizado por la propia orden al no cambiar datos economicos"
+    },
+    {
+      "step": "defecto encontrado fuera de alcance",
+      "state": "REPORTADO, NO CORREGIDO",
+      "detalle": "V1-010 y la adenda de V1-013 borraron categoria y marca de 5 articulos. Se propone corregirlo aparte"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE"
+    },
+    {
+      "step": "slice 012",
+      "state": "NO INICIADO"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "tarifario": "NO",
+    "motor_de_logistica": "NO",
+    "rediseno": "NO",
+    "correccion_del_defecto_de_categorias": "NO, fuera de alcance",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "force_push": "NO"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "mission": "BC-OPTICA-DELIVERY-SERVICE-V1-011",
+  "state": "SAFE_CLOSURE",
+  "repository": "PX-Core",
+  "worktree": ".worktrees/optica-delivery-011",
+  "branch": "feature/bc-optica-delivery-service-v1-011",
+  "base_commit": "3d03dcfec77a9e094e9f6fa04a9766c7198d6842",
+  "closed_on": "2026-08-19",
+  "closed_at": "PC Optica",
+  "blocked_on": null,
+  "produccion": "3.596 articulos (2.829 activos), 4.441 movimientos, ASU 6.166 / PIL 2.260, total 8.426. Delivery activo y sin stock. Caja historica intacta",
+  "next_action": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012, no iniciado: poblar laboratories con Laboratorio Optilab, ServiOptica y Laboratorio Cristal; asociar un laboratorio por defecto a cada tipo de cristal para no escribirlo a mano en cada trabajo; y dejar 2000212 ST Fotocromatico sin laboratorio hasta que exista informacion real. Antes conviene decidir que hacer con el defecto reportado: V1-010 y la adenda de V1-013 borraron categoria y marca de 5 articulos, y estan restaurables desde el backup bc-caja-preconciliacion-20260819-155227.sqlite3",
+  "next_role": "COMMAND_CENTER",
+  "next_pc": "Optica",
+  "autorizacion_requerida": true,
+  "por_que_este_next_action_y_no_otro": {
+    "evaluado_corregir_las_categorias_ahora": "NO. Esta fuera de este slice y la orden pide no asumir autorizacion para cambios fuera de el",
+    "evaluado_tarifario_de_envios": "NO. La orden lo excluye y el precio por venta ya resuelve el caso",
+    "evaluado_automatizar_el_delivery": "NO. Se agrega cuando corresponde, como el obsequio"
+  },
+  "deudas_explicitas_no_mezcladas": [
+    {
+      "id": "CATEGORIA-Y-MARCA-BORRADAS-EN-5-ARTICULOS",
+      "estado": "ABIERTA, defecto propio",
+      "detalle": "000010, 2000056, 2000070, 2000071 y 2000072 perdieron category_id y brand_id en V1-010 y en la adenda de V1-013. Solo etiquetas: no afecta stock, dinero ni naturaleza. Restaurables desde el backup pre-conciliacion"
+    },
+    {
+      "id": "LABORATORIO-POR-DEFECTO",
+      "estado": "PENDIENTE, slice 012"
+    },
+    {
+      "id": "000010-ASUNCION-ES-UNA-ESTIMACION",
+      "estado": "ABIERTA, no bloqueante"
+    },
+    {
+      "id": "PROMO-NO-AUTOMATICA",
+      "estado": "ABIERTA por decision"
+    },
+    {
+      "id": "CENTINELAS-EN-LA-FUENTE",
+      "estado": "ACEPTADO"
+    },
+    {
+      "id": "SEIS-SLICES-FUERA-DE-MAIN",
+      "estado": "PENDIENTE, no bloqueante"
+    },
+    {
+      "id": "ANULACION-EN-DIA-CERRADO",
+      "estado": "PENDIENTE, no bloqueante"
+    }
+  ],
+  "verification": {
+    "pruebas_dirigidas": "17 passed",
+    "suite_comercial": "285 passed",
+    "ciclo_de_ventana": "OK",
+    "dry_run": "PASS",
+    "alta_productiva": "PASS, 0 fallas",
+    "idempotencia": "PASS, no duplica",
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "stock_sin_cambios_por_delivery": true,
+    "caja_historica": "intacta",
+    "rollback_usado": "NO",
+    "gates": {
+      "librarian": "PASS",
+      "qa": "PASS",
+      "auditor": "PASS",
+      "artifact_consistency": "PASS"
+    }
+  }
+}
