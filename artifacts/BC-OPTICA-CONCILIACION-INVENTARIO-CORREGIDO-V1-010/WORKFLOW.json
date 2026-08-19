@@ -69,24 +69,44 @@
       "detalle": "PASS, 0 fallas. Idempotencia PASS. Historia de la 008 intacta"
     },
     {
+      "step": "incorporacion de las tres decisiones humanas",
+      "state": "DONE",
+      "detalle": "Hilo/Tornillo/Plaqueta a servicio; los 775 ausentes a retiro con compensacion; 2857 revocado y 000010 ASUNCION sigue pendiente"
+    },
+    {
+      "step": "correccion: codigo renumerado con cero adelante",
+      "state": "DONE",
+      "detalle": "300653145470 -> 0300653145470 es el mismo articulo. Buscado el patron en los 775: unico caso"
+    },
+    {
+      "step": "correccion: el retiro es por articulo, la ausencia es por sucursal",
+      "state": "DONE",
+      "detalle": "5 articulos faltan en una sucursal y viven en la otra. Se compensa el deposito ausente y no se retiran. El producto ya lo impedia"
+    },
+    {
+      "step": "correccion: una fila que nunca fue articulo",
+      "state": "DONE",
+      "detalle": "ASU-101814, rechazada por la 008 por no tener descripcion"
+    },
+    {
+      "step": "dry run recalculado",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. 41 altas, 766 retiros, 773 unidades compensadas, 37 ajustes, 4 cambios de naturaleza"
+    },
+    {
+      "step": "idempotencia",
+      "state": "DONE",
+      "detalle": "PASS por contenido: reaplicar no escribe una sola fila"
+    },
+    {
       "step": "escritura productiva",
       "state": "NO EJECUTADA",
-      "detalle": "prohibida por la orden. Espera autorizacion"
+      "detalle": "espera autorizacion"
     },
     {
-      "step": "regla B - laboratorio por defecto",
-      "state": "FUERA DE ALCANCE",
-      "detalle": "falta soporte en el modelo. Slice separado"
-    },
-    {
-      "step": "regla E - Delivery",
-      "state": "FUERA DE ALCANCE",
-      "detalle": "no existe el concepto. Slice separado"
-    },
-    {
-      "step": "regla F - motor promocional",
-      "state": "PARCIAL",
-      "detalle": "el SKU ficticio esta identificado y el modelo ya soporta no_cost. La transicion y el motivo promocional son slice separado"
+      "step": "slices separados",
+      "state": "NO INICIADOS",
+      "detalle": "Delivery (011), laboratorio por defecto (012) y promo limpia-cristal (013)"
     },
     {
       "step": "merge a main",
@@ -101,5 +121,6 @@
     "merge_a_main": "NO",
     "pr": "NO",
     "force_push": "NO"
-  }
+  },
+  "generacion": 2
 }

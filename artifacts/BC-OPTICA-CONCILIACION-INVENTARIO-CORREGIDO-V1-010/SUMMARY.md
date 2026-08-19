@@ -75,7 +75,55 @@ Laboratorio por defecto (la tabla existe pero está vacía y no hay campo en el
 artículo), Delivery (no existe el concepto) y el motor promocional. Los tres
 necesitan cambios de producto, no conciliación.
 
+## Generación 2 — las tres decisiones, y tres errores que evitaron daño
+
+Las decisiones llegaron y el plan se recalculó entero. El anterior quedó
+obsoleto y no se reutilizó.
+
+`Hilo`, `Tornillo` y `Plaqueta` se suman a `Par de patillas` como servicios: los
+cuatro tenían **cero unidades**, así que no hubo nada que compensar, y sus cifras
+—99.981, 99.423, 9.391, 524— quedan escritas en el artículo sólo como evidencia
+de que la fuente decía eso. Ninguno necesita que nadie cuente nada.
+
+Los 775 ausentes se retiran, pero el recálculo destapó **tres cosas que habrían
+hecho daño**:
+
+**Un código renumerado.** El archivo corregido normaliza algunos códigos de barra
+a 13 dígitos con un cero adelante. `300653145470` figuraba como baja y
+`0300653145470` como alta: es el mismo Opti Free Express. Busqué el patrón en los
+775 y es el único caso, pero de no verlo habría retirado un artículo vivo y
+creado un duplicado.
+
+**El retiro es por artículo; la ausencia, por sucursal.** El primer intento falló
+con `ArticuloEnUso`: el sistema **impide** desactivar algo que todavía tiene
+stock, «porque quedaría sin nadie que lo mire». La guarda es correcta y el error
+era mío. Cinco artículos faltan en una sucursal y viven en la otra; se compensa
+el depósito ausente y el artículo sigue activo.
+
+**Una fila que nunca fue artículo.** `ASU-101814`, la que la 008 rechazó por no
+tener descripción. Contarla como baja habría inflado el número.
+
+Quedan **773 ausentes reales**: 766 retirados y 5 que siguen vivos. Los 773
+tenían stock, ninguno era una baja limpia, así que **primero se lleva el stock a
+cero y después se retira** — nunca queda stock fantasma en un artículo inactivo.
+
+`000010 Limpia Cristal` no recibe ningún ajuste: Asunción sigue pendiente, sin
+2.860 ni 2.857 ni cero inventado, y Pilar conserva sus 10. `000037` no se toca:
+va entero al slice 013.
+
+## Estado del plan
+
+| | antes | después |
+| --- | ---: | ---: |
+| artículos | 3.554 | 3.595 |
+| activos | 3.554 | 2.829 |
+| stock ASUNCION | 5.849 | 6.276 |
+| stock PILAR | 2.899 | 2.776 |
+| **total** | **8.748** | **9.052** |
+
+41 altas · 766 retiros · 773 unidades compensadas (645 + 128) · 37 ajustes
+(+47 / −34) · 4 cambios de naturaleza. **PASS, 0 fallas.**
+
 ## Lo que falta
 
-Cuatro decisiones, en `HUMAN_GATE.md`. Se puede aplicar ya la parte limpia y
-dejarlas para después.
+Una autorización. Está en `HUMAN_GATE.md`.

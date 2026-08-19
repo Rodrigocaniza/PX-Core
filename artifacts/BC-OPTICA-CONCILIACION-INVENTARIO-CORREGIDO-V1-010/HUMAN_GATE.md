@@ -1,168 +1,144 @@
-# HUMAN_GATE — conciliación con los inventarios corregidos
+# HUMAN_GATE FINAL — conciliación recalculada
 
-**Nada escrito en producción.** Dry-run PASS, idempotencia PASS, base con el mismo
-`sha256`.
+Las tres decisiones están incorporadas. El plan anterior (42 altas, +47/−65, ASU
+6.904, PIL 2.892) **quedó obsoleto y no se reutilizó**: se recalculó entero.
 
-Lo primero que hay que decir es incómodo: **los archivos «corregidos» no
-corrigieron lo que más importaba.**
+**Nada escrito en producción.** Dry-run **PASS, 0 fallas**, base con el mismo
+`sha256` `25cd7d04…`.
 
-## 1. Qué cambió entre el inventario original y el corregido
+## 1. Altas definitivas
 
-Los dos archivos son del **2026-08-19**, contra el 03/08 y el 10/08 de los
-anteriores. Traen tres columnas nuevas —`Cod. Barra`, `CostoA`, `PrecioA`— y
-pierden `Casilla`, `Zona` y `Observacion`, que de todos modos venían vacías.
+**41 artículos**, de 45 registros — 4 son el mismo SKU global en las dos
+sucursales y se consolidan en uno. **1.064 unidades** de stock inicial.
 
-| | antes | ahora |
-| --- | ---: | ---: |
-| filas con artículo, Asunción | 2.586 | **1.974** |
-| filas con artículo, Pilar | 1.052 | **938** |
+Crear el catálogo no movió una sola unidad; el stock entra por separado.
 
-| Clasificación | Cantidad |
-| --- | ---: |
-| `UNCHANGED` | 2.800 |
-| `QUANTITY_CHANGED` | 54 |
-| `NEW_ARTICLE` (registros) | 58 → **42 artículos** |
-| `REMOVED_OR_NOT_PRESENT` | **775** |
-| `DESCRIPTION_CHANGED` | 147 |
-| `CATEGORY_CHANGED` | 37 |
-| `BRAND_CHANGED` | 31 |
-| `SOURCE_SENTINEL` | **28** |
-
-## 2. Los centinelas siguen ahí — y ahora también en Asunción
-
-**28 artículos, 842.497 unidades declaradas.** Hilo sigue en 99.981, Adaptación de
-cristal en 99.916, Compostura Flex en 99.884.
-
-Y algo nuevo: el archivo corregido de **Asunción trae 7 centinelas que antes no
-tenía**, incluido `2000058 Compostura Flex` con 9.222. La corrección no limpió el
-problema: lo propagó a la otra sucursal.
-
-**No se convierte ninguno en stock.** Ninguno entra al ledger.
-
-## 3. Cuántas naturalezas cambian: **una**
-
-Y es la que pediste: `2000056 Par de patillas` pasa de `PRODUCTO_STOCKEABLE` a
-`SERVICIO_NO_STOCKEABLE` por definición operativa. **No requiere conteo físico.**
-
-Todo lo demás ya estaba bien:
-
-| Regla | Estado |
-| --- | --- |
-| A — Cristales sin stock | ✔ ya son `TRABAJO_BAJO_PEDIDO`, **30 artículos, 0 movimientos** |
-| C — Composturas son servicios | ✔ ya son `SERVICIO_NO_STOCKEABLE`, 9 artículos, 0 movimientos |
-| D — Adaptación de cristal | ✔ ya es `SERVICIO_NO_STOCKEABLE` |
-
-**No hay un solo movimiento de stock para ningún artículo no stockeable.** La
-regla A pedía preparar compensaciones si producción tenía movimientos por
-interpretación anterior: **no hay nada que compensar.** La cautela de la misión
-008 —dejar en suspenso todo lo que no fuera un conteo— dejó producción limpia.
-
-## 4. Lo que el dry-run aplicaría
+## 2. Retiros
 
 | | |
 | --- | ---: |
-| artículos nuevos a crear | **42** (de 46 registros; 4 son el mismo SKU global en las dos sucursales) |
-| stock inicial de esas altas | 46 líneas, **1.066 unidades** |
-| `AJUSTE_POSITIVO` | **47 unidades**, 8 artículos |
-| `AJUSTE_NEGATIVO` | **65 unidades**, 32 artículos |
-| corrección de naturaleza | 1 |
+| ausentes declarados por la comparación | 775 |
+| — el mismo código renumerado con un cero adelante | **−1** |
+| — una fila que nunca fue artículo | **−1** |
+| **ausentes reales** | **773** |
+| **retirados del catálogo activo** | **766** |
+| no retirados por seguir vivos en la otra sucursal | **5** |
 
-Resultado: artículos 3.554 → **3.596** · ASUNCION 5.849 → **6.904** · PILAR 2.899 → **2.892**
+Artículos activos: **3.554 → 2.829**.
 
-Los ajustes entran como `AJUSTE_POSITIVO`/`AJUSTE_NEGATIVO` con motivo
-`ERROR_INVENTARIO` —el código canónico que ya existe—, cada uno con el stock
-anterior, la cifra corregida, el delta, el archivo, la fila y la sucursal en la
-nota. **Los 3.583 movimientos de la 008 quedan intactos**, verificado por sus dos
-`document_id`.
+### 3. Retiros que requieren compensación: **773 de 773**
 
-## 5. Las cuatro cosas que necesitan tu decisión
+Todos tenían stock de la V1-008 — ninguno era una baja «limpia».
 
-### A. 775 artículos desaparecieron del archivo — **776 unidades**
+| Sucursal | Unidades compensadas |
+| --- | ---: |
+| **ASUNCION** | **645** |
+| **PILAR** | **128** |
+| total | **773** |
 
-647 de Asunción y 128 de Pilar. **641 son armazones**, y 774 de los 775 tenían
-stock 1.
+Entran como `AJUSTE_NEGATIVO` con la nota
+`RECONCILIACION_INVENTARIO_CORREGIDO / ARTICULO_RETIRADO`, cada una con el stock
+que dejaba la 008, el archivo y la fila. **Primero se lleva el stock a cero,
+después se retira** — nunca queda stock fantasma en un artículo inactivo. Los
+movimientos originales de la 008 no se tocan.
 
-Los dos informes listan **sólo lo que tiene stock > 0** —ni el viejo ni el nuevo
-traen una sola fila en cero—, así que «ausente» significa *el sistema viejo dice
-que ya no hay*, no *no existe*.
+### Dos correcciones que evitaron retirar de más
 
-**Pero 647 armazones vendidos en 16 días son 40 por día.** Eso no parece una
-óptica vendiendo: parece una limpieza, un filtro distinto, o artículos dados de
-baja. **No los toqué.** Descontarlos sería sacar 776 unidades del depósito por una
-ausencia que no entiendo.
+**Un código renumerado.** El archivo corregido normaliza algunos códigos de barra
+a 13 dígitos con un cero adelante: `300653145470` «desaparece» y `0300653145470`
+«aparece». Es el mismo Opti Free Express. No se da de baja ni de alta — es un
+cambio de cantidad, 3 → 2. Busqué el patrón en los 775 y **es el único caso**, no
+es sistémico.
 
-*¿Se vendieron, se dieron de baja, o el informe cambió de criterio?*
+**Cinco que siguen vivos.** Un artículo puede faltar en el archivo de una
+sucursal y tener stock en la otra: cuatro Acuvue y un Opti Free. Se compensa el
+depósito que los declara ausentes, pero **el artículo no se retira**. El propio
+sistema lo impide —desactivar algo con stock lo sacaría de las búsquedas dejando
+unidades que nadie mira— y la guarda es correcta.
 
-### B. Los cuatro pendientes de Pilar
+**Y uno que nunca existió.** `ASU-101814` era la fila sin descripción que la 008
+rechazó. No es una baja: nunca fue un artículo.
 
-| Código | Artículo | 10/08 | 19/08 | Precio |
-| --- | --- | ---: | ---: | ---: |
-| `2000056` | Par de patillas | 526 | 524 | 80.000 |
-| `2000070` | Hilo | 99.981 | 99.981 | 20.000 |
-| `2000071` | Tornillo | 99.425 | 99.423 | 5.000 |
-| `2000072` | Plaqueta | 9.393 | 9.391 | 15.000 |
+## 6. Cambios de `nature`: **4**
 
-`Par de patillas` **ya está resuelto**: es servicio, no se cuenta.
+| Código | Artículo | Antes | Ahora |
+| --- | --- | --- | --- |
+| `2000056` | Par de patillas | `PRODUCTO_STOCKEABLE` | **`SERVICIO_NO_STOCKEABLE`** |
+| `2000070` | Hilo | `PRODUCTO_STOCKEABLE` | **`SERVICIO_NO_STOCKEABLE`** |
+| `2000071` | Tornillo | `PRODUCTO_STOCKEABLE` | **`SERVICIO_NO_STOCKEABLE`** |
+| `2000072` | Plaqueta | `PRODUCTO_STOCKEABLE` | **`SERVICIO_NO_STOCKEABLE`** |
 
-Los otros tres siguen siendo centinelas que bajan de a uno cuando se usan —un
-contador de «no se acaba nunca», no un conteo. *¿Hilo, Tornillo y Plaqueta son
-repuestos físicos que hay que contar, o son parte del servicio de compostura y
-tampoco llevan stock?* Si es lo segundo, se cierran como `NATURE_CORRECTION`,
-igual que las patillas, y no hay nada que contar.
+Buscados otros equivalentes de compostura mal clasificados: **no queda ninguno**.
+`000039 LINTERNA O LUZ CHICA CON SUJETADOR PARA PATILLA` aparece por el patrón
+pero es una linterna física de la categoría Accesorios, no un servicio; no se
+tocó.
 
-### C. `000010 Limpia Cristal` en Asunción: **2.860 → 2.857**
+## 7. Estado final de los cuatro
 
-Ahora hay evidencia que antes no existía: bajó **3 unidades en 16 días**, y el
-archivo trae precio 15.000 y costo 1.000. Un centinela no se mueve; esto se mueve
-despacio, como un consumible real que se vende de a poco.
+Los cuatro quedan en `SERVICIO_NO_STOCKEABLE` con **stock 0**, y los cuatro tenían
+**0 unidades desde el principio**: no hubo nada que compensar. Sus cifras
+—99.981, 99.423, 9.391, 524— quedan escritas en las notas del artículo **sólo
+como evidencia histórica de la fuente**, con la aclaración de que eran centinelas
+y no conteos. Sus pendientes de la V1-008 siguen registrados, cerrados por
+`NATURE_CORRECTION` y no por conteo. **Ninguno requiere que nadie cuente nada.**
 
-Sigue siendo el mismo sistema fuente, así que no lo asenté solo. Pero la pregunta
-ya no es «¿será real?» sino **«¿confirmás 2.857?»**.
+## 8, 9, 10. Limpia cristal — verificado explícitamente
 
-### D. `000037 LIMPIA CRISTAL OBSEQUIO` — el SKU ficticio de la regla F
+| | |
+| --- | --- |
+| `000010` **ASUNCION** | **0 unidades, sin ajuste**, conserva su `STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION`. Ni 2.860 ni 2.857 |
+| `000010` **PILAR** | **10 unidades, intactas** |
+| `000037` OBSEQUIO | sin stock ficticio nuevo (210 ASU / 516 PIL, como estaban), **sigue activo** |
 
-Existe, y es exactamente lo que describiste:
+`000037` se retira en `BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013`, junto con la
+migración a `000010 + no_cost + salida de stock real`.
 
-| | Asunción | Pilar |
+## 11. Stock total antes / después
+
+| | antes | después |
 | --- | ---: | ---: |
-| stock cargado en producción | 210 | 516 |
-| stock en el corregido | 191 | 507 |
-| **precio de venta** | **0** | **0** |
-| costo | 4.740 | 4.740 |
+| artículos | 3.554 | **3.595** |
+| activos | 3.554 | **2.829** |
+| movimientos | 3.583 | **4.438** |
+| stock ASUNCION | 5.849 | **6.276** |
+| stock PILAR | 2.899 | **2.776** |
+| **total** | **8.748** | **9.052** |
 
-Precio 0 clavado en el catálogo, y un costo **4,7 veces** el del limpia-cristal
-real (`000010`, costo 1.000). No es otro producto: es el mismo producto con una
-ficción encima. **726 unidades de stock ficticio en el ledger.**
+El neto (+304) cierra: +1.064 de altas − 773 de retiros + 47 − 34 de ajustes.
 
-La buena noticia: **el modelo ya soporta la forma correcta.** `sale_items` tiene
-`no_cost` y `article_id`, así que una línea de venta puede apuntar al
-limpia-cristal real con precio cobrado 0. Hoy hay **0 líneas** usando `no_cost`.
+Ajustes de cantidad de los que sí siguen: **37** — `AJUSTE_POSITIVO` 47 unidades
+en 8 artículos, `AJUSTE_NEGATIVO` 34 en 29.
 
-*No lo toqué.* Retirar `000037` significa sacar 726 unidades del depósito y
-migrar la práctica a `000010 + no_cost`, y eso merece decisión propia.
+## 12. Excepciones reales
 
-## 6. Lo que quedó fuera de alcance, como slices separados
+1. **Los 5 que siguen vivos** en la otra sucursal: se compensa el depósito
+   ausente y el artículo queda activo. No es un problema, es la forma correcta.
+2. **`000010` en Asunción sigue sin cantidad.** Ninguna de las dos cifras fuente
+   se acepta y no se inventó cero. Cuando alguien cuente, entra por V1-009, que
+   quedó pausada y lista.
+3. **`000037` y sus 726 unidades ficticias** siguen en producción hasta el slice
+   013. No se cargó ni una unidad nueva.
+4. **Los 28 centinelas** siguen declarados en los archivos y **ninguno entró al
+   ledger**. Los del lado Compostura ya son servicios; los de Cristales ya eran
+   trabajo bajo pedido.
 
-| Regla | Estado | Por qué |
-| --- | --- | --- |
-| **B — laboratorio por defecto** | falta soporte | la tabla `laboratories` existe pero está **vacía**, y `sale_items.laboratory` es texto libre. No hay campo de laboratorio por defecto en el artículo. `2000212 ST Fotocromatico` sigue sin laboratorio y no se le inventó ninguno |
-| **E — Delivery / Envío** | no existe | no hay ningún artículo de envío en el catálogo. Crearlo como `SERVICIO_NO_STOCKEABLE` con precio editable por venta necesita decidir dónde vive el precio orientativo de 20.000 |
-| **F — motor promocional** | modelo listo, práctica no | `no_cost` ya existe; falta el motivo promocional (`PROMO_CRISTAL_ARMAZON_LIMPIA`) y la transición de `000037` |
+## Gates
 
-Ninguno se empezó: la orden pedía conciliación, no rediseño.
+dry-run **PASS** · idempotencia **PASS** (0 duplicación en artículos,
+movimientos, unidades, corridas y bitácora) · `integrity_check` **ok** · FK **0** ·
+stock negativo **0** · huérfanos **0** · efectos sin hecho **0** · Caja histórica
+**intacta** · movimientos de la V1-008 **intactos** (3.583 y sus 8.748 unidades,
+verificado por `document_id`) · Librarian · QA · Auditor · Artifact Consistency
+**PASS**.
 
-## 7. Gates
-
-dry-run **PASS** · idempotencia **PASS** (copia byte a byte igual al reaplicar) ·
-`integrity_check` **ok** · FK **0** · stock negativo **0** · huérfanos **0** ·
-efectos sin hecho **0** · Caja histórica **intacta** · movimientos de la 008
-**intactos** (3.583 y sus 8.748 unidades) · Librarian **PASS** · QA **PASS** ·
-Auditor **PASS** · Artifact Consistency **PASS**.
+*Nota honesta sobre la idempotencia:* al reaplicar, **no se escribió una sola
+fila** —artículos, movimientos, unidades, corridas y bitácora quedaron idénticos—
+pero el archivo no sale byte a byte igual, porque abrir SQLite en modo escritura
+reorganiza páginas internas. La verificación es por contenido, no por hash.
 
 ## Para autorizar
 
-Se puede aplicar **la parte limpia** —42 altas, 1.066 unidades, los 40 ajustes y
-la corrección de `Par de patillas`— y dejar los cuatro puntos del §5 para después.
-O esperar a resolverlos y aplicar todo junto.
+> **Autorizo la conciliación.**
 
-**Nada se escribe hasta que lo digas.**
+Se aplican las 41 altas, los 766 retiros con sus 773 unidades compensadas, los 37
+ajustes y los 4 cambios de naturaleza. **Nada se escribe hasta que lo digas.**

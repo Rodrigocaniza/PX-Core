@@ -195,34 +195,17 @@
   },
   "dry_run": {
     "artefacto": "DRY_RUN.txt",
-    "base": "copia consistente de la base productiva",
+    "generacion": 2,
     "veredicto": "PASS, 0 fallas",
-    "alcance_aplicado": "solo lo que la evidencia resuelve sin decision humana",
-    "articulos_creados": 42,
-    "registros_que_los_originaron": 46,
-    "nota_identidad": "4 SKU globales aparecen en las dos sucursales: un articulo con stock en los dos depositos, no dos articulos",
-    "stock_inicial_de_las_altas": {
-      "lineas": 46,
-      "unidades": 1066
+    "base": "copia consistente de la base productiva",
+    "verificado_explicitamente": {
+      "000010_ASUNCION": "0 unidades, sin ajuste, conserva su pendiente",
+      "000010_PILAR": "10 unidades intactas",
+      "000037": "sin stock ficticio nuevo, sigue activo",
+      "los_cuatro_de_compostura": "SERVICIO_NO_STOCKEABLE con stock 0",
+      "ningun_Compostura_como_producto": true
     },
-    "AJUSTE_POSITIVO": {
-      "articulos": 8,
-      "unidades": 47
-    },
-    "AJUSTE_NEGATIVO": {
-      "articulos": 32,
-      "unidades": 65
-    },
-    "motivo_de_los_ajustes": "ERROR_INVENTARIO, el codigo canonico que ya existe. Cada nota lleva stock anterior, cifra corregida, delta, archivo, fila y sucursal",
-    "correccion_de_naturaleza": 1,
-    "resultado": {
-      "articulos": "3554 -> 3596",
-      "movimientos": "3583 -> 3669",
-      "ASUNCION": "5849 -> 6904",
-      "PILAR": "2899 -> 2892"
-    },
-    "historia_intacta": "las dos corridas de la 008 siguen enteras: 3.583 movimientos y 8.748 unidades, verificado por document_id. Los 5 pendientes siguen registrados",
-    "idempotencia": "PASS. Reaplicar deja la copia byte a byte igual",
+    "idempotencia": "PASS por contenido: al reaplicar no se escribio una sola fila. El archivo no sale byte a byte igual porque abrir SQLite en escritura reorganiza paginas internas",
     "integrity_check": "ok",
     "foreign_key_check": 0,
     "stock_negativo": 0,
@@ -233,6 +216,7 @@
       "suma": 6400000,
       "sale_items": 10
     },
+    "historia_V1_008": "3.583 movimientos y 8.748 unidades intactos, verificado por document_id. Los 5 pendientes siguen registrados",
     "base_productiva_intacta": "sha256 25cd7d04... antes y despues"
   },
   "requieren_decision_humana": [
@@ -264,5 +248,81 @@
     "rediseno_de_Caja_UI_Delivery_motor_promocional_Gestion_Central_Telegram": "NO, fuera de alcance",
     "merge_a_main": "NO",
     "pr": "NO"
+  },
+  "generacion": 2,
+  "generacion_1": "primer analisis y dry run. Plan OBSOLETO: 42 altas, +47/-65, ASU 6.904, PIL 2.892. No se reutilizo",
+  "generacion_2": "decisiones humanas del 2026-08-19 incorporadas y plan recalculado entero",
+  "decisiones_humanas": {
+    "1_hilo_tornillo_plaqueta": "conceptos de Compostura -> SERVICIO_NO_STOCKEABLE. Sin conteo, sin stock, sin ajuste. Cifras viejas solo como evidencia historica",
+    "2_775_ausentes": "CORRECTED_SOURCE_ABSENCE -> RETIRE_FROM_ACTIVE_CATALOG, compensando el stock antes de retirar",
+    "3_000010_limpia_cristal": "2857 revocado. ASUNCION sigue PENDING sin ajuste; PILAR conserva sus 10",
+    "000037_obsequio": "no se toca en V1-010. Retirement al slice 013"
+  },
+  "plan_recalculado": {
+    "altas": {
+      "articulos": 41,
+      "registros": 45,
+      "sku_globales_consolidados": 4,
+      "unidades": 1064
+    },
+    "retiros": {
+      "ausentes_declarados": 775,
+      "renumerado_mismo_codigo_con_cero": 1,
+      "filas_que_nunca_fueron_articulo": 1,
+      "ausentes_reales": 773,
+      "retirados_del_catalogo_activo": 766,
+      "no_retirables_por_seguir_vivos": 5,
+      "requieren_compensacion": 773,
+      "solo_deprecacion_sin_compensar": 0,
+      "unidades_compensadas": {
+        "ASUNCION": 645,
+        "PILAR": 128,
+        "total": 773
+      },
+      "orden": "primero se lleva el stock a cero, despues se retira. Nunca queda stock fantasma en un articulo inactivo",
+      "motivo": "AJUSTE_NEGATIVO con nota RECONCILIACION_INVENTARIO_CORREGIDO / ARTICULO_RETIRADO, con stock anterior, archivo y fila"
+    },
+    "ajustes_de_cantidad": {
+      "total": 37,
+      "positivo": {
+        "articulos": 8,
+        "unidades": 47
+      },
+      "negativo": {
+        "articulos": 29,
+        "unidades": 34
+      }
+    },
+    "cambios_de_nature": {
+      "total": 4,
+      "skus": [
+        "2000056",
+        "2000070",
+        "2000071",
+        "2000072"
+      ],
+      "stock_que_hubo_que_compensar": 0,
+      "otros_equivalentes_mal_clasificados": "ninguno. 000039 aparece por el patron pero es una linterna fisica de Accesorios"
+    },
+    "excluidos_por_decision_humana": [
+      "000010 ASUNCION",
+      "000010 PILAR",
+      "000037 ASUNCION",
+      "000037 PILAR"
+    ],
+    "resultado": {
+      "articulos": "3554 -> 3595",
+      "activos": "3554 -> 2829",
+      "movimientos": "3583 -> 4438",
+      "ASUNCION": "5849 -> 6276",
+      "PILAR": "2899 -> 2776",
+      "total": "8748 -> 9052",
+      "neto": "+304 = +1064 altas - 773 retiros + 47 - 34"
+    }
+  },
+  "correcciones_que_evitaron_retirar_de_mas": {
+    "codigo_renumerado": "el corregido normaliza algunos codigos de barra a 13 digitos con cero adelante. 300653145470 desaparece y 0300653145470 aparece: es el mismo Opti Free Express. Se busco el patron en los 775 y es el unico caso",
+    "cinco_que_siguen_vivos": "un articulo puede faltar en el archivo de una sucursal y tener stock en la otra. Se compensa el deposito ausente y el articulo NO se retira. El producto ya lo impide con una guarda correcta",
+    "uno_que_nunca_existio": "ASU-101814 era la fila sin descripcion que la 008 rechazo. No es una baja"
   }
 }

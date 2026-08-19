@@ -1,55 +1,76 @@
-DRY RUN -- CONCILIACION CON LOS INVENTARIOS CORREGIDOS
+DRY RUN V1-010 RECALCULADO -- con las decisiones humanas del 2026-08-19
 base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
 sha256 antes    : 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658
-antes           : 3554 articulos, 3583 movimientos, ASU 5849 / PIL 2899
+antes           : 3554 articulos (3554 activos), 3583 movimientos, ASU 5849 / PIL 2899
 
-== alcance del dry run ==
-  ajustes de cantidad          : 40
-  articulos nuevos a crear     : 46
-  aparecen en la otra sucursal pero ya existen en el catalogo: 12
-      ASUNCION         2000054 Compostura de Patilla Izquierd   nature actual=SERVICIO_NO_STOCKEABLE   stock declarado=897
-      ASUNCION         2000055 Compostura de Patilla Derecha    nature actual=SERVICIO_NO_STOCKEABLE   stock declarado=929
-      ASUNCION         2000056 Par de patillas                  nature actual=PRODUCTO_STOCKEABLE      stock declarado=613
-      ASUNCION         2000057 Compostura Simple                nature actual=SERVICIO_NO_STOCKEABLE   stock declarado=411
-      ASUNCION         2000058 Compostura Flex                  nature actual=SERVICIO_NO_STOCKEABLE   stock declarado=9222
-      ASUNCION         2000070 Hilo                             nature actual=PRODUCTO_STOCKEABLE      stock declarado=949
-      ASUNCION         2000071 Tornillo                         nature actual=PRODUCTO_STOCKEABLE      stock declarado=708
-      ASUNCION         2000072 Plaqueta                         nature actual=PRODUCTO_STOCKEABLE      stock declarado=575
-      ASUNCION         2000101 CENTRADO                         nature actual=SERVICIO_NO_STOCKEABLE   stock declarado=816
-      ASUNCION    733905577147 1 DAY ACUVUE MOIST -1.50         nature actual=PRODUCTO_STOCKEABLE      stock declarado=1
-      ASUNCION    733905810053 Acuvue 2 -1.00                   nature actual=PRODUCTO_STOCKEABLE      stock declarado=1
-      ASUNCION    733905810237 Acuvue2 -3.25                    nature actual=PRODUCTO_STOCKEABLE      stock declarado=1
-  correcciones de naturaleza   : 1
-  NO se toca: 775 ausentes, los 4 pendientes de Pilar, 000010 de Asuncion,
-             el SKU de obsequio 000037 y sus 726 unidades
+== alcance ==
+  altas                        : 45 registros
+  retiros por ausencia         : 773
+  ajustes de cantidad          : 37
+  cambios de naturaleza        : 4
+  renumerados (mismo codigo con cero adelante): 1
+      ASUNCION  300653145470 -> 0300653145470: mismo articulo, NO se da de baja ni de alta
+  filas que nunca fueron articulo: 1 [('ASUNCION', 'ASU-101814')]
+  excluidos por decision humana: 4
+      ASUNCION    000010 Limpia Cristal               produccion=None corregido=2857 -> SIN AJUSTE
+      ASUNCION    000037 LIMPIA CRISTAL OBSEQUIO      produccion=210 corregido=191 -> SIN AJUSTE
+      PILAR       000010 LIMPIA CRISTAL               produccion=10 corregido=7 -> SIN AJUSTE
+      PILAR       000037 LIMPIA CRISTAL OBSEQUIO      produccion=516 corregido=507 -> SIN AJUSTE
 
-== 1. articulos nuevos del corregido ==
-    de los 46 registros nuevos salen 42 articulos: 4 son el mismo SKU global en las dos sucursales
-    Armazones                    -> PRODUCTO_STOCKEABLE        33
-    Estuches                     -> PRODUCTO_STOCKEABLE         1
-    Gotas Oftálmicas             -> PRODUCTO_STOCKEABLE         2
-    Lente de contacto            -> PRODUCTO_STOCKEABLE         3
-    Líquidos Multipropósitos     -> PRODUCTO_STOCKEABLE         3
-  OK   42 articulos creados de 46 registros
-  OK   crear el catalogo no movio una sola unidad
+== 1. altas del inventario corregido ==
+    41 articulos de 45 registros (4 SKU globales consolidados)
+  OK   41 articulos creados
+  OK   el catalogo no creo una sola unidad
+    stock inicial: 45 lineas, 1064 unidades
 
-== 2. stock inicial de los nuevos que si son stockeables ==
-    46 lineas, 1066 unidades
-
-== 3. ajustes de cantidad ==
-    AJUSTE_POSITIVO: 47 unidades
-    AJUSTE_NEGATIVO: 65 unidades
-
-== 4. correccion de naturaleza revocada por el negocio ==
+== 2. cambios de naturaleza (decision 1) ==
+  OK   2000056 Par de patillas: 0 unidades, no hay stock que compensar
   OK   2000056: PRODUCTO_STOCKEABLE -> SERVICIO_NO_STOCKEABLE
-  OK   2000056: no habia stock que compensar (0 movimientos)
+  OK   2000070 Hilo: 0 unidades, no hay stock que compensar
+  OK   2000070: PRODUCTO_STOCKEABLE -> SERVICIO_NO_STOCKEABLE
+  OK   2000071 Tornillo: 0 unidades, no hay stock que compensar
+  OK   2000071: PRODUCTO_STOCKEABLE -> SERVICIO_NO_STOCKEABLE
+  OK   2000072 Plaqueta: 0 unidades, no hay stock que compensar
+  OK   2000072: PRODUCTO_STOCKEABLE -> SERVICIO_NO_STOCKEABLE
+
+== 3. retiros por ausencia en el corregido (decision 2) ==
+    ausentes reales identificados : 773
+    con stock en su sucursal      : 773  (773 unidades)
+    sin stock, solo se deprecian  : 0
+    siguen vivos en la otra sucursal o tienen venta: 5
+        ASUNCION    733905810077 otras={'PILAR': 1} ventas=0 -> se compensa ASUNCION pero el articulo NO se retira
+        ASUNCION    733905810190 otras={'PILAR': 2} ventas=0 -> se compensa ASUNCION pero el articulo NO se retira
+        ASUNCION    733905810251 otras={'PILAR': 2} ventas=0 -> se compensa ASUNCION pero el articulo NO se retira
+        ASUNCION    733905810435 otras={'PILAR': 2} ventas=0 -> se compensa ASUNCION pero el articulo NO se retira
+        PILAR       300653145470 otras={'ASUNCION': 3} ventas=0 -> se compensa PILAR pero el articulo NO se retira
+    compensado: ASUNCION 645 unidades, PILAR 128 unidades
+    retirados del catalogo activo : 766 articulos
+    NO retirados por seguir vivos : 5
+
+== 4. ajustes de cantidad de los que si siguen ==
+    AJUSTE_POSITIVO: 47 unidades (8 articulos)
+    AJUSTE_NEGATIVO: 34 unidades (29 articulos)
 
 == resultado ==
-  articulos : 3554 -> 3596
-  movimientos: 3583 -> 3669
-  ASUNCION  : 5849 -> 6904
-  PILAR     : 2899 -> 2892
-  OK   movimientos INVENTARIO_INICIAL: 3583 -> 3629 (los de la 008 intactos, mas los de las altas)
+  articulos      : 3554 -> 3595
+  activos        : 3554 -> 2829
+  movimientos    : 3583 -> 4438
+  stock ASUNCION : 5849 -> 6276
+  stock PILAR    : 2899 -> 2776
+
+== limpia cristal, verificacion explicita ==
+  OK   000010 ASUNCION sigue sin unidades y sin ajuste (0)
+  OK   000010 ASUNCION conserva su pendiente
+  OK   000010 PILAR intacto en 10 (10)
+  OK   000037 sin stock ficticio nuevo: {'ASUNCION': 210, 'PILAR': 516}
+  OK   000037 sigue activo: su retiro es del slice 013
+
+== estado final de los cuatro conceptos de compostura ==
+  OK   2000056 Par de patillas      SERVICIO_NO_STOCKEABLE   stock=0 (pendiente de la 008 registrado: 1)
+  OK   2000070 Hilo                 SERVICIO_NO_STOCKEABLE   stock=0 (pendiente de la 008 registrado: 1)
+  OK   2000071 Tornillo             SERVICIO_NO_STOCKEABLE   stock=0 (pendiente de la 008 registrado: 1)
+  OK   2000072 Plaqueta             SERVICIO_NO_STOCKEABLE   stock=0 (pendiente de la 008 registrado: 1)
+  OK   no queda ningun articulo de Compostura clasificado como producto
 
 == invariantes ==
   OK   integrity_check: ok
@@ -57,15 +78,12 @@ antes           : 3554 articulos, 3583 movimientos, ASU 5849 / PIL 2899
   OK   stock negativo: 0
   OK   huerfanos: 0
   OK   efectos sin hecho: 0
-
 == Caja historica ==
   OK   entradas: 12
   OK   suma: 6400000
   OK   lineas: 10
-
-== historia de la 008 intacta ==
-  OK   las dos corridas de la 008 siguen enteras: 3583 movimientos, ninguno borrado
-  OK   y sus 8.748 unidades tampoco se tocaron (8748)
+== historia de V1-008 ==
+  OK   las dos corridas siguen enteras: 3583 movimientos, 8748 unidades
   OK   los 5 pendientes de la 008 siguen registrados
 
 sha256 base productiva despues: 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658

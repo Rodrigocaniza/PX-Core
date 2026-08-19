@@ -7,9 +7,9 @@
   "base_commit": "f5a55b7cbcdd41cfb961ba35a79ad61e4ee8e62d",
   "opened_on": "2026-08-19",
   "opened_at": "PC Optica",
-  "blocked_on": "cuatro decisiones, en HUMAN_GATE.md",
+  "blocked_on": "una sola autorizacion: aplicar la conciliacion recalculada",
   "produccion": "INTACTA. 3.554 articulos, 3.583 movimientos, sha256 sin cambios",
-  "next_action": "Responder los cuatro puntos del HUMAN_GATE: (1) que significan los 775 articulos ausentes -- vendidos, dados de baja o filtro distinto; (2) si Hilo, Tornillo y Plaqueta son repuestos que hay que contar o parte del servicio; (3) confirmar o corregir los 2.857 limpia-cristales de Asuncion; (4) si se retira el SKU 000037 y se migra la promocion a 000010 + no_cost. Con eso se regenera y se aplica la parte autorizada. Tambien se puede aplicar YA la parte limpia -- 42 altas, 1.066 unidades, 40 ajustes y la correccion de Par de patillas -- y dejar los cuatro puntos para despues: el dry run de esa parte ya dio PASS",
+  "next_action": "Esperar la autorizacion y aplicar el plan recalculado: 41 altas con 1.064 unidades, 766 retiros con 773 unidades compensadas antes de desactivar, 37 ajustes (+47 / -34) y 4 cambios de naturaleza. Con backup verificable, verificacion post-escritura y rollback, igual que en la 008. Despues quedan tres slices separados -Delivery, laboratorio por defecto y promo limpia-cristal- y la V1-009 pausada por una sola cantidad: los limpia-cristales de Asuncion",
   "next_role": "COMMAND_CENTER",
   "next_pc": "Optica",
   "autorizacion_requerida": true,
@@ -53,22 +53,24 @@
     }
   ],
   "verification": {
-    "estado_canonico": "verificado, sin drift",
-    "dry_run": "PASS, 0 fallas",
-    "idempotencia": "PASS",
+    "estado_canonico": "verificado, sin drift. HEAD e146893, fuentes con sus sha256, produccion en 25cd7d04",
+    "dry_run_generacion_2": "PASS, 0 fallas",
+    "idempotencia": "PASS por contenido, 0 duplicacion",
     "integrity_check": "ok",
     "foreign_key_check": 0,
     "stock_negativo": 0,
     "huerfanos": 0,
     "efectos_sin_hecho": 0,
     "caja_historica": "intacta",
-    "historia_de_la_008": "intacta, 3.583 movimientos y 8.748 unidades",
-    "produccion_intacta": "sha256 25cd7d04... antes y despues",
+    "historia_de_la_008": "intacta",
+    "produccion_intacta": "sha256 sin cambios",
     "gates": {
       "librarian": "PASS",
       "qa": "PASS",
       "auditor": "PASS",
       "artifact_consistency": "PASS"
     }
-  }
+  },
+  "generacion": 2,
+  "decisiones_pendientes": []
 }
