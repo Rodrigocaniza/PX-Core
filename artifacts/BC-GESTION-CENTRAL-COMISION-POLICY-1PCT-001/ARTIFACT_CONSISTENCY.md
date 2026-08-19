@@ -126,8 +126,12 @@ Resultado: **consistente**, verificado también por
   `WORKFLOW.generations[]` y con `INDEPENDENCE.md`; los quince anteriores se conservan sin retocar y
   **no se reutilizan** como aprobación de ninguna generación posterior.
 - La misión **no** está en Safe Closure y **no** está cerrada. `WORKFLOW.current_state` es
-  `GENERATION_11_REMEDIATED_PENDING_VERDICTS`, `safe_closure` sigue `PENDING` y el `MISSION_LEASE`
-  está `ACQUIRED` en PC Casa. Las generaciones 10 y 11 no requirieron decisión nueva; la 9 **sí llevó decisión
+  `SAFE_PAUSED`, `safe_closure` sigue `PENDING` y el `MISSION_LEASE` quedó
+  `RELEASED_FOR_SAFE_PAUSE`. La generación 11 fue **INVALIDADA** por un único bloqueante del
+  Librarian, `L1-g11`, no económico; el Auditor y QA dieron `PASS`. Los tres hallazgos económicos
+  que el Auditor abrió sobre este snapshot están registrados **aparte y priorizados** en
+  `ECONOMIC_FINDINGS_OPEN.md`, por decisión del propietario: no se absorben dentro de ninguna
+  generación. Las generaciones 10 y 11 no requirieron decisión nueva; la 9 **sí llevó decisión
   de propietario**, registrada en
   `WORKFLOW.policy_decision_gen9`: una `PAGADA` viva conserva la tasa económica real con la que fue
   pagada, y el 1% es prospectivo. La 8 no la había requerido, porque el módulo ya trataba una

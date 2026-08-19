@@ -1,145 +1,126 @@
-# Safe Pause — Auto-Resume desde la PC de la Óptica
+# Safe Pause — Auto-Resume
 
 > **El estado canónico manda sobre este documento.** Si algo de aquí no coincide con `git`,
 > `WORKFLOW.json` o `MISSION_LEASE.json`, gana el estado real. Este resumen existe para no
 > reconstruir contexto, no para sustituirlo.
+>
+> Esta advertencia no es decorativa: la Safe Pause anterior anticipaba que la misión seguiría desde
+> la PC de la Óptica y siguió desde PC Casa, y el encargo de esta pausa daba por vivo un estado
+> —«GEN9, no abrir GEN10»— que ya había sido superado por dos generaciones. **Verificá el HEAD antes
+> de creerle a nadie, incluido este fichero.**
 
 ## Identidad
 
 | | |
 |---|---|
 | **Misión** | `BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001` |
-| **Generación actual** | **5 — INVALIDATED** (snapshot `2ac9f5c93ec99ed506133310ee6cd19f6779b971`) |
-| **Generación siguiente** | **6 — PENDING_REMEDIATION**, sin snapshot |
+| **Generación en revisión** | **11 — INVALIDATED** (snapshot `75d7f1b6d0ff090abe9f1c063388c38b3f2f4ab0`) |
+| **Generación siguiente** | **12 — sin abrir**, sin snapshot |
 | **Branch** | `mission/bc-gestion-central-comision-policy-1pct-001` |
-| **HEAD en la pausa** | `998037f924cdeb0c88565cc4618a85f9a0c92477` |
-| **Remoto** | `origin` — **0 ahead / 0 behind**, publicada |
+| **Remoto** | `origin` — publicada y sincronizada |
 | **Working tree** | limpio |
-| **Worktree del host pausado** | `.worktrees/gc-comision-policy-1pct-001` |
+| **Worktree** | `.worktrees/gc-comision-policy-1pct-001` (PC Casa) |
 | **Safe Pause** | `SAFE_PAUSED` |
 | **Safe Closure** | `PENDING` |
-| **Mission Lease** | `RELEASED_FOR_SAFE_PAUSE` — **hay que readquirirlo antes de tocar nada** |
+| **Mission Lease** | `RELEASED_FOR_SAFE_PAUSE` — **readquirir antes de tocar nada** |
 
 Base de la misión: `e7732603d9eb098867a272598e6d30803a4f1ac3`.
+
+## Dónde se cortó
+
+El único runner en vuelo —`AUDITOR-IND-COMISION-POLICY-1PCT-011`— **terminó antes de pausar**, y su
+verdict quedó registrado. Después de eso no se inició ningún fuzz, ningún runner, ninguna
+remediación y ninguna generación. No se modificó ninguna regla económica.
+
+## Estado de la generación 11
+
+| Runner | Verdict | Bloqueantes |
+|---|---|---|
+| Librarian | **FAIL** | `L1-g11` |
+| QA | **PASS** | ninguno |
+| Auditor | **PASS** | ninguno |
+
+**Tercer `PASS` consecutivo del Auditor** (generaciones 9, 10 y 11) y cuarto de QA. La generación
+queda invalidada por un único bloqueante, y no es económico.
+
+### Pruebas que ya pasaron
+
+- Regresión completa **456/456**, verificada dos veces por el Auditor y una por el Librarian.
+- Suite del módulo **256/256**.
+- Casos de comisiones: **205** = 112 + 8 + 24 + 23 + 14 + 13 + 11.
+- **Auditor:** 13.862 pasos de fuzz desde bases migradas, 5.872 comprobaciones de `importe = tasa ×
+  base`, 25 rondas × 6 hilos de concurrencia sobre la cadena de pago, 25 reaperturas de migración.
+  **1.726 liquidaciones legítimas** por el camino público completo, once tasas × dos clases de
+  venta, con el medio guaraní exacto resuelto para cada tasa: **cero falsos rechazos**.
+- **QA:** diferencial contra el árbol de la generación 10 —trece de quince escenarios idénticos
+  carácter a carácter— más **506 liquidaciones** producidas por el sistema, cero rechazos.
+
+> **Aviso para quien retome.** Las pruebas de interfaz usan Tk y **se pisan si dos corridas de
+> `pytest` comparten el display**: durante esta pausa una corrida dio `454 passed, 2 errors` en
+> `test_delivery_ui_interactions.py` y la siguiente, en serie, dio `456 passed` sin tocar una línea.
+> No es una regresión. El Librarian de la generación 10 ya lo había anotado (su observación 7).
+> Corré la suite en serie antes de leer un fallo de interfaz como un defecto.
+
+### Lo que no se llegó a hacer
+
+- No se abrió la generación 12.
+- No se corrigió `L1-g11`.
+- No se tocó ninguno de los tres hallazgos económicos nuevos.
+- No se relanzó ningún runner después del Auditor.
+
+## Bloqueante abierto
+
+**`L1-g11` — la cobertura declarada de la guarda estructural es más ancha que la real.**
+
+El invariante 10 afirma que la prueba estructural «falla si una función que escribe
+`commission_entries` no reconcilia». El Librarian inyectó cuatro escritores en el módulo real —SQL
+izado a una constante de módulo, armado por concatenación, con el nombre de tabla interpolado, y
+`DELETE`— y **las cuatro pruebas estructurales pasaron**.
+
+El ejemplo importa porque es el estilo del propio paquete: izar SQL a constantes de módulo es lo que
+este módulo practica —`LIVE_OFFICIAL_FACT_SQL`, `PERIOD_MATCH_SQL`, `BOUNDARY_SQL_IN`,
+`PERIOD_KEY_SQL`— y la generación 11 acaba de añadir `period_key` con el mismo criterio.
+
+**Es la tercera vez que se sobre-afirma la cobertura de una guarda** (`L3-g9`, `L2-g10`, `L1-g11`).
+Una prueba estática no puede decidir en general si una función escribe una tabla, porque el SQL
+puede construirse en tiempo de ejecución. La corrección correcta **no es un cuarto intento de
+universalidad**: es acotar la afirmación al alcance real de la guarda **y** extenderla donde es
+barato —constantes de módulo, concatenaciones simples, `DELETE` y `REPLACE INTO`—.
+
+## Hallazgos económicos nuevos — **no absorbidos**
+
+Están en `ECONOMIC_FINDINGS_OPEN.md`, priorizados y separados por decisión del propietario. Resumen:
+
+| | ID | Daño | Alcanzable por ruta pública |
+|---|---|---|---|
+| **P1** | `O15-g11` | **8.900.000 Gs** de sobrepago: la guarda de pago no re-deriva `commissionable_base` ni `gross_amount` desde la venta | no |
+| **P2** | `O17-g11` | una traza de política inventada entra al libro append-only y resucita el alcance por vendedora | no |
+| **P3** | `O16-g11` | el KPI `paid_amount` usa `status` y no `paid_at`: una pagada luego observada o anulada desaparece del pagado | **sí** |
+
+`O1` **no** está en esa lista: es la decisión de propietario de la generación 9 —un mes con una
+`PAGADA` viva al 7% cobra el 7% a las ventas posteriores, 600.000 Gs por venta de 10.000.000—.
+Merece confirmación explícita antes de producción, pero no es un defecto.
 
 ## Cómo retomar
 
 ```
 git fetch origin
-git checkout mission/bc-gestion-central-comision-policy-1pct-001
-git rev-parse HEAD          # debe dar 998037f924cdeb0c88565cc4618a85f9a0c92477
-git status --porcelain      # debe estar vacío
+git -C .worktrees/gc-comision-policy-1pct-001 status --porcelain   # debe estar vacío
+git -C .worktrees/gc-comision-policy-1pct-001 rev-parse HEAD       # comparar con el estado real
 ```
 
-Después: adquirir el Mission Lease y arrancar `BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6`.
-No hace falta reconstruir nada más: los artifacts y los quince verdicts están en la branch.
+Después: **readquirir el Mission Lease**, leer `ECONOMIC_FINDINGS_OPEN.md`, y decidir con el
+propietario el orden de P1/P2/P3 respecto de `L1-g11` **antes** de escribir código. P1 mueve dinero;
+`L1-g11` no.
 
-## Recorrido de las cinco generaciones
+## Artifacts
 
-| Gen | Snapshot | Librarian | QA | Auditor | Qué dejó |
-|---|---|---|---|---|---|
-| 1 | `578bf8b` | FAIL | PASS | FAIL | fuga: una liquidación legada era pagable al porcentaje retirado |
-| 2 | `7abc30e` | FAIL | FAIL | FAIL | deriva de versión; la reparación cubría una sola etiqueta |
-| 3 | `75f5c57` | FAIL | PASS | FAIL | **B1** re-tarifado retroactivo; **B2** importe retirado sin asiento |
-| 4 | `5652e46` | PASS | PASS | FAIL | **B1-g4** la guarda por estado se desarmaba con `observe`/`revert`/`void_sale`; **B2-g4** `_apply_source_update` sin asiento |
-| 5 | `2ac9f5c` | FAIL | FAIL | FAIL | **AB1-g5** y **AB2-g5** económicos; **QB1/QB2-g5** rotulado; L1-g5…L6-g5 documentales (cerrados) |
-
-Los quince verdicts viven íntegros y sin retocar en `generation-1/` … `generation-5/`.
-
-## Bloqueantes: cerrados y abiertos
-
-**Cerrados y verificados**
-
-| ID | Qué era | Estado |
-|---|---|---|
-| `B1` | vigencia *igual* re-tarifaba un período liquidado | cerrado en ruta directa · sucedido por `B1-g4` |
-| `B2` | `replaced` sólo en las ramas `REVISADA`/`APROBADA` | cerrado en `recalculate` · sucedido por `B2-g4` |
-| `B1-g4` | la guarda miraba el estado actual | **cerrado — verificado por los tres runners de la generación 5** |
-| `B2-g4` | `_apply_source_update` anulaba sin asiento | **cerrado — verificado por los tres** |
-| `L1`, `L2`, `L1-g5…L6-g5` | documentales | cerrados en sus commits de registro |
-
-En la generación 5 los tres runners confirmaron, cada uno por su cuenta, que **no existe transición
-pública que devuelva un período tarifado al catálogo**: QA con matriz propia de 18 transiciones y 7
-cadenas, el Librarian ejecutando la matriz y comprobando que ninguna sentencia hace `UPDATE`/`DELETE`
-sobre la evidencia, el Auditor con 10 transiciones, 30 semillas × 120 pasos de fuzz y concurrencia
-real. Los diez invariantes económicos pasan sobre bases frescas.
-
-**Abiertos — son el alcance de GEN6**
-
-| ID | Tipo | Qué es | Decisión |
-|---|---|---|---|
-| `AB1-g5` | **económico** | La siembra de la migración fija el período con la tasa de la liquidación **más antigua**, aunque esté `REVERTIDA` y su venta anulada, y aunque el mes se haya pagado dos veces a otra tasa. Baja una `APROBADA` de 500.000 → 100.000 Gs y le borra el aval, **sin una sola fila de auditoría**. | resuelta abajo |
-| `AB2-g5` | **económico** | Un tipeo de fecha fija un mes lejano **para siempre**; el pin sobrevive a la corrección de origen y a la anulación que el propio sistema registra, y ese mes paga mal en silencio. | resuelta abajo |
-| `QB1-g5` | rotulado | En un período sin tasa en vigor la cabecera cae a la política global y la declara oficial de ese mes («Comisión oficial 10,00%» donde no rige nada). | sin bifurcación |
-| `QB2-g5` | rotulado | El `policy_disclaimer` del export `contract_version: 3` emite «Comisión oficial **None%**». | sin bifurcación |
-
-## Decisión de propietario para GEN6
-
-**La tasa del período NO se fija en el primer cálculo.** Queda fijada únicamente cuando existe un
-**hecho económico oficial**.
-
-- **Boundary: `APROBADA` o `PAGADA`.**
-- Los estados provisionales anteriores —`ELEGIBLE`, `CALCULADA`, `REVISADA`— **siguen siendo
-  corregibles** y no fijan nada.
-- **La migración no puede sembrar** desde una venta anulada, ni desde un primer cálculo arbitrario,
-  ni desde evidencia ambigua.
-- **Una migración nunca puede modificar silenciosamente dinero aprobado o pagado**, ni retirar una
-  aprobación o un pago.
-
-Por qué cierra los dos: un tipeo que será anulado nunca alcanza `APROBADA` ni `PAGADA`, así que no
-puede fijar un mes (`AB2-g5`); y la siembra deja de depender del orden de creación para depender del
-mismo hecho económico (`AB1-g5`).
-
-## Artifacts que deben reutilizarse — no regenerar
-
-- `generation-1/` … `generation-5/` — **quince verdicts, íntegros y sin retocar**. No se reutilizan
-  como aprobación: la generación 6 relanza los tres runners desde cero.
-- `WORKFLOW.json` — historial de generaciones, `blockers_open`, `policy_decision_b1`,
-  `policy_decision_b1_g4`, `policy_decision_gen6`, backlog de 29 hallazgos, `safe_pause`.
-- `HANDOFF.md` — los 29 hallazgos abiertos, con el 23 y el 25 ya corregidos.
-- `INDEPENDENCE.md` — por qué falló cada generación y qué superficie no cubrió cada rol.
-- `ARCHITECTURE_DELTA.md`, `COMMISSION_POLICY_1PCT.md`, `MIGRATION.md`, `SUMMARY.md` — contrato
-  vigente. **Dos afirmaciones siguen demostradas falsas y se conservan a propósito** para que GEN6
-  las corrija con la evidencia a la vista: la de `MIGRATION.md` / `ARCHITECTURE_DELTA.md` según la
-  cual «un importe heredado no oficial no fija nada», y la lectura implícita de que la fecha errónea
-  quedó resuelta.
-- `PROMPT_LIBRARIAN.txt`, `PROMPT_QA.txt`, `PROMPT_AUDITOR.txt` — con sus secciones por generación.
-- `TEST_EVIDENCE.md` — lleva la advertencia de que ninguna prueba cubre lo que pasa *después* de que
-  un pin se graba mal.
-- `MANIFEST.sha256` y el ZIP — **verifican en el worktree donde se generan**, no en un clon nuevo
-  (hallazgo abierto 23: `core.autocrlf=true` sin `.gitattributes`).
-
-**Debe regenerarse en GEN6:** `VISUAL_EVIDENCE.md` y su captura. El rótulo de pantalla cambió —ahora
-incluye « · fijada al tarifarse»— y la captura de la generación 3 ya no coincide (`L6-g5`).
-
-## Estado del código en la pausa
-
-Sin cambios respecto del snapshot `2ac9f5c`. Regresión **371/371**, suite del módulo **171**,
-dirigidas **114**. `comision_policy.py` intacto desde la generación 3: la aritmética `Decimal` y el
-único `HALF_UP` canónico no se han tocado.
-
-## NEXT_ACTION exacto
-
-```
-BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6
-```
-
-1. Adquirir el Mission Lease sobre la branch ya publicada.
-2. Cerrar `AB2-g5`: fijar el período **sólo** al alcanzar `APROBADA` o `PAGADA`.
-3. Cerrar `AB1-g5`: la siembra ignora `REVERTIDA` y ventas anuladas, se apoya en el mismo boundary,
-   no fija nada ante evidencia ambigua o discrepante, no toca importes ni avales, y audita cada
-   período sembrado en `central_audit`.
-4. Cerrar `QB1-g5`: rotular la ausencia de tasa en cabecera y KPI en vez de caer a la global.
-5. Cerrar `QB2-g5`: `policy_disclaimer` propio cuando el período no tiene tasa en vigor.
-6. Regenerar `VISUAL_EVIDENCE` y su captura.
-7. Dirigidas → suite del módulo → regresión completa.
-8. Publicar snapshot de la generación 6 y relanzar los tres runners independientes.
-9. **No reutilizar verdicts de las generaciones 1 a 5.**
-
-Con 3×PASS: protected commit/push, Safe Closure, liberar el lease y persistir NEXT_ACTION.
-`BC-GESTION-CENTRAL-SOBRES-FACTURA-V1` sigue sin abrirse.
+Los **treinta y tres** verdicts viven íntegros en `generation-1/` … `generation-11/`, tres por
+generación, ninguno retocado. `MANIFEST.sha256` y el ZIP verifican en el worktree donde se generan
+(hallazgo abierto 23: `core.autocrlf=true` sin `.gitattributes`).
 
 ## Lo que no se toca
 
-BC-Core. BC Caja rc.31 (`pedidos30-gate`). Los worktrees anteriores de Gestión Central. `main`. Sin
-merge y sin force-push.
+BC-Core. Telegram. Commercial Core Slices 1–6. `BC-OPTICA-INSTALACION-PRODUCTIVA-V1-007`. La
+instalación productiva de Caja. `main`. Sin PR, sin merge, sin force-push.
+`BC-GESTION-CENTRAL-SOBRES-FACTURA-V1` sigue sin abrirse.

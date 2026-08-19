@@ -4,8 +4,8 @@
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "worktree": ".worktrees/gc-comision-policy-1pct-001",
-  "current_state": "GENERATION_11_REMEDIATED_PENDING_VERDICTS",
-  "mission_lease": "ACQUIRED",
+  "current_state": "SAFE_PAUSED",
+  "mission_lease": "RELEASED_FOR_SAFE_PAUSE",
   "generation": 11,
   "autochain": [
     "LIBRARIAN",
@@ -560,10 +560,29 @@
     },
     {
       "generation": 11,
-      "snapshot_commit": null,
-      "status": "REMEDIATED_PENDING_VERDICTS",
+      "snapshot_commit": "75d7f1b6d0ff090abe9f1c063388c38b3f2f4ab0",
+      "status": "INVALIDATED",
       "tests": 456,
-      "verdicts": [],
+      "verdicts": [
+        {
+          "runner": "LIBRARIAN-IND-COMISION-POLICY-1PCT-011",
+          "role": "LIBRARIAN",
+          "verdict": "FAIL",
+          "blockers": [
+            "L1-g11"
+          ]
+        },
+        {
+          "runner": "QA-IND-COMISION-POLICY-1PCT-011",
+          "role": "QA",
+          "verdict": "PASS"
+        },
+        {
+          "runner": "AUDITOR-IND-COMISION-POLICY-1PCT-011",
+          "role": "AUDITOR",
+          "verdict": "PASS"
+        }
+      ],
       "scope": "cerrar L1-g10 y L2-g10, la observacion economica O8-g10 del Auditor, y las estructurales O9 a O14",
       "evidence": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/generation-11/",
       "remediation": {
@@ -586,7 +605,8 @@
           "QA-010 obs 4": "recalcular un mes discrepante lo desempata como efecto colateral; identico en la generacion 9",
           "QA-009 obs 3 y 4": "el codigo COMISION_GENERAL_1PCT junto a una tasa historica, y el scope heredado"
         }
-      }
+      },
+      "outcome": "Tercer PASS consecutivo del Auditor y cuarto de QA. El Auditor verifico con 1.726 liquidaciones legitimas que la guarda aritmetica no rechaza nada del propio sistema, y QA con 506 mas por diferencial contra la generacion 10. INVALIDADA solo por el Librarian: L1-g11, la cobertura declarada de la guarda estructural sigue siendo mas ancha que la real. El Auditor abrio ademas tres observaciones economicas nuevas, registradas aparte en ECONOMIC_FINDINGS_OPEN.md y NO absorbidas en ninguna generacion."
     }
   ],
   "non_blocking_findings_recorded": [
@@ -1018,19 +1038,39 @@
       "status": "CERRADO_EN_GEN11",
       "summary": "la guarda de pago no comprobaba que el importe fuera el que la tasa produce; 8.900.000 Gs de sobrepago desde una fila externa incoherente",
       "note": "el Auditor lo declaro no bloqueante por no ser alcanzable por ruta publica; se cierra igual"
+    },
+    {
+      "id": "L1-g11",
+      "role": "LIBRARIAN",
+      "generation": 11,
+      "kind": "ESTRUCTURAL",
+      "status": "ABIERTO",
+      "summary": "el invariante 10 declara que la guarda estructural falla si una funcion que escribe commission_entries no reconcilia; cuatro escritores inyectados en el modulo real —SQL izado a constante de modulo, concatenacion, interpolacion del nombre de tabla, y DELETE— no reconcilian y las cuatro pruebas estructurales pasan",
+      "remedios_propuestos": [
+        "acotar la afirmacion: la guarda ve el SQL literal del cuerpo, y ese es el alcance de la garantia",
+        "extender la guarda: resolver constantes de modulo y concatenaciones simples, y cubrir DELETE y REPLACE INTO"
+      ],
+      "nota": "una prueba estatica no puede decidir en general si una funcion escribe una tabla, porque el SQL puede construirse en tiempo de ejecucion. La correccion correcta combina acotar la afirmacion con extender la guarda donde es barato, no un cuarto intento de universalidad"
     }
   ],
   "next_action": {
-    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN11-VERDICTS",
-    "state": "PENDING_INDEPENDENT_VERDICTS",
-    "steps": [
-      "1. Publicar el snapshot de la generacion 11 (protected commit y push).",
-      "2. Relanzar los tres runners independientes sobre ese snapshot.",
-      "3. No reutilizar verdicts de las generaciones 1 a 10.",
-      "4. Con 3xPASS: Artifact Consistency, Safe Closure, liberar el lease y persistir el NEXT_ACTION siguiente.",
-      "5. Con cualquier FAIL: abrir la generacion 12 con el alcance exacto."
+    "code": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN12",
+    "state": "SAFE_PAUSED_PENDING_RESUME",
+    "alcance_minimo": "L1-g11, unico bloqueante abierto",
+    "decision_pendiente_del_propietario": [
+      "P1 O15-g11: cerrarlo o dejarlo abierto con su cifra a la vista",
+      "P2 O17-g11 y P3 O16-g11: orden respecto de L1-g11",
+      "O1: confirmar o revisar la semantica de la tasa historica antes de produccion"
     ],
-    "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 no se abre hasta cerrar esta politica economica."
+    "steps": [
+      "1. Readquirir el Mission Lease sobre la branch publicada.",
+      "2. Cerrar L1-g11 combinando dos cosas: acotar la afirmacion del invariante 10 al alcance real de la guarda, y extender la guarda para resolver constantes de modulo y concatenaciones simples y cubrir DELETE y REPLACE INTO. No intentar una cuarta afirmacion universal.",
+      "3. Decidir con el propietario el orden de P1, P2 y P3 antes de tocarlos. P1 mueve dinero.",
+      "4. Dirigidas primero, suite del modulo, regresion completa al cierre.",
+      "5. Publicar snapshot y relanzar los tres runners. No reutilizar verdicts de las generaciones 1 a 11.",
+      "6. Con 3xPASS: Artifact Consistency, Safe Closure y liberacion del lease."
+    ],
+    "note": "BC-GESTION-CENTRAL-SOBRES-FACTURA-V1 sigue sin abrirse."
   },
   "policy_decision_b1": {
     "option": "A",
@@ -1053,24 +1093,22 @@
     "out_of_scope": "el flujo de correccion retroactiva explicita y auditada no se implementa"
   },
   "safe_pause": {
-    "state": "RESUMED",
-    "reason": "continuar desde la PC de la Optica",
-    "paused_at_commit": "998037f924cdeb0c88565cc4618a85f9a0c92477",
+    "state": "SAFE_PAUSED",
+    "reason": "detencion solicitada por el propietario; no abrir remediacion nueva",
+    "paused_at_commit": null,
     "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
-    "worktree_on_paused_host": ".worktrees/gc-comision-policy-1pct-001",
-    "remote": "origin 0 ahead / 0 behind",
-    "working_tree": "clean",
+    "worktree": ".worktrees/gc-comision-policy-1pct-001",
+    "snapshot_en_revision": "75d7f1b6d0ff090abe9f1c063388c38b3f2f4ab0",
+    "boundary": "el ultimo runner en vuelo —AUDITOR-IND-COMISION-POLICY-1PCT-011— termino antes de pausar; su verdict quedo registrado. No se inicio ningun fuzz, runner ni generacion despues",
     "code_changed_while_pausing": false,
-    "evidence_untouched": "generation-1..5, tres verdicts cada una, quince en total",
-    "resume_with": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN6",
+    "evidence_untouched": "generation-1..11, tres verdicts cada una, treinta y tres en total",
+    "resume_with": "BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001-GEN12",
     "resume_precondition": [
-      "git fetch y checkout de la branch en el host nuevo",
-      "verificar HEAD == 998037f924cdeb0c88565cc4618a85f9a0c92477 y arbol limpio",
-      "adquirir el Mission Lease antes de tocar codigo"
-    ],
-    "resumed_on_host": "PC-CASA",
-    "resumed_at_commit": "e87be30f8cde4752644bd0a0250a1ab22846a422",
-    "note": "la mision se retomo en PC Casa, no en la PC de la Optica; el estado canonico mandaba sobre el plan"
+      "git fetch y verificar que la branch sigue publicada y sin divergencia",
+      "verificar el HEAD real y el arbol limpio antes de creer cualquier documento",
+      "readquirir el Mission Lease antes de tocar codigo o artifacts",
+      "leer ECONOMIC_FINDINGS_OPEN.md antes de decidir el alcance de la generacion 12"
+    ]
   },
   "policy_decision_gen6": {
     "decided_by": "propietario del repositorio",
@@ -1138,5 +1176,40 @@
     "closes": [
       "AB1-g8"
     ]
+  },
+  "economic_findings_open": {
+    "documento": "artifacts/BC-GESTION-CENTRAL-COMISION-POLICY-1PCT-001/ECONOMIC_FINDINGS_OPEN.md",
+    "decidido_por": "propietario, en la Safe Pause del 2026-08-19",
+    "regla": "no se absorben dentro de ninguna generacion; se priorizan aparte",
+    "hallazgos": [
+      {
+        "id": "O15-g11",
+        "prioridad": "P1",
+        "kind": "ECONOMICO",
+        "summary": "la guarda de pago no re-deriva commissionable_base ni gross_amount desde la venta",
+        "impacto": "8.900.000 Gs de sobrepago sobre una venta de 10.000.000; convenio sin descuento cobra 5% de mas",
+        "alcanzable_por_ruta_publica": false
+      },
+      {
+        "id": "O17-g11",
+        "prioridad": "P2",
+        "kind": "INTEGRIDAD_DE_EVIDENCIA",
+        "summary": "una traza de politica inventada entra al libro append-only y resucita el alcance por vendedora",
+        "impacto": "no monetario directo; contamina de forma permanente la evidencia durable",
+        "alcanzable_por_ruta_publica": false
+      },
+      {
+        "id": "O16-g11",
+        "prioridad": "P3",
+        "kind": "REPORTE",
+        "summary": "el KPI paid_amount usa status y no paid_at: una pagada luego observada o anulada desaparece del pagado",
+        "impacto": "no monetario; descuadra el informe mensual de conciliacion",
+        "alcanzable_por_ruta_publica": true,
+        "relacion": "misma familia que el hallazgo abierto 26 del backlog, AUDITOR-004 O2, abierto desde la generacion 4"
+      }
+    ],
+    "no_es_un_hallazgo": {
+      "O1": "decision de propietario de la generacion 9: un mes con PAGADA viva al 7% cobra el 7% a las ventas posteriores, 600.000 Gs por venta de 10.000.000. Merece confirmacion explicita antes de produccion, pero no es un defecto"
+    }
   }
 }

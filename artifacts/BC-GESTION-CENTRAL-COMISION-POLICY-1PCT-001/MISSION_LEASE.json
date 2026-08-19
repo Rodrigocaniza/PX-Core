@@ -5,7 +5,7 @@
   "branch": "mission/bc-gestion-central-comision-policy-1pct-001",
   "base": "e7732603d9eb098867a272598e6d30803a4f1ac3",
   "continues": "BC-GESTION-CENTRAL-COMISIONES-001",
-  "state": "ACQUIRED",
+  "state": "RELEASED_FOR_SAFE_PAUSE",
   "continuous_session": true,
   "auto_resume": true,
   "production_enabled": false,
@@ -19,10 +19,12 @@
     "BC-Finanzas",
     "main"
   ],
-  "release_condition": "tres verdicts independientes PASS sobre el snapshot de la generacion 6",
+  "release_condition": "tres verdicts independientes PASS sobre un snapshot; aun sin cumplir",
   "safe_closure": "PENDING",
-  "reacquire_before": "n/a mientras el lease este ACQUIRED",
-  "acquired_for": "GEN6",
+  "reacquire_before": "cualquier cambio de codigo o de artifacts de la generacion 12",
+  "acquired_for": "GEN6..GEN11 (completadas y revisadas)",
   "acquired_host": "PC-CASA",
-  "acquired_at_commit": "e87be30f8cde4752644bd0a0250a1ab22846a422"
+  "acquired_at_commit": "e87be30f8cde4752644bd0a0250a1ab22846a422",
+  "released_reason": "Safe Pause solicitada por el propietario; no se abre remediacion nueva",
+  "released_at_snapshot": "75d7f1b6d0ff090abe9f1c063388c38b3f2f4ab0"
 }
