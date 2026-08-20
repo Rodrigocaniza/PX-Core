@@ -1054,6 +1054,25 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             sesion_caja["sesion"] = None
             return None
 
+    def vendedoras_disponibles():
+        """Las personas activas del catalogo. Nunca rompe la carga de la venta.
+
+        Es de solo lectura y no pide sesion administrativa: pedirsela a la
+        operadora seria pedirle que sea administradora para poder vender.
+
+        Vive aca arriba, con las demas funciones de identidad, y no mas abajo
+        junto al seguimiento: el combo de vendedora se arma mientras se
+        construye la planilla, mucho antes. Definirla despues la convertia en
+        una local de `abrir_caja_diaria` que todavia no estaba ligada cuando la
+        planilla la llamaba, y la ventana no llegaba a abrirse.
+        """
+        try:
+            return list(controller.admin.active_salespeople())
+        except Exception:
+            # Una base vieja o un problema de lectura no pueden impedir cargar
+            # una venta: el combo queda editable y la operadora escribe.
+            return []
+
     def pedir_login_operadora(titulo="Entrar a la caja", relevo=False):
         """La pantalla de entrada. Usuario, contrasena, entrar.
 
@@ -4770,19 +4789,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             widgets["fila"].configure(
                 fg_color=widgets["fondo_activo"] if elegido else widgets["fondo"])
         actualizar_acciones_seguimiento()
-
-    def vendedoras_disponibles():
-        """Las personas activas del catalogo. Nunca rompe la carga de la venta.
-
-        Es de solo lectura y no pide sesion administrativa: pedirsela a la
-        operadora seria pedirle que sea administradora para poder vender.
-        """
-        try:
-            return list(controller.admin.active_salespeople())
-        except Exception:
-            # Una base vieja o un problema de lectura no pueden impedir cargar
-            # una venta: el combo queda editable y la operadora escribe.
-            return []
 
     def responsable_actual():
         """Quien esta operando. Ya no se pregunta ni se adivina del entorno.
