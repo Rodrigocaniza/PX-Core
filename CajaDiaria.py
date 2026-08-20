@@ -51,6 +51,7 @@ from modulos.caja_diaria.application.admin_ops import (
     ROL_OPERADOR,
 )
 from modulos.caja_diaria.ui.factufacil_panel import construir_panel_factufacil
+from modulos.caja_diaria.ui.service_jobs_panel import construir_panel_composturas
 from modulos.caja_diaria.application.tracking_service import (
     ETIQUETAS_ESTADO as ETIQUETAS_ESTADO_UI,
     GRUPOS_SEGUIMIENTO,
@@ -1167,6 +1168,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     tab_manual = pestañas.add("Cargar manual")
     tab_pedidos = pestañas.add("Pedidos")
     tab_seguimiento = pestañas.add("Seguimiento")
+    tab_composturas = pestañas.add("Composturas")
     tab_arqueo = pestañas.add("Arqueo")
     tab_factufacil = pestañas.add("FactuFácil")
     tab_historial = pestañas.add("Historial")
@@ -4801,6 +4803,15 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     construir_panel_factufacil(
         tab_factufacil, controller.factufacil, actor=responsable_actual(),
         perfil=perfil, copiar=copiar_al_portapapeles,
+    )
+
+    # V1-020: composturas y trabajos de taller. `actor` y `sucursal` van como
+    # funciones y no como texto: la operadora puede cambiar sin cerrar la
+    # ventana, y el panel tiene que registrar a la que esta ahora, no a la que
+    # estaba cuando se construyo la pestana.
+    construir_panel_composturas(
+        tab_composturas, controller.jobs, actor=responsable_actual,
+        sucursal=lambda: contexto_sucursal["sucursal"], perfil=perfil,
     )
 
     def refrescar_seguimiento(nombre=None):

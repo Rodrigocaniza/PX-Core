@@ -1,0 +1,16 @@
+{
+  "mision": "BC-OPTICA-TRABAJOS-OPERATIVOS-V1-020",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": true,
+  "migracion": "031",
+  "next_action": "En la Optica, cuando volvamos: aplicar 029, 030 y 031 en ese orden con backup previo, cargar a las personas reales con su rol, y recien ahi definir la politica de comision de composturas de cada una contra su usuario real. Sin politica cargada la pestana Composturas funciona entera pero no devenga nada, que es lo correcto y no un error",
+  "advertencia": "la 031 es aditiva y no toca ventas, stock ni caja, pero va detras de la 029 y la 030, que siguen sin aplicarse. Aplicarlas fuera de orden no esta contemplado",
+  "orden_de_aplicacion": ["029 (FactuFacil, V1-016)", "030 (usuarios y roles, V1-019A)", "031 (trabajos operativos, V1-020)"],
+  "pendientes_de_otras_misiones": [
+    "V1-015: limpieza de marcas-laboratorio, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-016: migracion 029, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-019A: migracion 030, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-017, V1-018 y V1-019B: solo codigo"
+  ],
+  "no_iniciar_otra_mision": true
+}

@@ -10,6 +10,7 @@ from typing import Any, Mapping
 
 from ..application.services import FILTRO_REQUIEREN_ATENCION, CashDayService
 from ..application.factufacil import FactuFacilService
+from ..application.service_jobs import ServiceJobsService
 from ..application.tracking_service import TrackingService
 from ..domain.errors import (
     CashDayAlreadyExistsError,
@@ -33,7 +34,7 @@ class ImportSummary:
 class CashDayUIController:
     def __init__(self, service: CashDayService, backup_service=None, movements_exporter=None,
                  admin_operations=None, tracking_service=None,
-                 factufacil_service=None) -> None:
+                 factufacil_service=None, service_jobs=None) -> None:
         self.service = service
         self.backup_service = backup_service
         self.movements_exporter = movements_exporter
@@ -43,6 +44,11 @@ class CashDayUIController:
         # V1-016: FactuFacil lee las mismas ventas. No abre otra base ni copia
         # nada: la lista de lo que falta cargar se deduce de `cash_entries`.
         self.factufacil = factufacil_service or FactuFacilService(service.repository)
+        # V1-020: los trabajos operativos comparten el mismo repositorio local y
+        # la misma sesion. Recibe `admin` para no volver a preguntar quien opera
+        # ni en que sucursal esta la caja: las dos cosas ya estan resueltas.
+        self.jobs = service_jobs or ServiceJobsService(
+            service.repository, admin_ops=admin_operations)
         self.last_backup_path: Path | None = None
         self.last_warning: str | None = None
 

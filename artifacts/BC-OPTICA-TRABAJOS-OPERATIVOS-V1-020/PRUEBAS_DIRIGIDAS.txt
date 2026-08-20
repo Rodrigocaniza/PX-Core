@@ -1,0 +1,115 @@
+PRUEBAS DIRIGIDAS - BC-OPTICA-TRABAJOS-OPERATIVOS-V1-020
+=========================================================
+
+88 dirigidas. Suite completa del repositorio: 1288 verdes, 0 rojas, en dos
+corridas.
+
+Como correrlas:
+
+    python -m pytest tests/caja_diaria/test_v1020_trabajos_operativos.py -q
+    python -m pytest tests/caja_diaria/test_v1020_panel_composturas_ui.py -q
+
+Las de UI se saltean solas si no hay entorno grafico. Las del servicio, que son
+las que fijan el comportamiento, corren siempre.
+
+La que hay que mirar primero si algo se rompe:
+
+    test_ningun_estado_de_ningun_concepto_mueve_inventario
+
+Es la que sostiene el invariante del slice, y corre cuatro veces: una por Hilo,
+Tornillo, Plaqueta y Compostura. Cuenta los movimientos de inventario despues de
+CADA paso del ciclo y no solo al final, porque un movimiento que se creara y se
+revirtiera tambien seria un movimiento.
+
+---------------------------------------------------------
+LAS 88, EN EL ORDEN EN QUE CORREN
+---------------------------------------------------------
+
+  1. test_la_031_se_aplica_y_la_cadena_queda_entera
+  2. test_la_031_no_toca_ninguna_tabla_existente
+  3. test_ningun_tipo_de_trabajo_puede_declararse_stockeable
+  4. test_un_trabajo_simple_se_registra_con_lo_minimo
+  5. test_una_compostura_lleva_cliente_telefono_y_observacion
+  6. test_un_trabajo_sin_cliente_no_se_registra
+  7. test_un_trabajo_sin_descripcion_no_se_registra
+  8. test_un_tipo_de_trabajo_inventado_se_rechaza
+  9. test_las_referencias_son_correlativas_y_no_se_repiten
+ 10. test_la_referencia_sigue_al_mayor_existente
+ 11. test_no_hay_operacion_anonima
+ 12. test_el_responsable_sale_del_catalogo_de_personas
+ 13. test_una_persona_que_no_existe_no_puede_ser_responsable
+ 14. test_una_persona_inactiva_no_puede_quedar_de_responsable
+ 15. test_cambiar_de_responsable_queda_en_la_historia
+ 16. test_los_responsables_disponibles_son_los_activos
+ 17. test_el_flujo_completo_avanza
+ 18. test_un_trabajo_de_mostrador_puede_ir_directo_a_listo
+ 19. test_entregar_sin_pasar_por_listo_no_se_puede
+ 20. test_un_trabajo_anulado_no_avanza_mas
+ 21. test_anular_exige_motivo
+ 22. test_reabrir_un_entregado_exige_motivo_explicito
+ 23. test_reabrir_se_registra_como_reapertura_y_no_como_envio
+ 24. test_no_se_puede_transicionar_al_mismo_estado
+ 25. test_las_transiciones_declaradas_cubren_todos_los_estados
+ 26. test_la_sucursal_la_decide_la_caja_y_no_la_persona
+ 27. test_una_sucursal_desconocida_se_rechaza
+ 28. test_los_trabajos_de_cada_sucursal_no_se_mezclan
+ 29. test_un_responsable_con_politica_devenga_al_quedar_listo
+ 30. test_el_devengo_es_al_quedar_listo_y_no_al_entregar
+ 31. test_un_responsable_sin_politica_no_comisiona
+ 32. test_un_trabajo_sin_responsable_no_comisiona
+ 33. test_la_politica_por_tipo_gana_sobre_la_general
+ 34. test_una_comision_negativa_no_se_puede_cargar
+ 35. test_la_comision_no_se_duplica_aunque_se_reintente
+ 36. test_anular_compensa_la_comision_sin_borrarla
+ 37. test_una_comision_ya_compensada_no_se_compensa_de_nuevo
+ 38. test_rehacer_un_trabajo_devenga_de_nuevo
+ 39. test_la_comision_de_compostura_no_toca_la_comision_comercial
+ 40. test_la_comision_es_append_only
+ 41. test_un_trabajo_puede_estar_listo_y_sin_cobrar
+ 42. test_vincular_un_cobro_no_crea_movimiento_de_caja
+ 43. test_un_cobro_que_no_existe_en_la_caja_no_se_puede_referenciar
+ 44. test_un_trabajo_cobrado_puede_seguir_sin_entregar
+ 45. test_no_se_vincula_un_segundo_cobro_distinto
+ 46. test_ningun_estado_de_ningun_concepto_mueve_inventario[HILO]
+ 47. test_ningun_estado_de_ningun_concepto_mueve_inventario[TORNILLO]
+ 48. test_ningun_estado_de_ningun_concepto_mueve_inventario[PLAQUETA]
+ 49. test_ningun_estado_de_ningun_concepto_mueve_inventario[COMPOSTURA]
+ 50. test_tampoco_se_crean_articulos_ni_hechos_de_dominio
+ 51. test_el_modulo_de_trabajos_no_conoce_al_nucleo_comercial
+ 52. test_los_conceptos_de_servicio_siguen_siendo_no_stockeables
+ 53. test_el_ciclo_completo_no_toca_ninguna_estructura_economica
+ 54. test_cada_paso_deja_su_hecho_con_actor_y_estados
+ 55. test_el_motivo_queda_guardado_donde_se_exigio
+ 56. test_editar_datos_deja_dicho_que_cambio
+ 57. test_un_trabajo_anulado_conserva_toda_su_historia
+ 58. test_no_hay_hard_delete_de_un_trabajo
+ 59. test_la_historia_no_se_reescribe_ni_se_borra
+ 60. test_guardar_dos_veces_no_duplica_la_historia
+ 61. test_lo_que_hace_la_operadora_queda_a_su_nombre
+ 62. test_un_token_invalido_no_registra_nada
+ 63. test_los_listos_para_entregar_se_encuentran_solos
+ 64. test_los_entregados_salen_de_los_pendientes
+ 65. test_se_puede_filtrar_por_responsable
+ 66. test_se_puede_filtrar_por_fecha
+ 67. test_una_vista_inventada_se_rechaza
+ 68. test_el_resumen_cuenta_cada_estado
+ 69. test_la_fila_dice_el_estado_economico_aparte_del_operativo
+ 70. test_un_trabajo_sin_responsable_se_ve_sin_asignar
+ 71. test_el_trabajo_sobrevive_a_releerlo_entero
+ 72. test_se_encuentra_por_numero
+ 73. test_un_trabajo_que_no_existe_se_dice
+ 74. test_el_trabajo_y_su_comision_se_guardan_juntos
+ 75. test_se_pueden_ver_los_trabajos_de_una_persona_que_ya_no_esta
+ 76. test_editar_a_un_tipo_de_trabajo_inventado_se_rechaza_con_un_mensaje
+ 77. test_editar_a_un_tipo_valido_se_registra
+ 78. test_abre_en_los_listos_para_entregar
+ 79. test_la_lista_muestra_lo_que_la_operadora_lee
+ 80. test_sin_fila_elegida_no_hay_accion_habilitada
+ 81. test_solo_se_habilita_lo_que_el_trabajo_admite
+ 82. test_un_entregado_no_ofrece_volver_a_entregar
+ 83. test_el_boton_dice_reabrir_cuando_reabre
+ 84. test_marcar_listo_desde_la_pantalla_mueve_el_trabajo
+ 85. test_lo_que_se_hace_desde_la_pantalla_queda_a_nombre_de_quien_opera
+ 86. test_el_resumen_cuenta_lo_que_hay
+ 87. test_una_vista_vacia_lo_dice_en_vez_de_quedar_en_blanco
+ 88. test_los_trabajos_de_otra_sucursal_no_aparecen

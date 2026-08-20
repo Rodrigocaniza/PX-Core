@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
+from uuid import uuid4
 
 from ..domain.errors import InvalidCashDayError
 
@@ -23,6 +24,10 @@ from ..domain.models import (
     Order,
     OrderStatus,
     SaleItem,
+)
+from ..domain.service_jobs import (
+    JobHistoryEntry,
+    ServiceJob,
 )
 from ..domain.tracking import (
     ContactRecord,
@@ -1250,3 +1255,299 @@ class SQLiteCashDayRepository:
                 ) for item in contactos
             ),
         )
+    # ======================================================================
+    # Trabajos operativos (V1-020)
+    # ======================================================================
+    #
+    # Persistencia pura: guarda, lee y lista. La comision y las transiciones se
+    # deciden en el dominio y se orquestan en el servicio; que este repositorio
+    # no sepa devengar es lo que impide que un INSERT suelto pague una comision.
+
+    def save_service_job(self, job: "ServiceJob",
+                         commissions: Sequence[Mapping[str, Any]] = ()) -> "ServiceJob":
+        """Guarda el trabajo, su historia y sus comisiones en UNA transaccion.
+
+        La historia es append-only en el dominio, asi que insertarla por
+        posicion con ON CONFLICT DO NOTHING conserva los hechos ya guardados sin
+        duplicarlos y sin poder reescribirlos.
+
+        Las comisiones entran aca y no en una llamada aparte porque cuelgan de
+        un hecho de esta misma historia. Guardarlas despues, en su propia
+        transaccion, dejaria una ventana en la que un corte de luz produce un
+        trabajo que dice haber devengado y una comision que no existe.
+        """
+        with self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    """INSERT INTO service_jobs(
+                        id,reference,received_at,branch,customer_name,customer_phone,
+                        job_type,description,observations,received_by,responsible,
+                        responsible_user_id,delivered_by,status,promised_date,
+                        workshop_return_at,ready_at,delivered_at,voided_at,
+                        charged_amount,cash_entry_id,order_id,created_at,updated_at
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        customer_name=excluded.customer_name,
+                        customer_phone=excluded.customer_phone,
+                        job_type=excluded.job_type,
+                        description=excluded.description,
+                        observations=excluded.observations,
+                        responsible=excluded.responsible,
+                        responsible_user_id=excluded.responsible_user_id,
+                        delivered_by=excluded.delivered_by,
+                        status=excluded.status,
+                        promised_date=excluded.promised_date,
+                        workshop_return_at=excluded.workshop_return_at,
+                        ready_at=excluded.ready_at,
+                        delivered_at=excluded.delivered_at,
+                        voided_at=excluded.voided_at,
+                        charged_amount=excluded.charged_amount,
+                        cash_entry_id=excluded.cash_entry_id,
+                        order_id=excluded.order_id,
+                        updated_at=excluded.updated_at""",
+                    (
+                        job.id, job.reference, _iso(job.received_at), job.branch,
+                        job.customer_name, job.customer_phone, job.job_type,
+                        job.description, job.observations, job.received_by,
+                        job.responsible, job.responsible_user_id, job.delivered_by,
+                        job.status.value, _iso(job.promised_date),
+                        _iso(job.workshop_return_at), _iso(job.ready_at),
+                        _iso(job.delivered_at), _iso(job.voided_at),
+                        job.charged_amount, job.cash_entry_id, job.order_id,
+                        _iso(job.created_at), _iso(job.updated_at),
+                    ),
+                )
+                for sequence, hecho in enumerate(job.history, start=1):
+                    connection.execute(
+                        """INSERT INTO service_job_events(
+                            id,job_id,sequence,event_type,from_status,to_status,
+                            actor,reason,detail,occurred_at
+                        ) VALUES (?,?,?,?,?,?,?,?,?,?)
+                        ON CONFLICT(job_id, sequence) DO NOTHING""",
+                        (
+                            hecho.id, job.id, sequence, hecho.event_type.value,
+                            hecho.from_status.value if hecho.from_status else None,
+                            hecho.to_status.value if hecho.to_status else None,
+                            hecho.actor, hecho.reason,
+                            json.dumps(dict(hecho.detail), ensure_ascii=False, sort_keys=True),
+                            _iso(hecho.occurred_at),
+                        ),
+                    )
+                for asiento in commissions:
+                    self._insertar_comision(connection, asiento)
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        return job
+
+    @staticmethod
+    def _insertar_comision(connection: sqlite3.Connection,
+                           asiento: Mapping[str, Any]) -> str | None:
+        """Un asiento de comision. Devuelve su id, o None si ese hecho ya pago.
+
+        La idempotencia es del `event_id`: un hecho paga una vez. Reintentar
+        sobre el mismo hecho no duplica, y no hace falta que quien llama se
+        acuerde de comprobarlo antes.
+        """
+        registro_id = str(uuid4())
+        cursor = connection.execute(
+            """INSERT INTO service_job_commissions(
+                id,job_id,event_id,user_id,beneficiary,job_type,kind,amount,
+                compensates_id,note,created_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(event_id) DO NOTHING""",
+            (registro_id, asiento["job_id"], asiento["event_id"],
+             asiento.get("user_id"), asiento["beneficiary"], asiento["job_type"],
+             asiento["kind"], int(asiento["amount"]),
+             asiento.get("compensates_id"), asiento.get("note", ""),
+             datetime.now().astimezone().isoformat()),
+        )
+        return registro_id if cursor.rowcount else None
+
+    def get_service_job(self, job_id: str) -> "ServiceJob | None":
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM service_jobs WHERE id = ?", (job_id,)).fetchone()
+            if row is None:
+                return None
+            return self._hydrate_service_job(connection, row)
+
+    def get_service_job_by_reference(self, reference: str) -> "ServiceJob | None":
+        with self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM service_jobs WHERE reference = ?", (reference,)).fetchone()
+            if row is None:
+                return None
+            return self._hydrate_service_job(connection, row)
+
+    def list_service_jobs(
+        self, *, branch: str | None = None, status: Sequence[str] | str | None = None,
+        responsible_user_id: str | None = None, received_from: date | None = None,
+        received_to: date | None = None,
+    ) -> Sequence["ServiceJob"]:
+        consulta = "SELECT * FROM service_jobs"
+        condiciones, parametros = [], []
+        if branch:
+            condiciones.append("branch = ?")
+            parametros.append(str(branch).upper())
+        if status:
+            estados = [status] if isinstance(status, str) else list(status)
+            marcas = ",".join("?" * len(estados))
+            condiciones.append(f"status IN ({marcas})")
+            parametros.extend(str(item) for item in estados)
+        if responsible_user_id:
+            condiciones.append("responsible_user_id = ?")
+            parametros.append(responsible_user_id)
+        if received_from is not None or received_to is not None:
+            # El dia es el dia del negocio, no el dia UTC. Comparar la fecha
+            # cruda dejaria fuera todo lo recibido despues de las nueve de la
+            # noche, que en UTC ya es manana: son las mismas cuentas que hacen
+            # los pedidos, con la misma funcion.
+            desde, hasta = _limites_utc_del_dia(
+                received_from or received_to, received_to or received_from)
+            condiciones.append("datetime(received_at) >= datetime(?)")
+            parametros.append(desde)
+            condiciones.append("datetime(received_at) <  datetime(?)")
+            parametros.append(hasta)
+        if condiciones:
+            consulta += " WHERE " + " AND ".join(condiciones)
+        consulta += " ORDER BY received_at DESC, reference DESC"
+        with self._connection() as connection:
+            rows = connection.execute(consulta, tuple(parametros)).fetchall()
+            return [self._hydrate_service_job(connection, row) for row in rows]
+
+    def service_job_references(self) -> Sequence[str]:
+        with self._connection() as connection:
+            return [row[0] for row in connection.execute(
+                "SELECT reference FROM service_jobs")]
+
+    def service_job_types(self, *, only_active: bool = True) -> Sequence[dict]:
+        consulta = "SELECT code,label,position,active FROM service_job_types"
+        if only_active:
+            consulta += " WHERE active = 1"
+        consulta += " ORDER BY position, label"
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(consulta)]
+
+    def _hydrate_service_job(
+        self, connection: sqlite3.Connection, row: sqlite3.Row,
+    ) -> "ServiceJob":
+        hechos = connection.execute(
+            "SELECT * FROM service_job_events WHERE job_id = ? ORDER BY sequence",
+            (row["id"],)).fetchall()
+        return ServiceJob(
+            id=row["id"], reference=row["reference"],
+            received_at=_datetime(row["received_at"]), branch=row["branch"],
+            customer_name=row["customer_name"], customer_phone=row["customer_phone"],
+            job_type=row["job_type"], description=row["description"],
+            observations=row["observations"], received_by=row["received_by"],
+            responsible=row["responsible"],
+            responsible_user_id=row["responsible_user_id"],
+            delivered_by=row["delivered_by"], status=row["status"],
+            promised_date=row["promised_date"],
+            workshop_return_at=_datetime(row["workshop_return_at"]),
+            ready_at=_datetime(row["ready_at"]),
+            delivered_at=_datetime(row["delivered_at"]),
+            voided_at=_datetime(row["voided_at"]),
+            charged_amount=row["charged_amount"], cash_entry_id=row["cash_entry_id"],
+            order_id=row["order_id"], created_at=_datetime(row["created_at"]),
+            updated_at=_datetime(row["updated_at"]),
+            history=tuple(
+                JobHistoryEntry(
+                    id=item["id"], event_type=item["event_type"],
+                    from_status=item["from_status"], to_status=item["to_status"],
+                    actor=item["actor"], reason=item["reason"],
+                    detail=json.loads(item["detail"] or "{}"),
+                    occurred_at=_datetime(item["occurred_at"]),
+                ) for item in hechos
+            ),
+        )
+
+    # -- comision de composturas -------------------------------------------
+
+    def set_service_commission_policy(
+        self, *, user_id: str, amount: int, job_type: str = "", updated_by: str,
+    ) -> None:
+        with self._connection() as connection:
+            connection.execute(
+                """INSERT INTO service_commission_policy(
+                    user_id,job_type,amount,updated_by,updated_at)
+                VALUES (?,?,?,?,?)
+                ON CONFLICT(user_id, job_type) DO UPDATE SET
+                    amount=excluded.amount, updated_by=excluded.updated_by,
+                    updated_at=excluded.updated_at""",
+                (user_id, job_type or "", int(amount), updated_by,
+                 datetime.now().astimezone().isoformat()),
+            )
+            connection.commit()
+
+    def clear_service_commission_policy(self, *, user_id: str, job_type: str = "") -> None:
+        with self._connection() as connection:
+            connection.execute(
+                "DELETE FROM service_commission_policy WHERE user_id = ? AND job_type = ?",
+                (user_id, job_type or ""))
+            connection.commit()
+
+    def list_service_commission_policy(self) -> Sequence[dict]:
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(
+                "SELECT * FROM service_commission_policy ORDER BY user_id, job_type")]
+
+    def service_commission_amount(self, *, user_id: str | None, job_type: str) -> int:
+        """Lo que le corresponde a esa persona por ese tipo de trabajo.
+
+        La regla especifica gana sobre la general, y sin politica cargada el
+        resultado es cero: quien no tiene comision definida no comisiona, y esa
+        es exactamente la situacion de quien dirige la optica.
+        """
+        if not user_id:
+            return 0
+        with self._connection() as connection:
+            row = connection.execute(
+                """SELECT amount FROM service_commission_policy
+                WHERE user_id = ? AND job_type IN (?, '')
+                ORDER BY CASE WHEN job_type = '' THEN 1 ELSE 0 END LIMIT 1""",
+                (user_id, job_type)).fetchone()
+        return int(row[0]) if row else 0
+
+    def record_service_commission(
+        self, *, job_id: str, event_id: str, user_id: str | None, beneficiary: str,
+        job_type: str, kind: str, amount: int, compensates_id: str | None = None,
+        note: str = "",
+    ) -> str | None:
+        """Asienta un devengo suelto, sobre un hecho que ya esta guardado.
+
+        El camino normal es `save_service_job(job, commissions=...)`, que guarda
+        el trabajo y sus asientos juntos. Esto existe para corregir a mano y
+        para las pruebas.
+        """
+        with self._connection() as connection:
+            registro_id = self._insertar_comision(connection, dict(
+                job_id=job_id, event_id=event_id, user_id=user_id,
+                beneficiary=beneficiary, job_type=job_type, kind=kind,
+                amount=amount, compensates_id=compensates_id, note=note))
+            connection.commit()
+            return registro_id
+
+    def list_service_commissions(self, *, job_id: str | None = None,
+                                 user_id: str | None = None) -> Sequence[dict]:
+        consulta = "SELECT * FROM service_job_commissions"
+        condiciones, parametros = [], []
+        if job_id:
+            condiciones.append("job_id = ?")
+            parametros.append(job_id)
+        if user_id:
+            condiciones.append("user_id = ?")
+            parametros.append(user_id)
+        if condiciones:
+            consulta += " WHERE " + " AND ".join(condiciones)
+        consulta += " ORDER BY created_at, id"
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(consulta, tuple(parametros))]
+
+    def service_commission_balance(self) -> Sequence[dict]:
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(
+                "SELECT * FROM service_commission_balance ORDER BY beneficiary")]

@@ -420,10 +420,21 @@ def test_todo_el_ciclo_de_sesiones_no_toca_nada_economico(repo, admin, sol, leti
 
 
 def test_ninguna_migracion_nueva(repo):
-    """El esquema de V1-019A ya alcanzaba: la sesión vive en memoria."""
+    """El esquema de V1-019A ya alcanzaba: la sesión vive en memoria.
+
+    Lo que esto afirma es que el login no agregó tabla ninguna, y por eso mira
+    el esquema que usa y no cuál es la última migración del repositorio: cuando
+    llegó V1-020 con la 031, «la última es la 030» se volvió falso sin que nada
+    del login hubiera cambiado. Es exactamente el caso que documenta
+    `tests/migration_chain.py`.
+    """
     with repo._connection() as con:
         versiones = {f[0] for f in con.execute("SELECT version FROM schema_migrations")}
-    assert max(versiones) == "030"
+        tablas = {f[0] for f in con.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table'")}
+    assert "030" in versiones
+    # La sesión de operadora no persiste en ningún lado: vive en memoria.
+    assert not [tabla for tabla in tablas if "session" in tabla.lower()]
 
 
 def test_la_integridad_no_se_resiente(repo, admin, leti):
