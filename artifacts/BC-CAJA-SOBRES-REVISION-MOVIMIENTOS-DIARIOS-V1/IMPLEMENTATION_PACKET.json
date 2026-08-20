@@ -1,0 +1,65 @@
+{
+  "acceptance_criteria": [
+    "Un cierre importado crea filas de revisión con identidad estable y sin duplicados",
+    "Correcto crea exactamente un movimiento diario auditable con source ID y medios de pago",
+    "Requiere corrección impide consolidar y crea una instrucción durable para Caja",
+    "Una edición auditada vuelve a revisión y una revalidación consolida una sola vez",
+    "Una anulación o cambio posterior compensa el movimiento activo",
+    "F1 FactuFácil y la suite existente permanecen verdes"
+  ],
+  "allowed_files": [
+    "modulos/gestion_central",
+    "modulos/caja_diaria",
+    "tests/gestion_central",
+    "artifacts/BC-CAJA-SOBRES-REVISION-MOVIMIENTOS-DIARIOS-V1"
+  ],
+  "branch": "feature/bc-caja-sobres-revision-movimientos-diarios-v1-001",
+  "context": {
+    "base": "F1 sealed HEAD 7d7766c3ad8897db6922baab7dcfec92bc566028",
+    "existing_contracts": [
+      "readonly SQLite snapshot import",
+      "stable sale review identity",
+      "append-only review versions and events",
+      "field-level revalidation",
+      "FactuFácil status projection"
+    ]
+  },
+  "executor": "codex",
+  "focused_tests": [
+    "python -m pytest tests/gestion_central/test_daily_movements_review_v1.py tests/gestion_central/test_real_sync_review.py tests/gestion_central/test_review_ui_interactions.py tests/gestion_central/test_ui_contract.py tests/caja_diaria/test_central_sync.py tests/caja_diaria/test_movements_integration.py tests/caja_diaria/test_factufacil_caja.py -q"
+  ],
+  "forbidden_scope": [
+    "BC-Core",
+    "modulos/comercial",
+    "Telegram",
+    "production"
+  ],
+  "head": "7d7766c3ad8897db6922baab7dcfec92bc566028",
+  "invariants": [
+    "Caja remains authoritative for sale edits",
+    "Convenio stays informational and is never added to cash/card",
+    "No movement exists before approval",
+    "No hard delete of review, correction, version, event, or movement history",
+    "No production, credentials, inventory, commission, or Telegram changes"
+  ],
+  "mission_id": "BC-CAJA-SOBRES-REVISION-MOVIMIENTOS-DIARIOS-V1",
+  "objective": "Cerrar el ciclo Caja a revisión de Sol y Movimientos diarios sin recarga manual, con correcciones versionadas, idempotencia y compensación.",
+  "packet_id": "BC-CAJA-SOBRES-REVISION-MOVIMIENTOS-DIARIOS-V1-PACKET-001",
+  "read_files": [
+    "modulos/gestion_central/real_sync.py",
+    "modulos/gestion_central/review_ui.py",
+    "modulos/caja_diaria/central_sync.py",
+    "modulos/caja_diaria/infrastructure/movements_exporter.py",
+    "tests/gestion_central/test_real_sync_review.py"
+  ],
+  "repo": "Rodrigocaniza/PX-Core",
+  "return_contract": {
+    "blocker": "string|null",
+    "changed_files": "list[str]",
+    "scope_expansion": "{required: bool, reason: string|null}",
+    "status": "DONE|BLOCKED",
+    "tests": "list[{name,status}]"
+  },
+  "schema_version": "1.0",
+  "slice_id": "F2-review-daily-movements"
+}

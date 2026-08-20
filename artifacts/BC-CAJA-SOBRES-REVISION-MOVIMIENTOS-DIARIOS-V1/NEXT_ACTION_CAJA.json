@@ -1,0 +1,10 @@
+{
+  "action": "PUBLICAR_Y_VALIDAR_EN_COPIA_LOCAL",
+  "manual_reentry_removed": true,
+  "production": false,
+  "steps": [
+    "esperar CI y verdicts canónicos",
+    "validar el flujo sobre copia local sintética",
+    "no instalar en la óptica desde esta misión"
+  ]
+}
