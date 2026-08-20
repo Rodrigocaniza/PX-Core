@@ -1,0 +1,35 @@
+MIGRACION 030 -- usuarios y roles en BC Caja
+base   : C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1019\copia_pre030.sqlite3
+sha256 : 71955ac4a83871eb15d2684a27154de832bd352cbcdc89752379bd6a8c4177ba
+
+== estado antes ==
+  migraciones        29
+  usuarios           1
+  usuarios_activos   1
+  dias               2
+  entradas           6
+  suma_caja          2700000
+  sale_items         0
+  articulos          0
+  movimientos        0
+  trabajos           0
+  laboratorios       0
+  factufacil         0
+  pedidos            0
+  integridad         ok
+  fk                 0
+
+== pre-guards ==
+  OK   integrity_check ok antes de tocar nada
+  OK   sin FK rotas antes
+  OK   las columnas nuevas todavia no existen ([])
+  OK   la 029 esta aplicada: esta base viene de la linea correcta
+
+DRY-RUN: no se escribio nada. Falta --confirmar.
+Esto aplicaria la migracion 030, que agrega a admin_users:
+  - display_name
+  - branch
+  - created_by
+  - updated_by
+Y le pondria display_name a los 1 usuario(s) que ya existen, con su propio username.
+Ninguna otra tabla se toca y ningun dato de operacion cambia.

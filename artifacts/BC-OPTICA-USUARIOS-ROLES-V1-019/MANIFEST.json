@@ -1,0 +1,139 @@
+{
+  "mision": "BC-OPTICA-USUARIOS-ROLES-V1-019",
+  "alcance_declarado": "V1-019A: catalogo, roles, estado, auditoria y permisos. El login de operadora (V1-019B) queda fuera",
+  "estado": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA (migracion 030)",
+  "base_git": {
+    "branch": "feature/bc-optica-usuarios-roles-v1-019",
+    "parte_de": "origin/feature/bc-optica-seguimiento-cierre-pilar-v1-018 @ 0fc0667",
+    "verificado": "contiene v1-015, v1-016 y v1-017 via merge-base --is-ancestor",
+    "origin_main_intacto": "7db56a082d06c735583a2717da3ad273f4d41a84"
+  },
+  "soporte_existente_encontrado": {
+    "admin_users": "ya existia con credenciales reales: PBKDF2-SHA256, sal, 390.000 iteraciones, bloqueo exponencial por intentos, sesiones de 20 minutos y login auditado. La columna role existia con DEFAULT 'ADMIN' y no la leia nadie",
+    "authorized_responsibles": "creada por la 015 y nunca usada por una linea de codigo. Tabla muerta; no se toco",
+    "identidad_de_la_operadora": "no hay login: BC_CAJA_RESPONSABLE / USERNAME / 'Operadora'",
+    "lista_de_vendedoras": "CABLEADA en CajaDiaria.py: 'Ana', 'Belén', 'Carla', 'Diana'. Cuatro nombres de maqueta eligiendo la vendedora de cada venta real",
+    "decision": "no se creo una tercera lista: admin_users ya era la tabla de usuarios y roles"
+  },
+  "modelo": {
+    "tabla": "admin_users",
+    "columnas_agregadas": [
+      "display_name",
+      "branch",
+      "created_by",
+      "updated_by"
+    ],
+    "backfill": "display_name = username para los usuarios que ya existian",
+    "credencial_opcional": "no se relajo password_hash/salt/iterations. Sin contrasena el hash queda vacio y no puede coincidir con ningun PBKDF2: la persona existe y no puede entrar"
+  },
+  "roles": {
+    "valores": [
+      "OPERADOR",
+      "ADMIN"
+    ],
+    "etiquetas": {
+      "OPERADOR": "Operadora",
+      "ADMIN": "Administradora"
+    },
+    "por_que_dos": "dos alcanzan para lo que la Optica hace; un tercero necesitaria una responsabilidad que hoy no existe",
+    "compatibilidad": "role ya traia DEFAULT 'ADMIN', asi que nadie perdio acceso al panel"
+  },
+  "usuario_vs_vendedora": {
+    "username": "con lo que se entra",
+    "display_name": "como se la nombra en una venta",
+    "cash_entries.saleswoman": "sigue siendo texto y NO es foreign key, a proposito",
+    "por_que": "si lo fuera, corregir el nombre de una persona reescribiria agosto",
+    "prueba": "test_la_vendedora_no_es_una_foreign_key_a_proposito"
+  },
+  "permisos": {
+    "antes": "require() solo comprobaba que hubiera sesion; como todos eran ADMIN por defecto, tener sesion y ser administradora eran lo mismo",
+    "ahora": "require_admin() comprueba el rol",
+    "operaciones_protegidas": [
+      "list_users",
+      "create_user",
+      "update_user",
+      "set_user_active",
+      "set_user_password",
+      "get_user",
+      "audit_rows",
+      "update_setting",
+      "set_mail_secret",
+      "register_import",
+      "autorizacion de diferencia de arqueo sobre el limite"
+    ],
+    "denegacion_auditada": "ADMIN_DENIED",
+    "prueba": "siete pruebas llaman al servicio directamente con el token de una operadora, sin pasar por ninguna pantalla"
+  },
+  "ui": {
+    "antes": "la pestana 'Usuarios y permisos' era un cartel estatico",
+    "ahora": "lista real (nombre, usuario, rol, sucursal, estado, puede entrar) con Nueva persona, Editar y Activar/desactivar",
+    "sin_borrar": "no hay boton de borrar y tampoco existe el metodo",
+    "vendedoras": "el desplegable lee el catalogo. Si no hay nadie cargado queda editable y la operadora escribe: se degrada a lo que habia antes, no rompe la caja el dia de la actualizacion"
+  },
+  "auditoria": [
+    "USER_CREATED",
+    "USER_UPDATED",
+    "USER_DEACTIVATED",
+    "USER_ACTIVATED",
+    "USER_PASSWORD_SET",
+    "ADMIN_DENIED"
+  ],
+  "candado": "no se puede desactivar a la ultima administradora que puede entrar. Tener el rol no alcanza: hay que poder entrar, o nombrar a alguien sin contrasena serviria para saltarlo",
+  "migracion": {
+    "numero": "030",
+    "verificado_contra_el_repo": "la ultima aplicada era la 029",
+    "aditiva": true,
+    "tablas_nuevas": 0,
+    "columnas_nuevas": 4,
+    "probada_sobre": "base local en estado 029 con dos dias de caja, cinco ventas y una administradora",
+    "resultado": "29 -> 30, exactamente 4 columnas, admin conserva rol y gana nombre, idempotente"
+  },
+  "autenticacion": {
+    "existe": true,
+    "alcance": "solo el panel de Administrador",
+    "para_la_caja": "no hay login; quien opera sale de una variable de entorno",
+    "v1_019b": "el modelo ya esta listo: alcanza con darle contrasena a quien la necesite"
+  },
+  "pruebas": {
+    "dirigidas": 38,
+    "suite_caja": "784 passed, 0 failed",
+    "suite_repo": "1154 passed, 0 failed",
+    "corridas": 2
+  },
+  "invariantes": {
+    "verificado_por": "test_administrar_usuarios_no_toca_nada_de_la_operacion compara diez tablas",
+    "tablas": [
+      "cash_entries",
+      "stock_movements",
+      "stock_actual",
+      "articles",
+      "sale_items",
+      "factufacil_loads",
+      "tracked_works",
+      "laboratories",
+      "orders"
+    ]
+  },
+  "codigo": {
+    "modulos/caja_diaria/infrastructure/migrations/030_usuarios_y_roles.sql": {
+      "sha256": "1fd7cc0b7d35dc6f854b750850db9663b43e7991c43468c64f6fb451efb883a5",
+      "bytes": 3719
+    },
+    "modulos/caja_diaria/application/admin_ops.py": {
+      "sha256": "8cba43511b174babbebc6fa68b096f9ad044858ce0f42e378df3106ba9286570",
+      "bytes": 40249
+    },
+    "CajaDiaria.py": {
+      "sha256": "4ab6e0973a38afebc51a7a90e0af574654c4176762258af7f1265d293e18faa3",
+      "bytes": 291742
+    },
+    "tools/usuarios_migracion_030_optica.py": {
+      "sha256": "b00b312b461a1aa55cd007b7b65671023545af1d3ad1d542409c389e39d1dfc0",
+      "bytes": 8935
+    },
+    "tests/caja_diaria/test_v1019_usuarios_roles.py": {
+      "sha256": "f2a0161f22bfef31044be397a2272e83c0fcafbd815d6546ee9d179b533b9ebc",
+      "bytes": 17776
+    }
+  }
+}

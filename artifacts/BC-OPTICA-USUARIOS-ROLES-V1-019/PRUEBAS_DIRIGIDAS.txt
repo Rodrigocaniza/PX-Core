@@ -1,0 +1,51 @@
+PRUEBAS DIRIGIDAS -- V1-019
+comando: python -m pytest tests/caja_diaria/test_v1019_usuarios_roles.py -v
+
+38 dirigidas nuevas, cubren los 19 casos pedidos.
+Suite de Caja completa: 784 passed, 0 failed.
+Suite total del repo: 1154 passed, 0 failed, en dos corridas seguidas.
+
+NOTA: los dos rojos de tests/gestion_central/test_ui_interactions.py que informe
+en V1-015 a V1-018 hoy pasan. Se comprobo en el MISMO commit de V1-018 con git
+stash: esta tarde daba 1114/2 y ahora 1116/0, sin un cambio de codigo. No eran un
+rojo estable sino pruebas no deterministas. Detalle en FINDINGS.json.
+
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_migracion_030_esta_aplicada PASSED [  2%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_migracion_es_idempotente PASSED [  5%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_el_administrador_que_ya_existia_conserva_su_rol_y_gana_nombre PASSED [  7%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_crear_usuario PASSED [ 10%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_un_usuario_duplicado_queda_bloqueado PASSED [ 13%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_editar_el_nombre_no_cambia_el_usuario PASSED [ 15%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_cambiar_el_rol PASSED [ 18%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_un_rol_inventado_no_se_acepta PASSED [ 21%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_desactivar_y_reactivar PASSED [ 23%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_desactivar_no_borra_la_fila PASSED [ 26%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_no_existe_ninguna_forma_de_borrar_un_usuario PASSED [ 28%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_un_usuario_desactivado_no_puede_entrar PASSED [ 31%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_un_usuario_desactivado_sale_de_la_lista_de_vendedoras PASSED [ 34%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_no_se_puede_dejar_la_optica_sin_administradora PASSED [ 36%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_una_administradora_sin_credencial_no_cuenta_como_reemplazo PASSED [ 39%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_una_venta_vieja_conserva_la_vendedora_aunque_se_la_desactive PASSED [ 42%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_vendedora_no_es_una_foreign_key_a_proposito PASSED [ 44%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_operadora_entra_pero_su_sesion_no_es_de_administradora PASSED [ 47%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_operadora_no_puede_invocar_acciones_administrativas[<lambda>0] PASSED [ 50%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_operadora_no_puede_invocar_acciones_administrativas[<lambda>1] PASSED [ 52%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_operadora_no_puede_invocar_acciones_administrativas[<lambda>2] PASSED [ 55%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_operadora_no_puede_invocar_acciones_administrativas[<lambda>3] PASSED [ 57%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_operadora_no_puede_invocar_acciones_administrativas[<lambda>4] PASSED [ 60%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_operadora_no_puede_invocar_acciones_administrativas[<lambda>5] PASSED [ 63%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_operadora_no_puede_invocar_acciones_administrativas[<lambda>6] PASSED [ 65%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_administradora_si_puede[<lambda>0] PASSED [ 68%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_administradora_si_puede[<lambda>1] PASSED [ 71%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_el_intento_denegado_queda_registrado PASSED [ 73%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_una_sesion_inventada_no_sirve PASSED [ 76%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_auditoria_registra_el_ciclo_completo PASSED [ 78%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_auditoria_guarda_el_rol_anterior_y_el_nuevo PASSED [ 81%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_auditoria_no_se_reescribe PASSED [ 84%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_contrasena_nunca_se_guarda_en_texto_plano PASSED [ 86%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_reiniciar_conserva_usuarios_roles_y_estado PASSED [ 89%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_administrar_usuarios_no_toca_nada_de_la_operacion PASSED [ 92%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_integridad_de_la_base_no_se_resiente PASSED [ 94%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_lista_de_vendedoras_ya_no_esta_cableada PASSED [ 97%]
+tests/caja_diaria/test_v1019_usuarios_roles.py::test_la_pantalla_de_usuarios_existe_y_llama_al_servicio PASSED [100%]
+============================= 38 passed in 16.84s =============================
