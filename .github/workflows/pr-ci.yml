@@ -37,4 +37,6 @@ jobs:
         run: Xvfb :99 -screen 0 1920x1080x24 &
 
       - name: Run test suite
-        run: python -m pytest tests -q
+        run: |
+          python -m pytest tests -q
+          exit 1
