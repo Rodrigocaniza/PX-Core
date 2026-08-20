@@ -68,6 +68,39 @@ class AdminSession:
 
 
 @dataclass(frozen=True)
+class CashSession:
+    """Quien esta operando la caja, para toda la jornada.
+
+    Es distinta de `AdminSession` a proposito, y la diferencia esta en cuanto
+    dura. La administrativa vence a los 20 minutos porque protege cosas que se
+    hacen una vez y con cuidado. Esta acompana a una persona que atiende ocho
+    horas seguidas: pedirle la contrasena cada 20 minutos seria pedirle que la
+    deje anotada en un papel al lado de la pantalla.
+
+    Vence al terminar el dia. Abrir a la manana, trabajar, y que la sesion no
+    sobreviva a la noche es lo que hace una caja.
+    """
+
+    token: str
+    user_id: str
+    username: str
+    display_name: str
+    role: str
+    branch: str
+    started_at: datetime
+    expires_at: datetime
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == ROL_ADMIN
+
+    def etiqueta(self, sucursal_efectiva: str = "") -> str:
+        """Lo que la pantalla muestra: «Operando: Leti · ASUNCION»."""
+        lugar = sucursal_efectiva or self.branch
+        return f"{self.display_name} · {lugar}" if lugar else self.display_name
+
+
+@dataclass(frozen=True)
 class Usuario:
     """Una persona autorizada a estar en BC Caja.
 
@@ -173,6 +206,9 @@ class AdminOperations:
         self.data_root = Path(data_root)
         self.secret_store = DPAPISecretStore(self.data_root)
         self._sessions: dict[str, AdminSession] = {}
+        #: Las sesiones de caja viven aparte de las administrativas. Mezclarlas
+        #: haria que la de la jornada le preste su duracion a la sensible.
+        self._cash_sessions: dict[str, CashSession] = {}
 
     def _audit(self, connection, actor: str, action: str, target_type: str,
                result: str, target_id: str = "", details=None) -> None:
@@ -271,6 +307,152 @@ class AdminOperations:
             raise InvalidCashDayError(
                 "Esta acción es de una administradora, y esta sesión no lo es.")
         return session
+
+    # -- sesion de caja ----------------------------------------------------
+
+    @staticmethod
+    def _fin_de_jornada(momento: datetime) -> datetime:
+        """La medianoche siguiente, en la hora de la Optica.
+
+        No es un numero de minutos elegido a ojo: es el limite natural del
+        turno. Una caja se abre a la manana y se cierra a la noche, y una sesion
+        que sobrevive a la noche es una caja que quedo abierta.
+        """
+        siguiente = momento.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        return siguiente
+
+    def authenticate_operator(self, username: str, password: str) -> CashSession:
+        """Entra a operar la caja. Misma credencial, distinta sesion.
+
+        Reusa `authenticate`, que es donde viven PBKDF2, la sal, el bloqueo
+        exponencial y la bitacora de login. Este metodo no valida contrasenas:
+        pide que las valide quien ya sabe hacerlo.
+        """
+        administrativa = self.authenticate(username, password)
+        with self.repository._connection() as connection:
+            fila = connection.execute(
+                "SELECT * FROM admin_users WHERE username=? COLLATE NOCASE",
+                (administrativa.username,)).fetchone()
+        usuario = self._fila_a_usuario(fila)
+        ahora = _now()
+        sesion = CashSession(
+            token=secrets.token_urlsafe(32), user_id=usuario.id,
+            username=usuario.username, display_name=usuario.display_name,
+            role=usuario.role, branch=usuario.branch,
+            started_at=ahora, expires_at=self._fin_de_jornada(ahora))
+        self._cash_sessions[sesion.token] = sesion
+        # La sesion administrativa que se creo de paso no se conserva: entrar a
+        # atender no puede dejar abierta, en la sombra, una sesion que autoriza
+        # cosas sensibles. Para eso hay que volver a identificarse.
+        self._sessions.pop(administrativa.token, None)
+        with self.repository._connection() as connection:
+            self._audit(connection, usuario.username, "CASH_LOGIN_SUCCESS", "cash_session",
+                        "SUCCESS", usuario.id,
+                        {"display_name": usuario.display_name, "role": usuario.role,
+                         "branch": usuario.branch})
+            connection.commit()
+        return sesion
+
+    def require_operator(self, token: str) -> CashSession:
+        """La sesion de caja vigente, o el motivo por el que ya no lo es.
+
+        Comprueba tres cosas, y las tres importan: que exista, que no haya
+        vencido, y que la persona siga activa. Lo tercero se pregunta a la base
+        en cada llamada a proposito: desactivar a alguien tiene que sacarla de
+        la caja aunque ya estuviera adentro.
+        """
+        sesion = self._cash_sessions.get(token)
+        if sesion is None:
+            raise InvalidCashDayError("No hay ninguna sesión de caja abierta.")
+        if sesion.expires_at <= _now():
+            self._cash_sessions.pop(token, None)
+            with self.repository._connection() as connection:
+                self._audit(connection, sesion.username, "CASH_SESSION_EXPIRED",
+                            "cash_session", "EXPIRED", sesion.user_id)
+                connection.commit()
+            raise InvalidCashDayError("La sesión de caja venció. Volvé a entrar.")
+        with self.repository._connection() as connection:
+            activa = connection.execute(
+                "SELECT active FROM admin_users WHERE id=?", (sesion.user_id,)).fetchone()
+        if activa is None or not activa["active"]:
+            self._cash_sessions.pop(token, None)
+            raise InvalidCashDayError(
+                f"{sesion.display_name} ya no está activa. Entrá con otra cuenta.")
+        return sesion
+
+    def logout_operator(self, token: str, *, reason: str = "") -> None:
+        """Cierra la sesion. No cierra la caja ni el arqueo: son otra cosa."""
+        sesion = self._cash_sessions.pop(token, None)
+        if sesion is None:
+            return
+        with self.repository._connection() as connection:
+            self._audit(connection, sesion.username, "CASH_LOGOUT", "cash_session",
+                        "SUCCESS", sesion.user_id,
+                        {"motivo": str(reason or "").strip()})
+            connection.commit()
+
+    def switch_operator(self, token: str, username: str, password: str) -> CashSession:
+        """Cambia de persona sin tocar la caja del dia.
+
+        El arqueo pertenece a la caja y a la sucursal, no a quien esta parada
+        adelante. Cambiar de operadora a media tarde no puede cerrar nada ni
+        obligar a arquear: es un relevo, no un cierre.
+        """
+        anterior = self._cash_sessions.get(token)
+        nueva = self.authenticate_operator(username, password)
+        self._cash_sessions.pop(token, None)
+        with self.repository._connection() as connection:
+            self._audit(
+                connection, nueva.username, "CASH_OPERATOR_CHANGED", "cash_session",
+                "SUCCESS", nueva.user_id,
+                {"salio": anterior.username if anterior else "",
+                 "salio_nombre": anterior.display_name if anterior else "",
+                 "entro": nueva.username, "entro_nombre": nueva.display_name})
+            connection.commit()
+        return nueva
+
+    def audit_saleswoman_override(self, token: str, saleswoman: str, *,
+                                  envelope: str = "") -> None:
+        """Deja constancia de que la venta la hizo otra persona.
+
+        Pasa de verdad: una administrativa carga la venta que hizo otra chica.
+        El dato correcto es el de quien vendio, y esta bien que se pueda elegir.
+        Lo que no puede pasar es que nadie se entere de que quien cargo y quien
+        vendio no son la misma.
+        """
+        sesion = self.require_operator(token)
+        elegida = str(saleswoman or "").strip()
+        if not elegida or elegida == sesion.display_name:
+            return
+        with self.repository._connection() as connection:
+            self._audit(connection, sesion.username, "SALESWOMAN_OVERRIDE", "cash_entry",
+                        "SUCCESS", envelope,
+                        {"cargo": sesion.display_name, "vendio": elegida})
+            connection.commit()
+
+    def effective_branch(self, token: str, host_branch: str | None) -> dict:
+        """La sucursal en la que se esta operando, y si hay que avisar algo.
+
+        La sucursal efectiva es **la de la caja**, no la de la persona: la
+        determina `cash_register_branches`, que es donde ya vive esa verdad. El
+        `branch` del usuario es su ambito habitual, no una autorizacion.
+
+        Cuando no coinciden no se corrige nada en silencio: se devuelve el aviso
+        para que alguien lo mire. Corregirlo solo seria decidir por la Optica
+        cual de los dos datos esta mal.
+        """
+        sesion = self.require_operator(token)
+        efectiva = str(host_branch or "").strip().upper()
+        propia = (sesion.branch or "").strip().upper()
+        discrepa = bool(efectiva and propia and efectiva != propia)
+        return {
+            "branch": efectiva or propia,
+            "user_branch": propia,
+            "host_branch": efectiva,
+            "mismatch": discrepa,
+            "aviso": (f"{sesion.display_name} figura en {propia} y esta caja es de "
+                      f"{efectiva}." if discrepa else ""),
+        }
 
     # -- usuarios y roles --------------------------------------------------
 

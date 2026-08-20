@@ -1030,6 +1030,135 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         text_color="#DCEBFF", font=ctk.CTkFont(size=11, weight="bold"),
     ).pack(side="right", padx=18)
 
+    # ---- V1-019B: quien esta operando ------------------------------------
+    #
+    # Hasta ahora quien operaba salia de una variable de entorno, asi que todo
+    # lo que se registraba decia "Operadora". Ahora alguien entra, y lo que
+    # hace queda a su nombre.
+    sesion_caja = {"sesion": None}
+
+    def operadora_actual():
+        """La sesion vigente, o None si vencio o la desactivaron.
+
+        Se revalida contra el servicio en cada uso: desactivar a alguien tiene
+        que sacarla de la caja aunque ya estuviera adentro.
+        """
+        sesion = sesion_caja.get("sesion")
+        if sesion is None:
+            return None
+        try:
+            return controller.admin.require_operator(sesion.token)
+        except Exception:
+            sesion_caja["sesion"] = None
+            return None
+
+    def pedir_login_operadora(titulo="Entrar a la caja", relevo=False):
+        """La pantalla de entrada. Usuario, contrasena, entrar.
+
+        Cuatro cosas en pantalla y ninguna tecnica: quien la usa esta por
+        empezar a atender, no a configurar nada.
+        """
+        dialogo = ctk.CTkToplevel(ventana)
+        dialogo.title(titulo)
+        dialogo.geometry("400x330")
+        dialogo.transient(ventana)
+        dialogo.grab_set()
+        resultado = {"sesion": None}
+        ctk.CTkLabel(dialogo, text=titulo, text_color="#0F5FB9",
+                     font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(26, 4))
+        ctk.CTkLabel(dialogo, text="Entrá con tu usuario para empezar a atender.",
+                     text_color="#5B6B7F").pack(pady=(0, 16))
+        usuario = ctk.CTkEntry(dialogo, width=280, placeholder_text="Usuario")
+        usuario.pack(pady=6)
+        clave = ctk.CTkEntry(dialogo, width=280, placeholder_text="Contraseña", show="•")
+        clave.pack(pady=6)
+        aviso = ctk.CTkLabel(dialogo, text="", text_color="#B42318",
+                             font=ctk.CTkFont(size=12, weight="bold"))
+        aviso.pack(pady=(8, 0))
+
+        def entrar(_evento=None):
+            try:
+                anterior = sesion_caja.get("sesion")
+                if relevo and anterior is not None:
+                    sesion = controller.admin.switch_operator(
+                        anterior.token, usuario.get().strip(), clave.get())
+                else:
+                    sesion = controller.admin.authenticate_operator(
+                        usuario.get().strip(), clave.get())
+            except Exception as error:
+                # El mensaje del servicio no distingue usuario inexistente de
+                # contrasena equivocada, y esta bien que no lo haga.
+                aviso.configure(text=str(error))
+                clave.delete(0, "end")
+                return
+            resultado["sesion"] = sesion
+            dialogo.destroy()
+
+        clave.bind("<Return>", entrar)
+        usuario.bind("<Return>", lambda _e: clave.focus_set())
+        ctk.CTkButton(dialogo, text="Entrar", width=280, height=38,
+                      font=ctk.CTkFont(size=14, weight="bold"),
+                      command=entrar).pack(pady=(16, 6))
+        usuario.focus_set()
+        dialogo.wait_window()
+        if resultado["sesion"] is not None:
+            sesion_caja["sesion"] = resultado["sesion"]
+            actualizar_chip_operadora()
+        return resultado["sesion"]
+
+    def actualizar_chip_operadora():
+        sesion = sesion_caja.get("sesion")
+        if sesion is None:
+            etiqueta_operadora.configure(text="Sin sesión", text_color="#B42318")
+            return
+        sucursal = ""
+        try:
+            contexto = controller.admin.effective_branch(
+                sesion.token, controller.tracking.branch_of_register(
+                    contexto_sucursal.get("caja") or ""))
+            sucursal = contexto["branch"]
+            if contexto["mismatch"]:
+                # No se corrige solo: cual de los dos datos esta mal no lo puede
+                # decidir el sistema.
+                etiqueta_operadora.configure(
+                    text=f"Operando: {sesion.display_name} · {sucursal}  ⚠",
+                    text_color="#B45309")
+                return
+        except Exception:
+            sucursal = sesion.branch
+        etiqueta_operadora.configure(
+            text=f"Operando: {sesion.etiqueta(sucursal)}", text_color="#DCEBFF")
+
+    def cambiar_operadora():
+        """Relevo. No cierra la caja ni el arqueo: son otra cosa."""
+        pedir_login_operadora("Cambiar operadora", relevo=True)
+
+    def cerrar_sesion_operadora():
+        sesion = sesion_caja.get("sesion")
+        if sesion is not None:
+            controller.admin.logout_operator(sesion.token, reason="cerró sesión")
+        sesion_caja["sesion"] = None
+        actualizar_chip_operadora()
+        if pedir_login_operadora() is None:
+            ventana.destroy()
+
+    barra_operadora = ctk.CTkFrame(barra_superior, fg_color="transparent")
+    barra_operadora.pack(side="right", padx=(0, 12))
+    etiqueta_operadora = ctk.CTkLabel(
+        barra_operadora, text="Sin sesión", text_color="#DCEBFF",
+        font=ctk.CTkFont(size=11, weight="bold"))
+    etiqueta_operadora.pack(side="left", padx=(0, 8))
+    ctk.CTkButton(
+        barra_operadora, text="Cambiar operadora", width=140, height=22,
+        fg_color="#1B4F8F", hover_color="#15406F",
+        font=ctk.CTkFont(size=10, weight="bold"),
+        command=lambda: cambiar_operadora()).pack(side="left", padx=(0, 4))
+    ctk.CTkButton(
+        barra_operadora, text="Salir", width=54, height=22,
+        fg_color="#1B4F8F", hover_color="#15406F",
+        font=ctk.CTkFont(size=10, weight="bold"),
+        command=lambda: cerrar_sesion_operadora()).pack(side="left")
+
     pestañas = ctk.CTkTabview(
         ventana, fg_color=color_fondo, border_width=0, corner_radius=0
     )
@@ -1677,7 +1806,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                     width=(ancho if perfil["nombre"] == "full-hd" else min(ancho, 88)), height=perfil["campo_alto"], fg_color="#FFFFFF",
                     border_color=color_borde_suave,
                 )
-                campo.set("Seleccionar...")
+                # Por defecto vende quien esta operando. Se puede elegir a
+                # otra -pasa que una administrativa cargue la venta de otra
+                # chica- y en ese caso queda auditado que no son la misma.
+                _sesion = sesion_caja.get("sesion")
+                campo.set(_sesion.display_name if _sesion is not None
+                          else "Seleccionar...")
             else:
                 campo = ctk.CTkEntry(
                     seccion, width=(ancho if perfil["nombre"] == "full-hd" else min(ancho, 88)), height=perfil["campo_alto"], fg_color="#FFFFFF",
@@ -2623,7 +2757,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 return
             try:
                 unit = campos_manual["unidad"].get().strip()
-                responsible = os.environ.get("BC_CAJA_RESPONSABLE", "").strip() or f"Caja {unit.upper()}"
+                # El arqueo de apertura lo hace quien esta operando. Antes salia
+                # de una variable de entorno y terminaba firmado como "Caja PC",
+                # que no es nadie.
+                _sesion_apertura = operadora_actual()
+                responsible = (_sesion_apertura.display_name
+                               if _sesion_apertura is not None
+                               else f"Caja {unit.upper()}")
                 cash_day = controller.admin.open_from_count(
                     campos_manual["fecha"].get().strip(), unit, quantities, responsible, str(uuid.uuid4())
                 )
@@ -4636,7 +4776,14 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             return []
 
     def responsable_actual():
-        return os.environ.get("BC_CAJA_RESPONSABLE") or os.environ.get("USERNAME") or "Operadora"
+        """Quien esta operando. Ya no se pregunta ni se adivina del entorno.
+
+        Antes salia de BC_CAJA_RESPONSABLE o del usuario de Windows, asi que
+        casi todo quedaba registrado como "Operadora". Ahora es la persona que
+        entro.
+        """
+        sesion = operadora_actual()
+        return sesion.display_name if sesion is not None else "Sin sesión"
 
     # ---- FactuFacil V1-016: que ventas faltan cargar en el sistema externo ----
     #
@@ -6097,6 +6244,18 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     if not controller.admin.has_admin() and not os.environ.get("BC_CAJA_AUTOMATED"):
         ventana.after(450, lambda: abrir_acceso_administrador(configuracion_inicial=True))
+
+    def exigir_login_inicial():
+        """La caja no se abre sin que alguien entre.
+
+        Si se cierra el dialogo sin identificarse, se cierra la ventana. Dejarla
+        usable "sin sesion" seria volver a la operacion anonima que esta mision
+        vino a terminar, y encima con la ilusion de que hay control.
+        """
+        if pedir_login_operadora() is None:
+            ventana.destroy()
+
+    ventana.after(150, exigir_login_inicial)
 
     ventana.after(100, ventana.focus_set)
     return ventana
