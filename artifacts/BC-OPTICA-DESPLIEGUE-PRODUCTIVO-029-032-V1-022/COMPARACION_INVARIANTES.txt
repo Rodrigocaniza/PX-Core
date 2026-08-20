@@ -1,0 +1,6 @@
+migraciones antes:   28
+migraciones despues: 32
+integridad despues:  ok
+foreign_key_check:   sin violaciones
+
+OK: ningun invariante productivo se movio.

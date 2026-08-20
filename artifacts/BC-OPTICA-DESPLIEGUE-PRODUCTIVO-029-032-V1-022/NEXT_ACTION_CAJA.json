@@ -1,0 +1,114 @@
+{
+  "mision": "BC-OPTICA-DESPLIEGUE-PRODUCTIVO-029-032",
+  "fecha": "2026-08-20",
+  "maquina": "DESKTOP-CALRL2F — es la PC de la Optica, confirmado por tres marcas independientes: VERSION.txt instalado 1.0.0-rc.32, la serie de carpetas BC-Caja-Pilot.previous-rc5..rc15, y el sha256 de la base productiva a335805e…, que es el que quedo registrado al cerrar V1-012",
+
+  "estado_canonico": {
+    "repo": "PX-Core",
+    "branch": "feature/bc-optica-comision-composturas-v1-021",
+    "head": "3d31ea8f7633e7d6726a257ff3173ae58a69e32e",
+    "remoto": "origin, exactamente en 3d31ea8, sin divergencia",
+    "worktree": ".worktrees/optica-comision-composturas-021",
+    "main": "7db56a0 = 1.0.0-rc.31 con 21 migraciones; sigue sin tocarse y sigue sin describir lo que la Optica usa",
+    "suite": "1372 passed, 4 subtests passed, 0 failed, 0 skips, en 447s, corrida en este worktree hoy",
+    "cambios_pendientes_de_commit": [
+      "pilot/package_docs/VERSION.txt (bump a rc.33)",
+      "tools/radiografia_productiva_optica.py (nueva)",
+      "tools/aplicar_migracion_optica.py (nueva)",
+      "artifacts/BC-OPTICA-DESPLIEGUE-PRODUCTIVO-029-032-V1-022/ (nueva)"
+    ]
+  },
+
+  "gates": {
+    "PRODUCTIVE_APPLY_PASS": true,
+    "CANARY_OPERATIVO_PASS": true,
+    "CAJA_A_GESTION_CENTRAL": "PARCIAL — 12 de los 13 datos exigidos viajan; FactuFacil no",
+    "DESPLIEGUE_DEL_BINARIO": "NO HECHO — la base esta en 032 y el ejecutable instalado sigue siendo rc.32, que es codigo de 001-027"
+  },
+
+  "base_productiva": {
+    "ruta": "C:\\Users\\Striker\\AppData\\Local\\BC\\Caja\\bc_caja.sqlite3",
+    "antes": {
+      "esquema": "028",
+      "sha256": "a335805eb83cce46454e36eda1fdb25a567be1ad534427af687ef0fa8b225d13",
+      "tamano": 7442432
+    },
+    "despues": {
+      "esquema": "032",
+      "sha256": "484d5638e995341aa03c69b44a9ccad6c8f4611207ec8347110d4a00991c17c4",
+      "tamano": 7585792
+    },
+    "aplicacion": "029 -> 030 -> 031 -> 032, de a una, cada una con backup propio, post-checks estructurales y comparacion de invariantes antes/despues. Ningun paso se salto y schema_version no se toco a mano: cada migracion registro su propia fila",
+    "invariantes_intactos": "12 ventas por 6.400.000 (efectivo 2.200.000, tarjeta 100.000, gastos 250.000, convenios 1.350.000), fila por fila; 22 revisiones sin avanzar; 2 dias de caja identicos; 0 arqueos; 3.596 articulos (2.829 activos); 4.441 movimientos, 6.166 unidades en Asuncion y 2.260 en Pilar; 8 pedidos fila por fila; Seguimiento en cero; 3 laboratorios y los 24 defaults; 1.038 lineas de bitacora; outbox y domain_events en cero; 5 import_runs",
+    "integridad": "integrity_check ok, quick_check ok, foreign_key_check sin violaciones, ningun articulo con stock negativo"
+  },
+
+  "rollback": {
+    "como": "cerrar BC Caja y copiar el archivo de backup sobre bc_caja.sqlite3. La cadena no tiene inversa y no la necesita: el rollback es restaurar el archivo",
+    "probado": "si — se restauro el backup sobre una copia ya migrada a 032 y volvio a 28 migraciones con los invariantes identicos a los de antes de aplicar",
+    "punto_unico_para_volver_al_estado_previo": "C:\\Users\\Striker\\AppData\\Local\\BC\\Caja\\Backups\\bc-caja-pre-029-032-20260820-124947.sqlite3 (sha256 d325fba522df086c0f2a5dcd898e2486846dbf804fe4e351151de97d0051297e, 7.442.432 bytes, integridad ok, 28 migraciones)",
+    "puntos_intermedios": [
+      "bc-caja-pre-029-20260820-125217.sqlite3 — d325fba522df086c0f2a5dcd898e2486846dbf804fe4e351151de97d0051297e — vuelve a 028",
+      "bc-caja-pre-030-20260820-125218.sqlite3 — 6b38de6dde4e8e7bb4340ad22140a32761a53fc74a7aedb546f5b198da6c67ea — vuelve a 029",
+      "bc-caja-pre-031-20260820-125220.sqlite3 — ad99f3dcb5c696bb9cdb3b85fa5c2c85ad44432bf8afde3e306c9ab328fc903a — vuelve a 030",
+      "bc-caja-pre-032-20260820-125221.sqlite3 — 0e5d04695e1856f21d609fbae3f20929e1ae90beb5c3ee34816264bda0dcbcf9 — vuelve a 031"
+    ]
+  },
+
+  "canary": {
+    "donde": "sobre una copia de la base productiva ya migrada, nunca sobre produccion: el canary tenia que demostrar el circuito sin dejar una venta, un movimiento ni un asiento de comision en la contabilidad real. Las personas del canary son ficticias y viven solo en esa copia",
+    "login": "login ADMIN y OPERADOR, contrasena incorrecta rechazada, usuario inexistente rechazado, usuario inactivo rechazado, bloqueo por intentos fallidos vigente, cambio de operadora que invalida la sesion anterior, logout, AdminSession de 20 minutos, CashSession que vence al terminar el dia, y una sesion de caja de OPERADOR que no abre el panel administrativo ni deja definir una comision",
+    "composturas": "RECIBIDO -> EN_TALLER -> LISTO -> ENTREGADO y tambien RECIBIDO -> LISTO; actor, responsable ligado a la persona real, sucursal tomada de la sesion, historial con cada transicion, reapertura con motivo, reapertura sin motivo rechazada, anulacion con motivo, borrado y reescritura de historia bloqueados por la base; cero stock y cero entrada de caja automatica",
+    "comision": "sin politica no devenga y los trabajos terminados se listan aparte; con politica devenga en LISTO y solo en LISTO; entregar no duplica; subir la tarifa agrega una version y el trabajo viejo conserva su importe y su policy_id; cambiar sin motivo rechazado; anular despues de LISTO deja una compensacion de signo contrario; bruto 13.000, compensado 8.000, neto 5.000, y los totales suman sobre las filas mostradas",
+    "operativo": "venta comun de 310.000 en efectivo, venta con convenio de 500.000 (100.000 efectivo + 50.000 tarjeta + 250.000 convenio + 100.000 de saldo) y una compostura que devengo su comision; cierre del dia y publicacion idempotente en movimientos diarios"
+  },
+
+  "caja_a_gestion_central": {
+    "viajan": ["dia", "sucursal (caja PC)", "sobre", "cliente", "CI/RUC", "telefono", "vendedora", "venta", "pagos en efectivo y tarjeta", "convenio", "saldo", "movimientos diarios", "revision (los 18 campos, con progreso por venta)"],
+    "no_viaja": "FactuFacil"
+  },
+
+  "findings": [
+    {
+      "id": "F1",
+      "titulo": "Gestion Central no lee la marca de FactuFacil",
+      "donde": "modulos/gestion_central/real_sync.py:167",
+      "detalle": "import_snapshot escribe el literal \"NO DISPONIBLE PILOTO\" en factufacil_status para todas las ventas. Es de cuando la 029 no existia. En el canary la venta del sobre 9001 estaba CARGADA en Caja y llego a Gestion Central como NO DISPONIBLE PILOTO. El campo tiene texto, y el dato no viaja: es la unica de las 13 cosas exigidas que no se pudo demostrar",
+      "impacto": "quien revisa en Gestion Central no puede saber que ventas ya se cargaron en FactuFacil, que es exactamente el problema que la 029 vino a resolver",
+      "estado": "ABIERTO, no tocado en esta sesion"
+    },
+    {
+      "id": "F2",
+      "titulo": "Las herramientas canonicas de la 029 y la 030 aplican toda la cola, no su propia migracion",
+      "donde": "tools/factufacil_migracion_029_optica.py y tools/usuarios_migracion_030_optica.py",
+      "detalle": "las dos llaman a SQLiteCashDayRepository.migrate(), que aplica todas las pendientes. Se escribieron cuando su migracion era la punta. Corrida hoy, la herramienta de la 029 llevo una copia de 028 a 032 de una vez y sus propios post-checks lo denunciaron (\"migraciones 28 -> 32\", \"no aparecio ninguna otra tabla\": FALLA). Por eso el apply productivo se hizo con tools/aplicar_migracion_optica.py, que ejecuta exactamente el archivo pedido y exige la cadena previa completa",
+      "impacto": "usar esas herramientas creyendo que aplican una sola migracion salta pasos sin avisar",
+      "estado": "ABIERTO. La herramienta nueva las cubre; las viejas siguen como estan"
+    },
+    {
+      "id": "F3",
+      "titulo": "Dos dias de caja quedaron abiertos desde hace una semana",
+      "donde": "cash_days: 2026-08-12 (PC, apertura 1.000.000) y 2026-08-13 (PC, apertura 500.000), ambos OPEN",
+      "detalle": "no se cerraron a proposito. Cerrar hoy un dia del 12 fabricaria un cierre economico que nadie hizo y contaminaria la contabilidad. La precondicion que si importaba -que la aplicacion no estuviera escribiendo- estaba cumplida, y las cuatro migraciones no tocan cash_days ni cash_entries, cosa que quedo probada sobre copia antes de aplicar y verificada fila por fila despues",
+      "impacto": "ninguno para la migracion. Queda como decision de negocio: alguien tiene que decidir que hacer con esos dos dias",
+      "estado": "ABIERTO, es decision de la duena"
+    },
+    {
+      "id": "F4",
+      "titulo": "El VERSION.txt del repo estaba dos lineas atras de la realidad",
+      "donde": "pilot/package_docs/VERSION.txt",
+      "detalle": "declaraba 1.0.0-rc.32 con \"migraciones 001-027\" en una rama que ya traia hasta la 032. Un binario construido desde ahi se habria autodeclarado con un esquema que no es el suyo. Se subio a 1.0.0-rc.33 con la cadena real y la advertencia de que la 032 no es aditiva",
+      "estado": "CORREGIDO en el worktree, sin commitear"
+    },
+    {
+      "id": "F5",
+      "titulo": "admin_users sigue en cero en produccion",
+      "detalle": "no es una regresion: viene de antes y la 030 no invento ninguna persona, a proposito. Al abrir, la app va a pedir Configuracion inicial administrativa. Crear esa credencial es decision de la duena y no se hizo",
+      "estado": "ABIERTO, es decision de la duena"
+    }
+  ],
+
+  "next_action": "Faltan dos cosas y ninguna de las dos se puede automatizar sin vos. (1) EL BINARIO: la base esta en 032 y el ejecutable instalado sigue siendo rc.32, que es codigo de 001-027 — abre la base migrada sin romperse, pero no tiene ni FactuFacil, ni usuarios y roles, ni composturas, ni comisiones. Hay que construir desde 3d31ea8 con pilot/build_pilot.ps1 e instalar dejando la carpeta de rollback; el hash va a diferir del artefacto original porque PyInstaller no es reproducible, asi que la verificacion es por comportamiento -arranca, migra sola, no pierde datos-, igual que se hizo con rc.32 el 19/08. Pedi permiso para correr el build y me lo denegaste, asi que quedo sin hacer. (2) LAS PERSONAS Y LAS TARIFAS: hacen falta los nombres reales, quien es ADMIN y quien OPERADOR, en que sucursal trabaja cada una, quien necesita contrasena, y cuanto cobra por compostura la que comisiona. Nada de eso esta en el codigo ni lo voy a inventar. Con esos datos el alta y la carga de politicas quedan automatizadas en una sola corrida, sobre el mismo camino que el canary ya recorrio entero.",
+
+  "no_iniciar_otra_mision": true
+}

@@ -1,0 +1,126 @@
+
+A. Usuarios y login (030 + 019B)
+--------------------------------
+  OK    produccion no trae ningun administrador: lo crea la duena
+  OK    se crea la credencial administrativa inicial  -> adminprueba
+  OK    has_admin pasa a verdadero
+  OK    alta de OPERADOR con sucursal  -> ASUNCION
+  OK    la operadora con contrasena puede entrar
+  OK    una persona sin contrasena existe, se la nombra en una venta, y no entra
+  OK    alta de ADMIN
+
+A.1 Login ADMIN
+---------------
+  OK    login ADMIN correcto  -> adminprueba
+  OK    AdminSession dura 20 minutos  -> 0:19:59
+
+A.2 Login OPERADOR
+------------------
+  OK    login OPERADOR correcto y NO es admin  -> OPERADOR
+  OK    la sesion trae el nombre visible  -> Operadora Prueba · ASUNCION
+  OK    CashSession vence al terminar el dia, no a los 20 minutos  -> 2026-08-21T00:00:00+00:00
+  OK    y no sobrevive a la noche siguiente  -> 2026-08-21
+
+A.3 Contrasena incorrecta y usuario inactivo
+--------------------------------------------
+  OK    contrasena incorrecta de ADMIN es rechazada  -> InvalidCashDayError
+  OK    contrasena incorrecta de OPERADOR es rechazada  -> InvalidCashDayError
+  OK    usuario inexistente es rechazado  -> InvalidCashDayError
+  OK    usuario inactivo no puede entrar  -> InvalidCashDayError
+
+A.4 Cambio de operadora y logout
+--------------------------------
+  OK    el bloqueo por intentos fallidos sigue vigente para la ADMIN  -> InvalidCashDayError
+  OK    cambio de operadora sin cerrar la caja  -> Relevo Prueba · ASUNCION
+  OK    el cambio emite una sesion nueva
+  OK    la sesion anterior queda invalidada por el cambio  -> InvalidCashDayError
+  OK    despues del logout la sesion no sirve  -> InvalidCashDayError
+
+A.5 Entrar a Caja no deja una sesion Admin abierta
+--------------------------------------------------
+  OK    una CashSession de OPERADOR no habilita el panel administrativo  -> InvalidCashDayError
+  OK    una ADMIN tambien puede operar la caja
+  OK    definir una comision desde una sesion de OPERADOR es rechazado  -> InvalidCashDayError
+
+B. Composturas: RECIBIDO -> EN_TALLER -> LISTO -> ENTREGADO (031)
+-----------------------------------------------------------------
+  OK    nace en RECIBIDO  -> RECIBIDO
+  OK    sucursal tomada de la sesion, no preguntada  -> ASUNCION
+  OK    queda quien recibio (actor)  -> Relevo Prueba
+  OK    queda el responsable  -> Operadora Prueba
+  OK    el responsable esta ligado a la persona real
+  OK    tiene numero legible para el mostrador  -> T-00001
+  OK    RECIBIDO -> EN_TALLER
+  OK    EN_TALLER -> LISTO
+  OK    LISTO -> ENTREGADO
+  OK    ENTREGADO tiene fecha y quien entrego  -> Operadora Prueba
+
+B.1 Camino corto RECIBIDO -> LISTO
+----------------------------------
+  OK    RECIBIDO -> LISTO directo, sin pasar por el taller
+
+B.2 Historial, reapertura, anulacion y auditoria
+------------------------------------------------
+        ('CREADO', None, 'RECIBIDO', 'Relevo Prueba', '')
+        ('RESPONSABLE_ASIGNADO', None, None, 'Relevo Prueba', '')
+        ('ENVIADO_A_TALLER', 'RECIBIDO', 'EN_TALLER', 'Relevo Prueba', '')
+        ('MARCADO_LISTO', 'EN_TALLER', 'LISTO', 'Relevo Prueba', '')
+        ('ENTREGADO', 'LISTO', 'ENTREGADO', 'Relevo Prueba', '')
+  OK    el historial guarda cada transicion  -> 5
+  OK    cada evento tiene actor
+  OK    un token administrativo no mueve un trabajo: eso pide sesion de caja  -> InvalidCashDayError
+  OK    reapertura con motivo vuelve al taller
+  OK    reabrir sin motivo es rechazado  -> InvalidCashDayError
+  OK    anulacion con motivo
+  OK    un trabajo no se puede borrar: la guarda de la base lo impide  -> IntegrityError
+  OK    la historia de un trabajo no se puede reescribir  -> IntegrityError
+
+B.3 Cero stock y cero movimiento automatico de caja
+---------------------------------------------------
+  OK    las composturas no movieron una sola unidad de stock  -> 4441
+  OK    las composturas no crearon ni una entrada de caja sola  -> 12
+
+C. Comision de composturas (032)
+--------------------------------
+  OK    sin politica cargada, ningun trabajo devengo: es lo correcto, no un error
+  OK    los trabajos terminados sin politica se listan aparte  -> 2
+  OK    politica vigente: 5.000 Gs por trabajo  -> 5000
+  OK    la politica vigente se resuelve por alcance  -> 5000
+  OK    quien no comisiona no tiene politica y no devenga nada
+  OK    crear una compostura no devenga nada
+  OK    mandarla al taller tampoco devenga
+  OK    el devengo ocurre en LISTO, y es de 5.000  -> [('DEVENGO', 5000, 'Operadora Prueba', '8b2f73af-6f51-474a-b60e-aeecb6f59fd1')]
+  OK    el asiento guarda la version de politica que lo explicaba
+
+C.1 No duplicacion
+------------------
+  OK    entregar no devenga una segunda vez
+
+C.2 Tarifa historica: subir la tarifa no reescribe lo ya devengado
+------------------------------------------------------------------
+  OK    cambiar es agregar una version, no pisar la anterior
+  OK    el trabajo viejo conserva los 5.000 que regian ese dia
+  OK    el historial de politica tiene las dos versiones  -> 2
+  OK    cambiar una tarifa sin motivo es rechazado  -> InvalidCashDayError
+
+C.3 Compensacion y neto
+-----------------------
+  OK    anular despues de LISTO deja una compensacion de signo contrario  -> [('DEVENGO', 8000), ('COMPENSACION', -8000)]
+  OK    el neto es 5.000: un devengo de 5.000, uno de 8.000 y su compensacion  -> {'Operadora Prueba': 5000}
+  OK    bruto 13.000  -> 13000
+  OK    compensado 8.000  -> -8000
+  OK    neto 5.000  -> 5000
+  OK    los totales se suman sobre las filas mostradas
+
+C.4 Cero contaminacion del 1% comercial
+---------------------------------------
+  OK    no hay ninguna tabla que ligue comision con ventas
+  OK    las lineas de venta historicas no se tocaron
+
+D. Canary operativo de Caja: venta comun, venta con convenio, compostura
+------------------------------------------------------------------------
+  OK    dia de caja abierto para el canary  -> 2026-08-20 PC
+        entradas antes del canary: 12
+
+================================================================
+RESULTADO: PASS (secciones A, B y C)

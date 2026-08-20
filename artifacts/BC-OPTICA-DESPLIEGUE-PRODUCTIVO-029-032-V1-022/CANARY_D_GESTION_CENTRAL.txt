@@ -1,0 +1,82 @@
+
+D.1 Venta comun
+---------------
+  OK    venta comun de 300.000 registrada  -> 300000
+  OK    pagada toda en efectivo
+  OK    sobre  -> 9001
+  OK    CI/RUC  -> 1.234.567
+  OK    telefono  -> 0981222333
+  OK    vendedora  -> Operadora Prueba
+  OK    dia y sucursal  -> 2026-08-20 PC
+
+D.2 Venta con convenio y saldo
+------------------------------
+  OK    venta con convenio de 500.000  -> 500000
+  OK    monto de convenio  -> 250000
+  OK    saldo pendiente  -> 100000
+  OK    pagos mixtos efectivo + tarjeta
+
+D.3 Compostura del canary
+-------------------------
+  OK    la compostura devengo la tarifa vigente (8.000)  -> [('DEVENGO', 8000)]
+  OK    la compostura no movio stock  -> 4441
+  OK    la compostura no creo por su cuenta ninguna entrada de caja
+  OK    compostura entregada
+
+D.4 FactuFacil sobre las ventas del canary (029)
+------------------------------------------------
+  OK    la venta comun aparece «para cargar» sin que nadie la marque  -> 12
+  OK    se marca cargada en FactuFacil
+  OK    queda CARGADA  -> CARGADA
+  OK    queda quien la cargo  -> Relevo Prueba
+  OK    corregir la venta despues de cargarla se ve: la revision dejo de coincidir  -> marca en rev 0
+  OK    se puede revertir con motivo
+  OK    marcar y revertir dejaron una linea cada uno  -> 2
+  OK    volver a marcar deja la tercera: nada se pisa  -> 3
+  OK    re-cargada sobre la revision corregida, la advertencia se apaga sola
+
+D.5 Cierre del dia y movimientos diarios
+----------------------------------------
+        totales del dia: efectivo=410000 tarjeta=50000 gastos=0
+  OK    dia cerrado
+  OK    el cierre dejo sus totales
+  OK    el cierre se publico en Movimientos  -> MovementExportResult(created=0, existing=1)
+  OK    existe el archivo de movimientos diarios  -> movimientos.txt
+        Ingreso|20-08-2026|Externo|PC|460000|Si|BC_CAJA:119de4b0-095a-4795-97af-5a68fa2ccd18:VENTAS
+        Ingreso|20-08-2026|Externo|PC|460000|Si|BC_CAJA:85cf12d7-a0a7-4d42-93a2-3c60fac6805d:VENTAS
+  OK    cada linea lleva su marca de origen
+  OK    re-publicar no duplica: es idempotente  -> 2
+
+D.6 Caja -> Gestion Central
+---------------------------
+  OK    Gestion Central leyo las ventas del cierre  -> 2
+  OK    las ventas entraron a revision  -> 2
+  OK    dia y sucursal (caja) viajaron  -> 2026-08-20 / PC
+  OK    las ventas se listan en Gestion Central  -> 2
+
+        LO QUE LLEGO A GESTION CENTRAL, CAMPO POR CAMPO
+  OK    dia (date)  -> 2026-08-20
+  OK    sobre (envelope)  -> 9001
+  OK    cliente (customer_name)  -> Cliente Canary Venta Comun
+  OK    CI/RUC (customer_document)  -> 1.234.567
+  OK    telefono (customer_phone)  -> 0981222333
+  OK    vendedora (saleswoman)  -> Operadora Prueba
+  OK    venta (total)  -> 310000
+  OK    pago en efectivo (cash)  -> 310000
+  OK    pago con tarjeta (card_transfer)  -> 0
+  OK    sucursal: la caja PC, que cash_register_branches liga a ASUNCION  -> PC
+  OK    convenio (agreement)  -> 250000
+  OK    saldo (balance)  -> 100000
+  OK    venta con convenio (total)  -> 500000
+  FALLA FactuFacil viaja a Gestion Central (en Caja esta CARGADA)  -> NO DISPONIBLE PILOTO
+
+D.7 Revision en Gestion Central
+-------------------------------
+  OK    se pueden marcar campos como revisados  -> 3
+  OK    la venta queda REVISADA  -> REVIEWED
+  OK    la revision cubre los 18 campos del modelo  -> 18
+        progreso: {'total': 2, 'reviewed': 1, 'pending': 1, 'observations': 0, 'percent': 50}
+
+================================================================
+RESULTADO: FALLA - 1 comprobacion(es)
+  - FactuFacil viaja a Gestion Central (en Caja esta CARGADA)
