@@ -1,0 +1,59 @@
+PRUEBAS DIRIGIDAS -- V1-019B
+comando: python -m pytest tests/caja_diaria/test_v1019b_login_operadora.py -v
+
+46 dirigidas nuevas. Cubren los casos obligatorios de login, permisos, ventas e
+integridad, y algunos mas.
+
+Suite de Caja completa: 828 passed, 0 failed.
+Suite total del repo: 1200 passed, 0 failed, en dos corridas seguidas.
+
+Los tests de gestion_central pasaron en las dos corridas. Su no determinacion
+sigue registrada como finding abierto y NO se reclasifica como rojo estable.
+
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_operadora_entra_a_la_caja PASSED [  2%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_administradora_tambien_puede_atender PASSED [  4%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_contrasena_incorrecta_no_entra PASSED [  6%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_un_usuario_inexistente_no_entra PASSED [  8%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_persona_sin_contrasena_no_entra PASSED [ 10%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_persona_desactivada_no_entra PASSED [ 13%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_el_bloqueo_exponencial_sigue_vigente PASSED [ 15%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_el_login_de_caja_queda_auditado PASSED [ 17%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_entrar_a_atender_no_deja_abierta_una_sesion_administrativa PASSED [ 19%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sesion_dura_la_jornada_y_no_veinte_minutos PASSED [ 21%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sesion_no_sobrevive_a_la_noche PASSED [ 23%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_sesion_vencida_queda_registrada PASSED [ 26%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_desactivar_a_alguien_la_saca_de_la_caja_aunque_ya_estuviera_adentro PASSED [ 28%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_logout PASSED     [ 30%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_un_token_inventado_no_sirve PASSED [ 32%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_el_token_viejo_no_se_puede_reusar_despues_del_logout PASSED [ 34%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_cambiar_de_operadora_a_media_tarde PASSED [ 36%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_el_relevo_queda_registrado_con_quien_salio_y_quien_entro PASSED [ 39%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_cambiar_de_operadora_no_toca_la_caja_del_dia PASSED [ 41%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_un_relevo_fallido_no_saca_a_la_que_estaba PASSED [ 43%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_operadora_opera_la_caja PASSED [ 45%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sesion_de_caja_no_autoriza_nada_administrativo[<lambda>0] PASSED [ 47%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sesion_de_caja_no_autoriza_nada_administrativo[<lambda>1] PASSED [ 50%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sesion_de_caja_no_autoriza_nada_administrativo[<lambda>2] PASSED [ 52%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sesion_de_caja_no_autoriza_nada_administrativo[<lambda>3] PASSED [ 54%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sesion_de_caja_no_autoriza_nada_administrativo[<lambda>4] PASSED [ 56%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_administradora_que_atiende_tampoco_administra_con_ese_token PASSED [ 58%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_administradora_conserva_acceso_completo_por_su_camino PASSED [ 60%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_operadora_no_consigue_una_sesion_administrativa PASSED [ 63%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_vendedora_por_defecto_es_quien_esta_operando PASSED [ 65%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_se_puede_registrar_que_vendio_otra_y_queda_auditado PASSED [ 67%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_elegir_a_la_misma_persona_no_genera_ruido PASSED [ 69%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_cambiar_el_nombre_de_una_persona_no_reescribe_sus_ventas PASSED [ 71%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_vendedora_sigue_sin_ser_foreign_key PASSED [ 73%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sucursal_efectiva_es_la_de_la_caja PASSED [ 76%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_discrepancia_de_sucursal_se_avisa_y_no_se_corrige_sola PASSED [ 78%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_una_persona_sin_sucursal_no_genera_discrepancia PASSED [ 80%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_todo_el_ciclo_de_sesiones_no_toca_nada_economico PASSED [ 82%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_ninguna_migracion_nueva PASSED [ 84%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_integridad_no_se_resiente PASSED [ 86%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_caja_pide_identificarse_al_abrir PASSED [ 89%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_la_pantalla_muestra_quien_esta_operando PASSED [ 91%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_cambiar_operadora_no_vive_dentro_de_admin PASSED [ 93%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_el_responsable_sale_de_la_sesion_y_no_del_entorno PASSED [ 95%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_cancelar_el_login_no_deja_la_caja_usable PASSED [ 97%]
+tests/caja_diaria/test_v1019b_login_operadora.py::test_el_arqueo_de_apertura_lo_firma_quien_esta_operando PASSED [100%]
+============================= 46 passed in 30.12s =============================

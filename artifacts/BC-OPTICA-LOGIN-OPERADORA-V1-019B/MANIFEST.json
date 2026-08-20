@@ -1,0 +1,132 @@
+{
+  "mision": "BC-OPTICA-LOGIN-OPERADORA-V1-019B",
+  "estado": "COMPLETADA_EN_CASA — sin migracion, sin apply productivo",
+  "base_git": {
+    "branch": "feature/bc-optica-login-operadora-v1-019b",
+    "parte_de": "origin/feature/bc-optica-usuarios-roles-v1-019 @ 4717acf",
+    "verificado": "V1-019A contiene V1-018 (0fc0667) via merge-base --is-ancestor",
+    "origin_main_intacto": "7db56a082d06c735583a2717da3ad273f4d41a84"
+  },
+  "migraciones": {
+    "nueva": false,
+    "ultima": "030",
+    "por_que_no": "admin_users ya tenia usuario, nombre, rol, sucursal, estado y credenciales. La sesion vive en memoria, que es donde corresponde. Se verifico que 030 sigue siendo la ultima y no se creo una 031 por costumbre"
+  },
+  "modelo_de_sesion": {
+    "AdminSession": {
+      "dura": "20 minutos",
+      "para": "el panel administrativo",
+      "sin_cambios": true
+    },
+    "CashSession": {
+      "dura": "hasta la medianoche siguiente",
+      "campos": [
+        "token",
+        "user_id",
+        "username",
+        "display_name",
+        "role",
+        "branch",
+        "started_at",
+        "expires_at"
+      ],
+      "por_que_esa_duracion": "20 minutos esta bien para lo que protege y mal para una jornada: pedir la contrasena cada 20 minutos a quien atiende ocho horas termina con la contrasena anotada al lado de la pantalla. La medianoche es el limite natural del turno",
+      "no_se_cambio_el_valor_administrativo": true
+    },
+    "aislamiento": "entrar a atender NO deja abierta una sesion administrativa: la que se crea de paso se descarta. El token de caja no autoriza nada sensible, ni el de una administradora"
+  },
+  "reautenticacion": "cae sola del aislamiento: para lo administrativo hay que identificarse de nuevo en el panel. Si una operadora lo intenta, el backend deniega y queda ADMIN_DENIED; si hace falta autorizar, una administradora entra con SU propia contrasena y obtiene su propia sesion corta. Nadie comparte contrasenas y nadie hereda permisos",
+  "login": {
+    "pantalla": "usuario, contrasena, Entrar",
+    "si_se_cancela": "se cierra la ventana: no hay operacion anonima",
+    "revalidacion": "require_operator consulta la base en cada uso, no solo al entrar"
+  },
+  "logout": {
+    "evento": "CASH_LOGOUT",
+    "no_cierra": "ni la caja ni el arqueo"
+  },
+  "cambio_de_operadora": {
+    "donde": "barra superior, fuera de Admin: es una accion de todos los dias",
+    "no_toca": "la caja del dia ni el arqueo; probado comparando totals() antes y despues",
+    "relevo_fallido": "la que estaba sigue adentro",
+    "evento": "CASH_OPERATOR_CHANGED con quien salio y quien entro"
+  },
+  "permisos": {
+    "OPERADOR": "opera la caja; nada protegido por require_admin",
+    "ADMIN": "opera la caja y ademas el panel, identificandose de nuevo",
+    "enforcement": "require_admin() de V1-019A, reusado; sin logica nueva de permisos",
+    "prueba": "se llama al servicio directamente con el token de caja, sin pantalla de por medio"
+  },
+  "vendedora": {
+    "default": "display_name de quien esta operando",
+    "excepcion": "se puede elegir otra persona activa del catalogo",
+    "auditoria": "SALESWOMAN_OVERRIDE con quien cargo y quien vendio; elegir a la misma no genera ruido",
+    "historia": "cash_entries.saleswoman sigue siendo texto y sin FK; cambiar display_name no reescribe ventas"
+  },
+  "sucursal": {
+    "fuente_canonica": "la caja del host, via cash_register_branches",
+    "branch_del_usuario": "su ambito habitual, no una autorizacion",
+    "conflicto": "manda la caja y se muestra un aviso; no se corrige en silencio",
+    "sin_sucursal": "quien no tiene sucursal fija no genera discrepancia"
+  },
+  "auditoria": [
+    "CASH_LOGIN_SUCCESS",
+    "CASH_LOGOUT",
+    "CASH_OPERATOR_CHANGED",
+    "CASH_SESSION_EXPIRED",
+    "SALESWOMAN_OVERRIDE"
+  ],
+  "auditoria_no_duplicada": "el login fallido ya se registraba como ADMIN_LOGIN/FAIL por el camino que valida credenciales. No se agrego CASH_LOGIN_FAILED para no tener dos eventos equivalentes del mismo hecho",
+  "identidad_operativa": "responsable_actual() sale de la sesion. Todo lo que ya registraba responsable -seguimiento, pedidos, novedades, arqueo de apertura- pasa a decir quien fue. No se agrego ninguna pregunta: se dejo de preguntar lo que la sesion ya sabia",
+  "autenticacion_reusada": "PBKDF2-SHA256, sal por usuario, 390.000 iteraciones y bloqueo exponencial: los que ya estaban. Hay prueba de que el bloqueo sigue vigente por el camino nuevo",
+  "pruebas": {
+    "dirigidas": 46,
+    "suite_caja": "828 passed, 0 failed",
+    "suite_repo": "1200 passed, 0 failed",
+    "corridas": 2
+  },
+  "invariantes": {
+    "prueba": "test_todo_el_ciclo_de_sesiones_no_toca_nada_economico",
+    "tablas_comparadas": [
+      "cash_days",
+      "cash_entries",
+      "total",
+      "cash",
+      "expenses",
+      "revision",
+      "stock_movements",
+      "stock_actual",
+      "articles",
+      "sale_items",
+      "factufacil_loads",
+      "tracked_works",
+      "laboratories",
+      "orders",
+      "cash_counts"
+    ],
+    "resultado": "ninguna cambia tras login, override, relevo, logout e intento fallido"
+  },
+  "alcance": {
+    "archivos": [
+      "modulos/caja_diaria/application/admin_ops.py",
+      "CajaDiaria.py"
+    ],
+    "tests_nuevos": [
+      "tests/caja_diaria/test_v1019b_login_operadora.py"
+    ]
+  },
+  "codigo": {
+    "modulos/caja_diaria/application/admin_ops.py": {
+      "sha256": "65548e36d5e2b7576f66175c7da571674755851e22fcd67e0bdde1e3b657766b",
+      "bytes": 49164
+    },
+    "CajaDiaria.py": {
+      "sha256": "695f14162d86d6b2c757f0be38dc712cb5c3d0a0983467b45cd0a950f18d1a62",
+      "bytes": 299000
+    },
+    "tests/caja_diaria/test_v1019b_login_operadora.py": {
+      "sha256": "ae0a3db6838bd65fe602d685c028a37fe5148892a0d93a942bfda56e4a44a96f",
+      "bytes": 21441
+    }
+  }
+}

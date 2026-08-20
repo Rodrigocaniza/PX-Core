@@ -1,0 +1,30 @@
+{
+  "mision": "BC-OPTICA-LOGIN-OPERADORA-V1-019B",
+  "preservado_sin_absorber": [
+    {
+      "id": "GESTION-CENTRAL-NO-DETERMINISTA",
+      "estado": "ABIERTO",
+      "detalle": "tests/gestion_central/test_ui_interactions.py depende de bootstrap_synthetic_pilot(), que siembra alertas segun el momento. En V1-019 se comprobo que el mismo commit daba 1114/2 por la tarde y 1116/0 despues, sin cambio de codigo",
+      "clasificacion": "NO es un stable preexisting red: son pruebas no deterministas",
+      "en_esta_mision": "no impidio verificar nada; la suite dio 1200/0 en dos corridas",
+      "recomendacion": "slice de Gestion Central que fije el reloj de la fixture"
+    }
+  ],
+  "nuevos": [
+    {
+      "id": "LOGIN-CANCELADO-CERRABA-NADA",
+      "estado": "CERRADO en esta mision",
+      "detalle": "la primera version dejaba la caja usable con 'Sin sesion' si se cancelaba el login. Lo encontro la revision antes del commit. Ahora la ventana se cierra"
+    },
+    {
+      "id": "SESION-NO-SOBREVIVE-AL-REINICIO",
+      "estado": "ABIERTO, deliberado",
+      "detalle": "la sesion vive en memoria: cerrar y reabrir BC Caja pide identificarse de nuevo. Es lo correcto para una caja, pero si en la Optica reinician la app varias veces al dia puede molestar. Conviene mirarlo con uso real antes de persistir nada"
+    },
+    {
+      "id": "OTROS-ACTORES-SIGUEN-SIENDO-TEXTO",
+      "estado": "ABIERTO, no bloqueante",
+      "detalle": "hay flujos que todavia piden 'Usuario responsable' por dialogo -correcciones auditadas, edicion auditada-. Ahora que la sesion existe, varios podrian derivarlo. No se toco: cada uno tiene su propia razon de pedirlo y revisarlos es otra mision"
+    }
+  ]
+}
