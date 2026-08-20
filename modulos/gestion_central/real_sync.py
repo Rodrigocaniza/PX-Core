@@ -23,6 +23,8 @@ REVIEW_STATUSES = {
     "UNREVIEWED", "IN_REVIEW", "REVIEWED", "WITH_OBSERVATION",
     "REQUIRES_CORRECTION", "CORRECTED_PENDING_REVALIDATION",
 }
+FACTUFACIL_PENDING = "PARA_CARGAR"
+FACTUFACIL_HISTORICAL_UNAVAILABLE = "NO DISPONIBLE HISTORICO"
 
 
 def now_iso() -> str:
@@ -139,12 +141,19 @@ class ReviewService:
             entries = source.execute("SELECT * FROM cash_entries WHERE cash_day_id=? AND status='ACTIVE' ORDER BY created_at,id", (day["id"],)).fetchall()
             items = source.execute("SELECT * FROM sale_items WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id=?) ORDER BY cash_entry_id,position", (day["id"],)).fetchall()
             orders = source.execute("SELECT * FROM orders WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id=?)", (day["id"],)).fetchall()
+            has_factufacil = source.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='factufacil_loads'"
+            ).fetchone() is not None
+            factufacil = source.execute(
+                "SELECT cash_entry_id,status FROM factufacil_loads"
+            ).fetchall() if has_factufacil else ()
         finally:
             source.close()
         source_hash_after_read = self.snapshot_hash(snapshot_path)
         if source_hash_after_read != source_hash:
             raise RuntimeError("el snapshot cambió durante la lectura; importación cancelada")
         item_map, order_map = {}, {row["cash_entry_id"]: row for row in orders}
+        factufacil_map = {row["cash_entry_id"]: row["status"] for row in factufacil}
         for item in items: item_map.setdefault(item["cash_entry_id"], []).append(item)
         snapshot_id = digest({"organization": organization, "branch": branch, "cashbox": cashbox, "date": day["business_date"], "sha": source_hash})
         inserted = unchanged = changed = 0
@@ -164,7 +173,11 @@ class ReviewService:
                     "total": entry["total"] or 0, "cash": entry["cash"] or 0, "card_transfer": entry["card_check"] or 0,
                     "agreement": entry["agreement_amount"] or 0, "balance": entry["balance_text"] or "",
                     "delivery_date": (order["delivery_date"] if order else entry["delivery_date"]) or "",
-                    "factufacil_status": "NO DISPONIBLE PILOTO", "recorded_by": entry["performed_by"] or entry["saleswoman"],
+                    "factufacil_status": (
+                        factufacil_map.get(entry["id"], FACTUFACIL_PENDING)
+                        if has_factufacil else FACTUFACIL_HISTORICAL_UNAVAILABLE
+                    ),
+                    "recorded_by": entry["performed_by"] or entry["saleswoman"],
                 }
                 identity = digest({"organization":organization,"branch":branch,"cashbox":cashbox,"date":day["business_date"],"entry":entry["id"]})
                 content_hash = digest(payload); version = int(entry["revision"] or 0)

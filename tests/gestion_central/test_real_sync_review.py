@@ -15,11 +15,11 @@ AUDITOR = Principal("auditora", Role.AUDITOR)
 LOCAL_PILAR = Principal("sucursal.pilar", Role.OPERADOR_LOCAL)
 
 
-def make_snapshot(path: Path, *, changed=False):
+def make_snapshot(path: Path, *, changed=False, sales=3):
     repo = SQLiteCashDayRepository(path)
     with repo._connection() as con:
         con.execute("INSERT INTO cash_days(id,business_date,unit,opening_cash,status,opened_at,closed_at,version) VALUES('day','2099-02-20','PC',500000,'CLOSED','2099-02-20T08:00:00-03:00','2099-02-20T18:00:00-03:00',1)")
-        for index in range(3):
+        for index in range(sales):
             name = "Cliente Sintético Ajustado" if changed and index == 0 else f"Cliente Sintético {index + 1}"
             con.execute("""INSERT INTO cash_entries(id,cash_day_id,description,envelope,total,cash,card_check,agreement_amount,balance_text,customer_document,customer_phone,saleswoman,delivery_date,observations,performed_by,created_at,updated_at,revision)
               VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",(f"sale-{index}","day",name,f"S-{index+1:03d}",1000000+index,500000,300000,200000,"0",f"DOC-{index}",f"09810000{index}","Vendedora Piloto","2099-02-25","Observación sintética","operador.piloto","2099-02-20T10:00:00-03:00","2099-02-20T10:00:00-03:00",2 if changed and index==0 else 1))
@@ -27,6 +27,99 @@ def make_snapshot(path: Path, *, changed=False):
         con.commit()
     repo.close()
     return path
+
+
+def factufacil_statuses(service):
+    return {
+        row["source_entry_id"]: row["payload"]["factufacil_status"]
+        for row in service.list_sales(ADMIN)
+    }
+
+
+def test_factufacil_real_status_is_synced_and_updated_without_crossing_sales(tmp_path):
+    snapshot = make_snapshot(tmp_path / "snapshot.sqlite3", sales=2)
+    with SQLiteCashDayRepository(snapshot)._connection() as con:
+        con.execute("""INSERT INTO factufacil_loads(
+            cash_entry_id,status,loaded_by,loaded_at,entry_revision,updated_at
+        ) VALUES('sale-0','CARGADA','rosa','2099-02-20T11:00:00-03:00',1,
+                 '2099-02-20T11:00:00-03:00')""")
+        con.commit()
+    service = ReviewService(CentralRepository(tmp_path / "central.sqlite3"))
+
+    first = service.import_snapshot(ADMIN, snapshot, branch="Pilar")
+    assert first.inserted == 2
+    assert factufacil_statuses(service) == {
+        "sale-0": "CARGADA", "sale-1": "PARA_CARGAR",
+    }
+
+    with SQLiteCashDayRepository(snapshot)._connection() as con:
+        con.execute("""UPDATE factufacil_loads SET status='PARA_CARGAR',
+                    loaded_by='',loaded_at='',updated_at='2099-02-20T12:00:00-03:00'
+                    WHERE cash_entry_id='sale-0'""")
+        con.commit()
+    updated = service.import_snapshot(ADMIN, snapshot, branch="Pilar")
+    assert updated.changed == 1
+    assert factufacil_statuses(service) == {
+        "sale-0": "PARA_CARGAR", "sale-1": "PARA_CARGAR",
+    }
+
+
+def test_pre_029_snapshot_gets_explicit_historical_fallback(tmp_path):
+    snapshot = make_snapshot(tmp_path / "historical.sqlite3", sales=1)
+    with SQLiteCashDayRepository(snapshot)._connection() as con:
+        con.execute("DROP TABLE factufacil_history")
+        con.execute("DROP TABLE factufacil_loads")
+        con.execute("DELETE FROM schema_migrations WHERE version='029'")
+        con.commit()
+    service = ReviewService(CentralRepository(tmp_path / "central.sqlite3"))
+
+    service.import_snapshot(ADMIN, snapshot)
+
+    assert factufacil_statuses(service) == {
+        "sale-0": "NO DISPONIBLE HISTORICO",
+    }
+
+
+def test_factufacil_status_is_isolated_between_branches(tmp_path):
+    pilar = make_snapshot(tmp_path / "pilar.sqlite3", sales=1)
+    asuncion = make_snapshot(tmp_path / "asuncion.sqlite3", sales=1)
+    with SQLiteCashDayRepository(pilar)._connection() as con:
+        con.execute("""INSERT INTO factufacil_loads(
+            cash_entry_id,status,loaded_by,loaded_at,entry_revision,updated_at
+        ) VALUES('sale-0','CARGADA','rosa','2099-02-20T11:00:00-03:00',1,
+                 '2099-02-20T11:00:00-03:00')""")
+        con.commit()
+    service = ReviewService(CentralRepository(tmp_path / "central.sqlite3"))
+
+    service.import_snapshot(ADMIN, pilar, branch="Pilar")
+    service.import_snapshot(ADMIN, asuncion, branch="Asuncion")
+
+    statuses = {
+        row["branch"]: row["payload"]["factufacil_status"]
+        for row in service.list_sales(ADMIN)
+    }
+    assert statuses == {"Pilar": "CARGADA", "Asuncion": "PARA_CARGAR"}
+
+
+def test_complete_review_payload_carries_all_thirteen_business_concepts(tmp_path):
+    snapshot = make_snapshot(tmp_path / "snapshot.sqlite3", sales=1)
+    service = ReviewService(CentralRepository(tmp_path / "central.sqlite3"))
+    service.import_snapshot(ADMIN, snapshot, branch="Pilar")
+    row = service.list_sales(ADMIN)[0]
+    payload = row["payload"]
+
+    concepts = {
+        "day": payload["date"], "branch": row["branch"],
+        "envelope": payload["envelope"], "customer": payload["customer_name"],
+        "document": payload["customer_document"], "phone": payload["customer_phone"],
+        "saleswoman": payload["saleswoman"], "sale": row["source_entry_id"],
+        "payments": (payload["cash"], payload["card_transfer"]),
+        "agreement": payload["agreement"], "balance": payload["balance"],
+        "review": row["review_status"], "factufacil": payload["factufacil_status"],
+    }
+    assert len(concepts) == 13
+    assert all(value != "" for value in concepts.values())
+    assert concepts["factufacil"] == "PARA_CARGAR"
 
 
 @pytest.fixture
