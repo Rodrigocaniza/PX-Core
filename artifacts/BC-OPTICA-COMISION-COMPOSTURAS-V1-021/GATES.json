@@ -1,0 +1,72 @@
+{
+  "mision": "BC-OPTICA-COMISION-COMPOSTURAS-V1-021",
+  "cadena": [
+    {
+      "gate": "VERIFICATION_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "repo, git-common-dir, branch, HEAD, remoto, worktrees y migraciones verificados con git antes de tocar codigo. Se confirmo el estado esperado en vez de asumirlo: 020 @ d44785f, 019b @ de767d9, origin/main @ 7db56a0, y con merge-base --is-ancestor que 019b es ancestro de 020. Se comprobo que no existia ninguna rama v1-021 previa. Se leyo la 031 entera y el codigo de service_jobs, sqlite_repository y admin_ops antes de disenar"
+    },
+    {
+      "gate": "DOMAIN_RESEARCH",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "se investigo antes de decidir, en los cuatro puntos donde la mision lo pedia. (1) Estados economicos: se busco un concepto canonico de LIQUIDADA o PAGADA en el esquema y no existe, asi que no se creo. (2) Comision comercial del 1%: se localizo en SobresVenta.py de BC Gestion, sobre archivos de texto plano, sin una sola tabla en esta base; la separacion es estructural y no una promesa. (3) Sucursal: se verifico que effective_branch de V1-019B es la autoridad y no se re-decide; la politica por sucursal quedo opcional. (4) Migracion: se verifico que la 031 era efectivamente la ultima y se evaluo si alcanzaba con UI y servicio, concluyendo que no por la forma de service_commission_policy"
+    },
+    {
+      "gate": "PACKAGING_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "migracion 032 creada, aplicada sobre base limpia y sobre una base cortada en la 031 para ejercer el backfill. No aditiva estricta y esta declarado por que. Sin apply productivo"
+    },
+    {
+      "gate": "ARTIFACT_CONSISTENCY_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "ARTIFACT_CONSISTENCY.md: cada numero afirmado se contrasto contra el comando que lo produce"
+    },
+    {
+      "gate": "LIBRARIAN_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "artifacts completos, con procedencia, hashes del codigo y decisiones de diseno explicadas, incluida la que contradice la preferencia por migracion aditiva"
+    },
+    {
+      "gate": "QA_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "77 dirigidas cubren migracion y backfill, politica (crear, modificar, activar, desactivar, vigencia futura, usuario inexistente, usuario inactivo, ADMIN y OPERADOR), devengo (con politica, sin politica, importe cero, los dos caminos hasta LISTO, retry, doble click, rehacer), historia (cambio de tarifa, cambio de nombre visible, persona dada de baja), compensacion (anulacion, motivo, sin hard-delete, neto, doble compensacion bloqueada), separacion (cero stock, cero caja, cero 1%) y reporte (los cuatro filtros y los totales). Suite completa: 1365 verdes, 0 rojas"
+    },
+    {
+      "gate": "AUDITOR_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "la revision encontro cinco defectos reales y se corrigieron antes del commit, cada uno con su prueba. El mas serio fue de diseno: el UNIQUE de vigencia convertia una correccion legitima de tarifa futura en un error de base. Le siguen el filtro del reporte en dia UTC -el mismo defecto que la V1-020 ya habia cerrado en otra consulta- y la bitacora del devengo escrita fuera de la transaccion. Ver FINDINGS.json"
+    },
+    {
+      "gate": "READY_FOR_COMMIT",
+      "estado": "PASS",
+      "mecanismo": "REAL"
+    }
+  ],
+  "mecanismos_no_disponibles": [
+    {
+      "nombre": "ChainState externo",
+      "detalle": "no existe un runner de ChainState en este repo. La cadena se ejecuto como revision disciplinada dentro de esta sesion, igual que en V1-019B y V1-020. Decir que corrio un runner externo seria falso"
+    },
+    {
+      "nombre": "tres identidades revisoras distintas",
+      "detalle": "Librarian, QA y Auditor fueron tres pasadas con criterios distintos hechas en la misma sesion, no tres agentes independientes. Se declara como es"
+    },
+    {
+      "nombre": "canary sobre operacion real",
+      "detalle": "no corresponde: estamos en Casa y no se toca la base productiva"
+    }
+  ],
+  "no_ejecutado_a_proposito": [
+    "apply de 029, 030, 031 o 032 en la Optica",
+    "carga de personas o politicas de comision reales",
+    "flujo de liquidacion o pago de comisiones",
+    "merge a main"
+  ]
+}

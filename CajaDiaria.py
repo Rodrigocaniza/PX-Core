@@ -52,6 +52,7 @@ from modulos.caja_diaria.application.admin_ops import (
 )
 from modulos.caja_diaria.ui.factufacil_panel import construir_panel_factufacil
 from modulos.caja_diaria.ui.service_jobs_panel import construir_panel_composturas
+from modulos.caja_diaria.ui.commission_panel import construir_panel_comisiones
 from modulos.caja_diaria.application.tracking_service import (
     ETIQUETAS_ESTADO as ETIQUETAS_ESTADO_UI,
     GRUPOS_SEGUIMIENTO,
@@ -1563,7 +1564,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                      font=ctk.CTkFont(size=18, weight="bold"), text_color="#0F5FB9").pack(anchor="w", padx=18, pady=12)
         tabs = ctk.CTkTabview(panel); tabs.pack(fill="both", expand=True, padx=14, pady=(0, 14))
         sections = {name: tabs.add(name) for name in (
-            "Importación de datos", "Usuarios y permisos", "Sucursal y caja", "Responsables",
+            "Importación de datos", "Usuarios y permisos", "Comisiones de composturas",
+            "Sucursal y caja", "Responsables",
             "Arqueos", "Notificaciones de cierre", "Auditoría", "Envíos pendientes",
         )}
         ctk.CTkLabel(sections["Importación de datos"], text="Importación protegida por sesión administrativa.",
@@ -1571,6 +1573,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ctk.CTkButton(sections["Importación de datos"], text="Abrir importación de datos",
                       command=lambda: (panel.grab_release(), panel.withdraw(), seleccionar_pestaña("Importar Excel"))).pack()
         construir_usuarios(sections["Usuarios y permisos"], session, panel)
+        # V1-021: la comisión de compostura se administra acá y sólo acá. El
+        # panel recibe el token de esta sesión y el servicio vuelve a pedir el
+        # rol en cada llamada: la pestaña es por dónde se entra, no la cerradura.
+        construir_panel_comisiones(sections["Comisiones de composturas"],
+                                   controller.jobs, token=session.token, ventana=panel)
         branch = controller.admin.setting("branch")
         branch_name = ctk.CTkEntry(sections["Sucursal y caja"], placeholder_text="Sucursal", width=280)
         branch_name.insert(0, branch.get("branch", "")); branch_name.pack(pady=(30, 8))

@@ -327,9 +327,44 @@ class PanelComposturas(ctk.CTkFrame):
             motivo = f"\n      Motivo: {hecho.reason}" if hecho.reason else ""
             lineas.append(f"{cuando}  {hecho.event_type.value}{paso}"
                           f"\n      Por: {hecho.actor}{motivo}")
+        lineas.extend(self._lineas_de_comision(fila.id))
         messagebox.showinfo(f"Historial de {fila.reference}",
                             "\n\n".join(lineas) or "Sin hechos registrados.",
                             parent=self)
+
+    def _lineas_de_comision(self, job_id):
+        """V1-021: qué comisión salió de este trabajo, y por qué ese importe.
+
+        Va acá y no en un botón aparte porque es una consecuencia de este
+        trabajo, no un tema nuevo: quien abre el historial está preguntando
+        justamente qué pasó con esta compostura. No pide rol -es la comisión de
+        este trabajo, no el sueldo de las demás- y por eso no muestra ni totales
+        ni lo de otras personas.
+        """
+        try:
+            resumen = self._servicio.comision_del_trabajo(job_id)
+        except Exception:
+            # El historial operativo es lo que se vino a ver. Si la parte
+            # económica falla, se muestra lo que sí se pudo leer en vez de
+            # dejar la pantalla sin nada.
+            return []
+        if not resumen["genero_comision"]:
+            return ["COMISIÓN\n      No generó comisión de compostura."]
+        lineas = ["COMISIÓN"]
+        for asiento in resumen["asientos"]:
+            politica = asiento["politica"]
+            origen = ("política sin registrar" if not politica else
+                      f"política de {politica['amount']:,}".replace(",", ".")
+                      + f" vigente desde {str(politica['effective_from'])[:10]}")
+            lineas.append(
+                f"      {asiento['beneficiario']}: {asiento['importe']:,}"
+                .replace(",", ".")
+                + f"  ({asiento['estado']})\n      Por: {origen}"
+                + (f"\n      Compensada: {asiento['compensado']:,}"
+                   .replace(",", ".") + f" — {asiento['motivo_compensacion']}"
+                   if asiento["compensado"] else ""))
+        lineas.append(f"      NETO: {resumen['neto']:,}".replace(",", "."))
+        return ["\n".join(lineas)]
 
 
 class DialogoNuevoTrabajo(ctk.CTkToplevel):

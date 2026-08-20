@@ -1263,8 +1263,31 @@ class SQLiteCashDayRepository:
     # deciden en el dominio y se orquestan en el servicio; que este repositorio
     # no sepa devengar es lo que impide que un INSERT suelto pague una comision.
 
+    @staticmethod
+    def _insertar_auditoria(connection: sqlite3.Connection,
+                            entrada: Mapping[str, Any]) -> None:
+        """Una linea en la bitacora canonica, en la transaccion de quien la causo.
+
+        Va aca y no en una llamada aparte por la misma razon que los asientos:
+        una auditoria que se escribe despues puede no escribirse, y entonces la
+        bitacora dice que no paso algo que si paso. Peor todavia en el caso que
+        mas importa -que un trabajo no haya devengado por falta de politica-,
+        donde no hay ninguna otra fila que delate la omision.
+        """
+        connection.execute(
+            "INSERT INTO admin_audit_log(id,actor,action,target_type,target_id,"
+            "result,details_json,recorded_at) VALUES(?,?,?,?,?,?,?,?)",
+            (str(uuid4()), entrada.get("actor") or "UNKNOWN", entrada["action"],
+             entrada.get("target_type", ""), entrada.get("target_id", ""),
+             entrada.get("result", "SUCCESS"),
+             json.dumps(dict(entrada.get("details") or {}), ensure_ascii=False,
+                        sort_keys=True),
+             datetime.now().astimezone().isoformat()),
+        )
+
     def save_service_job(self, job: "ServiceJob",
-                         commissions: Sequence[Mapping[str, Any]] = ()) -> "ServiceJob":
+                         commissions: Sequence[Mapping[str, Any]] = (),
+                         audits: Sequence[Mapping[str, Any]] = ()) -> "ServiceJob":
         """Guarda el trabajo, su historia y sus comisiones en UNA transaccion.
 
         La historia es append-only en el dominio, asi que insertarla por
@@ -1336,6 +1359,8 @@ class SQLiteCashDayRepository:
                     )
                 for asiento in commissions:
                     self._insertar_comision(connection, asiento)
+                for entrada in audits:
+                    self._insertar_auditoria(connection, entrada)
                 connection.commit()
             except Exception:
                 connection.rollback()
@@ -1355,14 +1380,19 @@ class SQLiteCashDayRepository:
         cursor = connection.execute(
             """INSERT INTO service_job_commissions(
                 id,job_id,event_id,user_id,beneficiary,job_type,kind,amount,
-                compensates_id,note,created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                compensates_id,note,created_at,policy_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(event_id) DO NOTHING""",
             (registro_id, asiento["job_id"], asiento["event_id"],
              asiento.get("user_id"), asiento["beneficiary"], asiento["job_type"],
              asiento["kind"], int(asiento["amount"]),
              asiento.get("compensates_id"), asiento.get("note", ""),
-             datetime.now().astimezone().isoformat()),
+             datetime.now().astimezone().isoformat(),
+             # V1-021: la version de politica que explica este importe. El monto
+             # ya viajaba en la fila, asi que la plata nunca dependio de esto; lo
+             # que agrega es la causa, para no tener que deducir la tarifa por la
+             # fecha. Una compensacion hereda la del devengo que revierte.
+             asiento.get("policy_id")),
         )
         return registro_id if cursor.rowcount else None
 
@@ -1465,57 +1495,181 @@ class SQLiteCashDayRepository:
             ),
         )
 
-    # -- comision de composturas -------------------------------------------
+    # -- comision de composturas: la politica ------------------------------
+    #
+    # Persistencia pura y nada mas. Estos metodos guardan una version y saben
+    # leer cual rige en un momento dado; no preguntan quien puede cambiarla ni
+    # deciden si un trabajo devenga. Que el repositorio no sepa autorizar es lo
+    # que impide que una politica entre por un camino sin rol.
 
-    def set_service_commission_policy(
-        self, *, user_id: str, amount: int, job_type: str = "", updated_by: str,
-    ) -> None:
-        with self._connection() as connection:
-            connection.execute(
-                """INSERT INTO service_commission_policy(
-                    user_id,job_type,amount,updated_by,updated_at)
-                VALUES (?,?,?,?,?)
-                ON CONFLICT(user_id, job_type) DO UPDATE SET
-                    amount=excluded.amount, updated_by=excluded.updated_by,
-                    updated_at=excluded.updated_at""",
-                (user_id, job_type or "", int(amount), updated_by,
-                 datetime.now().astimezone().isoformat()),
-            )
-            connection.commit()
+    #: Alcances posibles, del mas especifico al mas general. La primera regla
+    #: que exista y este activa gana. Es el mismo criterio que ya usaba la 031
+    #: para `job_type`, extendido a la sucursal: una tabla, un idioma.
+    @staticmethod
+    def _alcances_de_politica(branch: str, job_type: str) -> tuple[tuple[str, str], ...]:
+        sucursal = str(branch or "").strip().upper()
+        tipo = str(job_type or "").strip().upper()
+        alcances = []
+        if sucursal and tipo:
+            alcances.append((sucursal, tipo))
+        if sucursal:
+            alcances.append((sucursal, ""))
+        if tipo:
+            alcances.append(("", tipo))
+        alcances.append(("", ""))
+        return tuple(alcances)
 
-    def clear_service_commission_policy(self, *, user_id: str, job_type: str = "") -> None:
-        with self._connection() as connection:
-            connection.execute(
-                "DELETE FROM service_commission_policy WHERE user_id = ? AND job_type = ?",
-                (user_id, job_type or ""))
-            connection.commit()
+    def record_service_commission_policy(
+        self, *, user_id: str, amount: int, branch: str = "", job_type: str = "",
+        active: bool = True, effective_from: str, reason: str = "",
+        created_by: str, audit: Mapping[str, Any] | None = None,
+    ) -> dict:
+        """Agrega una version de politica. Nunca pisa la anterior.
 
-    def list_service_commission_policy(self) -> Sequence[dict]:
-        with self._connection() as connection:
-            return [dict(row) for row in connection.execute(
-                "SELECT * FROM service_commission_policy ORDER BY user_id, job_type")]
-
-    def service_commission_amount(self, *, user_id: str | None, job_type: str) -> int:
-        """Lo que le corresponde a esa persona por ese tipo de trabajo.
-
-        La regla especifica gana sobre la general, y sin politica cargada el
-        resultado es cero: quien no tiene comision definida no comisiona, y esa
-        es exactamente la situacion de quien dirige la optica.
+        El importe anterior y el eslabon a la version que sucede se resuelven
+        aca, dentro de la misma transaccion en la que se inserta: calcularlos
+        antes, afuera, dejaria una ventana para que dos cambios simultaneos se
+        declararan los dos sucesores de la misma version.
         """
-        if not user_id:
-            return 0
+        sucursal = str(branch or "").strip().upper()
+        tipo = str(job_type or "").strip().upper()
+        registro_id = str(uuid4())
+        with self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                anterior = connection.execute(
+                    """SELECT id, amount FROM service_commission_policy_versions
+                    WHERE user_id = ? AND branch = ? AND job_type = ?
+                    ORDER BY effective_from DESC, created_at DESC, id DESC LIMIT 1""",
+                    (user_id, sucursal, tipo)).fetchone()
+                connection.execute(
+                    """INSERT INTO service_commission_policy_versions(
+                        id,user_id,branch,job_type,amount,active,effective_from,
+                        previous_amount,supersedes_id,reason,created_by,created_at)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    (registro_id, user_id, sucursal, tipo, int(amount),
+                     1 if active else 0, effective_from,
+                     anterior["amount"] if anterior else None,
+                     anterior["id"] if anterior else None,
+                     reason, created_by,
+                     datetime.now().astimezone().isoformat()),
+                )
+                if audit is not None:
+                    entrada = dict(audit)
+                    entrada.setdefault("target_id", registro_id)
+                    detalle = dict(entrada.get("details") or {})
+                    detalle.setdefault("version_id", registro_id)
+                    detalle.setdefault(
+                        "importe_anterior",
+                        anterior["amount"] if anterior else None)
+                    detalle.setdefault("importe_nuevo", int(amount))
+                    entrada["details"] = detalle
+                    self._insertar_auditoria(connection, entrada)
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        return self.service_commission_policy_version(registro_id)
+
+    def service_commission_policy_version(self, version_id: str | None) -> dict | None:
+        if not version_id:
+            return None
         with self._connection() as connection:
             row = connection.execute(
-                """SELECT amount FROM service_commission_policy
-                WHERE user_id = ? AND job_type IN (?, '')
-                ORDER BY CASE WHEN job_type = '' THEN 1 ELSE 0 END LIMIT 1""",
-                (user_id, job_type)).fetchone()
-        return int(row[0]) if row else 0
+                "SELECT * FROM service_commission_policy_versions WHERE id = ?",
+                (version_id,)).fetchone()
+        return dict(row) if row else None
+
+    def service_commission_policy_vigente(
+        self, *, user_id: str | None, branch: str = "", job_type: str = "",
+        at: str | None = None,
+    ) -> dict | None:
+        """La politica que corresponde a esa persona en ese momento, o ninguna.
+
+        Se recorre del alcance mas especifico al mas general y se devuelve la
+        primera regla que exista **y este activa**. Que una version inactiva no
+        corte la busqueda es deliberado: desactivar la excepcion de una sucursal
+        significa que esa excepcion dejo de aplicar, no que la persona dejo de
+        comisionar. Cuando la unica politica que hay es la general, desactivarla
+        deja a la persona sin politica, que es lo que se quiso decir.
+
+        `at` acota por vigencia: una version con fecha futura todavia no rige.
+        `effective_from` se guarda SIEMPRE en UTC, y por eso la comparacion
+        puede ser textual: dos ISO con el mismo huso se ordenan como se
+        ordenan los instantes. Con husos mezclados no seria cierto -un
+        `-03:00` y un `+00:00` del mismo momento son textos distintos y el
+        orden lexico los invierte-, asi que normalizar es obligatorio y no
+        una prolijidad: lo hace `_instante_de_vigencia` en el servicio.
+        """
+        if not user_id:
+            return None
+        momento = at or datetime.now(timezone.utc).isoformat()
+        with self._connection() as connection:
+            for sucursal, tipo in self._alcances_de_politica(branch, job_type):
+                row = connection.execute(
+                    """SELECT * FROM service_commission_policy_versions
+                    WHERE user_id = ? AND branch = ? AND job_type = ?
+                      AND effective_from <= ?
+                    ORDER BY effective_from DESC, created_at DESC, id DESC LIMIT 1""",
+                    (user_id, sucursal, tipo, momento)).fetchone()
+                if row is not None and row["active"]:
+                    return dict(row)
+        return None
+
+    def list_service_commission_policy(
+        self, *, user_id: str | None = None, at: str | None = None,
+    ) -> Sequence[dict]:
+        """La ultima version de cada alcance. Lo que el panel muestra.
+
+        Incluye las inactivas a proposito: el administrador tiene que poder ver
+        que una politica existe y esta apagada. Esconderla lo dejaria creyendo
+        que nunca se cargo, y volviendo a cargarla.
+        """
+        momento = at or datetime.now(timezone.utc).isoformat()
+        consulta = """SELECT v.* FROM service_commission_policy_versions v
+            WHERE v.effective_from <= ?
+              AND v.id = (
+                SELECT w.id FROM service_commission_policy_versions w
+                WHERE w.user_id = v.user_id AND w.branch = v.branch
+                  AND w.job_type = v.job_type AND w.effective_from <= ?
+                ORDER BY w.effective_from DESC, w.created_at DESC, w.id DESC
+                LIMIT 1)"""
+        parametros = [momento, momento]
+        if user_id:
+            consulta += " AND v.user_id = ?"
+            parametros.append(user_id)
+        consulta += " ORDER BY v.user_id, v.branch, v.job_type"
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(consulta, tuple(parametros))]
+
+    def service_commission_policy_history(
+        self, *, user_id: str | None = None, branch: str | None = None,
+        job_type: str | None = None,
+    ) -> Sequence[dict]:
+        """Todas las versiones, de la mas nueva a la mas vieja."""
+        consulta = "SELECT * FROM service_commission_policy_versions"
+        condiciones, parametros = [], []
+        if user_id:
+            condiciones.append("user_id = ?")
+            parametros.append(user_id)
+        if branch is not None:
+            condiciones.append("branch = ?")
+            parametros.append(str(branch).strip().upper())
+        if job_type is not None:
+            condiciones.append("job_type = ?")
+            parametros.append(str(job_type).strip().upper())
+        if condiciones:
+            consulta += " WHERE " + " AND ".join(condiciones)
+        consulta += " ORDER BY effective_from DESC, created_at DESC, id DESC"
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(consulta, tuple(parametros))]
+
+    # -- comision de composturas: los asientos ------------------------------
 
     def record_service_commission(
         self, *, job_id: str, event_id: str, user_id: str | None, beneficiary: str,
         job_type: str, kind: str, amount: int, compensates_id: str | None = None,
-        note: str = "",
+        note: str = "", policy_id: str | None = None,
     ) -> str | None:
         """Asienta un devengo suelto, sobre un hecho que ya esta guardado.
 
@@ -1527,7 +1681,8 @@ class SQLiteCashDayRepository:
             registro_id = self._insertar_comision(connection, dict(
                 job_id=job_id, event_id=event_id, user_id=user_id,
                 beneficiary=beneficiary, job_type=job_type, kind=kind,
-                amount=amount, compensates_id=compensates_id, note=note))
+                amount=amount, compensates_id=compensates_id, note=note,
+                policy_id=policy_id))
             connection.commit()
             return registro_id
 
@@ -1551,3 +1706,131 @@ class SQLiteCashDayRepository:
         with self._connection() as connection:
             return [dict(row) for row in connection.execute(
                 "SELECT * FROM service_commission_balance ORDER BY beneficiary")]
+
+    # -- comision de composturas: la consulta -------------------------------
+
+    def service_commission_report_rows(
+        self, *, date_from: str | None = None, date_to: str | None = None,
+        branch: str | None = None, user_id: str | None = None,
+        estado: str | None = None,
+    ) -> Sequence[dict]:
+        """Una fila por devengo, con su compensacion al lado si la hubo.
+
+        El devengo manda la fila y la compensacion se le cuelga, en vez de
+        listar los dos asientos como hechos independientes. Es la diferencia
+        entre un extracto contable y la pregunta que alguien hace de verdad:
+        cuanto genero este trabajo. Con dos filas sueltas, leer el neto obliga a
+        emparejarlas a ojo, y ahi es donde se cuenta mal.
+
+        El neto sale de sumar los dos importes y no de restar: el signo ya vive
+        en el asiento -la compensacion es negativa por CHECK- asi que no hay un
+        segundo lugar donde el signo se pueda equivocar.
+
+        La sucursal sale del trabajo y no del asiento. Es la misma sucursal
+        efectiva que decidio la caja al recibirlo; copiarla al asiento crearia
+        una segunda verdad que un dia va a discrepar.
+        """
+        consulta = """
+            SELECT
+                d.id                AS commission_id,
+                d.created_at        AS accrued_at,
+                d.job_id            AS job_id,
+                t.reference         AS reference,
+                t.customer_name     AS customer,
+                t.branch            AS branch,
+                t.status            AS job_status,
+                t.received_at       AS received_at,
+                d.beneficiary       AS beneficiary,
+                d.user_id           AS user_id,
+                d.job_type          AS job_type,
+                d.amount            AS accrued_amount,
+                COALESCE(c.amount, 0)          AS compensated_amount,
+                d.amount + COALESCE(c.amount, 0) AS net_amount,
+                c.id                AS compensation_id,
+                c.created_at        AS compensated_at,
+                c.note              AS compensation_note,
+                d.policy_id         AS policy_id,
+                p.amount            AS policy_amount,
+                p.effective_from    AS policy_effective_from,
+                p.branch            AS policy_branch,
+                p.job_type          AS policy_job_type,
+                CASE WHEN c.id IS NULL THEN 'DEVENGADA' ELSE 'COMPENSADA' END AS estado
+            FROM service_job_commissions d
+            JOIN service_jobs t ON t.id = d.job_id
+            LEFT JOIN service_job_commissions c
+                   ON c.compensates_id = d.id AND c.kind = 'COMPENSACION'
+            LEFT JOIN service_commission_policy_versions p ON p.id = d.policy_id
+            WHERE d.kind = 'DEVENGO'"""
+        condiciones, parametros = [], []
+        # El dia lo pone la Optica, no UTC. `date(created_at)` sobre un instante
+        # con offset lo normaliza a UTC primero, asi que una comision devengada
+        # a las nueve de la noche caia en el dia siguiente y desaparecia del
+        # rango que la administradora acababa de pedir. Los limites se calculan
+        # en la hora del negocio y se comparan ya normalizados.
+        if date_from:
+            condiciones.append("datetime(d.created_at) >= datetime(?)")
+            parametros.append(_limites_utc_del_dia(
+                date.fromisoformat(date_from), date.fromisoformat(date_from))[0])
+        if date_to:
+            condiciones.append("datetime(d.created_at) < datetime(?)")
+            parametros.append(_limites_utc_del_dia(
+                date.fromisoformat(date_to), date.fromisoformat(date_to))[1])
+        if branch:
+            condiciones.append("t.branch = ?")
+            parametros.append(str(branch).strip().upper())
+        if user_id:
+            condiciones.append("d.user_id = ?")
+            parametros.append(user_id)
+        if estado == "DEVENGADA":
+            condiciones.append("c.id IS NULL")
+        elif estado == "COMPENSADA":
+            condiciones.append("c.id IS NOT NULL")
+        if condiciones:
+            consulta += " AND " + " AND ".join(condiciones)
+        consulta += " ORDER BY d.created_at DESC, d.id DESC"
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(consulta, tuple(parametros))]
+
+    def service_jobs_sin_comision(
+        self, *, date_from: str | None = None, date_to: str | None = None,
+        branch: str | None = None,
+    ) -> Sequence[dict]:
+        """Trabajos que llegaron a LISTO y no devengaron nada.
+
+        Sin esto la ausencia de politica es invisible: el trabajo se termina, no
+        pasa nada, y nadie se entera hasta que la persona reclama. Un cero que
+        nadie ve no es una decision, es un olvido; lo que hace que sea una
+        decision es que este listado exista y quede vacio a proposito.
+
+        Que un trabajo aparezca aca no significa que falte cargar algo: una
+        politica de cero tampoco devenga, y eso es correcto. Significa que
+        alguien tiene que mirarlo una vez.
+        """
+        consulta = """
+            SELECT DISTINCT
+                t.id, t.reference, t.customer_name, t.branch, t.status,
+                t.received_at, t.responsible, t.responsible_user_id, t.job_type,
+                e.occurred_at AS ready_at
+            FROM service_jobs t
+            JOIN service_job_events e
+              ON e.job_id = t.id AND e.event_type = 'MARCADO_LISTO'
+            WHERE NOT EXISTS (
+                SELECT 1 FROM service_job_commissions d
+                WHERE d.job_id = t.id AND d.kind = 'DEVENGO')"""
+        condiciones, parametros = [], []
+        if date_from:
+            condiciones.append("datetime(e.occurred_at) >= datetime(?)")
+            parametros.append(_limites_utc_del_dia(
+                date.fromisoformat(date_from), date.fromisoformat(date_from))[0])
+        if date_to:
+            condiciones.append("datetime(e.occurred_at) < datetime(?)")
+            parametros.append(_limites_utc_del_dia(
+                date.fromisoformat(date_to), date.fromisoformat(date_to))[1])
+        if branch:
+            condiciones.append("t.branch = ?")
+            parametros.append(str(branch).strip().upper())
+        if condiciones:
+            consulta += " AND " + " AND ".join(condiciones)
+        consulta += " ORDER BY e.occurred_at DESC"
+        with self._connection() as connection:
+            return [dict(row) for row in connection.execute(consulta, tuple(parametros))]

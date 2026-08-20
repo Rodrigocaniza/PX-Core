@@ -95,10 +95,14 @@ def servicio(repo, admin):
 
 
 @pytest.fixture()
-def con_comision(servicio, tallerista):
-    """La política de comisión, cargada como la carga la Óptica: a mano."""
+def con_comision(servicio, tallerista, sol):
+    """La política de comisión, cargada como la carga la Óptica: a mano.
+
+    V1-021: cargarla pide sesión administrativa. Antes alcanzaba con decir un
+    nombre, y eso dejaba la política sin puerta.
+    """
     servicio.definir_comision(user_id=tallerista.id, amount=COMISION_COMPOSTURA,
-                              job_type="COMPOSTURA", updated_by="sol")
+                              job_type="COMPOSTURA", token=sol.token)
     return tallerista
 
 
@@ -407,18 +411,18 @@ def test_un_trabajo_sin_responsable_no_comisiona(servicio, con_comision):
     assert servicio.comisiones_del_trabajo(trabajo.id) == []
 
 
-def test_la_politica_por_tipo_gana_sobre_la_general(servicio, tallerista):
-    servicio.definir_comision(user_id=tallerista.id, amount=3_000, updated_by="sol")
+def test_la_politica_por_tipo_gana_sobre_la_general(servicio, tallerista, sol):
+    servicio.definir_comision(user_id=tallerista.id, amount=3_000, token=sol.token)
     servicio.definir_comision(user_id=tallerista.id, amount=COMISION_COMPOSTURA,
-                              job_type="COMPOSTURA", updated_by="sol")
+                              job_type="COMPOSTURA", token=sol.token)
     assert servicio.comision_de(user_id=tallerista.id,
                                 job_type="COMPOSTURA") == COMISION_COMPOSTURA
     assert servicio.comision_de(user_id=tallerista.id, job_type="HILO") == 3_000
 
 
-def test_una_comision_negativa_no_se_puede_cargar(servicio, tallerista):
+def test_una_comision_negativa_no_se_puede_cargar(servicio, tallerista, sol):
     with pytest.raises(InvalidCashDayError):
-        servicio.definir_comision(user_id=tallerista.id, amount=-1, updated_by="sol")
+        servicio.definir_comision(user_id=tallerista.id, amount=-1, token=sol.token)
 
 
 def test_la_comision_no_se_duplica_aunque_se_reintente(servicio, con_comision):
