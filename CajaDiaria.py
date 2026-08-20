@@ -45,6 +45,11 @@ from modulos.caja_diaria.domain.models import (
 )
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.tracking import NextAction, TrackingStatus
+from modulos.caja_diaria.application.admin_ops import (
+    ETIQUETA_ROL,
+    ROLES,
+    ROL_OPERADOR,
+)
 from modulos.caja_diaria.ui.factufacil_panel import construir_panel_factufacil
 from modulos.caja_diaria.application.tracking_service import (
     ETIQUETAS_ESTADO as ETIQUETAS_ESTADO_UI,
@@ -1240,6 +1245,183 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     )
     boton_importar.pack(side="left")
 
+    def construir_usuarios(seccion, session, panel):
+        """Quien puede usar BC Caja, con que rol, y quien lo decidio.
+
+        Se desactiva, no se borra: una venta de agosto guarda el nombre de quien
+        la hizo, y borrar a la persona dejaria ese nombre sin nadie detras.
+        """
+        barra = ctk.CTkFrame(seccion, fg_color="transparent")
+        barra.pack(fill="x", padx=12, pady=(12, 6))
+        ctk.CTkLabel(
+            barra, text="Personas autorizadas", text_color="#0F5FB9",
+            font=ctk.CTkFont(size=14, weight="bold")).pack(side="left")
+        aviso = ctk.CTkLabel(barra, text="", text_color="#1B7F4B",
+                             font=ctk.CTkFont(size=12, weight="bold"))
+        aviso.pack(side="right", padx=8)
+
+        tabla = ttk.Treeview(
+            seccion, columns=("nombre", "usuario", "rol", "sucursal", "estado", "entra"),
+            show="headings", selectmode="browse", height=10)
+        for clave, titulo, ancho in (
+                ("nombre", "Nombre", 200), ("usuario", "Usuario", 130),
+                ("rol", "Rol", 130), ("sucursal", "Sucursal", 110),
+                ("estado", "Estado", 100), ("entra", "Puede entrar", 100)):
+            tabla.heading(clave, text=titulo)
+            tabla.column(clave, width=ancho, anchor="w")
+        tabla.pack(fill="both", expand=True, padx=12, pady=6)
+        tabla.tag_configure("inactiva", foreground="#8A97A6")
+
+        estado_usuarios = {"filas": {}}
+
+        def decir(texto, color="#1B7F4B"):
+            aviso.configure(text=texto, text_color=color)
+            panel.after(6000, lambda: aviso.configure(text=""))
+
+        def refrescar_usuarios(mensaje=""):
+            tabla.delete(*tabla.get_children())
+            estado_usuarios["filas"] = {}
+            try:
+                usuarios = controller.admin.list_users(session.token)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            for usuario in usuarios:
+                estado_usuarios["filas"][usuario.id] = usuario
+                tabla.insert(
+                    "", "end", iid=usuario.id,
+                    tags=() if usuario.active else ("inactiva",),
+                    values=(usuario.display_name, usuario.username,
+                            usuario.etiqueta_rol, usuario.branch or "Todas",
+                            "Activa" if usuario.active else "Inactiva",
+                            "Sí" if usuario.puede_entrar else "No"))
+            if mensaje:
+                decir(mensaje)
+
+        def elegida():
+            seleccion = tabla.selection()
+            return estado_usuarios["filas"].get(seleccion[0]) if seleccion else None
+
+        def formulario(titulo, usuario=None):
+            """Alta y edicion comparten formulario: son los mismos campos."""
+            dialogo = ctk.CTkToplevel(panel)
+            dialogo.title(titulo)
+            dialogo.geometry("420x430")
+            dialogo.transient(panel)
+            dialogo.grab_set()
+            ctk.CTkLabel(dialogo, text=titulo, font=ctk.CTkFont(size=15, weight="bold"),
+                         text_color="#0F5FB9").pack(anchor="w", padx=18, pady=(16, 10))
+            campos = {}
+            for clave, etiqueta in (("display_name", "Nombre"), ("username", "Usuario"),
+                                    ("branch", "Sucursal (vacío = todas)")):
+                ctk.CTkLabel(dialogo, text=etiqueta, anchor="w").pack(
+                    fill="x", padx=18, pady=(6, 0))
+                campo = ctk.CTkEntry(dialogo, width=360)
+                campo.pack(padx=18)
+                campos[clave] = campo
+            ctk.CTkLabel(dialogo, text="Rol", anchor="w").pack(
+                fill="x", padx=18, pady=(6, 0))
+            rol = ctk.CTkComboBox(dialogo, width=360,
+                                  values=[ETIQUETA_ROL[r] for r in ROLES])
+            rol.pack(padx=18)
+            ctk.CTkLabel(
+                dialogo, anchor="w", text_color="#5B6B7F",
+                text=("Contraseña sólo si tiene que entrar al panel.\n"
+                      "Una operadora no la necesita para vender."),
+                justify="left").pack(fill="x", padx=18, pady=(10, 0))
+            clave_entry = ctk.CTkEntry(dialogo, width=360, show="•")
+            clave_entry.pack(padx=18)
+
+            if usuario is not None:
+                campos["display_name"].insert(0, usuario.display_name)
+                campos["username"].insert(0, usuario.username)
+                campos["username"].configure(state="disabled")
+                campos["branch"].insert(0, usuario.branch)
+                rol.set(usuario.etiqueta_rol)
+            else:
+                rol.set(ETIQUETA_ROL[ROL_OPERADOR])
+
+            def guardar():
+                nombre = campos["display_name"].get().strip()
+                sucursal = campos["branch"].get().strip()
+                elegido = rol.get()
+                codigo = next((r for r in ROLES if ETIQUETA_ROL[r] == elegido), elegido)
+                secreto = clave_entry.get()
+                try:
+                    if usuario is None:
+                        creada = controller.admin.create_user(
+                            session.token, username=campos["username"].get().strip(),
+                            display_name=nombre, role=codigo, branch=sucursal,
+                            password=secreto or None)
+                        mensaje = f"{creada.display_name} quedó cargada."
+                    else:
+                        controller.admin.update_user(
+                            session.token, usuario.id, display_name=nombre,
+                            role=codigo, branch=sucursal)
+                        if secreto:
+                            controller.admin.set_user_password(
+                                session.token, usuario.id, secreto)
+                        mensaje = f"{nombre} quedó actualizada."
+                except Exception as exc:
+                    mostrar_error(exc)
+                    return
+                dialogo.destroy()
+                refrescar_usuarios(mensaje)
+
+            acciones = ctk.CTkFrame(dialogo, fg_color="transparent")
+            acciones.pack(fill="x", padx=18, pady=16, side="bottom")
+            ctk.CTkButton(acciones, text="Guardar", command=guardar).pack(side="left")
+            ctk.CTkButton(acciones, text="Cancelar", fg_color="#6B7280",
+                          command=dialogo.destroy).pack(side="left", padx=8)
+
+        def nueva():
+            formulario("Nueva persona")
+
+        def editar():
+            usuario = elegida()
+            if usuario is None:
+                decir("Elegí una fila.", "#B45309")
+                return
+            formulario(f"Editar · {usuario.display_name}", usuario)
+
+        def alternar_estado():
+            usuario = elegida()
+            if usuario is None:
+                decir("Elegí una fila.", "#B45309")
+                return
+            if usuario.active and not messagebox.askyesno(
+                    "Desactivar",
+                    f"¿Desactivar a {usuario.display_name}?\n\n"
+                    "No se borra: sigue apareciendo en las ventas que ya hizo.",
+                    parent=panel):
+                return
+            try:
+                controller.admin.set_user_active(
+                    session.token, usuario.id, not usuario.active)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            refrescar_usuarios(
+                f"{usuario.display_name} "
+                f"{'vuelve a estar activa' if not usuario.active else 'quedó inactiva'}.")
+
+        botones = ctk.CTkFrame(seccion, fg_color="transparent")
+        botones.pack(fill="x", padx=12, pady=(0, 12))
+        ctk.CTkButton(botones, text="Nueva persona", command=nueva).pack(side="left")
+        ctk.CTkButton(botones, text="Editar", command=editar,
+                      fg_color="#FFFFFF", text_color="#0F5FB9", border_width=1,
+                      border_color="#D6E1EE", hover_color="#EAF3FF").pack(
+                          side="left", padx=8)
+        ctk.CTkButton(botones, text="Activar / desactivar", command=alternar_estado,
+                      fg_color="#FFFFFF", text_color="#B45309", border_width=1,
+                      border_color="#F0D3A8", hover_color="#FFF6E5").pack(side="left")
+        ctk.CTkLabel(
+            seccion, justify="left", text_color="#5B6B7F",
+            text=("Las personas no se borran: se desactivan. Los permisos los hace "
+                  "cumplir el servicio, no la pantalla."),
+        ).pack(anchor="w", padx=14, pady=(0, 10))
+        refrescar_usuarios()
+
     def mostrar_panel_administrador(session):
         panel = ctk.CTkToplevel(ventana)
         estado_admin["window"] = panel
@@ -1257,7 +1439,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                      font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(36, 12))
         ctk.CTkButton(sections["Importación de datos"], text="Abrir importación de datos",
                       command=lambda: (panel.grab_release(), panel.withdraw(), seleccionar_pestaña("Importar Excel"))).pack()
-        ctk.CTkLabel(sections["Usuarios y permisos"], text="Rol ADMIN\nPermisos sensibles validados por el servicio.", justify="left").pack(anchor="w", padx=20, pady=20)
+        construir_usuarios(sections["Usuarios y permisos"], session, panel)
         branch = controller.admin.setting("branch")
         branch_name = ctk.CTkEntry(sections["Sucursal y caja"], placeholder_text="Sucursal", width=280)
         branch_name.insert(0, branch.get("branch", "")); branch_name.pack(pady=(30, 8))
@@ -1482,8 +1664,16 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
             ).grid(row=fila_campo, column=columna_etiqueta, sticky="ew", padx=(10, 5), pady=2)
             if clave == "vendedora":
+                # Los nombres salen del catalogo de usuarios, no de una lista
+                # cableada. Antes eran cuatro nombres de maqueta -Ana, Belen,
+                # Carla, Diana- eligiendo la vendedora de cada venta real.
+                #
+                # Si todavia no hay nadie cargado, el combo queda con la opcion
+                # vacia y la operadora escribe el nombre: se degrada a lo que
+                # habia antes de que existiera el catalogo, en vez de dejar la
+                # caja sin poder registrar una venta el dia de la actualizacion.
                 campo = ctk.CTkComboBox(
-                    seccion, values=["Seleccionar...", "Ana", "Belén", "Carla", "Diana"],
+                    seccion, values=(["Seleccionar..."] + vendedoras_disponibles()),
                     width=(ancho if perfil["nombre"] == "full-hd" else min(ancho, 88)), height=perfil["campo_alto"], fg_color="#FFFFFF",
                     border_color=color_borde_suave,
                 )
@@ -4431,6 +4621,19 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             widgets["fila"].configure(
                 fg_color=widgets["fondo_activo"] if elegido else widgets["fondo"])
         actualizar_acciones_seguimiento()
+
+    def vendedoras_disponibles():
+        """Las personas activas del catalogo. Nunca rompe la carga de la venta.
+
+        Es de solo lectura y no pide sesion administrativa: pedirsela a la
+        operadora seria pedirle que sea administradora para poder vender.
+        """
+        try:
+            return list(controller.admin.active_salespeople())
+        except Exception:
+            # Una base vieja o un problema de lectura no pueden impedir cargar
+            # una venta: el combo queda editable y la operadora escribe.
+            return []
 
     def responsable_actual():
         return os.environ.get("BC_CAJA_RESPONSABLE") or os.environ.get("USERNAME") or "Operadora"

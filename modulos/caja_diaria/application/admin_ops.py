@@ -45,11 +45,53 @@ def _quantities(values: Mapping[int, int]) -> tuple[dict[int, int], int]:
     return normalized, sum(key * value for key, value in normalized.items())
 
 
+#: Los dos roles del producto. Dos alcanzan para lo que la Optica necesita: la
+#: que atiende y la que administra. Un tercero solo tendria sentido el dia que
+#: exista una responsabilidad que hoy no existe.
+ROL_ADMIN = "ADMIN"
+ROL_OPERADOR = "OPERADOR"
+ROLES = (ROL_OPERADOR, ROL_ADMIN)
+
+ETIQUETA_ROL = {ROL_OPERADOR: "Operadora", ROL_ADMIN: "Administradora"}
+
+
 @dataclass(frozen=True)
 class AdminSession:
     token: str
     username: str
     expires_at: datetime
+    role: str = ROL_ADMIN
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == ROL_ADMIN
+
+
+@dataclass(frozen=True)
+class Usuario:
+    """Una persona autorizada a estar en BC Caja.
+
+    `username` es con lo que entra; `display_name` es como se la nombra en una
+    venta. Una operadora normalmente no tiene con que entrar —eso es el login de
+    operadora, que es otra mision— y existe para tener rol y para poder ser la
+    vendedora de una venta.
+    """
+
+    id: str
+    username: str
+    display_name: str
+    role: str
+    active: bool
+    branch: str = ""
+    created_by: str = ""
+    created_at: str = ""
+    updated_by: str = ""
+    updated_at: str = ""
+    puede_entrar: bool = False
+
+    @property
+    def etiqueta_rol(self) -> str:
+        return ETIQUETA_ROL.get(self.role, self.role)
 
 
 @dataclass(frozen=True)
@@ -198,7 +240,9 @@ class AdminOperations:
             )
             self._audit(connection, row["username"], "ADMIN_LOGIN", "session", "SUCCESS")
             connection.commit()
-        session = AdminSession(secrets.token_urlsafe(32), row["username"], now + timedelta(minutes=20))
+        session = AdminSession(
+            secrets.token_urlsafe(32), row["username"], now + timedelta(minutes=20),
+            role=(row["role"] or ROL_ADMIN))
         self._sessions[session.token] = session
         return session
 
@@ -209,6 +253,223 @@ class AdminOperations:
             raise InvalidCashDayError("La sesión administrativa venció.")
         return session
 
+    def require_admin(self, token: str) -> AdminSession:
+        """Ademas de tener sesion, tener el rol.
+
+        Antes bastaba con haber entrado: como todos los usuarios eran ADMIN por
+        defecto, tener sesion y ser administradora eran lo mismo. Desde que hay
+        dos roles dejan de serlo, y lo sensible tiene que preguntar por el rol y
+        no solo por la sesion. La comprobacion vive aca y no en la pantalla:
+        esconder un boton no impide llamar al metodo.
+        """
+        session = self.require(token)
+        if not session.is_admin:
+            with self.repository._connection() as connection:
+                self._audit(connection, session.username, "ADMIN_DENIED", "session",
+                            "DENIED", details={"role": session.role})
+                connection.commit()
+            raise InvalidCashDayError(
+                "Esta acción es de una administradora, y esta sesión no lo es.")
+        return session
+
+    # -- usuarios y roles --------------------------------------------------
+
+    @staticmethod
+    def _fila_a_usuario(row) -> "Usuario":
+        return Usuario(
+            id=row["id"], username=row["username"],
+            display_name=row["display_name"] or row["username"],
+            role=row["role"] or ROL_ADMIN, active=bool(row["active"]),
+            branch=row["branch"] or "", created_by=row["created_by"] or "",
+            created_at=row["created_at"], updated_by=row["updated_by"] or "",
+            updated_at=row["updated_at"],
+            puede_entrar=bool(row["password_hash"]))
+
+    def list_users(self, token: str, *, only_active: bool = False) -> list["Usuario"]:
+        self.require_admin(token)
+        consulta = "SELECT * FROM admin_users"
+        if only_active:
+            consulta += " WHERE active=1"
+        consulta += " ORDER BY active DESC, display_name COLLATE NOCASE, username COLLATE NOCASE"
+        with self.repository._connection() as connection:
+            filas = connection.execute(consulta).fetchall()
+        return [self._fila_a_usuario(fila) for fila in filas]
+
+    def active_salespeople(self) -> list[str]:
+        """Los nombres que puede elegir la venta. Sin sesion, a proposito.
+
+        La caja necesita esta lista para llenar el desplegable de vendedora, y
+        pedir una sesion administrativa para eso seria pedirle a la operadora
+        que sea administradora. Es de solo lectura y no expone nada: son los
+        nombres que la venta ya va a guardar en texto.
+        """
+        with self.repository._connection() as connection:
+            filas = connection.execute(
+                "SELECT display_name, username FROM admin_users WHERE active=1"
+                " ORDER BY display_name COLLATE NOCASE").fetchall()
+        return [(fila["display_name"] or fila["username"]) for fila in filas]
+
+    def create_user(self, token: str, *, username: str, display_name: str,
+                    role: str = ROL_OPERADOR, branch: str = "",
+                    password: str | None = None) -> "Usuario":
+        """Da de alta una persona. Sin contraseña no puede entrar, y está bien.
+
+        Una operadora existe para tener rol y para poder ser la vendedora de una
+        venta; entrar al sistema es otra cosa y hoy no la necesita. Cuando haga
+        falta, se le pone contraseña y ya puede.
+        """
+        session = self.require_admin(token)
+        usuario = str(username or "").strip()
+        nombre = str(display_name or "").strip() or usuario
+        rol = str(role or "").strip().upper()
+        if len(usuario) < 3:
+            raise InvalidCashDayError("El usuario necesita al menos 3 caracteres.")
+        if rol not in ROLES:
+            raise InvalidCashDayError(f"Rol desconocido: {role}")
+        if password is not None and len(password) < 10:
+            raise InvalidCashDayError("La contraseña necesita al menos 10 caracteres.")
+        salt = secrets.token_bytes(24)
+        # Sin contraseña el hash queda vacio, y un hash vacio no puede coincidir
+        # con ningun PBKDF2: la persona existe y no puede entrar.
+        digest = (hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt,
+                                      PBKDF2_ITERATIONS) if password else b"")
+        ahora = _now().isoformat()
+        with self.repository._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            existente = connection.execute(
+                "SELECT username FROM admin_users WHERE username=? COLLATE NOCASE",
+                (usuario,)).fetchone()
+            if existente:
+                connection.rollback()
+                raise InvalidCashDayError(
+                    f"Ya existe un usuario «{existente['username']}».")
+            identificador = _id()
+            connection.execute(
+                "INSERT INTO admin_users(id,username,password_hash,salt,iterations,role,"
+                "active,display_name,branch,created_by,updated_by,created_at,updated_at)"
+                " VALUES(?,?,?,?,?,?,1,?,?,?,?,?,?)",
+                (identificador, usuario, base64.b64encode(digest).decode(),
+                 base64.b64encode(salt).decode(), PBKDF2_ITERATIONS, rol, nombre,
+                 str(branch or "").strip().upper(), session.username, session.username,
+                 ahora, ahora))
+            self._audit(connection, session.username, "USER_CREATED", "admin_user",
+                        "SUCCESS", identificador,
+                        {"username": usuario, "display_name": nombre, "role": rol,
+                         "branch": branch, "puede_entrar": bool(password)})
+            connection.commit()
+        return self.get_user(token, identificador)
+
+    def get_user(self, token: str, user_id: str) -> "Usuario":
+        self.require_admin(token)
+        with self.repository._connection() as connection:
+            fila = connection.execute(
+                "SELECT * FROM admin_users WHERE id=?", (user_id,)).fetchone()
+        if fila is None:
+            raise InvalidCashDayError("Ese usuario no existe.")
+        return self._fila_a_usuario(fila)
+
+    def update_user(self, token: str, user_id: str, *, display_name: str | None = None,
+                    role: str | None = None, branch: str | None = None) -> "Usuario":
+        """Modificacion parcial: cambia lo que se nombra y deja el resto quieto."""
+        session = self.require_admin(token)
+        antes = self.get_user(token, user_id)
+        cambios: dict[str, object] = {}
+        if display_name is not None:
+            nombre = str(display_name).strip()
+            if not nombre:
+                raise InvalidCashDayError("El nombre no puede quedar vacío.")
+            cambios["display_name"] = nombre
+        if role is not None:
+            rol = str(role).strip().upper()
+            if rol not in ROLES:
+                raise InvalidCashDayError(f"Rol desconocido: {role}")
+            cambios["role"] = rol
+        if branch is not None:
+            cambios["branch"] = str(branch).strip().upper()
+        if not cambios:
+            return antes
+        ahora = _now().isoformat()
+        asignaciones = ", ".join(f"{campo}=?" for campo in cambios)
+        with self.repository._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                f"UPDATE admin_users SET {asignaciones}, updated_by=?, updated_at=? WHERE id=?",
+                (*cambios.values(), session.username, ahora, user_id))
+            detalle = {"username": antes.username}
+            if "role" in cambios:
+                detalle.update(rol_anterior=antes.role, rol_nuevo=cambios["role"])
+            if "display_name" in cambios:
+                detalle.update(nombre_anterior=antes.display_name,
+                               nombre_nuevo=cambios["display_name"])
+            if "branch" in cambios:
+                detalle.update(sucursal_anterior=antes.branch,
+                               sucursal_nueva=cambios["branch"])
+            self._audit(connection, session.username, "USER_UPDATED", "admin_user",
+                        "SUCCESS", user_id, detalle)
+            connection.commit()
+        return self.get_user(token, user_id)
+
+    def set_user_active(self, token: str, user_id: str, active: bool, *,
+                        reason: str = "") -> "Usuario":
+        """Baja logica. Nunca se borra: la historia la nombra.
+
+        Una venta de agosto guarda el nombre de quien la hizo en texto. Borrar a
+        la persona no borraria ese texto -quedaria un nombre sin nadie detras- y
+        si en cambio se reusara el `id`, la historia empezaria a apuntar a otra
+        persona. Desactivar deja las dos cosas en su lugar.
+        """
+        session = self.require_admin(token)
+        antes = self.get_user(token, user_id)
+        if antes.active == bool(active):
+            return antes
+        if not active and antes.role == ROL_ADMIN:
+            with self.repository._connection() as connection:
+                quedan = connection.execute(
+                    "SELECT COUNT(*) FROM admin_users WHERE active=1 AND role=?"
+                    " AND id<>? AND LENGTH(password_hash)>0",
+                    (ROL_ADMIN, user_id)).fetchone()[0]
+            if not quedan:
+                # Dejar la Optica sin ninguna administradora que pueda entrar es
+                # quedarse afuera del panel sin forma de volver.
+                raise InvalidCashDayError(
+                    "Es la única administradora que puede entrar."
+                    " Dejá otra antes de desactivarla.")
+        ahora = _now().isoformat()
+        with self.repository._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "UPDATE admin_users SET active=?, failed_attempts=0, locked_until=NULL,"
+                " updated_by=?, updated_at=? WHERE id=?",
+                (1 if active else 0, session.username, ahora, user_id))
+            self._audit(connection, session.username,
+                        "USER_ACTIVATED" if active else "USER_DEACTIVATED",
+                        "admin_user", "SUCCESS", user_id,
+                        {"username": antes.username, "motivo": str(reason or "").strip()})
+            connection.commit()
+        return self.get_user(token, user_id)
+
+    def set_user_password(self, token: str, user_id: str, password: str) -> "Usuario":
+        """Le da —o le cambia— con qué entrar. Nunca guarda la contraseña."""
+        session = self.require_admin(token)
+        antes = self.get_user(token, user_id)
+        if len(password or "") < 10:
+            raise InvalidCashDayError("La contraseña necesita al menos 10 caracteres.")
+        salt = secrets.token_bytes(24)
+        digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt,
+                                     PBKDF2_ITERATIONS)
+        ahora = _now().isoformat()
+        with self.repository._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "UPDATE admin_users SET password_hash=?, salt=?, iterations=?,"
+                " failed_attempts=0, locked_until=NULL, updated_by=?, updated_at=? WHERE id=?",
+                (base64.b64encode(digest).decode(), base64.b64encode(salt).decode(),
+                 PBKDF2_ITERATIONS, session.username, ahora, user_id))
+            self._audit(connection, session.username, "USER_PASSWORD_SET", "admin_user",
+                        "SUCCESS", user_id, {"username": antes.username})
+            connection.commit()
+        return self.get_user(token, user_id)
+
     def setting(self, key: str) -> dict:
         if key not in self.SETTINGS:
             raise KeyError(key)
@@ -217,7 +478,7 @@ class AdminOperations:
         return json.loads(row["value_json"]) if row else {}
 
     def update_setting(self, token: str, key: str, value: dict) -> None:
-        session = self.require(token)
+        session = self.require_admin(token)
         if key not in self.SETTINGS:
             raise InvalidCashDayError("Configuración no permitida.")
         safe = dict(value)
@@ -236,14 +497,14 @@ class AdminOperations:
             connection.commit()
 
     def set_mail_secret(self, token: str, secret: str) -> None:
-        session = self.require(token)
+        session = self.require_admin(token)
         self.secret_store.set("smtp", secret)
         with self.repository._connection() as connection:
             self._audit(connection, session.username, "MAIL_SECRET_UPDATE", "credential", "SUCCESS", "smtp")
             connection.commit()
 
     def register_import(self, token: str, file_path: Path, summary, unit: str) -> str:
-        session = self.require(token)
+        session = self.require_admin(token)
         digest = hashlib.sha256()
         with Path(file_path).open("rb") as stream:
             for chunk in iter(lambda: stream.read(1024 * 1024), b""):
@@ -264,10 +525,11 @@ class AdminOperations:
         return run_id
 
     def audit_rows(self, token: str, limit: int = 100):
-        self.require(token)
+        self.require_admin(token)
         with self.repository._connection() as connection:
             return [dict(row) for row in connection.execute(
-                "SELECT actor,action,target_type,result,recorded_at FROM admin_audit_log ORDER BY recorded_at DESC LIMIT ?",
+                "SELECT actor,action,target_type,target_id,result,details_json,recorded_at"
+                " FROM admin_audit_log ORDER BY recorded_at DESC LIMIT ?",
                 (int(limit),),
             )]
 
@@ -365,7 +627,7 @@ class AdminOperations:
             raise InvalidCashDayError("El motivo de la diferencia es obligatorio.")
         admin_limit = int(policy.get("admin_limit", 0))
         if admin_limit > 0 and abs(difference) > admin_limit:
-            self.require(admin_token)
+            self.require_admin(admin_token)
         closed_at = utc_now()
         day.close(closed_at=closed_at)
         count_id, closure_id = _id(), _id()
