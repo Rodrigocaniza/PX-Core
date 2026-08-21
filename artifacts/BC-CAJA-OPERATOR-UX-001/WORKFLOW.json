@@ -4,8 +4,8 @@
   "attempt_id": "f8ed013a-6638-4072-810c-c011dbb514f0",
   "base": "ec4e2e00f056df693dbb97dbf72ff308660832b4",
   "branch": "feature/caja-operator-ux-001",
-  "current_state": "AUDITOR",
-  "revision": 19,
+  "current_state": "READY_FOR_COMMIT",
+  "revision": 20,
   "history": [
     {"event_index": 1, "event": "MISSION_STARTED", "state": "IMPLEMENTATION"},
     {"event_index": 2, "event": "VERIFICATION_PASSED", "targeted": "57 passed", "full": "125 passed"},
@@ -25,6 +25,7 @@
     {"event_index": 16, "event": "PACKAGING_PASSED", "generation": 4},
     {"event_index": 17, "event": "ARTIFACT_CONSISTENCY_PASSED", "generation": 4},
     {"event_index": 18, "event": "LIBRARIAN_PASS", "gate": "librarian:4", "generation": 4, "handoff_id": "b7d92e12-6929-40ac-bb3c-bf02a58cd728", "bundle_sha256": "cad46c77d0a8fd8e37ff06bc7b0af567678d6fb30dd791a8125ae87e738c80d2"},
-    {"event_index": 19, "event": "QA_PASS", "gate": "qa:2", "generation": 2, "handoff_id": "312af3c1-2825-4260-95fa-951b547905e6", "bundle_sha256": "a1ccc8d76627b5f94679028661cecd8cc354127cff1f02fb118941fbd1265dce"}
+    {"event_index": 19, "event": "QA_PASS", "gate": "qa:2", "generation": 2, "handoff_id": "312af3c1-2825-4260-95fa-951b547905e6", "bundle_sha256": "a1ccc8d76627b5f94679028661cecd8cc354127cff1f02fb118941fbd1265dce"},
+    {"event_index": 20, "event": "AUDITOR_PASS", "gate": "auditor:1", "generation": 1, "handoff_id": "5f811cd0-ae7d-44f9-9d7f-d50ea51a7f9b", "bundle_sha256": "9098c04b9ef9da739290c0a652bae2235ff7076598991d6add878325dc2c040e"}
   ]
 }
