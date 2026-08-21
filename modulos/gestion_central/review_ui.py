@@ -20,11 +20,13 @@ STATUS_LABELS = {
     "REVIEWED":"Revisadas", "WITH_OBSERVATION":"Con observaciones",
     "REQUIRES_CORRECTION":"Requiere corrección",
     "CORRECTED_PENDING_REVALIDATION":"Pendiente de revalidar",
+    "ANNULLED":"Anulada",
 }
 STATUS_COLORS = {
     "UNREVIEWED":"#FFF7E6", "IN_REVIEW":"#E8F1F8", "REVIEWED":"#E5F5ED",
     "WITH_OBSERVATION":"#FFF0D6", "REQUIRES_CORRECTION":"#FCE7E9",
     "CORRECTED_PENDING_REVALIDATION":"#F2E9FF",
+    "ANNULLED":"#E5E7EB",
 }
 
 
@@ -107,7 +109,8 @@ class ReviewPanel(tk.Frame):
         self.current_identity=selected[-1]; row=self.rows[self.current_identity]; p=row["payload"]; self.detail_title.config(text=f"{p['envelope'] or 'Sin sobre'} · {p['customer_name']}\n{STATUS_LABELS[row['review_status']]}")
         reviewed=self.service.reviewed_fields(self.principal,self.current_identity)
         for name,var in self.field_vars.items(): var.set(name in reviewed)
-        self.feedback.config(text=f"Fila seleccionada · {p['envelope'] or 'sin sobre'}")
+        movement = " · Movimiento diario consolidado" if row.get("movement_id") else ""
+        self.feedback.config(text=f"Fila seleccionada · {p['envelope'] or 'sin sobre'}{movement}")
 
     def _identity(self):
         if not self.current_identity:self.notifier("Revisión","Seleccione una fila."); return None
