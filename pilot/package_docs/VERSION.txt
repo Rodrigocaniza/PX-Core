@@ -1,8 +1,8 @@
-BC Caja 1.0.0-rc.33
-Misión: BC-OPTICA-COMISION-COMPOSTURAS-V1-021
-Integra: todo lo de 1.0.0-rc.32 + la línea operativa de la Óptica — FactuFácil en Caja (029): una venta cargada en FactuFácil deja constancia de quién la cargó y en qué revisión, y «para cargar» se deduce por consulta en vez de mantenerse a mano; Usuarios y roles (030): las personas reales con su rol ADMIN u OPERADOR reemplazan la lista de nombres de maqueta que elegía la vendedora de cada venta; Seguimiento atrasado y cierre de Pilar (017 y 018, sólo código); Login de operadora (019B, sólo código): sesión de Caja hasta medianoche y sesión Admin de 20 minutos, que entrar a Caja no deja abierta; Trabajos operativos (031): composturas con RECIBIDO → EN_TALLER → LISTO → ENTREGADO, historia append-only, anulación con motivo y reapertura con motivo, sin tocar stock ni mover Caja sola; y Comisión de composturas (032): cada trabajo que llega legítimamente a LISTO devenga exactamente la tarifa que regía ese día para la persona que lo hizo, la política es un log de versiones que no se pisa, las correcciones son compensaciones y el reporte muestra bruto, compensado y neto por persona, sucursal y fecha
+BC Caja 1.0.0-rc.34
+Misión: BC-CAJA-SOBRES-REVISION-MOVIMIENTOS-DIARIOS-V1
+Integra: todo lo de 1.0.0-rc.33 + F1 FactuFácil; revisión de sobres con correcciones auditadas; consolidación automática e idempotente a Movimientos diarios; y compensaciones append-only ante cambios o anulaciones posteriores.
 Fecha: 2026-08-20
-Esquema: migraciones 001-032 (cuatro nuevas: 029, 030, 031 y 032)
+Esquema: migraciones 001-033 (nueva: 033_revision_corrections.sql)
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)
-Actualización: 029, 030 y 031 son aditivas. La 032 NO lo es: reemplaza la tabla de política que creó la 031 por un log de versiones y agrega una columna a los asientos de comisión. La cadena se aplica sola al abrir y en orden, pero fue verificada aplicándola de a una sobre copia de la base real, con rollback probado. No toca ventas, stock, caja ni ningún asiento económico ya escrito. HACER BACKUP DE bc_caja.sqlite3 ANTES DE INSTALAR.
+Actualización: conserva el upgrade 029-032 de rc.33 y agrega 033 de forma aditiva e idempotente para solicitudes y aplicación auditada de correcciones. La cadena se aplica sola al abrir y en orden. HACER BACKUP DE bc_caja.sqlite3 ANTES DE INSTALAR.
 Configuración pendiente en la Óptica: cargar las personas reales con su rol, y después Administrador > Comisiones de composturas > Nueva política, una por persona que comisione. Sin política cargada las composturas funcionan enteras y no devengan nada: es lo correcto, y el reporte las lista aparte.
