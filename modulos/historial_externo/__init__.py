@@ -14,6 +14,10 @@ from .launcher import (
 )
 from .history import HistoryEvent, HistoryQuery, PersonHistory
 from .sqlite_reader import SQLiteHistoryReader
+from .global_history import (
+    GlobalHistoryResult, GlobalHistoryService, HistoryAccessDenied,
+    HistoryAccessPolicy, HistoryPrincipal, VIEW_GLOBAL, WRITE_CROSS_BRANCH,
+)
 
 __all__ = [
     "HistorialNoDisponible",
@@ -26,4 +30,11 @@ __all__ = [
     "HistoryQuery",
     "PersonHistory",
     "SQLiteHistoryReader",
+    "GlobalHistoryResult",
+    "GlobalHistoryService",
+    "HistoryAccessDenied",
+    "HistoryAccessPolicy",
+    "HistoryPrincipal",
+    "VIEW_GLOBAL",
+    "WRITE_CROSS_BRANCH",
 ]

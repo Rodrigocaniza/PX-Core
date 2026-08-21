@@ -47,8 +47,11 @@ class SQLiteHistoryReader:
             documents = _unique(row["customer_document"] for row in sales)
             phones = _unique(row["customer_phone"] for row in sales)
             events = [self._sale_event(connection, row) for row in sales]
+            documents_by_entry = {row["id"]: _text(row["customer_document"]) for row in sales}
             jobs = self._jobs(connection, query, sale_ids, limit)
-            events.extend(self._job_event(connection, row) for row in jobs)
+            events.extend(self._job_event(
+                connection, row, documents_by_entry.get(_text(row["cash_entry_id"]), ""))
+                for row in jobs)
             names = _unique((*names, *(row["customer_name"] for row in jobs)))
             phones = _unique((*phones, *(row["customer_phone"] for row in jobs)))
         events.sort(key=lambda event: event.occurred_at or "", reverse=True)
@@ -59,12 +62,21 @@ class SQLiteHistoryReader:
     @staticmethod
     def _sales(connection, query, limit):
         clauses, params = [], []
-        for column, value in (("ce.customer_document", query.document),
-                              ("ce.description", query.name), ("ce.customer_phone", query.phone),
-                              ("ce.envelope", query.envelope)):
-            if value:
-                clauses.append(f"lower(COALESCE({column}, '')) LIKE lower(?)")
-                params.append(f"%{value}%")
+        normalized_document = "".join(character for character in query.document.upper()
+                                      if character.isalnum())
+        if len(normalized_document) >= 5:
+            clauses.append("upper(replace(replace(replace(COALESCE(ce.customer_document,''),"
+                           "'.',''),'-',''),' ','')) = ?")
+            params.append(normalized_document)
+        else:
+            for column, value in (("ce.description", query.name),
+                                  ("ce.customer_phone", query.phone),
+                                  ("ce.envelope", query.envelope)):
+                if value:
+                    clauses.append(f"lower(COALESCE({column}, '')) LIKE lower(?)")
+                    params.append(f"%{value}%")
+        if not clauses:
+            return []
         return connection.execute(f"""SELECT ce.*, cd.business_date, cd.unit
             FROM cash_entries ce JOIN cash_days cd ON cd.id=ce.cash_day_id
             WHERE {' OR '.join(clauses)}
@@ -99,7 +111,9 @@ class SQLiteHistoryReader:
             row["cash"], row["card_check"], row["agreement_amount"], _text(row["balance_text"]),
             _text(row["description"]), items,
             prescriptions or ((_text(row["prescription_doctor"]),) if _text(row["prescription_doctor"]) else ()),
-            _text(row["observations"]), tuple(trace))
+            _text(row["observations"]), tuple(trace),
+            _text(row["customer_document"]), _text(row["customer_phone"]),
+            _text(row["description"]), _text(row["id"]))
 
     def _jobs(self, connection, query, sale_ids, limit):
         if not self._has_table(connection, "service_jobs"):
@@ -118,7 +132,7 @@ class SQLiteHistoryReader:
         return connection.execute(f"SELECT * FROM service_jobs WHERE {' OR '.join(clauses)} "
                                   "ORDER BY updated_at DESC LIMIT ?", (*params, limit)).fetchall()
 
-    def _job_event(self, connection, row):
+    def _job_event(self, connection, row, identity_document=""):
         trace = []
         if self._has_table(connection, "service_job_events"):
             trace = [" · ".join(filter(None, (event["occurred_at"], event["event_type"],
@@ -129,4 +143,8 @@ class SQLiteHistoryReader:
                             _text(row["branch"]), _text(row["reference"]), _text(row["received_by"]),
                             _text(row["status"]), row["charged_amount"], description=" · ".join(filter(None, (
                                 _text(row["job_type"]), _text(row["description"]), _text(row["responsible"])))),
-                            observations=_text(row["observations"]), trace=tuple(trace))
+                            observations=_text(row["observations"]), trace=tuple(trace),
+                            identity_document=_text(identity_document),
+                            identity_phone=_text(row["customer_phone"]),
+                            identity_name=_text(row["customer_name"]),
+                            source_reference=_text(row["id"]))

@@ -116,6 +116,8 @@ def test_no_bloquea_la_caja(ejecutable_falso):
 
 def test_se_lanza_desprendido_y_sin_consola(ejecutable_falso, monkeypatch):
     monkeypatch.setattr(launcher.sys, "platform", "win32")
+    monkeypatch.setattr(launcher.subprocess, "CREATE_NO_WINDOW", 0x08000000, raising=False)
+    monkeypatch.setattr(launcher.subprocess, "DETACHED_PROCESS", 0x00000008, raising=False)
     lanzador = LanzadorFalso()
     abrir_historial("Ana", "1234567", lanzar=lanzador)
     _comando, kwargs = lanzador.llamadas[0]
@@ -183,12 +185,15 @@ def test_caja_no_toca_el_historico():
         assert prohibido not in fuente, prohibido
 
 
-def test_caja_no_importa_bc_historial():
-    """Integracion V1 = proceso externo, no dependencia entre repos."""
-    for archivo in (Path(launcher.__file__), RAIZ / "CajaDiaria.py"):
-        fuente = archivo.read_text(encoding="utf-8")
-        assert "import bc_historial" not in fuente
-        assert "from bc_historial" not in fuente
+def test_caja_abre_historial_global_solo_despues_de_revalidar_sesion():
+    fuente = (RAIZ / "CajaDiaria.py").read_text(encoding="utf-8")
+    inicio = fuente.index("def abrir_historial_del_cliente()")
+    cuerpo = fuente[inicio:fuente.index("boton_historial = ctk.CTkButton", inicio)]
+    assert "sesion = operadora_actual()" in cuerpo
+    assert "open_for_verified_session" in cuerpo
+    assert cuerpo.index("sesion = operadora_actual()") < cuerpo.index("open_for_verified_session")
+    for inseguro in ("--role", "BC_HISTORIAL_ROLE", "authenticated=True"):
+        assert inseguro not in cuerpo
 
 
 def test_el_boton_no_modifica_la_venta_ni_el_cliente():

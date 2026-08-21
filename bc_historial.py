@@ -7,6 +7,9 @@ from tkinter import messagebox, ttk
 from modulos.caja_diaria.config import resolve_data_paths
 from modulos.historial_externo.history import HistoryQuery
 from modulos.historial_externo.sqlite_reader import SQLiteHistoryReader
+from modulos.historial_externo.global_history import (
+    GlobalHistoryService, HistoryAccessDenied, HistoryPrincipal, VIEW_GLOBAL,
+)
 
 def _money(value) -> str:
     return "—" if value is None else f"{int(value):,}".replace(",", ".")
@@ -17,9 +20,9 @@ def build_parser():
         parser.add_argument("--" + flag, default="")
     return parser
 
-class HistoryWindow(tk.Tk):
-    def __init__(self, reader, initial):
-        super().__init__(); self.reader = reader; self.events = []
+class HistoryWindow(tk.Toplevel):
+    def __init__(self, master, service, principal, initial):
+        super().__init__(master); self.service = service; self.principal = principal; self.events = []
         self.title("BC Historial · consulta de clientes"); self.geometry("1180x720"); self.minsize(900, 560)
         search = ttk.LabelFrame(self, text="Buscar por cualquier dato"); search.pack(fill="x", padx=12, pady=10)
         self.fields = {}
@@ -44,9 +47,16 @@ class HistoryWindow(tk.Tk):
 
     def refresh(self):
         query = HistoryQuery(**{key: entry.get() for key, entry in self.fields.items()})
-        try: history = self.reader.search(query)
-        except (OSError, sqlite3.Error) as error:
+        try: result = self.service.search(self.principal, query)
+        except (OSError, sqlite3.Error, HistoryAccessDenied) as error:
             messagebox.showerror("No se pudo consultar", str(error), parent=self); return
+        history = result.selected
+        if history is None:
+            self.events = []; self.grid.delete(*self.grid.get_children())
+            self.person.configure(text=(
+                f"{len(result.candidates)} coincidencias separadas · "
+                "Refina con CI/RUC; no se fusionan por nombre o teléfono"))
+            return
         self.events = list(history.events); self.grid.delete(*self.grid.get_children())
         self.person.configure(text=f"{history.display_name or 'Sin coincidencias'}   ·   Documentos: {', '.join(history.documents) or '—'}   ·   Teléfonos: {', '.join(history.phones) or '—'}")
         for index, event in enumerate(self.events):
@@ -67,7 +77,24 @@ class HistoryWindow(tk.Tk):
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-    initial = HistoryQuery(args.ci or args.ruc, args.name, args.phone, args.envelope)
-    HistoryWindow(SQLiteHistoryReader(args.database or resolve_data_paths().database), initial).mainloop(); return 0
+    raise SystemExit(
+        "BC Historial global requiere una sesión autenticada de BC Caja. "
+        "No acepta roles ni permisos por línea de comandos.")
+
+
+def open_for_verified_session(master, database, session, initial):
+    """Abre Historial con una ``CashSession`` ya revalidada por Caja.
+
+    No recibe strings de rol por CLI/entorno. El llamador obtiene ``session``
+    de ``AdminOperations.require_operator`` inmediatamente antes de entrar.
+    """
+    required = ("user_id", "role", "branch", "token")
+    if session is None or any(not hasattr(session, name) for name in required):
+        raise HistoryAccessDenied("BC Historial requiere una sesión verificada de Caja")
+    principal = HistoryPrincipal(
+        str(session.user_id), str(session.role), str(session.branch),
+        frozenset({VIEW_GLOBAL}), authenticated=True)
+    service = GlobalHistoryService([SQLiteHistoryReader(database)])
+    return HistoryWindow(master, service, principal, initial)
 
 if __name__ == "__main__": raise SystemExit(main())

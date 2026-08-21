@@ -81,3 +81,16 @@ def test_conexion_es_query_only(history_db):
             connection.execute("DELETE FROM cash_entries")
     finally:
         connection.close()
+
+
+def test_documento_fuerte_no_trae_homonimo_aunque_coincida_el_nombre(history_db):
+    connection = sqlite3.connect(history_db)
+    connection.execute("""INSERT INTO cash_entries VALUES(
+      'v3','d1','Ana López','S-99','9999999','0972 999','Otra','',
+      'ACTIVE',100000,100000,0,0,'0','Homónima','',
+      '2026-08-19T10:00:00','2026-08-19T10:00:00')""")
+    connection.commit(); connection.close()
+    history = SQLiteHistoryReader(history_db).search(
+        HistoryQuery(document="1.234.567", name="Ana López"))
+    assert history.documents == ("1234567",)
+    assert {item.envelope for item in history.events if item.kind == "VENTA"} == {"S-10", "S-11"}

@@ -1864,6 +1864,12 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     def abrir_historial_del_cliente():
         nombre = campos_manual["descripcion"].get()
         documento = campos_manual["cliente_documento"].get()
+        sesion = operadora_actual()
+        if sesion is None:
+            messagebox.showinfo(
+                "Ver historial", "Inicia sesión para consultar el historial global.",
+                parent=ventana)
+            return
         if not hay_datos_de_cliente(nombre, documento):
             messagebox.showinfo(
                 "Ver historial",
@@ -1872,7 +1878,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             )
             return
         try:
-            abrir_historial(nombre, documento)
+            from bc_historial import open_for_verified_session
+            from modulos.historial_externo.history import HistoryQuery
+            open_for_verified_session(
+                ventana, controller.service.repository.database_path, sesion,
+                HistoryQuery(document=documento, name=nombre))
         except HistorialNoDisponible as exc:
             messagebox.showinfo(exc.titulo, exc.mensaje, parent=ventana)
 

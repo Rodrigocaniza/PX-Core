@@ -3,10 +3,50 @@
 Estado: aplicación de consulta separada visualmente de BC Caja, conectada a
 la base canónica de Caja y estrictamente de solo lectura.
 
+## Cliente global multisucursal
+
+Historial trata al cliente como persona del negocio. `GlobalHistoryService`
+puede federar una o varias fuentes canónicas ya autorizadas: hoy la base local
+puede contener hechos de Asunción y Pilar; mañana BC Sync podrá entregar una
+fuente autenticada por instalación con los hechos sincronizados. La UI y las
+reglas de identidad no dependen del transporte.
+
+Cada evento conserva `branch`, fecha, tipo y sobre. La cronología reúne ambas
+sucursales y se ordena de más reciente a más antiguo.
+
+### Identidad
+
+- CI/RUC normalizado y exacto es identidad fuerte y permite unir hechos de
+  distintas sucursales.
+- Nombre y teléfono sirven para buscar, no para fusionar automáticamente.
+- Si una búsqueda débil devuelve más de un registro, la UI no construye una
+  ficha mezclada: pide refinar con CI/RUC. No hay merge ni escritura oculta.
+- La futura resolución manual/auditable de identidades pertenece al servicio
+  canónico de personas; Historial no crea una tabla propia para resolverla.
+
+### Permisos
+
+`HistoryPrincipal` representa claims que entrega una sesión autenticada de BC;
+no valida contraseñas ni guarda credenciales. Caja revalida su `CashSession`
+con `require_operator` inmediatamente antes de abrir la ventana y la entrega
+en memoria. La CLI falla cerrada: no acepta sujeto, rol o permisos libres.
+BC Seguridad sustituirá ese límite por sus claims autenticados sin cambiar la
+consulta.
+
+- `history.customer.read.global`: Operadora y Admin pueden ver ficha global.
+- Operadora: puede operar su sucursal; `can_modify_branch` rechaza la ajena.
+- Admin/Dirección: puede operar ambas según su rol administrativo.
+- Historial no ofrece comandos de escritura, aun cuando el principal sea Admin.
+
+La proyección operativa contiene cliente, contacto, ventas, pagos, cristales,
+profesional de receta, observaciones y trazabilidad relevante. No consulta ni
+expone costo, margen, comisiones, cierres, configuración, credenciales ni la
+auditoría administrativa completa.
+
 ## Uso
 
-El botón **Ver historial** de **CLIENTE Y COMPROBANTE** abre otro proceso y
-prefiltra CI/RUC y nombre. La ventana también permite buscar por nombre,
+El botón **Ver historial** de **CLIENTE Y COMPROBANTE** abre una ventana
+independiente usando la sesión ya revalidada y prefiltra CI/RUC y nombre. La ventana también permite buscar por nombre,
 teléfono y número de sobre/trabajo. Los movimientos se muestran del más
 reciente al más antiguo.
 
@@ -31,8 +71,9 @@ separada así:
 ```
 bc_historial.py                              UI y argumentos
 modulos/historial_externo/history.py        contrato/modelos de consulta
+modulos/historial_externo/global_history.py identidad, federación y permisos
 modulos/historial_externo/sqlite_reader.py  adaptador canónico read-only
-modulos/historial_externo/launcher.py       proceso separado desde Caja
+modulos/historial_externo/launcher.py       compatibilidad V1 externa heredada
 ```
 
 Seguridad puede reemplazar el adaptador (credenciales, DB o sincronización)
@@ -40,19 +81,14 @@ sin reescribir la UI ni el punto de lanzamiento.
 
 ## Lanzamiento
 
-El launcher mantiene compatibilidad con la instalación dedicada indicada por
-`BC_HISTORIAL_EXE` o por la ruta histórica. Si no existe, utiliza el
-`bc_historial.py` incluido en PX-Core:
+El flujo global no se abre directamente por CLI: ese entrypoint falla cerrado
+porque no puede verificar una sesión de Caja. Se abre desde Caja, que entrega
+la sesión revalidada en memoria y puede prefiltrar CI/RUC y nombre.
 
-```
-python bc_historial.py --ci 1203712 --name "Fernando González"
-python bc_historial.py --ruc 1203712-5
-python bc_historial.py --phone 0981 --envelope S-102
-```
-
-Caja usa `subprocess.Popen`; no espera el cierre de Historial y no guarda ni
-modifica el formulario al abrirlo. Si ningún launcher está disponible, muestra
-un mensaje legible y Caja continúa funcionando.
+El launcher externo heredado conserva únicamente compatibilidad V1. El flujo
+global nuevo no confía en esa CLI: abre la ventana en el proceso de
+Caja con su sesión revalidada. El launcher queda como compatibilidad V1 y no
+otorga por sí mismo el permiso global.
 
 ## Alcance deliberado
 
@@ -66,4 +102,5 @@ un mensaje legible y Caja continúa funcionando.
 
 Las garantías están cubiertas por
 `tests/caja_diaria/test_historial_externo.py` y
-`tests/caja_diaria/test_historial_reader.py`.
+`tests/caja_diaria/test_historial_reader.py`, más la aceptación multisucursal
+A–K en `tests/caja_diaria/test_historial_multisucursal.py`.

@@ -37,6 +37,10 @@ class HistoryEvent:
     prescription: tuple[str, ...] = ()
     observations: str = ""
     trace: tuple[str, ...] = ()
+    identity_document: str = ""
+    identity_phone: str = ""
+    identity_name: str = ""
+    source_reference: str = ""
 
 @dataclass(frozen=True)
 class PersonHistory:
