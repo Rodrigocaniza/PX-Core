@@ -9,6 +9,7 @@ from pathlib import Path
 
 from modulos.caja_diaria.domain.models import CashCountStatus, CashDay, CashDayStatus, CashEntry
 from modulos.caja_diaria.infrastructure.sqlite_repository import SQLiteCashDayRepository
+from tests.migration_chain import versiones_esperadas_como_filas
 
 
 class SQLiteCashDayRepositoryTests(unittest.TestCase):
@@ -27,7 +28,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
         try:
             self.assertEqual(
                 connection.execute("SELECT version FROM schema_migrations ORDER BY version").fetchall(),
-                [("001",), ("002",), ("003",), ("004",), ("005",), ("006",), ("007",), ("008",), ("009",), ("010",), ("011",), ("012",), ("013",), ("014",), ("015",), ("016",), ("017",), ("018",), ("019",), ("020",), ("021",)],
+                versiones_esperadas_como_filas(),
             )
             tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         finally:
@@ -164,7 +165,7 @@ class SQLiteCashDayRepositoryTests(unittest.TestCase):
                 ).fetchall()
             finally:
                 check.close()
-            self.assertEqual(versions, [("001",), ("002",), ("003",), ("004",), ("005",), ("006",), ("007",), ("008",), ("009",), ("010",), ("011",), ("012",), ("013",), ("014",), ("015",), ("016",), ("017",), ("018",), ("019",), ("020",), ("021",)])
+            self.assertEqual(versions, versiones_esperadas_como_filas())
         finally:
             migrated.close()
 

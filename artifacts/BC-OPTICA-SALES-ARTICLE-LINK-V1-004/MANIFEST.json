@@ -1,0 +1,156 @@
+{
+  "mission": "BC-OPTICA-SALES-ARTICLE-LINK-V1-004",
+  "slice": "4 de 6 - Enlace venta -> articulo. Cierra el primer circuito completo",
+  "branch": "feature/bc-optica-sales-article-link-v1-004",
+  "worktree": ".worktrees/sales-link-004",
+  "base_commit": "ecc0c7b",
+  "base_branch": "feature/bc-optica-purchases-providers-v1-003",
+  "cadena_de_slices": {
+    "origin/main": "7db56a0 = BC Caja 1.0.0-rc.31",
+    "slice_1_catalogo": "ed0dbba (022)",
+    "slice_2_ledger": "54f5f06 (023)",
+    "slice_3_compras": "ecc0c7b (024)",
+    "slice_4_ventas": "esta mision (025)"
+  },
+  "packaged": false,
+  "installed": false,
+  "promoted": false,
+  "pr": false,
+  "version_unchanged": true,
+  "migrations": 25,
+  "migrations_added": [
+    "025_sales_article_link.sql"
+  ],
+  "schema_change_shape": "ADITIVA: un ALTER TABLE ADD COLUMN nullable sobre sale_items, una tabla nueva, seis triggers, una vista y un indice. No reconstruye ni reescribe nada",
+  "subsistema_de_ventas_reescrito": false,
+  "que_se_toco_de_caja": {
+    "domain": "SaleItem gana article_id y lens_article_id, ambos nulos por defecto, y la propiedad derivada articulos_vinculados",
+    "repositorio": "el constructor acepta sale_integrator opcional, por defecto None; save() persiste el vinculo, no reescribe las lineas de una venta ya integrada y corre la integracion DENTRO de su propia transaccion",
+    "reglas_economicas": "sin cambios",
+    "ui": "sin cambios"
+  },
+  "por_que_el_default_es_no_integrar": "Sin integrador, este repositorio guarda exactamente como guardaba antes de que existiera el nucleo comercial. Instalar esto en una caja que todavia no vincula articulos no cambia una sola cosa de lo que hace hoy",
+  "vinculo_venta_articulo": {
+    "forma": "dos columnas nullables sobre la fila de sale_items que ya existe desde la 006",
+    "article_id": "articulo del componente fisico (frame_price): armazon, cadenilla, liquido, o un servicio con precio. Lo agrego la 022",
+    "lens_article_id": "articulo del trabajo de laboratorio (lens_price). Lo agrega la 025",
+    "por_que_dos": "La linea de la Optica tiene DOS componentes y siempre los tuvo: los datos productivos reales muestran frame_price y lens_price en la misma fila. Partirla en dos filas para que cada una tuviera un solo articulo habria sido reescribir el subsistema de ventas",
+    "tracks_stock": "NO es una columna de la linea. Se deriva de la naturaleza del articulo en el catalogo. Ni la descripcion, ni el codigo, ni el laboratorio, ni item_type entran en la decision"
+  },
+  "sale_completed": {
+    "cuando": "al guardarse una entrada ACTIVE que tiene al menos una linea con articulo canonico vinculado. Una entrada ACTIVE es una venta finalizada segun el modelo economico actual de BC Caja: la unica transicion posterior es VOIDED",
+    "existe_sin_efectos": true,
+    "prueba": "una venta de puros servicios y una de puro trabajo de laboratorio emiten el hecho y cero movimientos",
+    "trazabilidad": [
+      "entity_id = cash_entry",
+      "destination = sucursal de la caja",
+      "actor = vendedora",
+      "occurred_at",
+      "payload con cash_day, fecha, unidad, total y todas las lineas con su articulo y su tracks_stock",
+      "event_effects"
+    ],
+    "es_event_bus": false
+  },
+  "derivacion": {
+    "regla": "una linea con articulo cuya naturaleza mueve stock produce exactamente un movimiento VENTA de cantidad 1",
+    "por_que_cantidad_1": "SaleItem no tiene cantidad y nunca la tuvo: una linea es una unidad. Inventar una cantidad seria inventar un dato",
+    "referencia_durable": [
+      "document_kind=VENTA",
+      "document_id=cash_entry",
+      "document_line_id=sale_item",
+      "article_id",
+      "destination",
+      "event_id",
+      "actor",
+      "occurred_at"
+    ],
+    "no_stock": "servicios y trabajos forman parte de la venta, tienen precio y alimentan el hecho, y no generan ningun movimiento"
+  },
+  "sucursal": {
+    "origen": "cash_register_branches, el vinculo canonico caja -> sucursal de las migraciones 018 y 020. Se LEE, no se duplica",
+    "la_operadora_puede_elegir": false,
+    "caja_sin_vinculo": "una venta con stock se rechaza con SucursalNoResoluble; una de puros servicios se completa igual, porque sin efecto de inventario la sucursal no hace falta"
+  },
+  "stock_insuficiente": {
+    "regla": "la venta no se guarda",
+    "donde": "chequeo previo sobre la MISMA conexion de la transaccion, mas el trigger del ledger de la 023 como respaldo para cualquier escritor",
+    "aviso_temprano": "faltantes_de_stock(entry, unidad) devuelve articulo, disponible, pedido y destino antes de intentar guardar",
+    "excepcion_administrativa_desde_una_venta": false
+  },
+  "atomicidad": {
+    "una_sola_transaccion": true,
+    "detalle": "el integrador recibe la conexion del guardado y no abre ninguna propia. Verificado mecanicamente: su codigo no contiene BEGIN ni COMMIT",
+    "rollback_verificado": "con fallo inyectado en el segundo movimiento de una venta de dos lineas: 0 entradas, 0 eventos, 0 efectos, 0 movimientos, stock intacto"
+  },
+  "idempotencia": {
+    "durable": true,
+    "donde": "tabla sale_stock_integrations, mas las claves VENTA:{entry} del hecho y VENTA:{entry}:{linea} de cada movimiento",
+    "probado": [
+      "guardar tres veces",
+      "reabrir desde la base y volver a guardar",
+      "repositorio nuevo sin nada en memoria, como despues de un corte"
+    ]
+  },
+  "edicion_postventa": {
+    "bloqueado": [
+      "cambiar, agregar o borrar lineas de una venta que ya movio stock",
+      "anular una venta que ya movio stock"
+    ],
+    "permitido": [
+      "telefono, observaciones, cliente, vendedora y todo lo que vive en cash_entries y no cambia la causalidad del inventario"
+    ],
+    "donde_se_aplica": "cuatro triggers en la base, para cualquier escritor, mas un chequeo previo que devuelve VentaIntegradaNoEditable con un mensaje entendible en vez de una violacion de constraint a mitad del guardado",
+    "por_que_no_hay_reversion": "revertir necesita el movimiento compensatorio, que existe desde la 023, atado al circuito de negocio de la anulacion. Improvisar media reversion seria peor que bloquear"
+  },
+  "historico": {
+    "backfill": "planificar_backfill_de_ventas() calcula y NO escribe",
+    "aplicable": false,
+    "motivo": "una linea vieja dice el texto que alguien escribio esa tarde y un codigo de proveedor. Eso no identifica un articulo del catalogo. Elegir uno por parecido lo inventaria y ademas cambiaria el stock de hoy con una inferencia sobre el pasado",
+    "lineas_historicas": "las 10 de produccion siguen leyendose con article_id NULL"
+  },
+  "dinero": {
+    "totales_de_caja": "sin cambios",
+    "arqueo": "sin cambios",
+    "movimiento_venta_es_dinero": false,
+    "verificado": "el modulo no inserta ni actualiza cash_entries, cash_days, cash_counts ni cash_day_corrections"
+  },
+  "preparado_sin_implementar": {
+    "factufacil_pedidos_revision_gestion_estadisticas": "el payload de SALE_COMPLETED ya lleva lo que necesitan. Este slice no deriva ninguna: el unico effect_kind que existe es STOCK_MOVEMENT"
+  },
+  "tests": {
+    "dirigidas_primero": true,
+    "nuevas": 42,
+    "total": 848,
+    "baseline_slice_3": 806,
+    "subtests": 4,
+    "exit": 0
+  },
+  "gates": {
+    "librarian": "PASS",
+    "qa": "PASS",
+    "auditor": "PASS",
+    "artifact_consistency": "PASS"
+  },
+  "produccion": {
+    "base_tocada": false,
+    "sha256_antes": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "sha256_despues": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "migraciones_en_produccion": 21,
+    "migraciones_no_instaladas": [
+      "022",
+      "023",
+      "024",
+      "025"
+    ],
+    "verificacion": "la cadena 022..025 se aplico sobre una COPIA de la base real. 12 cash_entries y 10 sale_items intactos, integrity ok, foreign_key_check 0, totales de Caja sin cambios. Los invariantes se probaron sobre esa copia con una venta REAL de la Optica"
+  },
+  "sha256_fuentes": {
+    "modulos/caja_diaria/infrastructure/migrations/025_sales_article_link.sql": "2f6bfe278a2f6ab2d0d7a79e08768b94d51c1b4f2bd382749c536f36083c1839",
+    "modulos/caja_diaria/domain/models.py": "2313d9a93a9b554fc6407695894fb6ca786a4d580d476d0cd513a7e689a5f16f",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "899de073dbbe0582237d4ebcf68c7c15d6d29d6e27cd8a7c3b5530a697c9c6bf",
+    "modulos/comercial/application/ventas.py": "c49927f3f565e112d756e9ebc12a0100f524e998dda37045f7de6b297045a380",
+    "modulos/comercial/infrastructure/sqlite_catalog_repository.py": "c6069371d9e4f163e391677d86c57ec120bf4a0414366bea48dab66e826e0191",
+    "tests/comercial/test_sales_article_link.py": "19115dd66d79cdaedef199e00051ab8118ea000b649baf08cf9e6a71ac5b5c8e"
+  },
+  "convencion_de_hash": "sha256 con saltos normalizados a LF, igual que los slices 1 a 3"
+}

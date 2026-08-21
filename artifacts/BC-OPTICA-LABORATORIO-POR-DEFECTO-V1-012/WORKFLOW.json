@@ -1,0 +1,95 @@
+{
+  "mision": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012",
+  "generacion": 2,
+  "state": "SAFE_PAUSE_TRANSFERENCIA_A_CASA",
+  "steps": [
+    {
+      "step": "estado productivo verificado",
+      "state": "DONE",
+      "detalle": "coincide exacto con lo declarado: 3.596 / 2.829 / 4.441, ASU 6.166, PIL 2.260, sha256 ffafb5c6"
+    },
+    {
+      "step": "base git canonica",
+      "state": "DONE",
+      "detalle": "c838f10, tip de V1-014"
+    },
+    {
+      "step": "investigacion del modelo",
+      "state": "DONE",
+      "detalle": "laboratories ya existia desde la 003 y estaba vacia; sale_items.laboratory es texto libre; sale_items.lens_article_id ya vincula el cristal. No hacia falta un modelo nuevo"
+    },
+    {
+      "step": "verificacion de los 32 codigos contra produccion",
+      "state": "DONE",
+      "detalle": "7 no existen, 5 tienen otro nombre, 2000212 no es un cristal, y hay 6 cristales de produccion que el brief no menciona"
+    },
+    {
+      "step": "migracion 028",
+      "state": "DONE",
+      "detalle": "aditiva, probada sobre copia real, idempotente"
+    },
+    {
+      "step": "capacidad y UI",
+      "state": "DONE",
+      "detalle": "actualizar/leer la preferencia en el controlador y precarga del campo Laboratorio al elegir el cristal en la Caja"
+    },
+    {
+      "step": "pruebas dirigidas",
+      "state": "DONE",
+      "detalle": "22 PASS"
+    },
+    {
+      "step": "suite completa",
+      "state": "DONE",
+      "detalle": "1.003 PASS"
+    },
+    {
+      "step": "dry-run sobre copia",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas"
+    },
+    {
+      "step": "circuito de venta sobre copia",
+      "state": "DONE",
+      "detalle": "PASS"
+    },
+    {
+      "step": "smoke de UI",
+      "state": "DONE",
+      "detalle": "PASS"
+    },
+    {
+      "step": "pre-guard productivo",
+      "state": "DONE",
+      "detalle": "PASS"
+    },
+    {
+      "step": "aplicacion productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Rollback no usado"
+    },
+    {
+      "step": "verificacion post-produccion independiente",
+      "state": "DONE",
+      "detalle": "PASS. Contra el backup recien tomado: el unico campo que cambio en toda la tabla articles es default_laboratory_id, en 24 filas"
+    },
+    {
+      "step": "HUMAN_GATE",
+      "state": "ABIERTO",
+      "detalle": "no bloqueante: 7 codigos ausentes, el gemelo 2000078/2000219, 6 cristales sin default, y las marcas-laboratorio incluido Hilo"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA"
+    },
+    {
+      "step": "Safe Pause de transferencia a Casa",
+      "state": "DONE",
+      "detalle": "PASS. Estado declarado verificado contra la base, reglas provisionales comprobadas, worktree limpio, 8 ramas sincronizadas, 0 procesos, WAL en cero, Mission Lease liberada, handoff escrito"
+    }
+  ]
+}

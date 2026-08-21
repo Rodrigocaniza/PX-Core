@@ -1,0 +1,170 @@
+{
+  "mission": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "SAFE_CLOSURE",
+  "pc": "Optica",
+  "headless_executor": "NO USADO: el dry run levanta el controlador comercial contra una copia",
+  "lease": {
+    "held": false,
+    "otros_leases_vivos": 0,
+    "nota": "la V1-009 quedo en SAFE_PAUSE, no compite por el mismo recurso"
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "verificacion canonica, perfil, comparacion, reglas y dry run",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "regla_de_corte": "si el dry run fallaba no se llegaba al HUMAN_GATE. Dio PASS con 0 fallas",
+  "steps": [
+    {
+      "step": "Safe Pause de la V1-009",
+      "state": "DONE",
+      "detalle": "dceac1f. Evidencia conservada, herramienta y backup siguen validos, produccion intacta"
+    },
+    {
+      "step": "verificacion canonica y base",
+      "state": "DONE",
+      "detalle": "main en 7db56a0 y detras de produccion; base elegida f5a55b7, tip de la 008"
+    },
+    {
+      "step": "localizacion de los archivos corregidos",
+      "state": "DONE",
+      "detalle": "encontrados automaticamente en Downloads, ambos del 2026-08-19, con sus sha256"
+    },
+    {
+      "step": "conversion del formato legacy",
+      "state": "DONE",
+      "detalle": "son OLE2/BIFF y openpyxl no los lee. Convertidos a xlsx via Excel COM en modo solo lectura, sobre copia en scratchpad. Los originales no se modificaron"
+    },
+    {
+      "step": "paso 1 - perfil de los corregidos",
+      "state": "DONE",
+      "detalle": "hojas, columnas, filas, codigos, duplicados, formulas, merges, centinelas, totales, sin codigo, sin descripcion y diferencias estructurales"
+    },
+    {
+      "step": "paso 2 - comparacion",
+      "state": "DONE",
+      "detalle": "clasificados los 3.687 pares (sucursal, sku). Determinado que 'ausente' significa stock 0 en el sistema viejo, no una afirmacion fisica"
+    },
+    {
+      "step": "paso 3 - reconciliacion de naturalezas",
+      "state": "DONE",
+      "detalle": "una sola cambia: 2000056. Cristales y composturas ya estaban bien y con 0 movimientos"
+    },
+    {
+      "step": "paso 4 - stock actual vs corregido",
+      "state": "DONE",
+      "detalle": "2.769 coinciden, 774 ausentes, 40 con delta (+47 / -65)"
+    },
+    {
+      "step": "paso 5 - reevaluacion de los cinco pendientes",
+      "state": "DONE",
+      "detalle": "uno resuelto sin conteo, tres siguen siendo centinelas, uno con evidencia mucho mas fuerte"
+    },
+    {
+      "step": "paso 6 - dry run completo",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Idempotencia PASS. Historia de la 008 intacta"
+    },
+    {
+      "step": "incorporacion de las tres decisiones humanas",
+      "state": "DONE",
+      "detalle": "Hilo/Tornillo/Plaqueta a servicio; los 775 ausentes a retiro con compensacion; 2857 revocado y 000010 ASUNCION sigue pendiente"
+    },
+    {
+      "step": "correccion: codigo renumerado con cero adelante",
+      "state": "DONE",
+      "detalle": "300653145470 -> 0300653145470 es el mismo articulo. Buscado el patron en los 775: unico caso"
+    },
+    {
+      "step": "correccion: el retiro es por articulo, la ausencia es por sucursal",
+      "state": "DONE",
+      "detalle": "5 articulos faltan en una sucursal y viven en la otra. Se compensa el deposito ausente y no se retiran. El producto ya lo impedia"
+    },
+    {
+      "step": "correccion: una fila que nunca fue articulo",
+      "state": "DONE",
+      "detalle": "ASU-101814, rechazada por la 008 por no tener descripcion"
+    },
+    {
+      "step": "dry run recalculado",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. 41 altas, 766 retiros, 773 unidades compensadas, 37 ajustes, 4 cambios de naturaleza"
+    },
+    {
+      "step": "idempotencia",
+      "state": "DONE",
+      "detalle": "PASS por contenido: reaplicar no escribe una sola fila"
+    },
+    {
+      "step": "pre-guard productivo",
+      "state": "DONE",
+      "detalle": "PASS en los 10 puntos: base y HEAD con los hashes esperados, worktree limpio, los dos xls sin drift, BC Caja cerrada, WAL en cero"
+    },
+    {
+      "step": "sello del plan",
+      "state": "DONE",
+      "detalle": "la herramienta recalculo el plan y lo comparo contra el sellado: las 14 cifras coincidieron. Si no, abortaba"
+    },
+    {
+      "step": "backup verificable",
+      "state": "DONE",
+      "detalle": "bc-caja-preconciliacion-20260819-155227.sqlite3, sha256 71580fc8..., contenido identico a la base"
+    },
+    {
+      "step": "aplicacion productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. 41 altas, 766 retiros, 773 unidades compensadas, 37 ajustes, 4 cambios de naturaleza. Rollback no usado"
+    },
+    {
+      "step": "verificacion post-produccion",
+      "state": "DONE",
+      "detalle": "los 5 totales del plan y las invariantes, todas verdes. Stock operativo en retirados: 0"
+    },
+    {
+      "step": "replay",
+      "state": "DONE",
+      "detalle": "PASS, sin filas nuevas. El segundo intento se rechaza en el pre-guard, que es lo correcto"
+    },
+    {
+      "step": "smoke",
+      "state": "DONE",
+      "detalle": "BC Caja abre y la UI Comercial pasa sus seis comprobaciones"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE"
+    },
+    {
+      "step": "adenda: stock estimado de 000010 en ASUNCION",
+      "state": "DONE",
+      "detalle": "V1-010 ya estaba aplicada, asi que no se recalculo el plan: se agrego un hecho incremental. 100 unidades como ESTIMATED_INITIAL_STOCK, no como conteo. PILAR intacto en 10. PASS, 0 fallas, rollback NO"
+    },
+    {
+      "step": "cierre de los cinco pendientes de V1-008",
+      "state": "DONE",
+      "detalle": "uno por ESTIMATED_INITIAL_STOCK y cuatro por NATURE_CORRECTION. Abiertos: 0"
+    },
+    {
+      "step": "slices siguientes",
+      "state": "NO INICIADOS",
+      "detalle": "013 promo limpia-cristal, 011 Delivery, 012 laboratorio por defecto"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "escritura_en_produccion": "NO",
+    "descontar_ausencias": "NO",
+    "convertir_centinelas_en_stock": "NO",
+    "borrar_historia": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "force_push": "NO"
+  },
+  "generacion": 4
+}

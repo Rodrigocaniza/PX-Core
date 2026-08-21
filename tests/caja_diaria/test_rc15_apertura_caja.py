@@ -72,19 +72,40 @@ def test_la_hora_de_apertura_se_muestra_y_no_se_pide():
     assert 'campos_manual["hora"]' not in SOURCE
 
 
-def test_el_datepicker_compartido_y_factufacil_no_se_tocaron():
+def test_el_datepicker_compartido_no_se_toco():
     assert "def abrir_selector_fecha_entrega():" in SOURCE
     assert 'campos_manual["fecha_entrega"].insert(0, valor.strftime("%d-%m-%Y"))' in SOURCE
-    assert "FactuFacil" not in SOURCE and "FactuFácil" not in SOURCE
+
+
+def test_apertura_sigue_sin_meterse_con_factufacil():
+    """Esta afirmación cambió, y conviene decir por qué.
+
+    RC15 pedía que Apertura no tocara FactuFácil, y lo comprobaba de la manera
+    más fuerte posible: que la palabra no apareciera en toda la pantalla. Servía
+    porque entonces FactuFácil no existía en Caja.
+
+    V1-016 le dio su propia pestaña, así que la palabra ahora aparece —y tiene
+    que aparecer—. Lo que se sigue comprobando es lo mismo de siempre: que la
+    apertura del día y FactuFácil no se mezclen. La pestaña se arma con una
+    llamada a su módulo y no mete nada en el formulario de apertura.
+    """
+    assert "construir_panel_factufacil(" in SOURCE
+    apertura = SOURCE[SOURCE.index("def abrir_selector_fecha_entrega():"):][:4000]
+    assert "factufacil" not in apertura.lower()
 
 
 def test_el_esquema_no_cambia():
     # El port de Apertura sobre el tronco recuperado no agrega migraciones:
     # se queda con las 21 que ya trae la línea (001-015 + 016-021 de Seguimiento).
+    #
+    # Se cuenta la línea de Caja, no el directorio entero: lo que este contrato
+    # afirma es que Apertura no aportó ninguna, y eso sigue siendo cierto cuando
+    # el núcleo comercial suma las suyas de 022 en adelante.
     migrations = sorted(Path("modulos/caja_diaria/infrastructure/migrations").glob("*.sql"))
-    assert len(migrations) == 21
-    assert migrations[-1].name == "021_queda_a_confirmar.sql"
-    assert "015_admin_counts_notifications.sql" in [ruta.name for ruta in migrations]
+    linea_caja = [ruta for ruta in migrations if ruta.name[:3] <= "021"]
+    assert len(linea_caja) == 21
+    assert linea_caja[-1].name == "021_queda_a_confirmar.sql"
+    assert "015_admin_counts_notifications.sql" in [ruta.name for ruta in linea_caja]
 
 
 def test_la_apertura_registra_hora_automatica_y_la_conserva(tmp_path):

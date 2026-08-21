@@ -1,0 +1,70 @@
+{
+  "mission": "BC-OPTICA-COMMERCIAL-CORE-FOUNDATION-V1-001",
+  "current_state": "SAFE_CLOSURE / SLICE 1 CERRADO",
+  "base": "7db56a0",
+  "history": [
+    {
+      "event": "MISSION_STARTED",
+      "from_state": null,
+      "to_state": "SCOPING",
+      "timestamp": "2026-08-18T13:00:00-03:00",
+      "reason": "Encadenada automaticamente tras el cierre 100% PASS de BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001. Worktree y rama aislados sobre origin/main 7db56a0",
+      "gate_id": null,
+      "session_id": "bc-optica-commercial-core-foundation-v1"
+    },
+    {
+      "event": "SCOPE_SPLIT",
+      "from_state": "SCOPING",
+      "to_state": "SLICE_1_DEFINIDO",
+      "timestamp": "2026-08-18T13:02:00-03:00",
+      "reason": "El alcance de foundation era demasiado grande para una mision. Se subdividio en 6 slices y se ejecuta solo el 1, el catalogo canonico, que es el que desbloquea a los otros cinco. Los slices 2-6 quedan disenados en el IMPLEMENTATION_PACKET para no migrar dos veces",
+      "gate_id": null,
+      "session_id": "bc-optica-commercial-core-foundation-v1"
+    },
+    {
+      "event": "TESTS_FIRST",
+      "from_state": "SLICE_1_DEFINIDO",
+      "to_state": "TESTS_ESCRITOS",
+      "timestamp": "2026-08-18T13:04:00-03:00",
+      "reason": "32 pruebas dirigidas escritas antes de la implementacion",
+      "gate_id": null,
+      "session_id": "bc-optica-commercial-core-foundation-v1"
+    },
+    {
+      "event": "IMPLEMENTED",
+      "from_state": "TESTS_ESCRITOS",
+      "to_state": "IMPLEMENTADO",
+      "timestamp": "2026-08-18T13:08:00-03:00",
+      "reason": "Migracion 022 aditiva, modulo modulos/comercial con dominio, puertos, repositorio SQLite e importador. tracks_stock derivado de la naturaleza y no seteable",
+      "gate_id": null,
+      "session_id": "bc-optica-commercial-core-foundation-v1"
+    },
+    {
+      "event": "FOREIGN_CONTRACTS_UPDATED",
+      "from_state": "IMPLEMENTADO",
+      "to_state": "SUITE_VERDE",
+      "timestamp": "2026-08-18T13:10:00-03:00",
+      "reason": "Seis contratos ajenos fijaban la cadena en 21 repitiendo la lista a mano. Se actualizaron preservando su intencion y derivando la lista del directorio. Suite 714 passed, 4 subtests, exit 0",
+      "gate_id": null,
+      "session_id": "bc-optica-commercial-core-foundation-v1"
+    },
+    {
+      "event": "VERIFIED_ON_PRODUCTION_COPY",
+      "from_state": "SUITE_VERDE",
+      "to_state": "VERIFICADO",
+      "timestamp": "2026-08-18T13:11:00-03:00",
+      "reason": "La 022 se aplico sobre una COPIA de la base productiva real: 0 tablas perdidas, 0 filas perdidas, las 10 lineas de venta historicas con article_id NULL, integrity ok, foreign_key_check 0, 7 motivos sembrados, SUM(cash_entries.total) 6.400.000 sin cambios. La base real quedo sin tocar",
+      "gate_id": null,
+      "session_id": "bc-optica-commercial-core-foundation-v1"
+    },
+    {
+      "event": "SAFE_CLOSURE",
+      "from_state": "VERIFICADO",
+      "to_state": "SAFE_CLOSURE / SLICE 1 CERRADO",
+      "timestamp": "2026-08-18T13:15:00-03:00",
+      "reason": "Slice 1 cerrado y pusheado a su rama. NO se promueve a main: agrega la migracion 022 y todavia no hay gate de empaquetado ni instalacion. Continua el slice 2, el ledger de inventario",
+      "gate_id": null,
+      "session_id": "bc-optica-commercial-core-foundation-v1"
+    }
+  ]
+}

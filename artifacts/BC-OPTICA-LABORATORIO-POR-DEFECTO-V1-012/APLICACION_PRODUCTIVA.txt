@@ -1,0 +1,117 @@
+APLICACION PRODUCTIVA -- salida de la corrida
+comando: python tools/laboratorios_por_defecto_optica.py --confirmar
+fecha  : 2026-08-19 17:31
+
+base   : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 : ffafb5c624af07e036f5a86d3348b6e0412eeb855b22883f64f862534386f7b2
+antes  : 3596 articulos, 4441 movimientos, ASU 6166 / PIL 2260
+
+(el plan que se imprimio es identico al del dry-run, en
+CATALOGO_CONTRA_PRODUCCION.txt: 24 asignaciones, 7 codigos ausentes, 1 sin
+default a proposito, 6 cristales de produccion fuera del brief)
+
+== backup verificable ==
+  archivo: C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-prelaboratorios-20260819-173134.sqlite3
+  sha256 : cebf6b56c130bf6fc308fad8ef376171adf8e75f6a21606a658df7539464f712
+  OK   el backup tiene el mismo contenido que la base
+
+== laboratorios ==
+  creado   «Laboratorio Optilab»
+  creado   «ServiOptica»
+  creado   «Laboratorio Cristal»
+
+== laboratorio por defecto ==
+  2000125   «FUTUREX STEEL» -> ServiOptica
+  2000066   «Solamax» -> Laboratorio Optilab
+  2000067   «Bifocal (ST)» -> Laboratorio Optilab
+  2000073   «Multiblue» -> Laboratorio Optilab
+  2000075   «Futurex Protec» -> ServiOptica
+  2000076   «Blue Protec» -> ServiOptica
+  2000074   «Progresivo OP» -> Laboratorio Optilab
+  2000086   «Foto Sunactive» -> Laboratorio Optilab
+  2000060   «Organico UVX» -> Laboratorio Optilab
+  2000061   «Fotocromático (AR)» -> Laboratorio Optilab
+  2000062   «Multifocal (OP)» -> Laboratorio Optilab
+  2000063   «Kripto (Kto) Organico UVX» -> Laboratorio Optilab
+  2000064   «Blue Ar» -> Laboratorio Optilab
+  2000213   «Org AR» -> Laboratorio Optilab
+  2000214   «Kto.Foto.AR» -> ServiOptica
+  2000215   «Kto.Foto» -> Laboratorio Optilab
+  2000216   «Kto.Foto Blue AR» -> ServiOptica
+  2000217   «Policarbonato Blanco» -> Laboratorio Optilab
+  2000218   «Policarbonato AR» -> Laboratorio Optilab
+  2000206   «Kto.Invisible» -> Laboratorio Optilab
+  2000207   «Kto.AR» -> Laboratorio Optilab
+  2000208   «Kto.Blue AR» -> ServiOptica
+  2000209   «Blue Fotocromatico AR» -> ServiOptica
+  2000126   «FUTUREX G2» -> Laboratorio Cristal
+
+== verificacion ==
+  OK   solo cambio default_laboratory_id ([])
+  OK   «Laboratorio Optilab»: 1 fila
+  OK   «ServiOptica»: 1 fila
+  OK   «Laboratorio Cristal»: 1 fila
+  OK   laboratorios: 0 -> 3
+  OK   2000125: default ServiOptica
+  OK   2000066: default Laboratorio Optilab
+  OK   2000067: default Laboratorio Optilab
+  OK   2000073: default Laboratorio Optilab
+  OK   2000075: default ServiOptica
+  OK   2000076: default ServiOptica
+  OK   2000074: default Laboratorio Optilab
+  OK   2000086: default Laboratorio Optilab
+  OK   2000060: default Laboratorio Optilab
+  OK   2000061: default Laboratorio Optilab
+  OK   2000062: default Laboratorio Optilab
+  OK   2000063: default Laboratorio Optilab
+  OK   2000064: default Laboratorio Optilab
+  OK   2000213: default Laboratorio Optilab
+  OK   2000214: default ServiOptica
+  OK   2000215: default Laboratorio Optilab
+  OK   2000216: default ServiOptica
+  OK   2000217: default Laboratorio Optilab
+  OK   2000218: default Laboratorio Optilab
+  OK   2000206: default Laboratorio Optilab
+  OK   2000207: default Laboratorio Optilab
+  OK   2000208: default ServiOptica
+  OK   2000209: default ServiOptica
+  OK   2000126: default Laboratorio Cristal
+  OK   2000212: sigue sin laboratorio por defecto
+  OK   «Laboratorio Optilab» como marca: 1 -> 1 (ya venia de la carga inicial)
+  OK   «ServiOptica» como marca: 0 -> 0
+  OK   «Laboratorio Cristal» como marca: 0 -> 0
+  OK   marcas sin cambios: 136
+  ---  sale_items.laboratory '': 4
+  ---  sale_items.laboratory 'Optilab': 2
+  ---  sale_items.laboratory 'SI': 1
+  ---  sale_items.laboratory 'asasa': 1
+  ---  sale_items.laboratory 'asd': 1
+  ---  sale_items.laboratory 'optilab': 1
+  OK   bitacora ALTA_ARTICULO: 42 -> 42
+  OK   bitacora ALTA_CATEGORIA: 15 -> 15
+  OK   bitacora ALTA_MARCA: 136 -> 136
+  OK   bitacora ARTICLE_METADATA_RESTORED: 5 -> 5
+  OK   bitacora DELIVERY_SERVICE_CREATED: 1 -> 1
+  OK   bitacora EDITA_ARTICULO: 777 -> 801
+  OK   bitacora ESTIMATED_INITIAL_STOCK: 1 -> 1
+  OK   bitacora NATURE_CORRECTION: 4 -> 4
+  OK   bitacora PROMO_OBSEQUIO_LEGACY_RETIRED: 1 -> 1
+  OK   bitacora STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION: 5 -> 5
+  OK   acciones nuevas: ['DEFAULT_LABORATORY_ASSIGNED', 'LABORATORY_CATALOG_CREATED']
+  OK   movimientos sin cambios: 4441
+  OK   stock sin cambios: ASU 6166 / PIL 2260
+  OK   articulos sin cambios: 3596
+  OK   activos sin cambios: 2829
+  OK   categorias sin cambios: 15
+  OK   marcas sin cambios: 136
+  OK   entradas sin cambios: 12
+  OK   suma_caja sin cambios: 6400000
+  OK   sale_items sin cambios: 10
+  OK   integrity_check: ok
+  OK   foreign_key_check: 0
+  OK   stock negativo: 0
+  OK   huerfanos: 0
+  OK   efectos sin hecho: 0
+
+sha256 despues: a335805eb83cce46454e36eda1fdb25a567be1ad534427af687ef0fa8b225d13
+VEREDICTO: PASS (0 fallas)

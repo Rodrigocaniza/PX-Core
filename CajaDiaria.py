@@ -45,6 +45,14 @@ from modulos.caja_diaria.domain.models import (
 )
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
 from modulos.caja_diaria.domain.tracking import NextAction, TrackingStatus
+from modulos.caja_diaria.application.admin_ops import (
+    ETIQUETA_ROL,
+    ROLES,
+    ROL_OPERADOR,
+)
+from modulos.caja_diaria.ui.factufacil_panel import construir_panel_factufacil
+from modulos.caja_diaria.ui.service_jobs_panel import construir_panel_composturas
+from modulos.caja_diaria.ui.commission_panel import construir_panel_comisiones
 from modulos.caja_diaria.application.tracking_service import (
     ETIQUETAS_ESTADO as ETIQUETAS_ESTADO_UI,
     GRUPOS_SEGUIMIENTO,
@@ -146,7 +154,7 @@ def metricas_resumen_kpi(perfil: dict) -> dict:
 
 #: Ultimo recurso si no se encuentra VERSION.txt. Debe coincidir con
 #: pilot/package_docs/VERSION.txt; hay una prueba que lo verifica.
-VERSION_APLICACION = "1.0.0-rc.31"
+VERSION_APLICACION = "1.0.0-rc.34"
 
 
 def version_aplicacion() -> str:
@@ -342,6 +350,19 @@ COBRO_PAGO = (
     ("cuotas", "Cuotas", 75), ("total", "Total de la venta", 150),
     ("saldo", "Saldo cliente", 125),
 )
+#: El limpia-cristal que se regala es el mismo que se vende. Antes había un SKU
+#: aparte, «LIMPIA CRISTAL OBSEQUIO», con precio cero y stock propio: un producto
+#: que no existía y un depósito que no cerraba. El obsequio se marca en la línea,
+#: no se inventa un artículo.
+SKU_LIMPIA_CRISTAL = "000010"
+PROMO_LIMPIA_CRISTAL = "PROMO_CRISTAL_ARMAZON_LIMPIA"
+
+#: El envío se cobra casi siempre lo mismo, pero no es una tarifa: cambia con la
+#: distancia y con lo que se acuerde. Por eso el importe vive en la línea de la
+#: venta y esto es sólo lo que aparece propuesto en el cuadro.
+SKU_DELIVERY = "SERV-DELIVERY"
+PRECIO_DELIVERY_SUGERIDO = 20000
+
 CAMPOS_MONETARIOS_UI = (
     "caja_inicial", "armazon", "cristal", "total", "efectivo",
     "tarjeta_cheque", "transferencia", "monto_convenio", "saldo", "salida_monto",
@@ -389,11 +410,18 @@ def calcular_saldo_pendiente(total, efectivo, tarjeta_cheque, transferencia, mon
 
 
 def construir_item_producto_visible(valores):
-    """Convierte el producto actualmente visible en el primer item de la venta."""
+    """Convierte el producto actualmente visible en el primer item de la venta.
+
+    `article_id` es el articulo del componente fisico y `lens_article_id` el del
+    trabajo de laboratorio. Vienen del buscador; cuando la linea se escribe a
+    mano quedan en None y la venta se comporta como siempre.
+    """
     item = SaleItem(
         description=valores.get("arm_org") or valores.get("cod") or "Producto",
         code=valores.get("cod", ""), item_type=valores.get("arm_org", ""),
         frame_price=valores.get("armazon", ""), lens_price=valores.get("cristal", ""),
+        article_id=valores.get("article_id") or None,
+        lens_article_id=valores.get("lens_article_id") or None,
         frame_discount_percent=valores.get("descuento_armazon", ""),
         lens_discount_percent=valores.get("descuento_cristal", ""),
         no_cost=str(valores.get("sin_costo", "0")) in {"1", "true", "True"},
@@ -1004,6 +1032,154 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         text_color="#DCEBFF", font=ctk.CTkFont(size=11, weight="bold"),
     ).pack(side="right", padx=18)
 
+    # ---- V1-019B: quien esta operando ------------------------------------
+    #
+    # Hasta ahora quien operaba salia de una variable de entorno, asi que todo
+    # lo que se registraba decia "Operadora". Ahora alguien entra, y lo que
+    # hace queda a su nombre.
+    sesion_caja = {"sesion": None}
+
+    def operadora_actual():
+        """La sesion vigente, o None si vencio o la desactivaron.
+
+        Se revalida contra el servicio en cada uso: desactivar a alguien tiene
+        que sacarla de la caja aunque ya estuviera adentro.
+        """
+        sesion = sesion_caja.get("sesion")
+        if sesion is None:
+            return None
+        try:
+            return controller.admin.require_operator(sesion.token)
+        except Exception:
+            sesion_caja["sesion"] = None
+            return None
+
+    def vendedoras_disponibles():
+        """Las personas activas del catalogo. Nunca rompe la carga de la venta.
+
+        Es de solo lectura y no pide sesion administrativa: pedirsela a la
+        operadora seria pedirle que sea administradora para poder vender.
+
+        Vive aca arriba, con las demas funciones de identidad, y no mas abajo
+        junto al seguimiento: el combo de vendedora se arma mientras se
+        construye la planilla, mucho antes. Definirla despues la convertia en
+        una local de `abrir_caja_diaria` que todavia no estaba ligada cuando la
+        planilla la llamaba, y la ventana no llegaba a abrirse.
+        """
+        try:
+            return list(controller.admin.active_salespeople())
+        except Exception:
+            # Una base vieja o un problema de lectura no pueden impedir cargar
+            # una venta: el combo queda editable y la operadora escribe.
+            return []
+
+    def pedir_login_operadora(titulo="Entrar a la caja", relevo=False):
+        """La pantalla de entrada. Usuario, contrasena, entrar.
+
+        Cuatro cosas en pantalla y ninguna tecnica: quien la usa esta por
+        empezar a atender, no a configurar nada.
+        """
+        dialogo = ctk.CTkToplevel(ventana)
+        dialogo.title(titulo)
+        dialogo.geometry("400x330")
+        dialogo.transient(ventana)
+        dialogo.grab_set()
+        resultado = {"sesion": None}
+        ctk.CTkLabel(dialogo, text=titulo, text_color="#0F5FB9",
+                     font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(26, 4))
+        ctk.CTkLabel(dialogo, text="Entrá con tu usuario para empezar a atender.",
+                     text_color="#5B6B7F").pack(pady=(0, 16))
+        usuario = ctk.CTkEntry(dialogo, width=280, placeholder_text="Usuario")
+        usuario.pack(pady=6)
+        clave = ctk.CTkEntry(dialogo, width=280, placeholder_text="Contraseña", show="•")
+        clave.pack(pady=6)
+        aviso = ctk.CTkLabel(dialogo, text="", text_color="#B42318",
+                             font=ctk.CTkFont(size=12, weight="bold"))
+        aviso.pack(pady=(8, 0))
+
+        def entrar(_evento=None):
+            try:
+                anterior = sesion_caja.get("sesion")
+                if relevo and anterior is not None:
+                    sesion = controller.admin.switch_operator(
+                        anterior.token, usuario.get().strip(), clave.get())
+                else:
+                    sesion = controller.admin.authenticate_operator(
+                        usuario.get().strip(), clave.get())
+            except Exception as error:
+                # El mensaje del servicio no distingue usuario inexistente de
+                # contrasena equivocada, y esta bien que no lo haga.
+                aviso.configure(text=str(error))
+                clave.delete(0, "end")
+                return
+            resultado["sesion"] = sesion
+            dialogo.destroy()
+
+        clave.bind("<Return>", entrar)
+        usuario.bind("<Return>", lambda _e: clave.focus_set())
+        ctk.CTkButton(dialogo, text="Entrar", width=280, height=38,
+                      font=ctk.CTkFont(size=14, weight="bold"),
+                      command=entrar).pack(pady=(16, 6))
+        usuario.focus_set()
+        dialogo.wait_window()
+        if resultado["sesion"] is not None:
+            sesion_caja["sesion"] = resultado["sesion"]
+            actualizar_chip_operadora()
+        return resultado["sesion"]
+
+    def actualizar_chip_operadora():
+        sesion = sesion_caja.get("sesion")
+        if sesion is None:
+            etiqueta_operadora.configure(text="Sin sesión", text_color="#B42318")
+            return
+        sucursal = ""
+        try:
+            contexto = controller.admin.effective_branch(
+                sesion.token, controller.tracking.branch_of_register(
+                    contexto_sucursal.get("caja") or ""))
+            sucursal = contexto["branch"]
+            if contexto["mismatch"]:
+                # No se corrige solo: cual de los dos datos esta mal no lo puede
+                # decidir el sistema.
+                etiqueta_operadora.configure(
+                    text=f"Operando: {sesion.display_name} · {sucursal}  ⚠",
+                    text_color="#B45309")
+                return
+        except Exception:
+            sucursal = sesion.branch
+        etiqueta_operadora.configure(
+            text=f"Operando: {sesion.etiqueta(sucursal)}", text_color="#DCEBFF")
+
+    def cambiar_operadora():
+        """Relevo. No cierra la caja ni el arqueo: son otra cosa."""
+        pedir_login_operadora("Cambiar operadora", relevo=True)
+
+    def cerrar_sesion_operadora():
+        sesion = sesion_caja.get("sesion")
+        if sesion is not None:
+            controller.admin.logout_operator(sesion.token, reason="cerró sesión")
+        sesion_caja["sesion"] = None
+        actualizar_chip_operadora()
+        if pedir_login_operadora() is None:
+            ventana.destroy()
+
+    barra_operadora = ctk.CTkFrame(barra_superior, fg_color="transparent")
+    barra_operadora.pack(side="right", padx=(0, 12))
+    etiqueta_operadora = ctk.CTkLabel(
+        barra_operadora, text="Sin sesión", text_color="#DCEBFF",
+        font=ctk.CTkFont(size=11, weight="bold"))
+    etiqueta_operadora.pack(side="left", padx=(0, 8))
+    ctk.CTkButton(
+        barra_operadora, text="Cambiar operadora", width=140, height=22,
+        fg_color="#1B4F8F", hover_color="#15406F",
+        font=ctk.CTkFont(size=10, weight="bold"),
+        command=lambda: cambiar_operadora()).pack(side="left", padx=(0, 4))
+    ctk.CTkButton(
+        barra_operadora, text="Salir", width=54, height=22,
+        fg_color="#1B4F8F", hover_color="#15406F",
+        font=ctk.CTkFont(size=10, weight="bold"),
+        command=lambda: cerrar_sesion_operadora()).pack(side="left")
+
     pestañas = ctk.CTkTabview(
         ventana, fg_color=color_fondo, border_width=0, corner_radius=0
     )
@@ -1012,7 +1188,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     tab_manual = pestañas.add("Cargar manual")
     tab_pedidos = pestañas.add("Pedidos")
     tab_seguimiento = pestañas.add("Seguimiento")
+    tab_composturas = pestañas.add("Composturas")
     tab_arqueo = pestañas.add("Arqueo")
+    tab_factufacil = pestañas.add("FactuFácil")
     tab_historial = pestañas.add("Historial")
     pestañas._segmented_button.grid_forget()
     for fila_oculta in (0, 1, 2):
@@ -1032,6 +1210,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ("Cargar manual", "▣  Caja diaria"),
         ("Pedidos", "📦  Pedidos"),
         ("Seguimiento", "🚚  Seguimiento"),
+        ("FactuFácil", "🧾  FactuFácil"),
         ("Arqueo", "▤  Arqueo"),
         ("Importar Excel", "▣  Importar Excel"),
         ("Historial", "Historial"),
@@ -1047,6 +1226,37 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         boton.pack(side="left", padx=(16 if nombre == "Cargar manual" else 0, 0), pady=0)
         botones_navegacion[nombre] = boton
     seleccionar_pestaña("Cargar manual")
+
+    def abrir_pantalla_comercial():
+        """Articulos, proveedores y compras, en su propia ventana.
+
+        Vive aparte de Caja a proposito: la operadora que cobra no tiene por que
+        cruzarse con el ABM de articulos, y Caja no tiene por que cargar la
+        pantalla comercial para abrir el dia.
+        """
+        try:
+            from modulos.comercial.application.comercial_controller import (
+                build_comercial_controller,
+            )
+            from modulos.comercial.ui.comercial_window import VentanaComercial
+        except ImportError:
+            messagebox.showinfo(
+                "Comercial", "El módulo comercial no está disponible en esta "
+                "instalación.", parent=ventana)
+            return
+        comercial = build_comercial_controller(resolve_data_paths().ensure().database)
+        VentanaComercial(
+            ventana, comercial,
+            actor=(campos_manual["responsable"].get().strip()
+                   if "responsable" in campos_manual else "admin") or "admin",
+            unidad=campos_manual["unidad"].get().strip())
+
+    boton_comercial = ctk.CTkButton(
+        barra_superior, text="Comercial", width=110, height=26,
+        fg_color="#FFFFFF", text_color="#0F5FB9", hover_color="#DCEBFF",
+        command=abrir_pantalla_comercial,
+    )
+    boton_comercial.pack(side="right", padx=(4, 0))
 
     boton_administrador = ctk.CTkButton(
         barra_superior, text="Administrador", width=125, height=26,
@@ -1186,6 +1396,183 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     )
     boton_importar.pack(side="left")
 
+    def construir_usuarios(seccion, session, panel):
+        """Quien puede usar BC Caja, con que rol, y quien lo decidio.
+
+        Se desactiva, no se borra: una venta de agosto guarda el nombre de quien
+        la hizo, y borrar a la persona dejaria ese nombre sin nadie detras.
+        """
+        barra = ctk.CTkFrame(seccion, fg_color="transparent")
+        barra.pack(fill="x", padx=12, pady=(12, 6))
+        ctk.CTkLabel(
+            barra, text="Personas autorizadas", text_color="#0F5FB9",
+            font=ctk.CTkFont(size=14, weight="bold")).pack(side="left")
+        aviso = ctk.CTkLabel(barra, text="", text_color="#1B7F4B",
+                             font=ctk.CTkFont(size=12, weight="bold"))
+        aviso.pack(side="right", padx=8)
+
+        tabla = ttk.Treeview(
+            seccion, columns=("nombre", "usuario", "rol", "sucursal", "estado", "entra"),
+            show="headings", selectmode="browse", height=10)
+        for clave, titulo, ancho in (
+                ("nombre", "Nombre", 200), ("usuario", "Usuario", 130),
+                ("rol", "Rol", 130), ("sucursal", "Sucursal", 110),
+                ("estado", "Estado", 100), ("entra", "Puede entrar", 100)):
+            tabla.heading(clave, text=titulo)
+            tabla.column(clave, width=ancho, anchor="w")
+        tabla.pack(fill="both", expand=True, padx=12, pady=6)
+        tabla.tag_configure("inactiva", foreground="#8A97A6")
+
+        estado_usuarios = {"filas": {}}
+
+        def decir(texto, color="#1B7F4B"):
+            aviso.configure(text=texto, text_color=color)
+            panel.after(6000, lambda: aviso.configure(text=""))
+
+        def refrescar_usuarios(mensaje=""):
+            tabla.delete(*tabla.get_children())
+            estado_usuarios["filas"] = {}
+            try:
+                usuarios = controller.admin.list_users(session.token)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            for usuario in usuarios:
+                estado_usuarios["filas"][usuario.id] = usuario
+                tabla.insert(
+                    "", "end", iid=usuario.id,
+                    tags=() if usuario.active else ("inactiva",),
+                    values=(usuario.display_name, usuario.username,
+                            usuario.etiqueta_rol, usuario.branch or "Todas",
+                            "Activa" if usuario.active else "Inactiva",
+                            "Sí" if usuario.puede_entrar else "No"))
+            if mensaje:
+                decir(mensaje)
+
+        def elegida():
+            seleccion = tabla.selection()
+            return estado_usuarios["filas"].get(seleccion[0]) if seleccion else None
+
+        def formulario(titulo, usuario=None):
+            """Alta y edicion comparten formulario: son los mismos campos."""
+            dialogo = ctk.CTkToplevel(panel)
+            dialogo.title(titulo)
+            dialogo.geometry("420x430")
+            dialogo.transient(panel)
+            dialogo.grab_set()
+            ctk.CTkLabel(dialogo, text=titulo, font=ctk.CTkFont(size=15, weight="bold"),
+                         text_color="#0F5FB9").pack(anchor="w", padx=18, pady=(16, 10))
+            campos = {}
+            for clave, etiqueta in (("display_name", "Nombre"), ("username", "Usuario"),
+                                    ("branch", "Sucursal (vacío = todas)")):
+                ctk.CTkLabel(dialogo, text=etiqueta, anchor="w").pack(
+                    fill="x", padx=18, pady=(6, 0))
+                campo = ctk.CTkEntry(dialogo, width=360)
+                campo.pack(padx=18)
+                campos[clave] = campo
+            ctk.CTkLabel(dialogo, text="Rol", anchor="w").pack(
+                fill="x", padx=18, pady=(6, 0))
+            rol = ctk.CTkComboBox(dialogo, width=360,
+                                  values=[ETIQUETA_ROL[r] for r in ROLES])
+            rol.pack(padx=18)
+            ctk.CTkLabel(
+                dialogo, anchor="w", text_color="#5B6B7F",
+                text=("Contraseña sólo si tiene que entrar al panel.\n"
+                      "Una operadora no la necesita para vender."),
+                justify="left").pack(fill="x", padx=18, pady=(10, 0))
+            clave_entry = ctk.CTkEntry(dialogo, width=360, show="•")
+            clave_entry.pack(padx=18)
+
+            if usuario is not None:
+                campos["display_name"].insert(0, usuario.display_name)
+                campos["username"].insert(0, usuario.username)
+                campos["username"].configure(state="disabled")
+                campos["branch"].insert(0, usuario.branch)
+                rol.set(usuario.etiqueta_rol)
+            else:
+                rol.set(ETIQUETA_ROL[ROL_OPERADOR])
+
+            def guardar():
+                nombre = campos["display_name"].get().strip()
+                sucursal = campos["branch"].get().strip()
+                elegido = rol.get()
+                codigo = next((r for r in ROLES if ETIQUETA_ROL[r] == elegido), elegido)
+                secreto = clave_entry.get()
+                try:
+                    if usuario is None:
+                        creada = controller.admin.create_user(
+                            session.token, username=campos["username"].get().strip(),
+                            display_name=nombre, role=codigo, branch=sucursal,
+                            password=secreto or None)
+                        mensaje = f"{creada.display_name} quedó cargada."
+                    else:
+                        controller.admin.update_user(
+                            session.token, usuario.id, display_name=nombre,
+                            role=codigo, branch=sucursal)
+                        if secreto:
+                            controller.admin.set_user_password(
+                                session.token, usuario.id, secreto)
+                        mensaje = f"{nombre} quedó actualizada."
+                except Exception as exc:
+                    mostrar_error(exc)
+                    return
+                dialogo.destroy()
+                refrescar_usuarios(mensaje)
+
+            acciones = ctk.CTkFrame(dialogo, fg_color="transparent")
+            acciones.pack(fill="x", padx=18, pady=16, side="bottom")
+            ctk.CTkButton(acciones, text="Guardar", command=guardar).pack(side="left")
+            ctk.CTkButton(acciones, text="Cancelar", fg_color="#6B7280",
+                          command=dialogo.destroy).pack(side="left", padx=8)
+
+        def nueva():
+            formulario("Nueva persona")
+
+        def editar():
+            usuario = elegida()
+            if usuario is None:
+                decir("Elegí una fila.", "#B45309")
+                return
+            formulario(f"Editar · {usuario.display_name}", usuario)
+
+        def alternar_estado():
+            usuario = elegida()
+            if usuario is None:
+                decir("Elegí una fila.", "#B45309")
+                return
+            if usuario.active and not messagebox.askyesno(
+                    "Desactivar",
+                    f"¿Desactivar a {usuario.display_name}?\n\n"
+                    "No se borra: sigue apareciendo en las ventas que ya hizo.",
+                    parent=panel):
+                return
+            try:
+                controller.admin.set_user_active(
+                    session.token, usuario.id, not usuario.active)
+            except Exception as exc:
+                mostrar_error(exc)
+                return
+            refrescar_usuarios(
+                f"{usuario.display_name} "
+                f"{'vuelve a estar activa' if not usuario.active else 'quedó inactiva'}.")
+
+        botones = ctk.CTkFrame(seccion, fg_color="transparent")
+        botones.pack(fill="x", padx=12, pady=(0, 12))
+        ctk.CTkButton(botones, text="Nueva persona", command=nueva).pack(side="left")
+        ctk.CTkButton(botones, text="Editar", command=editar,
+                      fg_color="#FFFFFF", text_color="#0F5FB9", border_width=1,
+                      border_color="#D6E1EE", hover_color="#EAF3FF").pack(
+                          side="left", padx=8)
+        ctk.CTkButton(botones, text="Activar / desactivar", command=alternar_estado,
+                      fg_color="#FFFFFF", text_color="#B45309", border_width=1,
+                      border_color="#F0D3A8", hover_color="#FFF6E5").pack(side="left")
+        ctk.CTkLabel(
+            seccion, justify="left", text_color="#5B6B7F",
+            text=("Las personas no se borran: se desactivan. Los permisos los hace "
+                  "cumplir el servicio, no la pantalla."),
+        ).pack(anchor="w", padx=14, pady=(0, 10))
+        refrescar_usuarios()
+
     def mostrar_panel_administrador(session):
         panel = ctk.CTkToplevel(ventana)
         estado_admin["window"] = panel
@@ -1196,14 +1583,20 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                      font=ctk.CTkFont(size=18, weight="bold"), text_color="#0F5FB9").pack(anchor="w", padx=18, pady=12)
         tabs = ctk.CTkTabview(panel); tabs.pack(fill="both", expand=True, padx=14, pady=(0, 14))
         sections = {name: tabs.add(name) for name in (
-            "Importación de datos", "Usuarios y permisos", "Sucursal y caja", "Responsables",
+            "Importación de datos", "Usuarios y permisos", "Comisiones de composturas",
+            "Sucursal y caja", "Responsables",
             "Arqueos", "Notificaciones de cierre", "Auditoría", "Envíos pendientes",
         )}
         ctk.CTkLabel(sections["Importación de datos"], text="Importación protegida por sesión administrativa.",
                      font=ctk.CTkFont(size=14, weight="bold")).pack(pady=(36, 12))
         ctk.CTkButton(sections["Importación de datos"], text="Abrir importación de datos",
                       command=lambda: (panel.grab_release(), panel.withdraw(), seleccionar_pestaña("Importar Excel"))).pack()
-        ctk.CTkLabel(sections["Usuarios y permisos"], text="Rol ADMIN\nPermisos sensibles validados por el servicio.", justify="left").pack(anchor="w", padx=20, pady=20)
+        construir_usuarios(sections["Usuarios y permisos"], session, panel)
+        # V1-021: la comisión de compostura se administra acá y sólo acá. El
+        # panel recibe el token de esta sesión y el servicio vuelve a pedir el
+        # rol en cada llamada: la pestaña es por dónde se entra, no la cerradura.
+        construir_panel_comisiones(sections["Comisiones de composturas"],
+                                   controller.jobs, token=session.token, ventana=panel)
         branch = controller.admin.setting("branch")
         branch_name = ctk.CTkEntry(sections["Sucursal y caja"], placeholder_text="Sucursal", width=280)
         branch_name.insert(0, branch.get("branch", "")); branch_name.pack(pady=(30, 8))
@@ -1428,12 +1821,25 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
             ).grid(row=fila_campo, column=columna_etiqueta, sticky="ew", padx=(10, 5), pady=2)
             if clave == "vendedora":
+                # Los nombres salen del catalogo de usuarios, no de una lista
+                # cableada. Antes eran cuatro nombres de maqueta -Ana, Belen,
+                # Carla, Diana- eligiendo la vendedora de cada venta real.
+                #
+                # Si todavia no hay nadie cargado, el combo queda con la opcion
+                # vacia y la operadora escribe el nombre: se degrada a lo que
+                # habia antes de que existiera el catalogo, en vez de dejar la
+                # caja sin poder registrar una venta el dia de la actualizacion.
                 campo = ctk.CTkComboBox(
-                    seccion, values=["Seleccionar...", "Ana", "Belén", "Carla", "Diana"],
+                    seccion, values=(["Seleccionar..."] + vendedoras_disponibles()),
                     width=(ancho if perfil["nombre"] == "full-hd" else min(ancho, 88)), height=perfil["campo_alto"], fg_color="#FFFFFF",
                     border_color=color_borde_suave,
                 )
-                campo.set("Seleccionar...")
+                # Por defecto vende quien esta operando. Se puede elegir a
+                # otra -pasa que una administrativa cargue la venta de otra
+                # chica- y en ese caso queda auditado que no son la misma.
+                _sesion = sesion_caja.get("sesion")
+                campo.set(_sesion.display_name if _sesion is not None
+                          else "Seleccionar...")
             else:
                 campo = ctk.CTkEntry(
                     seccion, width=(ancho if perfil["nombre"] == "full-hd" else min(ancho, 88)), height=perfil["campo_alto"], fg_color="#FFFFFF",
@@ -1697,6 +2103,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     bloque_kpi_secundario.pack(side="left")
     for clave, titulo, color in KPI_SECUNDARIOS:
         agregar_kpi(bloque_kpi_secundario, clave, titulo, color, False)
+    # Vinculo del articulo canonico de la linea que se esta armando. Vacio
+    # mientras se escriba a mano, que es como se escriben todas hoy.
+    seleccion_articulo = {}
+
     def formatear_campo_monetario(clave):
         campo = campos_manual[clave]
         texto = formatear_importe_ui(campo.get())
@@ -1748,14 +2158,179 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         except (NameError, Exception):
             pass
 
+    def abrir_buscador_de_articulo(destino="frame"):
+        """Elegir el articulo canonico de la linea que se esta armando.
+
+        Busca por codigo, descripcion o codigo de barras, y muestra el stock de
+        ESTA sucursal. Al elegir completa codigo, descripcion y precio, y se
+        queda con el vinculo: sin el vinculo la venta no descuenta nada.
+        """
+        try:
+            from modulos.comercial.application.comercial_controller import (
+                build_comercial_controller,
+            )
+            from modulos.comercial.ui.comercial_window import BuscadorDeArticulos
+        except ImportError:
+            messagebox.showinfo(
+                "Artículos", "El módulo comercial no está disponible en esta "
+                "instalación.", parent=ventana)
+            return
+
+        comercial = build_comercial_controller(resolve_data_paths().ensure().database)
+
+        def elegir(opcion):
+            if destino == "lens":
+                seleccion_articulo["lens_article_id"] = opcion.article_id
+                campos_manual["cristal"].delete(0, "end")
+                if opcion.sale_price:
+                    campos_manual["cristal"].insert(
+                        0, formatear_importe_ui(opcion.sale_price))
+                # A donde se suele mandar este cristal. Es una sugerencia: queda
+                # escrita en el campo y la operadora la cambia si esta vez va a
+                # otro lado. Si el cristal no tiene preferencia no se inventa
+                # ninguna, y tampoco se borra lo que ya haya escrito a mano.
+                sugerido = comercial.laboratorio_por_defecto(opcion.article_id)
+                if sugerido is not None:
+                    campos_manual["laboratorio"].delete(0, "end")
+                    campos_manual["laboratorio"].insert(0, sugerido.name)
+            else:
+                seleccion_articulo["article_id"] = opcion.article_id
+                for clave, valor in (("cod", opcion.sku), ("arm_org", opcion.name)):
+                    campos_manual[clave].delete(0, "end")
+                    campos_manual[clave].insert(0, valor)
+                campos_manual["armazon"].delete(0, "end")
+                if opcion.sale_price:
+                    campos_manual["armazon"].insert(
+                        0, formatear_importe_ui(opcion.sale_price))
+            recalcular_total_visible()
+            comercial.close()
+
+        BuscadorDeArticulos(
+            ventana, comercial,
+            unidad=campos_manual["unidad"].get().strip(), al_elegir=elegir)
+
+    def agregar_delivery():
+        """El envío como concepto de la venta, no como cosa del depósito.
+
+        El precio se pregunta con 20.000 puesto: es lo que se cobra casi siempre,
+        pero no es una tarifa. Cambia con la distancia y con lo que se haya
+        acordado, así que el importe pertenece a esta venta y no al catálogo.
+        """
+        try:
+            from modulos.comercial.application.comercial_controller import (
+                build_comercial_controller,
+            )
+        except ImportError:
+            messagebox.showinfo(
+                "Artículos", "El módulo comercial no está disponible en esta "
+                "instalación.", parent=ventana)
+            return
+
+        comercial = build_comercial_controller(resolve_data_paths().ensure().database)
+        try:
+            articulo = comercial.articulo_por_sku(SKU_DELIVERY)
+            if articulo is None or not articulo.active:
+                messagebox.showwarning(
+                    "Delivery", f"No hay un concepto activo con el código {SKU_DELIVERY}. "
+                    "Cargalo en el catálogo antes de cobrarlo.", parent=ventana)
+                return
+            sugerido = articulo.sale_price or PRECIO_DELIVERY_SUGERIDO
+            nombre = articulo.name
+            article_id = articulo.id
+        finally:
+            comercial.close()
+
+        respuesta = simpledialog.askstring(
+            "Delivery / Envío", "Importe a cobrar por el envío:",
+            initialvalue=formatear_importe_ui(sugerido), parent=ventana)
+        if respuesta is None:
+            return
+        try:
+            precio = int(str(respuesta).replace(".", "").replace(" ", "").strip() or 0)
+        except ValueError:
+            messagebox.showwarning("Delivery", f"«{respuesta}» no es un importe.",
+                                   parent=ventana)
+            return
+        if precio < 0:
+            messagebox.showwarning("Delivery", "El envío no puede cobrarse en negativo.",
+                                   parent=ventana)
+            return
+
+        items_venta.append(SaleItem(
+            description=nombre, item_type="DELIVERY", code=SKU_DELIVERY,
+            frame_price=precio, article_id=article_id))
+        refrescar_items()
+
+    def agregar_limpia_cristal_de_regalo():
+        """El obsequio sobre el frasco real, no sobre un artículo inventado.
+
+        Antes esto se representaba con «LIMPIA CRISTAL OBSEQUIO», un SKU con
+        precio cero clavado y su propio stock. Regalar un frasco que no existe
+        deja el depósito diciendo una cosa y el mostrador otra. Acá sale el
+        mismo artículo que se vende, se descuenta una unidad de verdad, y lo
+        único que cambia es que no se cobra.
+        """
+        try:
+            from modulos.comercial.application.comercial_controller import (
+                build_comercial_controller,
+            )
+        except ImportError:
+            messagebox.showinfo(
+                "Artículos", "El módulo comercial no está disponible en esta "
+                "instalación.", parent=ventana)
+            return
+
+        unidad = campos_manual["unidad"].get().strip()
+        comercial = build_comercial_controller(resolve_data_paths().ensure().database)
+        try:
+            articulo = comercial.articulo_por_sku(SKU_LIMPIA_CRISTAL)
+            if articulo is None or not articulo.active:
+                messagebox.showwarning(
+                    "Limpia-cristal", f"No hay un artículo activo con el código "
+                    f"{SKU_LIMPIA_CRISTAL}. Cargalo en el catálogo antes de regalarlo.",
+                    parent=ventana)
+                return
+            destino = comercial.destino_de_unidad(unidad)
+            if destino is None:
+                messagebox.showwarning(
+                    "Limpia-cristal", f"La caja «{unidad}» no está ligada a una sucursal, "
+                    "así que no se sabe de qué depósito saldría el frasco.", parent=ventana)
+                return
+            # Se cuenta lo que ya se está por regalar en esta misma venta: dos
+            # obsequios piden dos frascos, y el depósito tiene que poder darlos.
+            ya_en_la_venta = sum(
+                1 for i in items_venta
+                if i.no_cost and i.article_id == articulo.id)
+            disponible = comercial.stock(articulo.id, destino)
+            if disponible <= ya_en_la_venta:
+                messagebox.showwarning(
+                    "Sin stock", f"«{articulo.name}» tiene {disponible} en {destino.value} "
+                    f"y esta venta ya lleva {ya_en_la_venta} de regalo. No se puede regalar "
+                    "lo que no hay.", parent=ventana)
+                return
+            if ya_en_la_venta and not messagebox.askyesno(
+                    "Otro más", f"Esta venta ya lleva {ya_en_la_venta} limpia-cristal de "
+                    "regalo. ¿Agregar otro?", parent=ventana):
+                return
+            precio = articulo.sale_price or 0
+            nombre = articulo.name
+        finally:
+            comercial.close()
+
+        items_venta.append(SaleItem(
+            description=f"{nombre} — obsequio {PROMO_LIMPIA_CRISTAL}",
+            item_type="OBSEQUIO", code=SKU_LIMPIA_CRISTAL,
+            frame_price=precio, no_cost=True, article_id=articulo.id))
+        refrescar_items()
+
     def agregar_producto():
         try:
-            item = construir_item_producto_visible(
-                {clave: campos_manual[clave].get() for clave in (
-                    "arm_org", "cod", "armazon", "cristal", "descuento_armazon",
-                    "descuento_cristal", "sin_costo", "laboratorio", "receta_dr"
-                )}
-            )
+            valores = {clave: campos_manual[clave].get() for clave in (
+                "arm_org", "cod", "armazon", "cristal", "descuento_armazon",
+                "descuento_cristal", "sin_costo", "laboratorio", "receta_dr"
+            )}
+            valores.update(seleccion_articulo)
+            item = construir_item_producto_visible(valores)
             if not item.no_cost and item.reference_subtotal <= 0:
                 raise ValueError("El producto debe tener un precio de armazón o cristal.")
         except Exception as exc:
@@ -1772,6 +2347,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                       "laboratorio", "receta_dr"):
             campos_manual[clave].delete(0, "end")
         campos_manual["sin_costo"].deselect()
+        seleccion_articulo.clear()
         refrescar_items()
 
     def editar_item():
@@ -1779,6 +2355,11 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         if not selected:
             return
         index = int(selected[0]); item = items_venta[index]; item_editando["index"] = index
+        seleccion_articulo.clear()
+        if item.article_id:
+            seleccion_articulo["article_id"] = item.article_id
+        if item.lens_article_id:
+            seleccion_articulo["lens_article_id"] = item.lens_article_id
         values = {"arm_org": item.item_type, "cod": item.code, "armazon": item.frame_price,
                   "cristal": item.lens_price,
                   "descuento_armazon": item.frame_discount_percent,
@@ -1795,6 +2376,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             items_venta.pop(int(selected[0])); item_editando["index"] = None; refrescar_items()
 
     detalle_venta = secciones_widgets["DETALLE DE VENTA"]
+    # Elegir del catalogo es lo que hace que la venta descuente stock. Escribir
+    # a mano sigue funcionando igual que siempre, y no descuenta nada.
     boton_agregar_articulo = ctk.CTkButton(
         detalle_venta, text="+ Agregar artículo", height=perfil["campo_alto"],
         command=agregar_producto, fg_color="#1672E8", hover_color="#0F5FC7",
@@ -1803,6 +2386,25 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     boton_agregar_articulo.grid(
         row=7, column=0, columnspan=2, sticky="ew", padx=10, pady=(3, 7)
     )
+    boton_regalo_limpia = ctk.CTkButton(
+        acciones_item, text="Limpia-cristal de regalo", width=170, height=22,
+        command=agregar_limpia_cristal_de_regalo, fg_color="#1D8A4E",
+        hover_color="#166B3C",
+    )
+    boton_regalo_limpia.pack(side="left", padx=(0, 3))
+    boton_delivery = ctk.CTkButton(
+        acciones_item, text="Delivery / Envío", width=130, height=22,
+        command=agregar_delivery, fg_color="#7A4DBF", hover_color="#5F3A99",
+    )
+    boton_delivery.pack(side="left", padx=(0, 3))
+    # Elegir del catalogo es lo que hace que la venta descuente stock. Escribir
+    # a mano sigue funcionando igual que siempre, y no descuenta nada.
+    boton_buscar_articulo = ctk.CTkButton(
+        acciones_item, text="Buscar artículo", width=120, height=22,
+        command=abrir_buscador_de_articulo, fg_color="#6B7280",
+        hover_color="#4B5563",
+    )
+    boton_buscar_articulo.pack(side="left", padx=(0, 3))
     ctk.CTkButton(
         acciones_item, text="Editar artículo seleccionado", width=165, height=22,
         command=editar_item,
@@ -2183,7 +2785,13 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 return
             try:
                 unit = campos_manual["unidad"].get().strip()
-                responsible = os.environ.get("BC_CAJA_RESPONSABLE", "").strip() or f"Caja {unit.upper()}"
+                # El arqueo de apertura lo hace quien esta operando. Antes salia
+                # de una variable de entorno y terminaba firmado como "Caja PC",
+                # que no es nadie.
+                _sesion_apertura = operadora_actual()
+                responsible = (_sesion_apertura.display_name
+                               if _sesion_apertura is not None
+                               else f"Caja {unit.upper()}")
                 cash_day = controller.admin.open_from_count(
                     campos_manual["fecha"].get().strip(), unit, quantities, responsible, str(uuid.uuid4())
                 )
@@ -4183,7 +4791,41 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         actualizar_acciones_seguimiento()
 
     def responsable_actual():
-        return os.environ.get("BC_CAJA_RESPONSABLE") or os.environ.get("USERNAME") or "Operadora"
+        """Quien esta operando. Ya no se pregunta ni se adivina del entorno.
+
+        Antes salia de BC_CAJA_RESPONSABLE o del usuario de Windows, asi que
+        casi todo quedaba registrado como "Operadora". Ahora es la persona que
+        entro.
+        """
+        sesion = operadora_actual()
+        return sesion.display_name if sesion is not None else "Sin sesión"
+
+    # ---- FactuFacil V1-016: que ventas faltan cargar en el sistema externo ----
+    #
+    # No hay integracion con FactuFacil, asi que la carga la sigue haciendo una
+    # persona. Lo que faltaba era que supiera cuales le faltan sin entrar a la
+    # consola administrativa ni preguntarle a nadie. La lista sale de las ventas
+    # que ya estan en esta misma caja: no se vuelve a cargar un solo dato.
+    def copiar_al_portapapeles(texto):
+        # El portapapeles es de la ventana, no del panel. `update()` fuerza el
+        # vaciado: sin eso, en Windows lo copiado se pierde al cerrar la app.
+        ventana.clipboard_clear()
+        ventana.clipboard_append(texto)
+        ventana.update()
+
+    construir_panel_factufacil(
+        tab_factufacil, controller.factufacil, actor=responsable_actual(),
+        perfil=perfil, copiar=copiar_al_portapapeles,
+    )
+
+    # V1-020: composturas y trabajos de taller. `actor` y `sucursal` van como
+    # funciones y no como texto: la operadora puede cambiar sin cerrar la
+    # ventana, y el panel tiene que registrar a la que esta ahora, no a la que
+    # estaba cuando se construyo la pestana.
+    construir_panel_composturas(
+        tab_composturas, controller.jobs, actor=responsable_actual,
+        sucursal=lambda: contexto_sucursal["sucursal"], perfil=perfil,
+    )
 
     def refrescar_seguimiento(nombre=None):
         if nombre:
@@ -4882,6 +5524,52 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         ).pack(fill="x", padx=16, pady=12, side="bottom")
         return dialogo
 
+    def archivar_completados():
+        """Guarda un trabajo que ya terminó. No es una excepción y no pide motivo.
+
+        El circuito termina en RECIBIDO EN PILAR y ahí no falta ningún hecho: el
+        trabajo volvió. Archivar es sólo sacarlo de la vista, y por eso no
+        corresponde pedir un motivo — pedirlo obligaba a inventar una excepción
+        para registrar algo que salió bien.
+
+        El dominio sólo admite CERRADO desde RECIBIDO EN PILAR, así que un
+        trabajo que quedó a mitad de camino no puede colarse por acá: para eso
+        está «Cerrar por excepción», que sí pide el motivo.
+        """
+        ids = seleccion_actual()
+        if not ids:
+            messagebox.showwarning(
+                "Archivar", "Marcá uno o varios trabajos.", parent=ventana)
+            return
+        filas = [estado_seguimiento["filas"][work_id] for work_id in ids]
+        sin_terminar = [
+            fila for fila in filas
+            if fila.work.status is not TrackingStatus.RECEIVED_IN_PILAR]
+        if sin_terminar:
+            messagebox.showinfo(
+                "Archivar",
+                f"{len(sin_terminar)} de {len(ids)} trabajo(s) todavía no volvieron "
+                "a Pilar.\n\nArchivar es para los que ya terminaron el circuito.\n"
+                "Si hay que cerrar uno que quedó a mitad de camino, usá\n"
+                "«Cerrar por excepción», que pide el motivo.",
+                parent=ventana)
+            return
+        if not messagebox.askyesno(
+                "Archivar",
+                f"¿Archivar {len(ids)} trabajo(s) terminado(s)?\n\n"
+                f"Responsable: {responsable_actual()}\n\n"
+                "Salen de la lista y quedan en el historial.",
+                parent=ventana):
+            return
+        try:
+            for work_id in ids:
+                controller.tracking.close_work(
+                    work_id, responsible=responsable_actual())
+        except Exception as exc:
+            mostrar_error(exc)
+            return
+        refrescar_seguimiento()
+
     def cerrar_por_excepcion():
         """Salida para lo que no llegó a completarse. Nunca el cierre normal."""
         ids = seleccion_actual()
@@ -5059,6 +5747,9 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         menu.add_separator()
         menu.add_command(label="Queda a confirmar", command=marcar_queda_a_confirmar)
         menu.add_command(label="Corregir estado", command=corregir_estado)
+        # Los dos cierres, separados y en ese orden: el normal primero, porque
+        # es el que se usa. La excepcion queda abajo y dice que lo es.
+        menu.add_command(label="Archivar terminados", command=archivar_completados)
         menu.add_command(label="Cerrar por excepción", command=cerrar_por_excepcion)
         menu.add_separator()
         menu.add_command(
@@ -5577,6 +6268,18 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
 
     if not controller.admin.has_admin() and not os.environ.get("BC_CAJA_AUTOMATED"):
         ventana.after(450, lambda: abrir_acceso_administrador(configuracion_inicial=True))
+
+    def exigir_login_inicial():
+        """La caja no se abre sin que alguien entre.
+
+        Si se cierra el dialogo sin identificarse, se cierra la ventana. Dejarla
+        usable "sin sesion" seria volver a la operacion anonima que esta mision
+        vino a terminar, y encima con la ilusion de que hay control.
+        """
+        if pedir_login_operadora() is None:
+            ventana.destroy()
+
+    ventana.after(150, exigir_login_inicial)
 
     ventana.after(100, ventana.focus_set)
     return ventana

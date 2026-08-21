@@ -1,0 +1,18 @@
+{
+  "mision": "BC-OPTICA-USUARIOS-ROLES-V1-019",
+  "estado": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+  "requiere_migracion": true,
+  "next_action": "En la Optica, con BC Caja cerrado: correr tools/usuarios_migracion_030_optica.py sin --confirmar para ver el plan, y despues con --confirmar. Al abrir el panel, cargar a las personas reales de la Optica: hasta que existan, el desplegable de vendedora queda editable",
+  "importante": "los cuatro nombres cableados -Ana, Belen, Carla, Diana- desaparecen con esta version. Las ventas viejas conservan el texto que guardaron; las nuevas van a elegir de la lista real",
+  "pendientes_de_otras_misiones": [
+    "V1-015: limpieza de marcas-laboratorio, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-016: migracion 029 de FactuFacil, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-017 y V1-018: solo codigo, entran con el proximo empaquetado"
+  ],
+  "orden_de_aplicacion_sugerido": [
+    "029 (FactuFacil)",
+    "030 (usuarios)",
+    "V1-015 (marcas)"
+  ],
+  "no_iniciar_otra_mision": true
+}

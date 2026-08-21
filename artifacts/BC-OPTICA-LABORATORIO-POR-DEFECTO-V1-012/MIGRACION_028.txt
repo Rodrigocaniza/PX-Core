@@ -1,0 +1,44 @@
+﻿MIGRACION 028 SOBRE UNA BASE REAL DE rc.32 CON 27 MIGRACIONES
+base: bc-caja-premetadatos-20260819-170642.sqlite3, la ultima foto productiva anterior a la 028.
+(el backup de esta mision se toma despues de migrar, asi que no sirve para probar el upgrade)
+
+== antes de migrar (copia de produccion, rc.32) ==
+  {'articulos': 3596, 'activos': 2829, 'movimientos': 4441, 'asu': 6166, 'pil': 2260, 'entradas': 12, 'dinero': 6400000, 'items': 10, 'labs': 0, 'marcas': 136, 'categorias': 15, 'pedidos': 8, 'trabajos': 0, 'integridad': 'ok', 'migraciones': 27}
+  OK   la columna todavia no existe
+
+== upgrade ==
+  OK   la columna existe
+  OK   migraciones: 27 -> 28
+  OK   la 028 quedo registrada una sola vez
+  OK   ningun articulo quedo con laboratorio: la migracion no inventa datos
+  OK   foreign_key_check: 0
+  OK   integrity_check: ok
+  OK   el indice esta
+
+== todo lo demas quedo igual ==
+  OK   articulos: 3596
+  OK   activos: 2829
+  OK   movimientos: 4441
+  OK   asu: 6166
+  OK   pil: 2260
+  OK   entradas: 12
+  OK   dinero: 6400000
+  OK   items: 10
+  OK   labs: 0
+  OK   marcas: 136
+  OK   categorias: 15
+  OK   pedidos: 8
+  OK   trabajos: 0
+  OK   las 10 lineas de venta, intactas al caracter
+      lo que hay hoy escrito a mano en esas lineas:
+        '': 4
+        'Optilab': 2
+        'SI': 1
+        'asasa': 1
+        'asd': 1
+        'optilab': 1
+
+== y correr la migracion de nuevo no hace nada ==
+  OK   segunda pasada: sin cambios
+
+VEREDICTO: PASS (0 fallas)

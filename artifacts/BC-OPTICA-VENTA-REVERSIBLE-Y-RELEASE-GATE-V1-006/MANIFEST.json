@@ -1,0 +1,109 @@
+{
+  "mission": "BC-OPTICA-VENTA-REVERSIBLE-Y-RELEASE-GATE-V1-006",
+  "slice": "6 - Reversion compensatoria de ventas + release/migration gate 022-027",
+  "branch": "feature/bc-optica-venta-reversible-y-release-gate-v1-006",
+  "worktree": ".worktrees/optica-venta-reversible-006",
+  "base_commit": "a8443a3",
+  "base_branch": "feature/bc-optica-comercial-ui-carga-inicial-v1-005",
+  "resumed_from": "Safe Pause de la Optica, HANDOFF_PC_CASA.md del slice 5",
+  "resumed_at": "PC Casa",
+  "cadena_de_slices": {
+    "origin/main": "7db56a0 = BC Caja 1.0.0-rc.31, sin tocar",
+    "slice_1_catalogo": "ed0dbba (022)",
+    "slice_2_ledger": "54f5f06 (023)",
+    "slice_3_compras": "ecc0c7b (024)",
+    "slice_4_ventas": "b580e50 (025)",
+    "slice_5_ui": "a8443a3 (026)",
+    "slice_6_reversion": "esta mision (027)",
+    "ancestria_verificada": "lineal, 001 -> 002 -> 003 -> 004 -> 005, cada uno ancestro del siguiente"
+  },
+  "packaged": true,
+  "installed": false,
+  "promoted": false,
+  "pr": false,
+  "merge_to_main": false,
+  "version": "1.0.0-rc.32",
+  "version_anterior": "1.0.0-rc.31",
+  "migrations": 27,
+  "migrations_added": [
+    "027_sale_void_compensation.sql"
+  ],
+  "schema_change_shape": "ADITIVA salvo el reemplazo de un trigger de la 025 (cash_entries_integrada_sin_anular), que pasa de prohibir la anulacion a exigir que este compensada. Ninguna fila se modifica",
+  "objeto_nuevo": {
+    "tablas": [
+      "sale_void_compensations"
+    ],
+    "vistas": [
+      "stock_origen_anulacion"
+    ],
+    "triggers": [
+      "sale_void_compensations_sin_update",
+      "sale_void_compensations_sin_delete",
+      "sale_void_compensations_solo_ventas_integradas",
+      "sale_void_compensations_sin_reversion_parcial",
+      "sale_void_compensations_cuenta_declarada_real",
+      "cash_entries_integrada_sin_anular (reemplazado)",
+      "cash_entries_anulada_no_revive",
+      "stock_movements_venta_anulada_solo_compensa"
+    ],
+    "motivo_sembrado": "VENTA_ANULADA en administrative_exit_reasons, requires_note=1, RESERVADO"
+  },
+  "mecanismo_de_reversion": {
+    "hecho_compensatorio": "SALE_VOIDED",
+    "idempotency_key_del_hecho": "VENTA:{cash_entry_id}:ANULACION",
+    "efecto_compensatorio": "un AJUSTE_POSITIVO por cada movimiento VENTA de la venta",
+    "idempotency_key_del_efecto": "compensa:{movement_id}, la misma que StockLedgerService.compensar",
+    "motivo": "VENTA_ANULADA, con la observacion escrita por quien anulo",
+    "actor": "edited_by del guardado, con caida a opened_by y a saleswoman; si no hay ninguno se rechaza",
+    "donde_corre": "modulos/comercial/application/ventas.py, VentasLedgerIntegrator.compensar_anulaciones_en",
+    "transaccion": "la del guardado de Caja, antes del upsert de cash_entries. No abre ni cierra ninguna propia",
+    "que_NO_hace": [
+      "no borra ni modifica SALE_COMPLETED",
+      "no borra ni modifica los movimientos VENTA",
+      "no toca las lineas de sale_items",
+      "no re-deriva del catalogo: devuelve lo que el ledger dice que salio",
+      "no inventa stock para servicios ni para trabajos bajo pedido",
+      "no crea entradas de Caja ni mueve un guarani"
+    ]
+  },
+  "correccion_de_ventas_integradas": {
+    "decision": "compensar y volver a consecuenciar",
+    "en_el_lugar": "BLOQUEADO, sigue lanzando VentaIntegradaNoEditable y los triggers de la 025 siguen puestos",
+    "por_que": "cambiar el articulo de una linea dejaria el movimiento que saco la unidad apuntando a una fila que ya dice otra cosa",
+    "campos_no_stock": "telefono, observaciones y cliente se siguen editando"
+  },
+  "release_gate": {
+    "script": "tools/release_gate_optica_022_027.py",
+    "evidencia": "RELEASE_GATE_022_027.txt",
+    "veredicto": "PASS, 0 fallas",
+    "base_usada": "base local del piloto de PC Casa, NO la base productiva de la Optica",
+    "base_usada_sha256_antes": "b38d9f275e88eb11689fc6f318a21619ba091bda1f8b560f1fba93f69b76c116",
+    "base_usada_sha256_despues": "b38d9f275e88eb11689fc6f318a21619ba091bda1f8b560f1fba93f69b76c116",
+    "cadena": "21 -> 27",
+    "integrity_check": "ok",
+    "foreign_key_check": "0 violaciones",
+    "filas_existentes_cambiadas": "ninguna, comparadas sobre las columnas preexistentes",
+    "rollback": "PASS, byte a byte y de vuelta a 021"
+  },
+  "packaging": {
+    "script": "pilot/build_pilot.ps1",
+    "zip": "releases/BC-CAJA-1.0.0-rc.32-win64.zip",
+    "zip_sha256": "119888956123fded9d5b4d35edaab437c7dc2068e974ce92f115d4f3a1a12336",
+    "zip_bytes": 34846201,
+    "zip_en_el_remoto": false,
+    "zip_gitignored": true,
+    "smoke_ejecutable": "PASS, tools/smoke_release_006.py",
+    "smoke_ui_comercial": "PASS, tools/smoke_ui_comercial_006.py"
+  },
+  "verification": {
+    "pruebas_dirigidas_primero": true,
+    "suite_dirigida": "tests/comercial/test_sale_void_compensation.py, 31 passed",
+    "suite_completa": "934 passed, 2 failed, corrida una sola vez al cierre",
+    "fallas": "BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001, heredado. El commit base a8443a3 da 903 passed y las mismas 2 fallas"
+  },
+  "produccion": {
+    "optica": "INTACTA, no fue tocada ni alcanzada desde PC Casa",
+    "pc_casa": "INTACTA, sha256 identico antes y despues",
+    "instalacion": "ninguna. BC Caja 1.0.0-rc.27 sigue siendo la vigente en PC Casa y rc.31 en la Optica"
+  }
+}

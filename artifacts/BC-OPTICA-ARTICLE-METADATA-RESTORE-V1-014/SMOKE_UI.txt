@@ -1,0 +1,27 @@
+﻿== el formulario abre con la categoria y la marca puestas ==
+  OK   000010: categoria «Limpia Cristales», marca «Óptica Puppilent`s»
+  OK   000010: guardar sin tocar nada conserva categoria y marca
+  OK   000010: unidad «UNIDAD» y notas intactas al guardar
+  OK   000010: naturaleza PRODUCTO_STOCKEABLE
+  OK   2000056: categoria «Compostura», marca «Optica San Cayetano»
+  OK   2000056: guardar sin tocar nada conserva categoria y marca
+  OK   2000056: unidad «UNIDAD» y notas intactas al guardar
+  OK   2000056: naturaleza SERVICIO_NO_STOCKEABLE
+  OK   2000070: categoria «Compostura», marca «Laboratorio Optilab»
+  OK   2000070: guardar sin tocar nada conserva categoria y marca
+  OK   2000070: unidad «UNIDAD» y notas intactas al guardar
+  OK   2000070: naturaleza SERVICIO_NO_STOCKEABLE
+  OK   2000071: categoria «Compostura», marca «Optica San Cayetano»
+  OK   2000071: guardar sin tocar nada conserva categoria y marca
+  OK   2000071: unidad «UNIDAD» y notas intactas al guardar
+  OK   2000071: naturaleza SERVICIO_NO_STOCKEABLE
+  OK   2000072: categoria «Compostura», marca «Optica San Cayetano»
+  OK   2000072: guardar sin tocar nada conserva categoria y marca
+  OK   2000072: unidad «UNIDAD» y notas intactas al guardar
+  OK   2000072: naturaleza SERVICIO_NO_STOCKEABLE
+
+== el buscador los devuelve ==
+  OK   buscar «hilo» devuelve 2000070
+  OK   buscar «limpia» devuelve 000010
+
+VEREDICTO: PASS (0 fallas)

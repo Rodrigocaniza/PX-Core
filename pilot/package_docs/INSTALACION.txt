@@ -1,4 +1,4 @@
-BC Caja 1.0.0-rc.30
+BC Caja 1.0.0-rc.34
 
 1. Descomprima el ZIP completo en una carpeta local.
 2. Ejecute BC-Caja.exe desde la carpeta BC-Caja.
@@ -6,5 +6,7 @@ BC Caja 1.0.0-rc.30
 
 No copie archivos de Datos ni Respaldos dentro de la carpeta del programa.
 
-Al abrir por primera vez, la base existente se migra de 015 a 017 y se agregan
-las tablas del circuito de seguimiento. No se modifica ninguna tabla previa.
+Antes de actualizar, cierre BC Caja y haga un backup verificado de
+bc_caja.sqlite3. Al abrir, la cadena aplica en orden las migraciones pendientes
+hasta la 033. La migración 033 agrega el circuito auditado de correcciones y es
+aditiva e idempotente.

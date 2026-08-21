@@ -1,0 +1,166 @@
+{
+  "mision": "BC-OPTICA-TRABAJOS-OPERATIVOS-V1-020",
+  "titulo": "Trabajos operativos: composturas y trabajos de taller",
+  "estado": "COMPLETADA_EN_CASA - con migracion 031, sin apply productivo",
+  "base_git": {
+    "branch": "feature/bc-optica-trabajos-operativos-v1-020",
+    "parte_de": "feature/bc-optica-login-operadora-v1-019b @ de767d9",
+    "worktree": ".worktrees/optica-trabajos-020",
+    "contiene_verificado": {
+      "V1-019A": "4717acf",
+      "V1-018": "0fc0667",
+      "V1-017": "79405ef",
+      "origin/main": "7db56a0"
+    },
+    "metodo": "git merge-base --is-ancestor, una vez por cada uno",
+    "main_no_tocado": true,
+    "comision_1pct_fuera_de_esta_linea": "mission/bc-gestion-central-comision-policy-1pct-001 NO es ancestro"
+  },
+  "migracion": {
+    "nueva": true,
+    "version": "031",
+    "archivo": "031_trabajos_operativos.sql",
+    "anterior_ultima": "030",
+    "aditiva_estricta": true,
+    "verificado": "prueba que lee el .sql: sin ALTER TABLE, UPDATE, DELETE ni DROP; los unicos INSERT son a service_job_types y schema_migrations",
+    "aplicada_en_produccion": false,
+    "tablas": [
+      "service_job_types",
+      "service_jobs",
+      "service_job_events",
+      "service_commission_policy",
+      "service_job_commissions"
+    ],
+    "vistas": [
+      "service_commission_balance"
+    ]
+  },
+  "entidad": {
+    "por_que_nueva": "tracked_works (016) sigue el circuito fisico Pilar->Asuncion->laboratorio->Pilar. Sus siete estados son lugares donde esta el sobre y su CHECK es cerrado. Una compostura de mostrador no esta en ninguno de esos lugares. Reutilizarla obligaba a abrir ese CHECK y a que una tabla contestara dos preguntas distintas",
+    "candidatas_revisadas": [
+      "tracked_works",
+      "orders",
+      "laboratories",
+      "sale_items"
+    ],
+    "costura_futura": "order_id y cash_entry_id, para el dia que un trabajo de taller vaya al laboratorio"
+  },
+  "estados": {
+    "flujo": [
+      "RECIBIDO",
+      "EN_TALLER",
+      "LISTO",
+      "ENTREGADO"
+    ],
+    "excepcion": "ANULADO",
+    "atajo_permitido": "RECIBIDO -> LISTO, porque un tornillo se pone en el mostrador y no pasa por taller",
+    "reversion": "exige motivo siempre; desde LISTO o ENTREGADO se registra como REABIERTO y no como ENVIADO_A_TALLER",
+    "fuente_de_verdad": "ALLOWED_TRANSITIONS en domain/service_jobs.py"
+  },
+  "responsables": {
+    "catalogo": "admin_users, el mismo de V1-019. Sin segunda lista y sin un solo nombre cableado",
+    "papeles_distinguidos": [
+      "received_by",
+      "responsible",
+      "delivered_by"
+    ],
+    "derivacion": "received_by sale de la sesion, no se pregunta",
+    "inactiva": "no puede quedar de responsable de un trabajo nuevo, pero sus trabajos anteriores se siguen viendo"
+  },
+  "comision": {
+    "devenga_en": "LISTO",
+    "por_que": "remunera hacer el trabajo, no venderlo ni entregarlo. Que el cliente pase a retirar es una circunstancia del cliente",
+    "declarado_en": "ESTADO_DE_DEVENGO, un solo lugar",
+    "politica": "service_commission_policy, sin nombres sembrados. Sin politica cargada no devenga: cero, no un default",
+    "no_duplicacion": "cada asiento cuelga de un event_id UNIQUE. Un hecho paga una vez",
+    "rehacer": "si vuelve al taller y se hace otra vez, devenga otra vez. Es correcto",
+    "anular": "compensa con el asiento contrario, no borra. Saldo cero. Un devengo se compensa una sola vez (indice unico)",
+    "separacion": "no es la comision comercial del 1%, que vive en otra linea y no se toco"
+  },
+  "caja": {
+    "crea_movimientos": false,
+    "puede_crearlos": false,
+    "relacion": "cash_entry_id es FK a cash_entries: el trabajo referencia un cobro que ya ocurrio",
+    "ejes_separados": "status es operativo, cash_entry_id es economico. Listo sin cobrar y cobrado sin entregar son estados validos",
+    "segundo_cobro": "rechazado: duplicaria el importe"
+  },
+  "sucursal": {
+    "autoridad": "la caja, via effective_branch de V1-019B",
+    "no_se_redecide": true,
+    "aisladas": "Asuncion y Pilar, con prueba"
+  },
+  "inventario": {
+    "invariante": "Hilo, Tornillo, Plaqueta y Compostura no generan stock ni movimientos de inventario, en ningun estado",
+    "ya_resuelto_aguas_arriba": "V1-010 corrigio los SKU 2000070, 2000071, 2000072 y 2000056 a SERVICIO_NO_STOCKEABLE con NATURE_CORRECTION auditado. La 023 tiene el trigger stock_movements_solo_articulos_stockeables",
+    "en_este_slice": "no se recorrigio nada; se probo que sigue vigente",
+    "probado_de_tres_formas": [
+      "por conteo de stock_movements despues de CADA paso del ciclo",
+      "por estructura: ni articles, ni domain_events, ni event_effects",
+      "por imposibilidad: el modulo no importa modulos.comercial ni nombra stock_movements"
+    ]
+  },
+  "ui": {
+    "pestana": "Composturas",
+    "modulo": "modulos/caja_diaria/ui/service_jobs_panel.py",
+    "lineas_en_CajaDiaria": 11,
+    "abre_en": "Listos para entregar",
+    "vistas": [
+      "LISTOS",
+      "PENDIENTES",
+      "EN_TALLER",
+      "ENTREGADOS",
+      "ANULADOS",
+      "TODOS"
+    ],
+    "filtros": [
+      "sucursal",
+      "responsable",
+      "fecha"
+    ],
+    "acciones": [
+      "Nuevo",
+      "Enviar a taller / Reabrir",
+      "Marcar listo",
+      "Entregar",
+      "Responsable",
+      "Ver historial",
+      "Anular"
+    ],
+    "habilitacion": "sale de allowed_transitions(): la pantalla no repite la regla",
+    "colores": "los mismos chips de estado que Pedidos"
+  },
+  "sesion": {
+    "reimplementa_autenticacion": false,
+    "cambia_politica_de_sesiones": false,
+    "actor_y_sucursal": "llegan como funciones, no como texto: la operadora puede cambiar sin cerrar la ventana",
+    "operacion_anonima": "rechazada"
+  },
+  "pruebas": {
+    "dirigidas": 88,
+    "de_dominio_servicio_y_persistencia": 77,
+    "de_ui": 11,
+    "suite_completa": "1288 passed, 0 failed",
+    "corridas": 2
+  },
+  "produccion": {
+    "apply_029": false,
+    "apply_030": false,
+    "apply_031": false,
+    "personas_reales_cargadas": false,
+    "politica_de_comision_real_cargada": false,
+    "base_productiva_tocada": false,
+    "canary": false
+  },
+  "archivos": {
+    "modulos/caja_diaria/infrastructure/migrations/031_trabajos_operativos.sql": "0699695683d6d9fa5b89ee114f5da7c77910c30c4ca7fcd460d26b9a1f971a52",
+    "modulos/caja_diaria/domain/service_jobs.py": "aee2a9106b720a1129a3071919ea05e4353391485bbb9dc70b84bde15532ccb2",
+    "modulos/caja_diaria/application/service_jobs.py": "a9bee9d37d72a1fcc1aa63f45b0a0336aa9ba595934aa2fbddabb4d78a182b5c",
+    "modulos/caja_diaria/ui/service_jobs_panel.py": "a31c1dd23bc4bea584e6acd857d341f21a94cdd5214e11d74dbe1a91b4b6b289",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "2b0d6aa223b40c99ec004d20fe3ccfbd78c6f7b961a65e5fbc869e8c84a34252",
+    "modulos/caja_diaria/ui/controller.py": "0b7ae8c21d52969759124c690c4c9e9d63d7d2cdcf3e6a7913a7f6edbc5604d3",
+    "CajaDiaria.py": "488150b1ba224717f7d827101306190789e006b38b16c917fab8cacb1d61f887",
+    "tests/caja_diaria/test_v1020_trabajos_operativos.py": "853a2a677445572ab93d57ce614372858246d4c10a768ee1bb2dacf4fe9b3dff",
+    "tests/caja_diaria/test_v1020_panel_composturas_ui.py": "d268d544990518b413de60b611ba96ee40c5522cb53b0107053b18628679fb82",
+    "tests/caja_diaria/test_v1019b_login_operadora.py": "bd297e86d786cef0c37a9eb718439a936f11042b87d15507f766385a2375a424"
+  }
+}

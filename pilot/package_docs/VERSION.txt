@@ -1,6 +1,8 @@
-BC Caja 1.0.0-rc.31
-Misión: BC-CAJA-PEDIDOS-OPERATIVOS-RC30-001
-Integra: todo lo de 1.0.0-rc.30 + Pedidos operativo: ATRASADOS / PARA HOY con fallback a PRÓXIMOS, la pantalla se puebla al abrir, columnas Cliente · Sobre · Trabajo, laboratorio con su teléfono en la fila, atraso derivado de la fecha prometida, última novedad en una línea, tres acciones (Acción siguiente · Contactar · Más ▾) con contraste real, y Corregir estado con lista cerrada del dominio, observación obligatoria y auditoría
-Fecha: 2026-08-17
-Esquema: migraciones 001-021 (sin migración nueva)
+BC Caja 1.0.0-rc.34
+Misión: BC-CAJA-SOBRES-REVISION-MOVIMIENTOS-DIARIOS-V1
+Integra: todo lo de 1.0.0-rc.33 + F1 FactuFácil; revisión de sobres con correcciones auditadas; consolidación automática e idempotente a Movimientos diarios; y compensaciones append-only ante cambios o anulaciones posteriores.
+Fecha: 2026-08-20
+Esquema: migraciones 001-033 (nueva: 033_revision_corrections.sql)
 Datos: externos al ejecutable (%LOCALAPPDATA%\BC\Caja o BC_CAJA_DATA_DIR)
+Actualización: conserva el upgrade 029-032 de rc.33 y agrega 033 de forma aditiva e idempotente para solicitudes y aplicación auditada de correcciones. La cadena se aplica sola al abrir y en orden. HACER BACKUP DE bc_caja.sqlite3 ANTES DE INSTALAR.
+Configuración pendiente en la Óptica: cargar las personas reales con su rol, y después Administrador > Comisiones de composturas > Nueva política, una por persona que comisione. Sin política cargada las composturas funcionan enteras y no devengan nada: es lo correcto, y el reporte las lista aparte.

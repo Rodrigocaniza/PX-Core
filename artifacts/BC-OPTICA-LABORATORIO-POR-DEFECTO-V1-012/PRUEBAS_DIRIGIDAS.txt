@@ -1,0 +1,31 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Striker\AppData\Local\Python\pythoncore-3.14-64\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Striker\Desktop\Proyecto X\PX-Core\.worktrees\optica-laboratorios-012
+configfile: pytest.ini
+collecting ... collected 22 items
+
+tests/comercial/test_laboratorio_por_defecto.py::test_el_laboratorio_se_crea_o_se_reusa_una_sola_vez[Laboratorio Optilab] PASSED [  4%]
+tests/comercial/test_laboratorio_por_defecto.py::test_el_laboratorio_se_crea_o_se_reusa_una_sola_vez[ServiOptica] PASSED [  9%]
+tests/comercial/test_laboratorio_por_defecto.py::test_el_laboratorio_se_crea_o_se_reusa_una_sola_vez[Laboratorio Cristal] PASSED [ 13%]
+tests/comercial/test_laboratorio_por_defecto.py::test_no_se_duplica_por_mayusculas_ni_espacios[laboratorio optilab] PASSED [ 18%]
+tests/comercial/test_laboratorio_por_defecto.py::test_no_se_duplica_por_mayusculas_ni_espacios[LABORATORIO OPTILAB] PASSED [ 22%]
+tests/comercial/test_laboratorio_por_defecto.py::test_no_se_duplica_por_mayusculas_ni_espacios[  Laboratorio Optilab  ] PASSED [ 27%]
+tests/comercial/test_laboratorio_por_defecto.py::test_reusa_el_laboratorio_que_ya_existia_del_seguimiento PASSED [ 31%]
+tests/comercial/test_laboratorio_por_defecto.py::test_un_laboratorio_sin_nombre_no_se_crea PASSED [ 36%]
+tests/comercial/test_laboratorio_por_defecto.py::test_cada_cristal_recibe_el_default_correcto PASSED [ 40%]
+tests/comercial/test_laboratorio_por_defecto.py::test_2000212_queda_sin_laboratorio_por_defecto PASSED [ 45%]
+tests/comercial/test_laboratorio_por_defecto.py::test_asignar_a_un_laboratorio_que_no_existe_falla PASSED [ 50%]
+tests/comercial/test_laboratorio_por_defecto.py::test_el_default_se_puede_quitar PASSED [ 54%]
+tests/comercial/test_laboratorio_por_defecto.py::test_seleccionar_cristal_precarga_el_default PASSED [ 59%]
+tests/comercial/test_laboratorio_por_defecto.py::test_un_cristal_sin_default_no_inventa_laboratorio PASSED [ 63%]
+tests/comercial/test_laboratorio_por_defecto.py::test_la_operadora_puede_cambiar_el_laboratorio_en_la_venta PASSED [ 68%]
+tests/comercial/test_laboratorio_por_defecto.py::test_la_venta_historica_conserva_su_laboratorio_aunque_cambie_el_default PASSED [ 72%]
+tests/comercial/test_laboratorio_por_defecto.py::test_ningun_cristal_genera_stock PASSED [ 77%]
+tests/comercial/test_laboratorio_por_defecto.py::test_ningun_laboratorio_se_convierte_en_marca PASSED [ 81%]
+tests/comercial/test_laboratorio_por_defecto.py::test_asignar_el_default_no_pisa_ningun_otro_campo PASSED [ 86%]
+tests/comercial/test_laboratorio_por_defecto.py::test_asignar_dos_veces_lo_mismo_no_cambia_nada PASSED [ 90%]
+tests/comercial/test_laboratorio_por_defecto.py::test_el_default_queda_auditado PASSED [ 95%]
+tests/comercial/test_laboratorio_por_defecto.py::test_desactivar_un_cristal_conserva_su_laboratorio PASSED [100%]
+
+============================= 22 passed in 5.23s ==============================

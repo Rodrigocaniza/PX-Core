@@ -1,0 +1,156 @@
+{
+  "mision": "BC-OPTICA-ARTICLE-METADATA-RESTORE-V1-014",
+  "generacion": 1,
+  "estado": "APLICADA EN PRODUCCION",
+  "tipo": "correccion compensatoria de metadatos, y el defecto que los borro",
+  "fecha": "2026-08-19",
+  "base_git": {
+    "commit": "7d17cce",
+    "de": "feature/bc-optica-delivery-service-v1-011",
+    "por_que_no_main": "main esta en 7db56a0, rc.31 con 21 migraciones. La produccion corre rc.32 con 27. Ramificar desde main perderia Commercial Core entero"
+  },
+  "branch": "feature/bc-optica-article-metadata-restore-v1-014",
+  "causa_raiz": {
+    "que": "guardar_articulo reconstruye el Article completo. Llamarlo con article_id y un subconjunto de campos deja los demas en su valor por defecto, que para category_id y brand_id es None",
+    "quien": "tools/conciliacion_inventario_corregido_optica.py (V1-010, correccion de naturaleza de los cuatro de Compostura) y tools/stock_inicial_estimado_optica.py (adenda de V1-010 sobre 000010, la nota de la estimacion)",
+    "cuando": "entre las 15:52 y las 16:04 del 2026-08-19 los cuatro servicios; entre las 16:04 y las 16:29 el 000010",
+    "impacto": "etiquetas. Cero en stock, movimientos, dinero, naturaleza, precios y Caja historica. Los precios sobrevivieron porque eran nulos: si hubieran tenido valor, tambien se perdian",
+    "alcance_verificado": "barrido campo por campo de los 3.554 articulos que existian antes: exactamente 5 perdieron categoria y marca, y ninguno perdio ningun otro campo ni cambio de categoria a otra distinta"
+  },
+  "articulos": [
+    {
+      "sku": "000010",
+      "nombre": "LIMPIA CRISTAL",
+      "naturaleza_conservada": "PRODUCTO_STOCKEABLE",
+      "categoria_restaurada": "Limpia Cristales",
+      "marca_restaurada": "Óptica Puppilent`s",
+      "fuente": "bc-caja-prerecuento-20260819-142306.sqlite3"
+    },
+    {
+      "sku": "2000056",
+      "nombre": "Par de patillas",
+      "naturaleza_conservada": "SERVICIO_NO_STOCKEABLE",
+      "categoria_restaurada": "Compostura",
+      "marca_restaurada": "Optica San Cayetano",
+      "fuente": "bc-caja-prerecuento-20260819-142306.sqlite3"
+    },
+    {
+      "sku": "2000070",
+      "nombre": "Hilo",
+      "naturaleza_conservada": "SERVICIO_NO_STOCKEABLE",
+      "categoria_restaurada": "Compostura",
+      "marca_restaurada": "Laboratorio Optilab",
+      "fuente": "bc-caja-prerecuento-20260819-142306.sqlite3"
+    },
+    {
+      "sku": "2000071",
+      "nombre": "Tornillo",
+      "naturaleza_conservada": "SERVICIO_NO_STOCKEABLE",
+      "categoria_restaurada": "Compostura",
+      "marca_restaurada": "Optica San Cayetano",
+      "fuente": "bc-caja-prerecuento-20260819-142306.sqlite3"
+    },
+    {
+      "sku": "2000072",
+      "nombre": "Plaqueta",
+      "naturaleza_conservada": "SERVICIO_NO_STOCKEABLE",
+      "categoria_restaurada": "Compostura",
+      "marca_restaurada": "Optica San Cayetano",
+      "fuente": "bc-caja-prerecuento-20260819-142306.sqlite3"
+    }
+  ],
+  "fuente_historica": {
+    "archivo": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-prerecuento-20260819-142306.sqlite3",
+    "sha256": "71580fc835301902ca9c81eb38c0ddea41c386ee1ca1af47801942c80ea73f6c",
+    "por_que_esta": "es la ultima foto en la que los cinco todavia tienen sus etiquetas. Las dos anteriores son previas a la carga del catalogo y ni siquiera contienen a estos articulos",
+    "uso": "solo category_id y brand_id. No se restauro la fila: la naturaleza, las notas y los movimientos de hoy son los buenos"
+  },
+  "correccion_del_defecto": {
+    "metodo_nuevo": "ComercialController.actualizar_articulo(article_id, *, actor, **campos)",
+    "semantica": "PATCH. Lee lo que hay, reemplaza solo lo que se le nombra. Pasar None explicitamente si vacia el campo: la diferencia esta entre no nombrarlo y nombrarlo en blanco",
+    "guardar_articulo": "se deja como esta -- es un reemplazo y esta bien que lo sea cuando el formulario trae todo -- pero su docstring ahora lo dice",
+    "desactivar_articulo": "pasa a apoyarse en el PATCH. Antes enumeraba los 13 campos a mano: correcto hoy, y roto el dia que alguien agregue el campo 14",
+    "ui": "el formulario de articulo no muestra proveedor ni unidad. Al editar, ahora usa PATCH: lo que no se ve tampoco se pisa. Antes cualquier edicion desde pantalla los reseteaba. Hoy no habia ningun articulo con proveedor y todos estaban en UNIDAD, asi que no hubo daño real, pero era el mismo defecto esperando",
+    "no_se_hizo": "no se rediseño el repositorio ni se toco save_article"
+  },
+  "aplicacion_productiva": {
+    "ejecutada": true,
+    "autorizada_por": "la propia orden de la mision: aplicar si el dry-run demuestra que el cambio se limita a los metadatos perdidos",
+    "herramienta": "tools/restaurar_metadatos_articulos_optica.py --confirmar",
+    "veredicto": "PASS, 0 fallas",
+    "rollback_usado": "NO",
+    "pre_guard": {
+      "base_sha256": "ff6b2b6a2ec9d28a17ff51f2d9485877cecf646a854c9315fcecec572da37ae9",
+      "coincide_con_el_cierre_de_011": true,
+      "BC_Caja_corriendo": false,
+      "WAL": "0 bytes",
+      "HEAD": "7d17cce",
+      "worktree": "limpio salvo el slice"
+    },
+    "backup": {
+      "archivo": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-premetadatos-20260819-170642.sqlite3",
+      "sha256": "2a100d5557d0b54a9a83f80d4745ef2c65092319b2df00ca6593263cbe3d42bc",
+      "verificado": "contenido identico a la base",
+      "nota": "el sha256 del archivo difiere del de la base porque la API de backup reescribe el layout de paginas. Lo que se comparo es el contenido, no los bytes"
+    },
+    "base_sha256_antes": "ff6b2b6a2ec9d28a17ff51f2d9485877cecf646a854c9315fcecec572da37ae9",
+    "base_sha256_despues": "ffafb5c624af07e036f5a86d3348b6e0412eeb855b22883f64f862534386f7b2",
+    "campos_tocados": 10,
+    "campos_esperados": 10
+  },
+  "invariantes": {
+    "stock_antes": {
+      "ASUNCION": 6166,
+      "PILAR": 2260,
+      "total": 8426
+    },
+    "stock_despues": {
+      "ASUNCION": 6166,
+      "PILAR": 2260,
+      "total": 8426
+    },
+    "movimientos_antes": 4441,
+    "movimientos_despues": 4441,
+    "articulos": 3596,
+    "activos": 2829,
+    "categorias": 15,
+    "marcas": 136,
+    "caja_historica": {
+      "entradas": 12,
+      "dinero": 6400000,
+      "sale_items": 10
+    },
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "000010": {
+      "naturaleza": "PRODUCTO_STOCKEABLE",
+      "ASUNCION": 100,
+      "PILAR": 10,
+      "notas": "intactas, con la evidencia de 2.860, 2.857 y la estimacion"
+    },
+    "cuatro_de_compostura": "SERVICIO_NO_STOCKEABLE, 0 movimientos y 0 filas en stock_actual cada uno",
+    "centinelas": "ningun movimiento con cantidad >= 99.000",
+    "V1_008_V1_010": "INVENTARIO_INICIAL sin cambios: 3.629 movimientos, 9.912 unidades",
+    "V1_010_bajas": "767 articulos dados de baja siguen de baja",
+    "V1_013": "000037 sigue retirado",
+    "V1_011": "Delivery intacto"
+  },
+  "pruebas": {
+    "dirigidas": "14, en tests/comercial/test_article_metadata_patch.py",
+    "suite_completa": "981 pruebas y 4 subtests, todo pasa",
+    "regresion_del_defecto": "una prueba reproduce el borrado con guardar_articulo, para que nadie lo confunda con un bug intermitente, y otra demuestra que el PATCH no lo comete",
+    "dry_run": "PASS sobre copia consistente de produccion",
+    "idempotencia": "la segunda corrida no escribe y lo dice",
+    "smoke_ui": "PASS sobre copia del estado restaurado: el formulario abre con categoria y marca puestas en los cinco, y guardar sin tocar nada ya no borra nada"
+  },
+  "bitacora": {
+    "accion": "ARTICLE_METADATA_RESTORED",
+    "entradas": 5,
+    "EDITA_ARTICULO": "772 -> 777, las cinco del propio guardado",
+    "ninguna_otra_accion_cambio": true,
+    "hard_delete": "NO. Nada se borro: se repuso"
+  }
+}

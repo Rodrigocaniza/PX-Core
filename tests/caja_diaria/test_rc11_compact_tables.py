@@ -34,8 +34,14 @@ def test_rc11_draft_distribution_and_anchors_are_compact():
 
 
 def test_rc27_advances_schema_once_to_021():
-    """Cada release avanza el esquema una sola vez; RC27 aporta 021."""
+    """Cada release avanza el esquema una sola vez; RC27 aporta 021.
+
+    El contrato es sobre la línea de Caja, que termina en 021, y no sobre el
+    total del directorio: las migraciones posteriores pertenecen al núcleo
+    comercial y agregarlas no puede romper esta afirmación sobre RC27.
+    """
     migrations = sorted(Path("modulos/caja_diaria/infrastructure/migrations").glob("*.sql"))
-    assert len(migrations) == 21
-    assert migrations[-2].name == "020_branch_bindings_canonicas.sql"
-    assert migrations[-1].name == "021_queda_a_confirmar.sql"
+    linea_caja = [ruta for ruta in migrations if ruta.name[:3] <= "021"]
+    assert len(linea_caja) == 21
+    assert linea_caja[-2].name == "020_branch_bindings_canonicas.sql"
+    assert linea_caja[-1].name == "021_queda_a_confirmar.sql"

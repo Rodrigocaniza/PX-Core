@@ -1,0 +1,14 @@
+{
+  "mision": "BC-OPTICA-LOGIN-OPERADORA-V1-019B",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": false,
+  "next_action": "En la Optica, cuando volvamos: aplicar 029 (FactuFacil) y 030 (usuarios) en ese orden, cargar a las personas reales con su rol y darle contrasena a quien tenga que entrar. Recien ahi el login de operadora tiene con quien funcionar",
+  "advertencia": "sin la 030 aplicada y sin personas cargadas, BC Caja con esta version pide identificarse y solo entra la administradora inicial. Cargar las personas es parte de la instalacion, no un paso opcional",
+  "pendientes_de_otras_misiones": [
+    "V1-015: limpieza de marcas-laboratorio, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-016: migracion 029, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-019A: migracion 030, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-017, V1-018 y V1-019B: solo codigo"
+  ],
+  "no_iniciar_otra_mision": true
+}

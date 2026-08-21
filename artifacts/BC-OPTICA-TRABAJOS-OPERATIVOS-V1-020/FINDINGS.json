@@ -1,0 +1,84 @@
+{
+  "mision": "BC-OPTICA-TRABAJOS-OPERATIVOS-V1-020",
+  "cerrados_en_esta_mision": [
+    {
+      "id": "COMISION-EN-DOS-TRANSACCIONES",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "detalle": "El trabajo se guardaba en una transaccion y sus asientos de comision en otra, inmediatamente despues. Un corte de luz o una falla de escritura en el medio dejaba un trabajo LISTO con el hecho COMISION_DEVENGADA en su historia y ninguna comision asentada: la historia habria dicho que se pago algo que no existia",
+      "correccion": "save_service_job(job, commissions=...) guarda el trabajo, su historia y sus asientos en UNA sola transaccion. Si el asiento no puede escribirse, el trabajo tampoco avanza",
+      "prueba": "test_el_trabajo_y_su_comision_se_guardan_juntos, que simula la falla al asentar y verifica que el trabajo sigue en RECIBIDO y sin hecho de devengo"
+    },
+    {
+      "id": "NO-SE-PODIAN-VER-LOS-TRABAJOS-DE-UNA-PERSONA-DADA-DE-BAJA",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "detalle": "Filtrar el tablero por una responsable ya inactiva lanzaba error, porque se reusaba la misma resolucion que exige persona activa para asignar. Dar de baja a alguien no borra los trabajos que hizo, y no poder mirarlos era perder historia legitima por una regla de alta",
+      "correccion": "_usuario_por_nombre(..., exigir_activa=False) para buscar y filtrar. Sigue sin poder quedar de responsable de un trabajo nuevo",
+      "prueba": "test_se_pueden_ver_los_trabajos_de_una_persona_que_ya_no_esta"
+    },
+    {
+      "id": "TIPO-DE-TRABAJO-SIN-VALIDAR-AL-EDITAR",
+      "gravedad": "BAJA",
+      "estado": "CERRADO",
+      "detalle": "El alta validaba el tipo contra el catalogo, pero la edicion no: un tipo inventado llegaba hasta la clave foranea y fallaba con 'FOREIGN KEY constraint failed', que no le sirve a nadie que este mirando un mostrador",
+      "correccion": "_tipo_valido() se usa en las dos entradas",
+      "prueba": "test_editar_a_un_tipo_de_trabajo_inventado_se_rechaza_con_un_mensaje"
+    },
+    {
+      "id": "FILTRO-POR-FECHA-EN-DIA-UTC",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "detalle": "list_service_jobs comparaba date(received_at) contra la fecha pedida. received_at se guarda en UTC, asi que todo lo recibido despues de las nueve de la noche caia en el dia siguiente y quedaba fuera del filtro del dia que corresponde",
+      "correccion": "se usa _limites_utc_del_dia, la misma funcion que ya usan los pedidos para el dia del negocio",
+      "prueba": "test_se_puede_filtrar_por_fecha"
+    }
+  ],
+  "corregido_fuera_del_slice_pero_causado_por_el": [
+    {
+      "id": "V1-019B-TEST-ATADO-A-LA-ULTIMA-MIGRACION",
+      "estado": "CERRADO",
+      "detalle": "test_ninguna_migracion_nueva de V1-019B afirmaba max(schema_migrations) == '030'. Al llegar la 031 se volvio rojo sin que nada del login cambiara. Es exactamente el antipatron que documenta tests/migration_chain.py: 'la ultima migracion es la mia' se rompe con la siguiente",
+      "correccion": "ahora afirma lo que queria decir: que la 030 esta aplicada y que el login no agrego ninguna tabla de sesion. Se corrigio la prueba, no se toco el codigo de V1-019B"
+    }
+  ],
+  "abiertos_deliberados": [
+    {
+      "id": "COMISION-SIN-LIQUIDACION",
+      "estado": "ABIERTO, deliberado",
+      "detalle": "Los devengos se acumulan en service_job_commissions y la vista service_commission_balance dice cuanto se debe, pero no hay pantalla de liquidacion ni marca de pagado. Liquidar es un hecho economico distinto de devengar y merece su propio slice; meterlo aca habria mezclado dos circuitos"
+    },
+    {
+      "id": "POLITICA-DE-COMISION-SIN-PANTALLA",
+      "estado": "ABIERTO, deliberado",
+      "detalle": "definir_comision() existe y esta probada, pero la carga de la politica todavia no tiene UI: se carga por codigo o por SQL. Se dejo asi a proposito, porque cargarla es parte de la instalacion en la Optica y todavia no hay personas reales cargadas contra las cuales definirla"
+    },
+    {
+      "id": "TRABAJO-DE-TALLER-QUE-VA-AL-LABORATORIO",
+      "estado": "ABIERTO, deliberado",
+      "detalle": "Un trabajo operativo y un tracked_work son dos circuitos separados. order_id y cash_entry_id quedan como costura para enlazarlos el dia que haga falta, pero no hay flujo que lo haga hoy. No se invento uno sin caso real"
+    }
+  ],
+  "preservados_sin_absorber": [
+    {
+      "id": "GESTION-CENTRAL-NO-DETERMINISTA",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "tests/gestion_central/test_ui_interactions.py depende de bootstrap_synthetic_pilot(), que siembra alertas segun el momento. No se absorbio. En esta mision la suite dio 1288/0 en dos corridas y no interfirio"
+    },
+    {
+      "id": "APPLY-PRODUCTIVO-029-030",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "029 (FactuFacil) y 030 (usuarios) siguen sin aplicarse en la Optica. La 031 se suma a esa cola. No se aplico nada desde Casa"
+    },
+    {
+      "id": "SESION-NO-SOBREVIVE-AL-REINICIO",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "Finding de V1-019B. No se toco la politica de sesiones en esta mision"
+    },
+    {
+      "id": "OTROS-DIALOGOS-DE-RESPONSABLE",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "Hay flujos que todavia piden 'Usuario responsable' por dialogo. Trabajos Operativos deriva el suyo de la sesion, pero no se revisaron los otros: cada uno tiene su razon y revisarlos es otra mision"
+    }
+  ]
+}

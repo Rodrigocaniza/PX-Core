@@ -1,0 +1,43 @@
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 antes    : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+tablas antes    : 25
+migraciones antes: 21 -> 021
+
+== migracion ==
+  tablas perdidas      : ninguna
+  filas cambiadas      : ninguna
+  columnas nuevas      : location, min_stock, barcode
+  integrity_check      : ok
+  foreign_key_check    : 0 violaciones
+  migraciones          : 26 -> 026
+  cash_entries         : 12 -> 12
+  sale_items           : 10 -> 10
+  SUM(cash_entries.total): 6400000 -> 6400000
+
+== escenario real de punta a punta, sobre la copia ==
+  OK   el plan lee el archivo y no escribe  (4 altas, 0 actualizaciones, 0 rechazadas)
+  OK   el plan dice que le falta al archivo  (3 sin ubicación)
+  OK   catalogo cargado
+  OK   catalogo NO es stock: cero movimientos
+  OK   naturalezas cargadas del archivo, no adivinadas
+  OK   stock inicial entra como INGRESO_ADMINISTRATIVO auditado
+  OK   stock inicial no finge una compra
+  OK   stock inicial repetido no duplica
+  OK   vencimiento derivado de fecha + plazo
+  OK   la linea de cristal no pide reparto
+  OK   la revision declara confirmable
+  OK   stock tras la compra: Asuncion 26 / Pilar 16
+  OK   la compra de cristal no genero stock
+  OK   la venta descuenta solo en Asuncion y solo el armazon
+  OK   la venta de servicio deja el hecho y cero movimientos
+  OK   venta sin stock rechazada
+  OK   de la salida a la venta
+  OK   de la entrada a la factura y al proveedor
+  OK   costo derivado de la ultima compra
+  OK   articulo nunca comprado no tiene costo inventado
+  OK   las 10 lineas historicas siguen sin articulo inventado
+
+sha256 despues  : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+base real intacta: True
+
+RESULTADO: PASS

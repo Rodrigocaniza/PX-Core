@@ -1,0 +1,12 @@
+{
+  "mision": "BC-OPTICA-SEGUIMIENTO-CIERRE-PILAR-V1-018",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": false,
+  "requiere_apply_productivo": false,
+  "next_action": "Nada que aplicar sobre la base. Entra con el proximo empaquetado de BC Caja, junto con V1-017",
+  "pendientes_de_otras_misiones": [
+    "V1-015: limpieza de marcas-laboratorio, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-016: migracion 029 de FactuFacil, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA"
+  ],
+  "no_iniciar_otra_mision": true
+}

@@ -1,0 +1,109 @@
+{
+  "mission": "BC-OPTICA-INSTALACION-PRODUCTIVA-V1-007",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "SAFE_CLOSURE",
+  "pc": "Optica",
+  "headless_executor": "NO USADO: la mision toca produccion real y arranca una app grafica; corrio en sesion",
+  "lease": {
+    "held": false,
+    "otros_leases_vivos": 0,
+    "nota": "no se encontro ningun registro de lease ni de mision 007 previa en PX-Core ni en BC-Core; la mision se inicia, no se retoma"
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "orquestacion, verificacion canonica, instalacion y cierre",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "regla_de_corte": "si cualquier gate sobre la copia real fallaba, NO se instalaba. Ningun gate fallo",
+  "steps": [
+    {
+      "step": "verificacion canonica automatica",
+      "state": "DONE",
+      "detalle": "repo y git-common-dir reales, origin/main 7db56a0 confirmado tras fetch, branch/HEAD/26 worktrees listados, arbol limpio salvo worktrees no rastreados preexistentes, cero leases, cero artefactos previos de la 007"
+    },
+    {
+      "step": "resolucion del slice 6",
+      "state": "DONE",
+      "detalle": "la rama del slice 6 no existia localmente; fetch la trajo. origin/...-006 = 5bc1540, identico al HEAD declarado, y descendiente de 7db56a0 por la cadena ed0dbba -> 54f5f06 -> ecc0c7b -> b580e50 -> a8443a3"
+    },
+    {
+      "step": "version instalada y base productiva, verificadas no supuestas",
+      "state": "DONE",
+      "detalle": "VERSION.txt del ejecutable dice rc.31; resolve_data_paths() resuelve la base; 21 migraciones, 12 entradas, suma 6.400.000. Distinta de la base de PC Casa"
+    },
+    {
+      "step": "worktree propio de la mision",
+      "state": "DONE",
+      "detalle": ".worktrees/optica-instalacion-007, rama feature/bc-optica-instalacion-productiva-v1-007 desde 5bc1540"
+    },
+    {
+      "step": "backup verificable antes de cualquier cambio",
+      "state": "DONE",
+      "detalle": "API de backup de SQLite, sha256 registrado, equivalencia por contenido tabla por tabla"
+    },
+    {
+      "step": "gate real 021 -> 027 sobre copia aislada de la base productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas: migraciones, integrity_check, foreign_key_check, ninguna fila cambiada, escenario comercial completo con anulacion compensatoria, rollback byte a byte, base de origen intacta"
+    },
+    {
+      "step": "packaging rc.32 en esta PC",
+      "state": "DONE",
+      "detalle": "el zip del slice 6 quedo LOCAL en PC Casa y no existe aca; se reconstruyo desde el mismo commit con el script del repositorio"
+    },
+    {
+      "step": "smoke del ejecutable sobre copia de la base real, antes de instalar",
+      "state": "DONE",
+      "detalle": "PASS: arranca, aplica la cadena hasta 027 solo, no pierde datos, sin errores de SQLite"
+    },
+    {
+      "step": "smoke de UI Comercial",
+      "state": "DONE",
+      "detalle": "PASS antes de instalar y otra vez contra copia de la base productiva ya migrada"
+    },
+    {
+      "step": "instalacion de rc.32 conservando rc.31 como rollback",
+      "state": "DONE",
+      "detalle": "BC-Caja-Pilot.rollback-rc31-20260819-1200 preservada; acceso directo sin tocar"
+    },
+    {
+      "step": "smoke post-instalacion sobre la base productiva",
+      "state": "DONE",
+      "detalle": "PASS: 27 migraciones aplicadas por el propio ejecutable, integridad ok, 0 FK, entradas/dinero/lineas/dias/pedidos sin cambios, ventana 'Caja diaria - Optica' abierta"
+    },
+    {
+      "step": "invariantes economicas y de inventario",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas"
+    },
+    {
+      "step": "suite comercial en esta PC",
+      "state": "DONE",
+      "detalle": "254 passed"
+    },
+    {
+      "step": "gates y cierre",
+      "state": "DONE"
+    },
+    {
+      "step": "carga inicial del catalogo",
+      "state": "NO EJECUTADA",
+      "detalle": "por orden explicita: se evalua como mision/slice separado ahora que rc.32 opera"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA",
+      "detalle": "main sigue en 7db56a0"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "carga_masiva_de_articulos": "NO",
+    "alteracion_de_datos_reales": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "force_push": "NO",
+    "captura_de_pantalla_de_la_app": "descartada: incluia datos personales del usuario en ventanas ajenas"
+  }
+}

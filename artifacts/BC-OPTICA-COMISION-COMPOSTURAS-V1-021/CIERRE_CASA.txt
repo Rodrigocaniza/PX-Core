@@ -1,0 +1,39 @@
+CIERRE EN CASA - BC-OPTICA-COMISION-COMPOSTURAS-V1-021
+=======================================================
+
+Que quedo hecho
+---------------
+Cada compostura que llega legitimamente a LISTO puede generar exactamente la
+comision definida para la persona real que hizo el trabajo, conservando la
+tarifa que regia cuando devengo, permitiendo compensaciones y mostrando un
+reporte neto por persona, sucursal y fecha. Sin tocar inventario, sin tocar
+Caja, y sin rozar la comision comercial del 1%.
+
+Que NO se hizo, y esta bien
+---------------------------
+- No se aplico ninguna migracion en la Optica. 029, 030, 031 y ahora 032 siguen
+  en cola.
+- No se cargo ninguna persona ni ninguna politica real. Eso se hace alla.
+- No se invento un flujo de liquidacion o pago. Hoy no existe en el negocio.
+- No se toco main.
+
+Estado del entorno
+------------------
+worktree   .worktrees/optica-comision-021
+branch     feature/bc-optica-comision-composturas-v1-021
+base       feature/bc-optica-trabajos-operativos-v1-020 @ d44785f
+suite      1365 passed, 0 failed
+migracion  032, creada y probada, NO aplicada en produccion
+
+Lo unico que hay que hacer en la Optica
+---------------------------------------
+1. Backup de la base.
+2. Aplicar 029, 030, 031 y 032, en ese orden.
+3. Cargar las personas reales con su rol.
+4. Administrador > Comisiones de composturas > Nueva politica, una por persona
+   que comisione. Quien no comisione no necesita ninguna.
+
+Hasta que el paso 4 este hecho, las composturas funcionan enteras y no devengan
+nada. Eso es correcto, no es un error, y el reporte lo va a decir: los trabajos
+terminados sin comision aparecen listados aparte, para que alguien los mire una
+vez y decida.

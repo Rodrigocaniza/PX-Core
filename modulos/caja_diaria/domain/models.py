@@ -137,6 +137,14 @@ class SaleItem:
     no_cost: bool = False
     laboratory: str = ""
     prescription_doctor: str = ""
+    #: Articulo canonico del componente fisico (`frame_price`): armazon,
+    #: cadenilla, liquido, o un servicio con precio. Nulo mientras la linea se
+    #: escriba a mano, que es como se escriben todas hoy.
+    article_id: str | None = None
+    #: Articulo canonico del trabajo de laboratorio (`lens_price`). Es otro
+    #: articulo, no un atributo del anterior: la linea de la Optica tiene dos
+    #: componentes y siempre los tuvo.
+    lens_article_id: str | None = None
     id: str = field(default_factory=new_id)
 
     def __post_init__(self) -> None:
@@ -155,6 +163,9 @@ class SaleItem:
         if isinstance(no_cost_value, str):
             no_cost_value = no_cost_value.strip().lower() in {"1", "true", "sí", "si"}
         object.__setattr__(self, "no_cost", bool(no_cost_value))
+        for name in ("article_id", "lens_article_id"):
+            valor = str(getattr(self, name) or "").strip()
+            object.__setattr__(self, name, valor or None)
 
     @property
     def frame_final_price(self) -> int:
@@ -167,6 +178,15 @@ class SaleItem:
     @property
     def reference_subtotal(self) -> int:
         return (self.frame_price or 0) + (self.lens_price or 0)
+
+    @property
+    def articulos_vinculados(self) -> tuple[str, ...]:
+        """Los artículos canónicos de la línea, en orden de componente.
+
+        Si mueven stock o no lo decide la naturaleza de cada uno, que vive en
+        el catálogo. Acá sólo se dice cuáles son.
+        """
+        return tuple(a for a in (self.article_id, self.lens_article_id) if a)
 
     @property
     def subtotal(self) -> int:

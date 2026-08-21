@@ -1,0 +1,183 @@
+# BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008
+
+**Los dos inventarios reales están entendidos, limpios, normalizados y
+simulados. Producción no fue tocada: sigue con 0 artículos y 0 movimientos.**
+
+## Base canónica elegida
+
+`a7b685c`, tip de `feature/bc-optica-instalacion-productiva-v1-007`.
+
+No se salió de `origin/main`. `main` está en `7db56a0` = rc.31 con 21
+migraciones, y **producción está por delante**: corre rc.32 con 27 migraciones
+desde la rama del slice 6. Crear esta misión desde `main` habría borrado las
+seis migraciones comerciales que la Óptica ya usa — no habría existido ni la
+tabla `articles`. La cadena verificada es
+`7db56a0 → ed0dbba → 54f5f06 → ecc0c7b → b580e50 → a8443a3 → 5bc1540 → a7b685c`.
+
+## Lo que resultó de mirar los archivos
+
+**Las 8.459 filas de PC eran 2.586 artículos.** 5.871 filas vienen vacías.
+Coincide con los «unos 2.000 de Asunción» que ya decía la documentación.
+
+**Los 837.403 «unidades» de Pilar no eran unidades.** Ocho filas de `Compostura`
+declaran ~99.900 cada una: es el centinela con que un sistema viejo modela un
+servicio que no se agota. Once filas concentran 818.867 de las 837.403. No se
+corrigió a mano: cuando la naturaleza es la correcta, un servicio no puede
+llevar stock y el número desaparece solo. Pilar entra con **2.897**.
+
+**El código no identifica al mismo artículo en las dos sucursales.** De 107
+códigos de armazón compartidos, uno solo describe el mismo marco. `104627` es un
+rojo fijo en Asunción y un dorado flex en Pilar. Tratarlo como SKU global habría
+pegado dos marcos distintos en un artículo y sumado stock sobre algo inexistente.
+Sólo son globales los códigos de barras de fabricante y el catálogo interno
+compartido; el resto lleva prefijo de sucursal.
+
+**Las sucursales no hubo que suponerlas.** `cash_register_branches`, sembrada por
+las migraciones 018 y 020, ya dice `PC → ASUNCION` y `P2 → PILAR`. Los 8 pedidos
+reales de esta instalación están en `PC`. `PC → ASUNCION` dejó de ser hipótesis.
+
+## Naturaleza
+
+13 categorías directas a `PRODUCTO_STOCKEABLE`. `Cristales` a
+`TRABAJO_BAJO_PEDIDO`, justificada: la «marca» es el laboratorio que los fabrica
+y el stock declarado son centinelas.
+
+Dos quedan en `REQUIRES_POLICY_DECISION` y no se adivinaron: `Compostura`, que
+mezcla servicios, cristales y repuestos en una sola categoría, y las 4 filas sin
+categoría de Asunción, que parecen armazones — pero deducir la naturaleza del
+texto es exactamente lo que el sistema prohíbe.
+
+## Dry-run — PASS, 0 fallas
+
+Sobre copia consistente de la base productiva, con el mecanismo real de dos
+pasos, sin ningún atajo:
+
+- catálogo: 3.529 altas, 0 rechazos, plan aplicable entero
+- tras aplicarlo: 3.529 artículos y **0 movimientos** — catálogo no es stock
+- inventario inicial: 3.579 movimientos `INGRESO_ADMINISTRATIVO` /
+  `INVENTARIO_INICIAL`, 8.705 unidades a Asunción y 2.897 a Pilar
+- cada movimiento con actor, motivo, explicación escrita, documento de origen y
+  **la fecha del recuento, no la de hoy**: 2026-08-03 y 2026-08-10
+- idempotencia: reaplicar el archivo se rechaza por sha256; repetir el recuento
+  devuelve la misma corrida; 0 movimientos duplicados
+- `integrity_check` ok, 0 violaciones de FK, 0 stock negativo, 0 huérfanos, 0
+  efectos sin hecho
+- Caja intacta: 12 entradas, 6.400.000, 10 líneas
+- la base productiva quedó con el mismo sha256: nunca se abrió para escribir
+
+## Generación 2 — decisiones aplicadas, excepciones investigadas
+
+La decisión humana sobre `Compostura` entró tal cual: 9 servicios, 7 tipos de
+cristal, 3 repuestos físicos. Las dos que quedaban se investigaron con evidencia
+y apareció una tercera fuente que nadie había usado,
+`BC-Inventario-Control/data/inventario_base.xlsx`, del 4 de agosto.
+
+**`000005 Mostacillas` quedó resuelto sin preguntar.** Los otros tres artículos
+del universo llamados «Mostacilla\*» son bienes físicos, y el más cercano
+comparte marca y está en `Sujetadores` en los dos archivos.
+
+**Las 4 filas sin categoría también.** Las 3.065 filas del universo que empiezan
+con `AC PAT` / `AC APT` / `AC PAC` son `Armazones` o `Lentes de Sol`, y las dos
+son `PRODUCTO_STOCKEABLE`: la naturaleza no depende de cuál sea. La categoría se
+determinó por marca en dos y quedó vacía en las otras dos, en vez de inventada.
+
+**Y la investigación destapó un error propio.** Este análisis había afirmado que
+los ocho valores de ~99.900 eran todos servicios. No: `Hilo` y `Tornillo` son dos
+de esos ocho, y son dos de los tres repuestos que se aprobaron como stockeables.
+La naturaleza aprobada es correcta; la cantidad no. `inventario_base` los tenía
+en 949 y 708 el 4 de agosto y aparecen en 99.981 y 99.425 el 10: nadie compró
+99.000 hilos. Los tres entran al catálogo con **las unidades en suspenso**. Sin
+esa corrección, la carga metía 108.799 unidades fantasma en Pilar.
+
+## Estado actual
+
+| | ASUNCION | PILAR |
+| --- | ---: | ---: |
+| líneas de recuento | 2.575 | 1.008 |
+| unidades | 5.849 | 2.899 |
+
+3.553 artículos · 3.583 movimientos · dry-run **PASS, 0 fallas** · producción con
+el mismo sha256 · **0 filas en `REQUIRES_POLICY_DECISION`**.
+
+## Generación 3 — las dos últimas decisiones, y el gate final
+
+`Par de patillas` entra como **la pieza física**: los servicios de cambiar
+patilla ya existen aparte, y fundir la pieza con la mano de obra dejaría un
+artículo que a veces mueve stock y a veces no según quién lo vendió.
+
+`Limpia Cristal` sigue stockeable y **sus 2.860 no entran**. Las fuentes que
+repiten ese número comparten origen, así que no son confirmación física
+independiente.
+
+**Ninguna de las dos se cargó como cero.** El modelo ya sabía decir esto sin que
+haga falta inventarle un campo: `stock_actual` es la suma de los movimientos
+agrupada por artículo y depósito, así que un artículo sin movimientos **no tiene
+fila en la vista**. El sistema no dice «hay cero»; no dice nada. Lo que sí queda
+escrito es la cifra que la fuente declaró — en las notas del artículo y en
+`admin_audit_log` con acción `STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION`, con
+su archivo, su fila y su corte.
+
+Y se corrigió una decisión propia: en la generación 2 había movido `Hilo`,
+`Tornillo` y `Plaqueta` de `Compostura` a `Sujetadores` sin evidencia. La
+decisión humana dijo qué son, no dónde se archivan. Vuelven a `Compostura`.
+
+**El dry-run 3 falló la primera vez, y la falla era del verificador.** Comprobaba
+«este artículo no tiene ningún movimiento» cuando lo correcto era «no tiene
+movimiento en esa sucursal». Lo destapó `000010`, que es un código global: Pilar
+sí lo contó (10 unidades, y entran) y lo que espera son los 2.860 de Asunción. Se
+arregló el verificador, no el dato.
+
+## Estado final
+
+| | ASUNCION | PILAR |
+| --- | ---: | ---: |
+| líneas de recuento | 2.575 | 1.008 |
+| **unidades confirmadas** | **5.849** | **2.899** |
+
+3.554 artículos · 3.583 movimientos · **PASS, 0 fallas** · 5 artículos con
+cantidad pendiente (212.185 unidades declaradas que no se convierten en ledger) ·
+producción con el mismo sha256 · backup pre-importación hecho y verificado.
+
+## Generación 4 — importado
+
+Autorizado, y hecho. **PASS, 0 fallas, sin rollback.**
+
+El pre-guard pasó en los seis puntos: la base tenía el sha256 que el gate había
+declarado, el backup seguía ahí con el suyo y abría bien, el HEAD y los cuatro
+artefactos no se habían movido, y el plan coincidía con el dry-run 3 campo por
+campo, incluidos los cinco valores prohibidos.
+
+| | ASUNCION | PILAR | total |
+| --- | ---: | ---: | ---: |
+| líneas | 2.575 | 1.008 | 3.583 |
+| **unidades** | **5.849** | **2.899** | **8.748** |
+
+3.554 artículos, 14 categorías, 136 marcas. Los 3.583 movimientos son
+`INGRESO_ADMINISTRATIVO` / `INVENTARIO_INICIAL`, con la fecha de cada recuento —
+2026-08-03 y 2026-08-10, no la de hoy—, ninguno sin actor y ninguno sin
+explicación escrita. `sha256` de la base: `aa13f36e…` → `25cd7d04…`.
+
+**Las cinco cantidades dudosas no entraron.** Ni un movimiento por los 2.860
+limpia-cristales, ni por los 526 pares de patillas, ni por los 99.981 hilos, los
+99.425 tornillos o las 9.393 plaquetas. No figuran en `stock_actual` para su
+sucursal: el sistema no dice que hay cero, no dice nada. Los cinco existen en el
+catálogo, conservan la cifra que declaró la fuente y están en la bitácora, así
+que la pregunta «¿qué falta contar?» tiene respuesta en una consulta. Y los 10
+limpia-cristales que Pilar sí contó están donde deben.
+
+**Caja histórica intacta:** 12 entradas, 6.400.000, 10 líneas, 2 días, 8 pedidos,
+y cero ventas viejas integradas al stock.
+
+Repetir la importación entera no cambia nada: el catálogo se rechaza por sha256,
+los recuentos devuelven la misma corrida, y la base queda **byte a byte igual**.
+
+**Un falso positivo que vale contar.** La primera pasada del verificador marcó
+una falla: creía que una fila rechazada había creado un artículo. Buscaba por
+nombre, y `AC PAT FLEX AZUL` es una descripción que se repite en ocho armazones
+que sí traen código. Se corrigió la pregunta —ahora verifica por procedencia— y
+dio PASS. El dato estaba bien desde el principio.
+
+## Lo que queda
+
+Cinco artículos esperando que alguien los cuente. No bloquean nada: la Óptica ya
+puede vender los otros 3.549.

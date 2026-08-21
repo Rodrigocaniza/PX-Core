@@ -1,0 +1,90 @@
+{
+  "mision": "BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015",
+  "modo": "Casa, sin produccion",
+  "pasos": [
+    {
+      "n": 1,
+      "paso": "verificacion canonica de Casa",
+      "estado": "PASS",
+      "detalle": "repo, git-common-dir, origin/main 7db56a0, 77 ramas remotas, 41 worktrees, HEAD feature/caja-diaria 5ed42ae. La cadena de la Optica no estaba local: se trajo con fetch"
+    },
+    {
+      "n": 2,
+      "paso": "handoff de la Optica leido",
+      "estado": "PASS",
+      "detalle": "artifacts/BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012/HANDOFF_CASA.md, leido desde la rama remota"
+    },
+    {
+      "n": 3,
+      "paso": "base git elegida",
+      "estado": "PASS",
+      "detalle": "a0bd4da, punta de v1-012. Cadena lineal verificada: v1-014 c838f10 es ancestro"
+    },
+    {
+      "n": 4,
+      "paso": "worktree aislado",
+      "estado": "PASS",
+      "detalle": ".worktrees/optica-marcas-lab-015"
+    },
+    {
+      "n": 5,
+      "paso": "los 31 casos identificados",
+      "estado": "PASS",
+      "detalle": "23 «Laboratorio Optilab» + 8 «Laboratorio Servi Optical» en catalogo_canonico.csv. Coincide con el conteo que V1-012 midio en produccion"
+    },
+    {
+      "n": 6,
+      "paso": "evidencia de la fuente corregida",
+      "estado": "PASS",
+      "detalle": "EVIDENCIA_FUENTE_CORREGIDA.json: lo que V1-010 y V1-012 dejaron asentado del .xls del 19/08, que no esta en esta PC"
+    },
+    {
+      "n": 7,
+      "paso": "herramienta productiva",
+      "estado": "PASS",
+      "detalle": "tools/limpieza_marcas_laboratorio_optica.py, dry-run por defecto"
+    },
+    {
+      "n": 8,
+      "paso": "pruebas dirigidas",
+      "estado": "PASS",
+      "detalle": "24 verdes"
+    },
+    {
+      "n": 9,
+      "paso": "dry-run sobre copia local",
+      "estado": "PASS",
+      "detalle": "28 / 2 / 1"
+    },
+    {
+      "n": 10,
+      "paso": "aplicacion simulada sobre copia local",
+      "estado": "PASS",
+      "detalle": "30 brand_id, 0 inesperados, invariantes intactos"
+    },
+    {
+      "n": 11,
+      "paso": "idempotencia",
+      "estado": "PASS",
+      "detalle": "segunda corrida: no escribe nada"
+    },
+    {
+      "n": 12,
+      "paso": "suite",
+      "estado": "PASS",
+      "detalle": "Commercial Core 345 verdes y 0 rojas; repo 1025 verdes y 2 rojas PREEXISTING_OUT_OF_SCOPE"
+    },
+    {
+      "n": 12.5,
+      "paso": "cierre de Casa",
+      "estado": "PASS",
+      "detalle": "plan sellado con huella, handoff productivo, evidencia de los rojos preexistentes, sin drift: el dry-run sigue dando 28/2/1"
+    },
+    {
+      "n": 13,
+      "paso": "aplicacion productiva",
+      "estado": "PENDIENTE",
+      "detalle": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA. No se aplica desde Casa"
+    }
+  ]
+}

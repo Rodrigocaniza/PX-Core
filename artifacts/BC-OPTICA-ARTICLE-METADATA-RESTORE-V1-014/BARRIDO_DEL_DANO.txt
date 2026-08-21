@@ -1,0 +1,35 @@
+﻿BARRIDO DEL DANO -- estado previo a la restauracion
+comparacion: bc-caja-prerecuento-20260819-142306 (14:23) contra bc-caja-premetadatos-20260819-170642 (17:06, justo antes de restaurar)
+
+articulos: antes 3554  produccion 3596
+
+perdieron categoria : 5 -> ['000010', '2000056', '2000070', '2000071', '2000072']
+perdieron marca     : 5 -> ['000010', '2000056', '2000070', '2000071', '2000072']
+
+otros campos que cambiaron entre 14:23 y produccion (cambios legitimos de 010/013):
+  active         767  ejemplos ['000001', '000037', '730821598041', '730821599963', '730821599987']
+  nature           4  ejemplos ['2000056', '2000070', '2000071', '2000072']
+
+cambios de categoria/marca a OTRO valor (no a None):
+
+valores exactos a restaurar (repr, sin pasar por consola):
+  000010: categoria='Limpia Cristales' marca='Óptica Puppilent`s'
+  2000056: categoria='Compostura' marca='Optica San Cayetano'
+  2000070: categoria='Compostura' marca='Laboratorio Optilab'
+  2000071: categoria='Compostura' marca='Optica San Cayetano'
+  2000072: categoria='Compostura' marca='Optica San Cayetano'
+
+-- y el mismo barrido despues de restaurar --
+
+articulos: antes 3554  produccion 3596
+
+perdieron categoria : 0 -> []
+perdieron marca     : 0 -> []
+
+otros campos que cambiaron entre 14:23 y produccion (cambios legitimos de 010/013):
+  active         767  ejemplos ['000001', '000037', '730821598041', '730821599963', '730821599987']
+  nature           4  ejemplos ['2000056', '2000070', '2000071', '2000072']
+
+cambios de categoria/marca a OTRO valor (no a None):
+
+valores exactos a restaurar (repr, sin pasar por consola):

@@ -23,6 +23,8 @@ REVIEW_STATUSES = {
     "UNREVIEWED", "IN_REVIEW", "REVIEWED", "WITH_OBSERVATION",
     "REQUIRES_CORRECTION", "CORRECTED_PENDING_REVALIDATION",
 }
+FACTUFACIL_PENDING = "PARA_CARGAR"
+FACTUFACIL_HISTORICAL_UNAVAILABLE = "NO DISPONIBLE HISTORICO"
 
 
 def now_iso() -> str:
@@ -105,6 +107,30 @@ class ReviewService:
               id TEXT PRIMARY KEY, branch TEXT NOT NULL, payload_json TEXT NOT NULL,
               status TEXT NOT NULL DEFAULT 'PENDING', received_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS daily_movements(
+              id TEXT PRIMARY KEY, identity TEXT NOT NULL, source_snapshot_id TEXT NOT NULL,
+              source_entry_id TEXT NOT NULL, source_version INTEGER NOT NULL,
+              source_content_hash TEXT NOT NULL, organization TEXT NOT NULL,
+              branch TEXT NOT NULL, cashbox TEXT NOT NULL, business_date TEXT NOT NULL,
+              movement_type TEXT NOT NULL DEFAULT 'VENTA', total INTEGER NOT NULL,
+              cash INTEGER NOT NULL, card_transfer INTEGER NOT NULL,
+              agreement INTEGER NOT NULL, balance TEXT NOT NULL,
+              status TEXT NOT NULL DEFAULT 'ACTIVE', approved_by TEXT NOT NULL,
+              approved_at TEXT NOT NULL, compensated_at TEXT,
+              UNIQUE(identity,source_version,source_content_hash)
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_daily_movements_active_source
+              ON daily_movements(identity) WHERE status='ACTIVE';
+            CREATE INDEX IF NOT EXISTS idx_daily_movements_day
+              ON daily_movements(business_date,branch,status);
+            CREATE TABLE IF NOT EXISTS review_correction_outbox(
+              id TEXT PRIMARY KEY, identity TEXT NOT NULL, organization TEXT NOT NULL,
+              branch TEXT NOT NULL, cashbox TEXT NOT NULL, business_date TEXT NOT NULL,
+              source_entry_id TEXT NOT NULL, source_version INTEGER NOT NULL,
+              field_name TEXT, reason TEXT NOT NULL, requested_by TEXT NOT NULL,
+              requested_at TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'PENDING',
+              idempotency_key TEXT NOT NULL UNIQUE
+            );
             """)
             con.commit()
 
@@ -139,18 +165,26 @@ class ReviewService:
             entries = source.execute("SELECT * FROM cash_entries WHERE cash_day_id=? AND status='ACTIVE' ORDER BY created_at,id", (day["id"],)).fetchall()
             items = source.execute("SELECT * FROM sale_items WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id=?) ORDER BY cash_entry_id,position", (day["id"],)).fetchall()
             orders = source.execute("SELECT * FROM orders WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id=?)", (day["id"],)).fetchall()
+            has_factufacil = source.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='factufacil_loads'"
+            ).fetchone() is not None
+            factufacil = source.execute(
+                "SELECT cash_entry_id,status FROM factufacil_loads"
+            ).fetchall() if has_factufacil else ()
         finally:
             source.close()
         source_hash_after_read = self.snapshot_hash(snapshot_path)
         if source_hash_after_read != source_hash:
             raise RuntimeError("el snapshot cambió durante la lectura; importación cancelada")
         item_map, order_map = {}, {row["cash_entry_id"]: row for row in orders}
+        factufacil_map = {row["cash_entry_id"]: row["status"] for row in factufacil}
         for item in items: item_map.setdefault(item["cash_entry_id"], []).append(item)
         snapshot_id = digest({"organization": organization, "branch": branch, "cashbox": cashbox, "date": day["business_date"], "sha": source_hash})
         inserted = unchanged = changed = 0
         with self.repository.connection() as con:
             con.execute("BEGIN IMMEDIATE")
             con.execute("INSERT OR IGNORE INTO real_sync_snapshots VALUES(?,?,?,?,?,?,?,?,?)", (snapshot_id,organization,branch,cashbox,day["business_date"],source_hash,integrity,"SQLITE_READONLY_SNAPSHOT",now_iso()))
+            imported_identities = set()
             for entry in entries:
                 sale_items = item_map.get(entry["id"], [])
                 order = order_map.get(entry["id"])
@@ -164,9 +198,14 @@ class ReviewService:
                     "total": entry["total"] or 0, "cash": entry["cash"] or 0, "card_transfer": entry["card_check"] or 0,
                     "agreement": entry["agreement_amount"] or 0, "balance": entry["balance_text"] or "",
                     "delivery_date": (order["delivery_date"] if order else entry["delivery_date"]) or "",
-                    "factufacil_status": "NO DISPONIBLE PILOTO", "recorded_by": entry["performed_by"] or entry["saleswoman"],
+                    "factufacil_status": (
+                        factufacil_map.get(entry["id"], FACTUFACIL_PENDING)
+                        if has_factufacil else FACTUFACIL_HISTORICAL_UNAVAILABLE
+                    ),
+                    "recorded_by": entry["performed_by"] or entry["saleswoman"],
                 }
                 identity = digest({"organization":organization,"branch":branch,"cashbox":cashbox,"date":day["business_date"],"entry":entry["id"]})
+                imported_identities.add(identity)
                 content_hash = digest(payload); version = int(entry["revision"] or 0)
                 prior = con.execute("SELECT * FROM review_sales WHERE identity=?", (identity,)).fetchone()
                 if not prior:
@@ -183,9 +222,20 @@ class ReviewService:
                             con.execute("UPDATE review_fields SET valid=0 WHERE identity=? AND field_name=?",(identity,name)); invalidated.append(name)
                     target = "CORRECTED_PENDING_REVALIDATION" if invalidated else prior["review_status"]
                     con.execute("UPDATE review_sales SET current_version=?,current_content_hash=?,payload_json=?,review_status=?,updated_at=? WHERE identity=?",(version,content_hash,canonical(payload),target,now_iso(),identity))
+                    if changed_fields:
+                        self._compensate(con, identity)
                     self._event(con,identity,actor.username,"SOURCE_CHANGED",prior["review_status"],target,{"changed_fields":changed_fields,"invalidated_fields":invalidated,"before_hash":prior["current_content_hash"],"after_hash":content_hash})
                     changed += 1
                 con.execute("INSERT OR IGNORE INTO review_sale_versions VALUES(?,?,?,?,?,?)",(identity,version,content_hash,canonical(payload),snapshot_id,now_iso()))
+            prior_rows = con.execute(
+                "SELECT identity,review_status FROM review_sales WHERE organization=? AND branch=? AND cashbox=? AND business_date=?",
+                (organization,branch,cashbox,day["business_date"]),
+            ).fetchall()
+            for prior in prior_rows:
+                if prior["identity"] not in imported_identities and prior["review_status"] != "ANNULLED":
+                    con.execute("UPDATE review_sales SET review_status='ANNULLED',updated_at=? WHERE identity=?",(now_iso(),prior["identity"]))
+                    self._compensate(con, prior["identity"])
+                    self._event(con,prior["identity"],actor.username,"SOURCE_ANNULLED",prior["review_status"],"ANNULLED",{"snapshot_id":snapshot_id})
             self.repository.audit(con,actor.username,"REAL_SNAPSHOT_IMPORT",snapshot_id,details={"period":day["business_date"],"unit":cashbox,"processed":len(entries)})
             con.commit()
         return ImportResult(snapshot_id,day["business_date"],cashbox,len(entries),inserted,unchanged,changed)
@@ -193,9 +243,42 @@ class ReviewService:
     def _event(self, con, identity, actor, action, before, after, details=None):
         con.execute("INSERT INTO review_events VALUES(?,?,?,?,?,?,?,?)",(str(uuid.uuid4()),identity,actor,action,before,after,canonical(details or {}),now_iso()))
 
+    @staticmethod
+    def _compensate(con, identity):
+        con.execute(
+            "UPDATE daily_movements SET status='COMPENSATED',compensated_at=? WHERE identity=? AND status='ACTIVE'",
+            (now_iso(), identity),
+        )
+
+    def _consolidate(self, con, row, actor, payload):
+        active = con.execute(
+            "SELECT id,source_content_hash FROM daily_movements WHERE identity=? AND status='ACTIVE'",
+            (row["identity"],),
+        ).fetchone()
+        if active:
+            if active["source_content_hash"] != row["current_content_hash"]:
+                raise RuntimeError("existe un movimiento activo para otra versión")
+            return active["id"], False
+        movement_id = digest({"review":row["identity"],"version":row["current_version"],"hash":row["current_content_hash"]})
+        con.execute("""INSERT OR IGNORE INTO daily_movements(
+            id,identity,source_snapshot_id,source_entry_id,source_version,source_content_hash,
+            organization,branch,cashbox,business_date,total,cash,card_transfer,agreement,balance,
+            approved_by,approved_at
+          ) SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?
+            WHERE EXISTS(SELECT 1 FROM review_sale_versions WHERE identity=? AND version=? AND content_hash=?)""",
+          (movement_id,row["identity"],row["source_snapshot_id"],row["source_entry_id"],row["current_version"],row["current_content_hash"],
+           row["organization"],row["branch"],row["cashbox"],row["business_date"],int(payload["total"]),int(payload["cash"]),
+           int(payload["card_transfer"]),int(payload["agreement"]),str(payload["balance"]),actor.username,now_iso(),
+           row["identity"],row["current_version"],row["current_content_hash"]))
+        if not con.execute("SELECT 1 FROM daily_movements WHERE id=?",(movement_id,)).fetchone():
+            raise RuntimeError("la revisión no tiene una versión de origen verificable")
+        return movement_id, True
+
     def list_sales(self, actor: Principal, *, status=None, cashbox=None, date=None, saleswoman=None, envelope=None):
         self._require(actor,"reviews.read")
-        with self.repository.connection() as con: rows=con.execute("SELECT * FROM review_sales ORDER BY business_date,source_entry_id").fetchall()
+        with self.repository.connection() as con: rows=con.execute("""SELECT s.*,
+            (SELECT id FROM daily_movements m WHERE m.identity=s.identity AND m.status='ACTIVE') movement_id
+            FROM review_sales s ORDER BY business_date,source_entry_id""").fetchall()
         result=[]
         for row in rows:
             item=dict(row); item["payload"]=json.loads(item.pop("payload_json"))
@@ -219,10 +302,20 @@ class ReviewService:
         self._require(actor,"reviews.manage"); fields=tuple(dict.fromkeys(fields))
         if not fields or any(name not in REVIEW_FIELDS for name in fields): raise ValueError("campos de revisión inválidos")
         with self.repository.connection() as con:
-            con.execute("BEGIN IMMEDIATE"); row=con.execute("SELECT * FROM review_sales WHERE identity=?",(identity,)).fetchone(); payload=json.loads(row["payload_json"]); before=row["review_status"]
+            con.execute("BEGIN IMMEDIATE"); row=con.execute("""SELECT s.*,
+                (SELECT snapshot_id FROM review_sale_versions v WHERE v.identity=s.identity
+                 AND v.version=s.current_version AND v.content_hash=s.current_content_hash
+                 ORDER BY imported_at DESC LIMIT 1) source_snapshot_id
+                FROM review_sales s WHERE identity=?""",(identity,)).fetchone()
+            if not row: raise ValueError("venta inexistente")
+            if row["review_status"] == "ANNULLED": raise ValueError("una venta anulada no puede consolidarse")
+            payload=json.loads(row["payload_json"]); before=row["review_status"]
             for name in fields: con.execute("INSERT INTO review_fields VALUES(?,?,?,?,?,?) ON CONFLICT(identity,field_name) DO UPDATE SET reviewed_hash=excluded.reviewed_hash,valid=1,reviewed_by=excluded.reviewed_by,reviewed_at=excluded.reviewed_at",(identity,name,digest(payload.get(name)),1,actor.username,now_iso()))
             count=con.execute("SELECT count(*) FROM review_fields WHERE identity=? AND valid=1",(identity,)).fetchone()[0]; after="REVIEWED" if count==len(REVIEW_FIELDS) else "IN_REVIEW"
-            con.execute("UPDATE review_sales SET review_status=?,updated_at=? WHERE identity=?",(after,now_iso(),identity)); self._event(con,identity,actor.username,"FIELDS_REVIEWED",before,after,{"fields":fields}); con.commit()
+            movement_id = None
+            if after == "REVIEWED":
+                movement_id, _created = self._consolidate(con,row,actor,payload)
+            con.execute("UPDATE review_sales SET review_status=?,updated_at=? WHERE identity=?",(after,now_iso(),identity)); self._event(con,identity,actor.username,"FIELDS_REVIEWED",before,after,{"fields":fields,"movement_id":movement_id}); con.commit()
         return after
 
     def mark_complete(self, actor, identity): return self.mark_fields(actor,identity,REVIEW_FIELDS)
@@ -240,11 +333,36 @@ class ReviewService:
             con.execute("BEGIN IMMEDIATE"); row=con.execute("SELECT review_status FROM review_sales WHERE identity=?",(identity,)).fetchone(); before=row[0]
             con.execute("INSERT INTO review_notes VALUES(?,?,?,?,?,?)",(str(uuid.uuid4()),identity,field_name,note,actor.username,now_iso())); con.execute("UPDATE review_sales SET review_status='WITH_OBSERVATION',updated_at=? WHERE identity=?",(now_iso(),identity)); self._event(con,identity,actor.username,"NOTE_ADDED",before,"WITH_OBSERVATION",{"field":field_name}); con.commit()
 
-    def require_correction(self, actor, identity, reason):
+    def require_correction(self, actor, identity, reason, field_name=None):
         self._require(actor,"reviews.manage"); reason=reason.strip()
         if not reason: raise ValueError("motivo obligatorio")
+        if field_name and field_name not in REVIEW_FIELDS: raise ValueError("campo inválido")
         with self.repository.connection() as con:
-            con.execute("BEGIN IMMEDIATE"); before=con.execute("SELECT review_status FROM review_sales WHERE identity=?",(identity,)).fetchone()[0]; con.execute("UPDATE review_sales SET review_status='REQUIRES_CORRECTION',updated_at=? WHERE identity=?",(now_iso(),identity)); self._event(con,identity,actor.username,"REOPEN_CORRECTION",before,"REQUIRES_CORRECTION",{"reason":reason}); con.commit()
+            con.execute("BEGIN IMMEDIATE"); row=con.execute("SELECT * FROM review_sales WHERE identity=?",(identity,)).fetchone()
+            if not row: raise ValueError("venta inexistente")
+            before=row["review_status"]
+            key=digest({"identity":identity,"version":row["current_version"],"field":field_name,"reason":reason})
+            con.execute("INSERT OR IGNORE INTO review_correction_outbox VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (str(uuid.uuid4()),identity,row["organization"],row["branch"],row["cashbox"],row["business_date"],row["source_entry_id"],row["current_version"],field_name,reason,actor.username,now_iso(),"PENDING",key))
+            self._compensate(con,identity)
+            con.execute("UPDATE review_sales SET review_status='REQUIRES_CORRECTION',updated_at=? WHERE identity=?",(now_iso(),identity)); self._event(con,identity,actor.username,"REOPEN_CORRECTION",before,"REQUIRES_CORRECTION",{"reason":reason,"field":field_name,"idempotency_key":key}); con.commit()
+        return key
+
+    def daily_movements(self, actor, *, status="ACTIVE", date=None, branch=None):
+        self._require(actor,"reviews.read")
+        query="SELECT * FROM daily_movements WHERE 1=1"; params=[]
+        if status: query += " AND status=?"; params.append(status)
+        if date: query += " AND business_date=?"; params.append(date)
+        if branch: query += " AND branch=?"; params.append(branch)
+        query += " ORDER BY business_date,branch,source_entry_id,id"
+        with self.repository.connection() as con: return [dict(r) for r in con.execute(query,params)]
+
+    def pending_corrections(self, actor, *, branch=None):
+        self._require(actor,"reviews.read")
+        query="SELECT * FROM review_correction_outbox WHERE status='PENDING'"; params=[]
+        if branch: query += " AND branch=?"; params.append(branch)
+        query += " ORDER BY requested_at,id"
+        with self.repository.connection() as con: return [dict(r) for r in con.execute(query,params)]
 
     def create_branch_alert(self, actor, identity, message):
         self._require(actor,"reviews.manage"); message=message.strip()

@@ -1,0 +1,190 @@
+===== PC - Inventario.xlsx  (hipotesis ASUNCION) =====
+filas fisicas                 : 8459
+fila de encabezado            : indice 1
+columnas                      : ['casilla', 'zona', 'stock a fecha', 'articulo', 'marca', 'categoria', 'observacion']
+filas de datos                : 8457
+filas totalmente vacias       : 5871
+filas pobladas                : 2586
+filas pobladas sin 'Articulo' : 0
+filas con articulo            : 2586
+
+nombres de articulo distintos (exactos)   : 2586
+nombres duplicados exactos                : 0 (filas afectadas 0)
+nombres distintos (normalizados)          : 2586
+duplicados normalizados                   : 0 (filas afectadas 0)
+filas con codigo numerico embebido        : 2573
+filas sin codigo embebido                 : 13
+codigos distintos                         : 2573
+codigos repetidos                         : 0 (filas afectadas 0)
+
+stock positivo                : 2586   (unidades 8719)
+stock cero                    : 0
+stock negativo                : 0
+stock vacio                   : 0
+stock no numerico             : 0
+stock min/med/max             : 1 / 1 / 2860
+valores extremos (top 8)      : [2860, 978, 953, 210, 141, 130, 122, 97]
+
+categorias distintas          : 12 (filas sin categoria: 6)
+marcas distintas              : 122 (filas sin marca: 134)
+filas que parecen total/subtotal : 0
+filas que repiten el encabezado  : 0
+columna extra 'casilla': poblada en 0 de 2586 filas
+columna extra 'zona': poblada en 0 de 2586 filas
+columna extra 'observacion': poblada en 0 de 2586 filas
+
+===== P2 - Inventario.xlsx  (PILAR) =====
+filas fisicas                 : 1054
+fila de encabezado            : indice 1
+columnas                      : ['articulo', 'categoria', 'marca', 'stock a fecha']
+filas de datos                : 1052
+filas totalmente vacias       : 0
+filas pobladas                : 1052
+filas pobladas sin 'Articulo' : 0
+filas con articulo            : 1052
+
+nombres de articulo distintos (exactos)   : 1052
+nombres duplicados exactos                : 0 (filas afectadas 0)
+nombres distintos (normalizados)          : 1052
+duplicados normalizados                   : 0 (filas afectadas 0)
+filas con codigo numerico embebido        : 1049
+filas sin codigo embebido                 : 3
+codigos distintos                         : 1049
+codigos repetidos                         : 0 (filas afectadas 0)
+
+stock positivo                : 1052   (unidades 837403)
+stock cero                    : 0
+stock negativo                : 0
+stock vacio                   : 0
+stock no numerico             : 0
+stock min/med/max             : 1 / 1 / 99981
+valores extremos (top 8)      : [99981, 99916, 99884, 99808, 99764, 99637, 99608, 99425]
+
+categorias distintas          : 12 (filas sin categoria: 0)
+marcas distintas              : 79 (filas sin marca: 4)
+filas que parecen total/subtotal : 0
+filas que repiten el encabezado  : 0
+== P2: filas con 'Stock A Fecha' mas alto ==
+     99981  | 2000070 Hilo                                     | Compostura     | Laboratorio Optila
+     99916  | 2000065 Adaptacion de cristal                    | Compostura     | Laboratorio Optila
+     99884  | 2000058 Compostura Flex                          | Compostura     | Optica San Cayetan
+     99808  | 2000057 Compostura Simple                        | Compostura     | Optica San Cayetan
+     99764  | 2000101 CENTRADO                                 | Compostura     | Óptica Puppilent`s
+     99637  | 2000054 Compostura de Patilla Izquierda          | Compostura     | Optica San Cayetan
+     99608  | 2000055 Compostura de Patilla Derecha            | Compostura     | Optica San Cayetan
+     99425  | 2000071 Tornillo                                 | Compostura     | Optica San Cayetan
+      9480  | 2000063 Kripto (Kto) Organico UVX                | Compostura     | Laboratorio Optila
+      9393  | 2000072 Plaqueta                                 | Compostura     | Optica San Cayetan
+      1971  | 2000219 Multiblue Foto Ar                        | Cristales      | Laboratorio Optila
+       999  | 2000126 FUTUREX G2                               | Cristales      | Laboratorio Servi 
+       997  | 2000067 Bifocal (ST)                             | Compostura     | Laboratorio Optila
+       994  | 2000207 Kto.AR                                   | Cristales      | Laboratorio Optila
+       984  | 2000125 FUTUREX STEEL                            | Cristales      | Laboratorio Servi 
+
+== P2: distribucion de 'Stock A Fecha' ==
+           1: 951
+         2-5: 36
+        6-20: 17
+      21-100: 18
+     101-999: 19
+   1000-9999: 3
+     >=10000: 8
+
+P2 filas con stock >= 1000: 11  | unidades que aportan: 818867
+P2 unidades del resto     : 18536
+
+== P2: los >=10000, mirados de cerca ==
+  stock=99981 articulo='2000070 Hilo' cat='Compostura' marca='Laboratorio Optilab'
+  stock=99916 articulo='2000065 Adaptacion de cristal' cat='Compostura' marca='Laboratorio Optilab'
+  stock=99884 articulo='2000058 Compostura Flex' cat='Compostura' marca='Optica San Cayetano'
+  stock=99808 articulo='2000057 Compostura Simple' cat='Compostura' marca='Optica San Cayetano'
+  stock=99764 articulo='2000101 CENTRADO' cat='Compostura' marca='Óptica Puppilent`s'
+  stock=99637 articulo='2000054 Compostura de Patilla Izquierda' cat='Compostura' marca='Optica San Cayetano'
+  stock=99608 articulo='2000055 Compostura de Patilla Derecha' cat='Compostura' marca='Optica San Cayetano'
+  stock=99425 articulo='2000071 Tornillo' cat='Compostura' marca='Optica San Cayetano'
+
+== P2: el numero grande, se parece al codigo del articulo? ==
+  coincidencias codigo~stock en los 60 mas grandes: 0
+
+== PC: filas con stock mas alto ==
+      2860  | 000010 Limpia Cristal                            | Limpia Cristales | Óptica Puppilent
+       978  | 000006 Goma Niño                                 | Sujetadores      | Proray
+       953  | 2000146 Capuchon                                 | Sujetadores      | Optica San Cayet
+       210  | 000037 LIMPIA CRISTAL OBSEQUIO                   | Limpia Cristales | Óptica Puppilent
+       141  | 7841134010342 Acuatear  10ml                     | Líquidos Multipr | Acuatears
+       130  | 000012 Mostacilla                                | Sujetadores      | Proray
+       122  | 000008 Cordon                                    | Sujetadores      | Proray
+        97  | 000018 Goma Adulto                               | Sujetadores      | Proray
+        90  | 000009 Goma Deportiva                            | Sujetadores      | Proray
+        88  | 000011 Sujetador                                 | Sujetadores      | Óptica Puppilent
+        80  | 000023 Franela                                   | Paños            | Proray
+        59  | 000003 Antideslizante                            | Sujetadores      | Proray
+        35  | 000043 Kit de Mantenimiento                      | Accesorios       | Óptica Puppilent
+        35  | 000020 Antideslizantes Corazones                 | Sujetadores      | AliExpress
+        30  | 000019 Antideslizantes Circulares                | Sujetadores      | AliExpress
+
+== PC: distribucion ==
+         1: 2514
+       2-5: 38
+      6-20: 19
+    21-100: 8
+   101-999: 6
+    >=1000: 1
+PC filas >=1000: 1 | unidades que aportan: 2860
+PC unidades del resto: 5859===== PC: categorias (13) =====
+  categoria                           filas   unidades       max
+  Armazones                            2179       2179         1
+  Lentes de Sol                         241        241         1
+  Lente de contacto                     100        137         5
+  Sujetadores                            27       2678       978
+  Accesorios                             13         98        35
+  Líquidos Multipropósitos               12        211       141
+  (sin categoria)                         6          6         1
+  Estuches                                2         12        10
+  Limpia Cristales                        2       3070      2860
+  Marcadores                              1          1         1
+  Medicamentos                            1          2         2
+  Organizadores                           1          4         4
+  Paños                                   1         80        80
+
+===== P2: categorias (12) =====
+  categoria                           filas   unidades       max
+  Armazones                             825        923        99
+  Lente de contacto                      78         96         3
+  Lentes de Sol                          59         59         1
+  Cristales                              23      12272      1971
+  Compostura                             21     822233     99981
+  Sujetadores                            20        328        82
+  Accesorios                             10        871       835
+  Líquidos Multipropósitos                9         55        16
+  Estuche LC                              2         28        27
+  Limpia Cristales                        2        526       516
+  Organizadores                           2          2         1
+  Paños                                   1         10        10
+
+===== cruce PC / P2 =====
+codigos en PC              : 2573
+codigos en P2              : 1049
+codigos en AMBOS           : 179
+solo en PC                 : 2394
+solo en P2                 : 870
+union (articulos canonicos): 3443
+
+== muestra de codigos comunes: mismo nombre? ==
+  000002: PC='Estuche LC' P2='Estuche LC' =
+  000003: PC='Antideslizante' P2='Antideslizantes' DISTINTO
+  000006: PC='Goma Niño' P2='Goma Niño' =
+  000007: PC='Goma Niño' P2='Goma Niño' =
+  000008: PC='Cordon' P2='Cordon' =
+  000009: PC='Goma Deportiva' P2='Goma Deportiva' =
+  000010: PC='Limpia Cristal' P2='LIMPIA CRISTAL' =
+  000011: PC='Sujetador' P2='Sujetador' =
+  000012: PC='Mostacilla' P2='Mostacilla' =
+  000013: PC='Goma Deportiva Hanis' P2='Goma Depotiva' DISTINTO
+  000014: PC='Goma Tipo Trenza Hanis' P2='Goma Tipo Trenza' DISTINTO
+  000016: PC='Goma Ajustable Hanis' P2='Gomas Ajustables' DISTINTO
+  codigos comunes con descripcion distinta: 138 de 179
+
+== filas sin codigo embebido ==
+  PC: 13 -> ['AC PAC FIJA AZUL', 'Armazon', '107648AC PAT FLEX NEGRO K9790 54-18-145 C.F200', '106560AC PAT FLEX ROSA K9924 54-16-140 C529', 'AC PAT FIJA TRANSPARENTE 66008 55-18-150 C6', 'AC PAT FLEX ROJO TL 53-16-140 C3', 'AC PAT FLEX NARANJA RGE026 51-16-140 C4', 'AC PAT FIJA AZUL G7071 54-16-145 C3', 'AC PAT FLEX AZUL', '846566917785Air OptiX Hydra Glyde -8.50', '101814', 'AC PAT FIJA NEGRO 140 145 COL.B1', 'AC PAT FIJA ROSA 54-20-140 COL.BCT6']
+  P2: 3 -> ['104759AC PAT FLEX NEGRO 4490 51-16-140 C.B1', '104561', '101360AC PAT FLEX AZUL C/ ROJO H2659 49-20-145 COL-609']

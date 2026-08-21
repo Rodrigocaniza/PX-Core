@@ -1,0 +1,22 @@
+{
+  "mision": "BC-OPTICA-USUARIOS-ROLES-V1-019",
+  "correccion_de_informes_anteriores": {
+    "id": "LOS-DOS-ROJOS-NO-ERAN-ESTABLES",
+    "detalle": "en V1-015, V1-016, V1-017 y V1-018 informe dos rojos en tests/gestion_central/test_ui_interactions.py como PREEXISTING_OUT_OF_SCOPE. Eran ajenos a esas misiones, y eso sigue siendo cierto. Lo que era incorrecto es tratarlos como un rojo estable: hoy pasan. Se comprobo en el MISMO commit de V1-018, con git stash: esta tarde daba 1114 passed / 2 failed y ahora da 1116 passed / 0 failed, sin un cambio de codigo",
+    "causa_probable": "la fixture usa bootstrap_synthetic_pilot(), que siembra alertas en funcion del momento. El test afirma que solo OPTICA_ASUNCION queda con alertas, y eso depende de cuando se corre",
+    "consecuencia": "no son un rojo permanente sino pruebas no deterministas, que es peor: a veces mienten en verde",
+    "recomendacion": "un slice de Gestion Central que fije el reloj de la fixture. No se absorbe aqui"
+  },
+  "otros": [
+    {
+      "id": "TABLA-MUERTA-authorized_responsibles",
+      "estado": "ABIERTO, no bloqueante",
+      "detalle": "creada por la 015, vacia y sin una sola referencia en el codigo. Ahora que admin_users es el catalogo de personas, esa tabla no va a tener uso. Borrarla es limpieza de esquema y no corresponde meterla en la migracion que agrega usuarios"
+    },
+    {
+      "id": "V1-019B-LOGIN-DE-OPERADORA",
+      "estado": "ABIERTO, planificado",
+      "detalle": "hoy quien opera la caja sale de una variable de entorno. El modelo ya soporta credenciales por persona; falta decidir si la Optica quiere que cada una entre con su usuario, y disenar el arranque de la caja alrededor de eso"
+    }
+  ]
+}

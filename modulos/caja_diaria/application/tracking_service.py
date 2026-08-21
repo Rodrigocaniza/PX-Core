@@ -980,6 +980,23 @@ class TrackingService:
         )
 
     def close_work(self, work_id: str, *, responsible: str, note: str = "") -> TrackedWork:
+        """Archiva un trabajo que ya completo el circuito. No pide motivo.
+
+        Es el cierre normal, y por eso no hay nada que justificar: el trabajo
+        volvio a Pilar y ahi termino. Pedir un motivo obligaria a inventar una
+        excepcion para registrar algo que salio bien, y con el tiempo dejaria el
+        historial lleno de excepciones que no lo son.
+
+        Lo que si pide es responsable. No pedir motivo no es no pedir nada:
+        cuando alguien busque por que un trabajo desaparecio de la lista, el
+        nombre de quien lo archivo es la mitad de la respuesta.
+
+        Solo puede correr desde RECIBIDO EN PILAR, porque la matriz de
+        transiciones no admite CERRADO desde ninguna otra etapa. Un trabajo que
+        quedo a mitad de camino sale por `close_by_exception`, con su motivo.
+        """
+        if not str(responsible or "").strip():
+            raise InvalidCashDayError("archivar un trabajo requiere responsable")
         return self._advance(work_id, TrackingStatus.CLOSED, responsible=responsible, note=note)
 
     # -- contactos ---------------------------------------------------------

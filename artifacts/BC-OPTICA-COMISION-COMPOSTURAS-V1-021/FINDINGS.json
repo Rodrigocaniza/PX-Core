@@ -1,0 +1,114 @@
+{
+  "mision": "BC-OPTICA-COMISION-COMPOSTURAS-V1-021",
+  "cerrados_en_esta_mision": [
+    {
+      "id": "UNIQUE-DE-VIGENCIA-DEMASIADO-ESTRICTO",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "detalle": "La primera version de la 032 llevaba UNIQUE(user_id, branch, job_type, effective_from), con el argumento de que dos versiones que empiezan en el mismo instante no tienen desempate. El argumento era correcto y la conclusion no: corregir una tarifa futura antes de que empiece es una operacion legitima y frecuente -las dos versiones arrancan el dia 1- y el UNIQUE la convertia en un IntegrityError. Ademas, dos cambios dentro del mismo segundo colisionaban, porque utc_now() trunca a segundos",
+      "correccion": "se quito el UNIQUE y el desempate pasa a ser created_at, que tiene microsegundos y es el orden en que se escribieron. Todas las consultas ordenan por effective_from DESC, created_at DESC, id DESC, de forma consistente",
+      "prueba": "test_cambiar_agrega_una_version_y_guarda_el_importe_anterior y test_una_politica_con_fecha_futura_todavia_no_rige",
+      "como_se_encontro": "lo destaparon las pruebas dirigidas: 12 rojas de golpe, todas por el mismo motivo"
+    },
+    {
+      "id": "REPORTE-EN-DIA-UTC",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "detalle": "El reporte filtraba con date(created_at) >= date(?). created_at se guarda como instante con offset, y SQLite normaliza a UTC antes de sacar la fecha: una comision devengada despues de las nueve de la noche caia en el dia siguiente y desaparecia del rango que la administradora acababa de pedir. Es el mismo defecto que la V1-020 ya habia cerrado en list_service_jobs, reaparecido en una consulta nueva",
+      "correccion": "se usa _limites_utc_del_dia, la funcion canonica que ya usan pedidos y trabajos para el dia del negocio. Aplicado tambien a la consulta de trabajos sin comision",
+      "prueba": "test_el_reporte_filtra_por_rango_de_fechas"
+    },
+    {
+      "id": "VIGENCIA-EN-LA-HORA-DE-LA-MAQUINA",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "detalle": "_instante_de_vigencia convertia una fecha suelta con datetime.combine(...).astimezone(), que usa el huso del sistema operativo. La misma fecha habria significado instantes distintos en dos computadoras, y la vigencia de una tarifa no puede depender del reloj de quien la carga",
+      "correccion": "se usa BUSINESS_TIMEZONE, la misma zona con la que ya se decide de que dia es una venta",
+      "prueba": "cubierto por test_una_politica_con_fecha_futura_todavia_no_rige, que compara contra un instante explicito en UTC"
+    },
+    {
+      "id": "PERSONAS-SIN-NOMBRE-VISIBLE-AL-PRINCIPIO-DE-LA-LISTA",
+      "gravedad": "BAJA",
+      "estado": "CERRADO",
+      "detalle": "El selector de personas del panel ordenaba por la columna display_name. Quien no tiene uno cargado -por ejemplo la administradora inicial- tiene display_name NULL, y NULL ordena primero: aparecia arriba de todo, en un lugar que no se corresponde con el nombre que la pantalla muestra",
+      "correccion": "se ordena por el nombre visible (COALESCE de display_name y username), que es lo que el usuario esta leyendo",
+      "prueba": "test_las_personas_del_selector_salen_del_catalogo_real"
+    },
+    {
+      "id": "AUDITORIA-DEL-DEVENGO-FUERA-DE-LA-TRANSACCION",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "detalle": "El primer diseno escribia la bitacora del devengo con una llamada aparte, despues de guardar el trabajo. Una auditoria que se escribe despues puede no escribirse, y la bitacora habria dicho que no paso algo que si paso. El caso peor es el que mas importa: la linea 'este trabajo no devengo porque no hay politica' es la UNICA huella de esa omision, porque no queda ninguna otra fila que la delate",
+      "correccion": "save_service_job(job, commissions=..., audits=...) escribe el trabajo, su historia, sus asientos y su bitacora en una sola transaccion",
+      "prueba": "test_la_ausencia_de_politica_queda_visible_en_la_bitacora y test_el_devengo_queda_en_la_bitacora_con_su_politica"
+    }
+  ],
+  "decisiones_de_diseno_deliberadas": [
+    {
+      "id": "SE-ELIMINA-LA-TABLA-DE-POLITICA-DE-LA-031",
+      "detalle": "La mision pedia preferir una migracion aditiva. Agregar active, effective_from y reason con ALTER TABLE habria sido aditivo y no habria alcanzado: la PRIMARY KEY (user_id, job_type) admite una fila por alcance, asi que cada cambio seguiria pisando al anterior. La historia no se guarda agregando columnas a la fila que se sobreescribe. Se opto por el log de versiones, con backfill probado, y por eliminar la tabla vieja en vez de dejarla muerta: dos lugares donde diga cuanto cobra una persona es peor que uno solo bien hecho. No se toca ninguna tabla de historia economica"
+    },
+    {
+      "id": "UNA-POLITICA-INACTIVA-NO-CORTA-LA-BUSQUEDA",
+      "detalle": "Al resolver la politica se va del alcance mas especifico al mas general y se devuelve la primera regla que exista Y este activa. Desactivar la excepcion de una sucursal significa que esa excepcion dejo de aplicar, no que la persona dejo de comisionar. Cuando la unica politica que hay es la general, desactivarla deja a la persona sin politica, que es lo que se quiso decir. La alternativa -que una inactiva corte- hacia que apagar una excepcion apagara tambien la regla de fondo, que nadie pidio"
+    },
+    {
+      "id": "CERO-NO-ES-LO-MISMO-QUE-NO-TENER-POLITICA",
+      "detalle": "Las dos terminan en un trabajo que no devenga, y por eso hay que poder distinguirlas: una esta decidida y la otra esta pendiente. La bitacora las separa con IMPORTE_CERO y SIN_POLITICA, y el reporte las lista aparte"
+    },
+    {
+      "id": "MOTIVO-OBLIGATORIO-SOLO-AL-CAMBIAR",
+      "detalle": "La primera carga se explica sola: antes no habia nada. Un cambio de importe es lo que despues alguien va a preguntar por que se hizo. Exigir motivo en la primera carga habria producido motivos de relleno, que es peor que no tenerlos"
+    }
+  ],
+  "abiertos_deliberados": [
+    {
+      "id": "COMISION-SIN-LIQUIDACION",
+      "estado": "ABIERTO, deliberado",
+      "detalle": "Se investigo si existia un concepto canonico de LIQUIDADA o PAGADA en el esquema y no existe. Hoy el negocio no registra el pago de la comision de compostura, asi que este slice reporta devengado y neto y no inventa un estado de liquidacion. El dia que se pague por Caja sera otra consecuencia explicita y auditable, en su propio slice",
+      "hereda_de": "V1-020, mismo finding"
+    },
+    {
+      "id": "SIN-EXPORTACION-DEL-REPORTE",
+      "estado": "ABIERTO, deliberado",
+      "detalle": "El reporte se consulta en pantalla y no exporta a Excel ni a PDF. La mision pedia interfaz compacta y no un modulo contable. Exportar es facil de agregar cuando alguien lo pida de verdad"
+    },
+    {
+      "id": "COMPENSACION-SOLO-POR-ANULACION",
+      "estado": "ABIERTO, deliberado",
+      "detalle": "Hoy la unica causa de compensacion es anular el trabajo. No hay un boton de 'compensar a mano' porque no hay caso real: una comision mal generada lo esta porque el trabajo no correspondia, y para eso ya esta anular. Agregarlo sin causa habria abierto una via para descontar plata sin un hecho detras"
+    }
+  ],
+  "preservados_sin_absorber": [
+    {
+      "id": "GESTION-CENTRAL-NO-DETERMINISTA",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "tests/gestion_central/test_ui_interactions.py depende de bootstrap_synthetic_pilot(). No se absorbio. En esta mision la suite dio 1365/0 en dos corridas y no interfirio"
+    },
+    {
+      "id": "APPLY-PRODUCTIVO-029-030-031",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "029, 030 y 031 siguen sin aplicarse en la Optica. La 032 se suma a esa cola. No se aplico nada desde Casa"
+    },
+    {
+      "id": "SESION-NO-SOBREVIVE-AL-REINICIO",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "Finding de V1-019B. No se toco la politica de sesiones"
+    },
+    {
+      "id": "OTROS-DIALOGOS-DE-RESPONSABLE",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "Siguen existiendo flujos que piden Usuario responsable por dialogo. No se revisaron"
+    },
+    {
+      "id": "RESPONSABLES-DISPONIBLES-ORDENA-POR-COLUMNA-CRUDA",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "responsables_disponibles() de V1-020 tiene el mismo defecto de orden que se corrigio en personas_para_comision(): ordena por display_name y manda a quien no lo tenga cargado al principio. Es cosmetico y es de otro slice, asi que se deja anotado y no se toco. Vale la pena unificarlo cuando se toque esa pantalla"
+    },
+    {
+      "id": "MEJORAS-UX-DE-COMPOSTURAS",
+      "estado": "ABIERTO, fuera de alcance",
+      "detalle": "Solo se agrego el bloque COMISION al final del historial. No se rediseno nada mas del panel de Composturas"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "mision": "BC-OPTICA-FACTUFACIL-CAJA-V1-016",
+  "estado": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+  "aplicado_en_produccion": false,
+  "donde_se_hizo": "Casa. La base productiva de la Optica no viaja con Git. Todo lo que se escribio fue sobre copias locales armadas desde cero en el estado 028",
+  "base_git": {
+    "branch": "feature/bc-optica-factufacil-caja-v1-016",
+    "parte_de": "origin/feature/bc-optica-limpieza-marcas-laboratorio-v1-015 @ 1b07bf3",
+    "por_que": "1b07bf3 es superconjunto estricto de a0bd4da, el tip de producto: V1-015 solo agrega una herramienta y sus pruebas, cero modulos de produccion. Ramificar de ahi mantiene la cadena lineal que vienen siguiendo todos los slices (007->...->012->015) en vez de abrir una divergencia. origin/main sigue en 7db56a0, rc.31, y ramificar desde ahi perderia Commercial Core",
+    "origin_main_intacto": "7db56a082d06c735583a2717da3ad273f4d41a84"
+  },
+  "soporte_factufacil_previo": {
+    "encontrado": "mission/bc-gestion-central-factufacil-bandeja-001 @ eb6d082, del 15/08",
+    "en_main": false,
+    "en_la_cadena_optica": false,
+    "que_construyo": "modulos/gestion_central/factufacil.py + factufacil_ui.py: una bandeja FactuFacil en Gestion Central, con estados PARA_CARGAR/EN_PROCESO/CARGADO/OBSERVADO/REVERTIDO, identidad por sucursal+origen+sobre y export ordenado",
+    "por_que_no_alcanza": [
+      "vive en gestion_central, que es la consola a la que la operadora no debe entrar",
+      "su servicio hace raise AccessDenied para OPERADOR_LOCAL: el rol del mostrador esta excluido",
+      "se alimenta del circuito de revision (snapshot importado), no de la caja del dia"
+    ],
+    "que_se_reuso": [
+      "el orden de campos del contrato v1 (FACTUFACIL_CONTRACT.md)",
+      "los nombres de estado PARA_CARGAR y CARGADA",
+      "el hallazgo de real_sync.py: factufacil_status viajaba con el literal 'NO DISPONIBLE PILOTO'"
+    ]
+  },
+  "modelo": {
+    "migracion": "029_factufacil_caja.sql",
+    "tablas_nuevas": [
+      "factufacil_loads",
+      "factufacil_history"
+    ],
+    "tablas_modificadas": [],
+    "por_que_no_se_duplica_la_venta": "la venta ya vive en cash_entries con cliente, sobre, vendedora, importe, documento, telefono y observaciones. Copiarla seria cargar el mismo hecho dos veces, y una correccion en Caja dejaria la copia mintiendo",
+    "para_cargar_no_se_guarda": "se deduce con una consulta; no es un estado que alguien mantenga",
+    "append_only": "factufacil_history: marcar, revertir y volver a marcar dejan cada uno su linea",
+    "deteccion_de_edicion_posterior": "factufacil_loads.entry_revision guarda en que revision de la venta se marco. Si despues se corrige, deja de coincidir y la pantalla lo avisa. No es un estado nuevo y no bloquea nada"
+  },
+  "regla_para_cargar": {
+    "expresion": "e.status='ACTIVE' AND COALESCE(e.outflow_type,'')='' AND COALESCE(e.total,0)>0",
+    "excluye": [
+      "anuladas",
+      "gastos",
+      "entregas a administracion",
+      "importe cero"
+    ],
+    "politica_explicita": "total > 0 es la unica regla que es politica y no un hecho del modelo. Esta escrita en un solo lugar y tiene prueba propia"
+  },
+  "acciones": {
+    "copiar": "un campo por linea, en el orden del contrato v1. No escribe nada",
+    "marcar_cargada": "guarda actor y timestamp. Repetir devuelve False y no pisa quien la cargo",
+    "revertir": "exige motivo; sin motivo no revierte. Limpia la marca vigente, no la historia"
+  },
+  "filtros": [
+    "desde",
+    "hasta",
+    "sucursal",
+    "sobre",
+    "cliente",
+    "vendedora",
+    "atajo Hoy"
+  ],
+  "invariantes_verificados": {
+    "caja_del_dia": "entradas, total, efectivo y revisiones identicos antes y despues",
+    "migracion_029": "28 -> 29 migraciones, exactamente 2 tablas nuevas, ninguna existente tocada",
+    "tablas_nuevas_vacias": true,
+    "idempotencia_migracion": "volver a migrar no cambia nada",
+    "idempotencia_marca": "marcar dos veces no duplica ni reescribe",
+    "integridad": "integrity_check ok, FK 0, negativos 0"
+  },
+  "pruebas": {
+    "dirigidas": 43,
+    "servicio": 30,
+    "pestana": 13,
+    "suite_caja": "701 passed, 0 failed",
+    "suite_repo": "1069 passed, 2 failed",
+    "rojos": "PREEXISTING_OUT_OF_SCOPE, gestion_central, clasificados en V1-015",
+    "prueba_de_rc15_actualizada": "test_el_datepicker_compartido_y_factufacil_no_se_tocaron afirmaba que la palabra FactuFacil no aparecia en CajaDiaria.py. V1-016 le da su pestana, asi que se dividio en dos: el datepicker sigue igual, y la apertura sigue sin mezclarse con FactuFacil, comprobado sobre su propio bloque"
+  },
+  "fuera_de_scope": [
+    "integracion API con FactuFacil",
+    "facturacion electronica",
+    "Gestion Central completa",
+    "conciliacion fiscal",
+    "reportes contables",
+    "cambios de inventario",
+    "V1-015"
+  ],
+  "codigo": {
+    "modulos/caja_diaria/infrastructure/migrations/029_factufacil_caja.sql": {
+      "sha256": "8c963cc5fcd6e991ffd7f8deea0d15826f7f4cc0b26b54006e574baa778d14fc",
+      "bytes": 4039
+    },
+    "modulos/caja_diaria/application/factufacil.py": {
+      "sha256": "f88c621d1ecd7afb3caf456b9ad14f032b97f6350a51b6cc61f0fe610c0352fe",
+      "bytes": 13871
+    },
+    "modulos/caja_diaria/ui/factufacil_panel.py": {
+      "sha256": "ed3e0874e98864b99e069390844642be2f171bafe40f14202be4ac1fa47869f3",
+      "bytes": 14361
+    },
+    "modulos/caja_diaria/ui/controller.py": {
+      "sha256": "404a015a3a00cf28a0b424f8920f300b68e33b1d5e336eab25f210cd6b505f47",
+      "bytes": 22003
+    },
+    "CajaDiaria.py": {
+      "sha256": "6b894644de1dd9d2f952d169c572df1a0deaf1932ae259b7ba6022b790eb0434",
+      "bytes": 279443
+    },
+    "tools/factufacil_migracion_029_optica.py": {
+      "sha256": "d5a8b7d0574ecb0a4195489f5036bde3a65719897c71fae6e1c54813632039a4",
+      "bytes": 8464
+    },
+    "tests/caja_diaria/test_factufacil_caja.py": {
+      "sha256": "816a7a643c9bb6b074a87ea8672a63116f85479bd8958bab5a24ac69f4cd978f",
+      "bytes": 13872
+    },
+    "tests/caja_diaria/test_factufacil_panel_ui.py": {
+      "sha256": "029cf9cafd080e110c9fc62c639490992eb5464369e9394032ad5cd4e41fc00f",
+      "bytes": 7503
+    }
+  }
+}

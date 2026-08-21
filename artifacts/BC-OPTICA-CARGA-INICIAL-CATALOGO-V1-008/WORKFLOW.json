@@ -1,0 +1,193 @@
+{
+  "mission": "BC-OPTICA-CARGA-INICIAL-CATALOGO-V1-008",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "SAFE_CLOSURE",
+  "pc": "Optica",
+  "headless_executor": "NO USADO: la simulacion arranca el controlador comercial y toca una copia de la base productiva; corrio en sesion",
+  "lease": {
+    "held": false,
+    "otros_leases_vivos": 0,
+    "nota": "no habia mision 008 previa ni artefactos suyos; la mision se inicia"
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "orquestacion, verificacion canonica, analisis, normalizacion, dry run",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "regla_de_corte": "si el dry run fallaba, no se llegaba al HUMAN_GATE. Las dos generaciones dieron PASS con 0 fallas",
+  "prohibicion_respetada": "las generaciones 1 a 3 no escribieron en produccion. La 4 lo hizo con autorizacion humana explicita y limitada al plan exacto aprobado",
+  "steps": [
+    {
+      "step": "verificacion canonica y eleccion de base",
+      "state": "DONE",
+      "detalle": "fetch, origin/main 7db56a0, slice 6 en 5bc1540, mision 007 en a7b685c, ancestria lineal verificada, 007 NO esta en main. Base elegida a7b685c porque main habria eliminado las migraciones 022-027 que produccion usa"
+    },
+    {
+      "step": "verificacion del estado productivo",
+      "state": "DONE",
+      "detalle": "rc.32, 27 migraciones, 12 entradas, 6.400.000, 10 lineas, 2 dias, 8 pedidos, 0 articulos, integridad ok, 0 FK"
+    },
+    {
+      "step": "worktree propio",
+      "state": "DONE",
+      "detalle": ".worktrees/optica-carga-catalogo-008 desde a7b685c"
+    },
+    {
+      "step": "fase 1 - perfil automatico de los dos XLSX",
+      "state": "DONE",
+      "detalle": "filas fisicas, vacias, pobladas, unicos, duplicados exactos y normalizados, codigos repetidos, categorias, marcas, distribucion de stock, extremos, historicos, totales y subtotales. Las 8.459 filas de PC quedaron explicadas: 5.871 vacias"
+    },
+    {
+      "step": "fase 1b - anomalia de los 837.403 de P2",
+      "state": "DONE",
+      "detalle": "8 filas de Compostura con ~99.900 cada una. Centinelas de algo marcado como inagotable. La generacion 2 lo confirmo contra inventario_base del 04/08, donde esas mismas filas valian entre 411 y 949: el salto ocurrio en seis dias"
+    },
+    {
+      "step": "fase 1c - identidad del articulo entre sucursales",
+      "state": "DONE",
+      "detalle": "hallazgo critico: de 107 codigos de armazon compartidos, uno solo describe el mismo marco. El codigo no es un SKU global"
+    },
+    {
+      "step": "fase 2 - naturaleza por categoria",
+      "state": "DONE",
+      "detalle": "15 categorias cubiertas: 13 directas, Cristales justificada, Compostura y (sin categoria) marcadas REQUIRES_POLICY_DECISION sin adivinar. Resueltas en la generacion 2"
+    },
+    {
+      "step": "fase 3 - representacion canonica",
+      "state": "DONE",
+      "detalle": "generacion 1: 3.627 registros, 11 rechazos, 3.529 articulos. generacion 2 tras las decisiones: 3.626 registros, 12 rechazos, 3.553 articulos. Trazabilidad hasta la fila fisica del XLSX y el corte de cada archivo"
+    },
+    {
+      "step": "validacion del mapping de sucursales",
+      "state": "DONE",
+      "detalle": "no se supuso: cash_register_branches ya liga PC->ASUNCION y P2->PILAR, y los 8 pedidos reales estan en PC"
+    },
+    {
+      "step": "fase 4 - dry run sobre copia (generacion 1)",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Mecanismo real de dos pasos, idempotencia probada, integridad y FK limpias, Caja intacta, base de origen con el mismo sha256"
+    },
+    {
+      "step": "suite comercial",
+      "state": "DONE",
+      "detalle": "254 passed"
+    },
+    {
+      "step": "gates y artefactos",
+      "state": "DONE"
+    },
+    {
+      "step": "auto-resume sin drift",
+      "state": "DONE",
+      "detalle": "HEAD a21c304, artefactos de la generacion 1 con sus sha256 intactos, los dos XLSX con el mismo sha256, base productiva en aa13f36e con 0 articulos y 0 movimientos. No se repitio ningun analisis ya valido"
+    },
+    {
+      "step": "decision humana de Compostura aplicada",
+      "state": "DONE",
+      "detalle": "9 servicios, 7 tipos de cristal y 3 repuestos fisicos, en DECISIONES_POR_SKU con la fecha de la decision"
+    },
+    {
+      "step": "investigacion de las dos excepciones restantes",
+      "state": "DONE",
+      "detalle": "aparecio una tercera fuente, inventario_base.xlsx del 04/08. 000005 Mostacillas quedo resuelto por evidencia; 2000056 Par de patillas sigue sin determinarse y quedo fuera del catalogo"
+    },
+    {
+      "step": "investigacion de las 4 filas sin categoria",
+      "state": "DONE",
+      "detalle": "naturaleza determinada en las cuatro: las 3.065 filas AC PAT / AC APT / AC PAC del universo son Armazones o Lentes de Sol y las dos son PRODUCTO_STOCKEABLE. Categoria determinada por marca en 2, dejada vacia en 2"
+    },
+    {
+      "step": "investigacion de 000010 Limpia Cristal 2860",
+      "state": "DONE",
+      "detalle": "celda C8397, entero literal, sin formula ni merge ni subtotal. LIKELY_REAL_BUT_REQUIRES_HUMAN_CONFIRMATION: el articulo entra al catalogo y las 2.860 unidades quedan en suspenso"
+    },
+    {
+      "step": "correccion de un artefacto propio",
+      "state": "DONE",
+      "detalle": "MAPPING_CATEGORIAS_NATURE.md decia que los ocho ~99.900 eran todos servicios. Hilo y Tornillo son dos de esos ocho y son repuestos fisicos. La naturaleza aprobada es correcta; la cantidad no, y por eso los tres repuestos entran con las unidades en suspenso. Sin esto se cargaban 108.799 unidades fantasma"
+    },
+    {
+      "step": "regeneracion completa y dry run 2",
+      "state": "DONE",
+      "detalle": "3.553 articulos, 3.583 movimientos, 5.849 unidades a Asuncion y 2.899 a Pilar. PASS, 0 fallas, idempotencia probada, produccion con el mismo sha256"
+    },
+    {
+      "step": "decisiones A y B aplicadas",
+      "state": "DONE",
+      "detalle": "Par de patillas entra como pieza fisica con cantidad pendiente; Limpia Cristal conserva 2.860 como SOURCE_REPORTED_QUANTITY sin convertirlo en ledger"
+    },
+    {
+      "step": "correccion de una decision propia",
+      "state": "DONE",
+      "detalle": "Hilo, Tornillo y Plaqueta vuelven a la categoria Compostura: moverlos a Sujetadores en la generacion 2 no tenia evidencia"
+    },
+    {
+      "step": "representacion canonica de la cantidad pendiente",
+      "state": "DONE",
+      "detalle": "sin movimiento, que en este modelo es no afirmar nada en vez de afirmar cero; mas articles.notes y admin_audit_log con la cifra declarada"
+    },
+    {
+      "step": "regeneracion y dry run 3",
+      "state": "DONE",
+      "detalle": "3.554 articulos, 3.583 movimientos, 5.849 + 2.899 unidades confirmadas, 5 articulos con cantidad pendiente. PASS, 0 fallas"
+    },
+    {
+      "step": "backup verificable pre-importacion",
+      "state": "DONE",
+      "detalle": "bc-caja-preimport-catalogo-20260819-135805.sqlite3, sha256 eec36a5d..., verificado fila por fila. La base productiva quedo con el mismo sha256"
+    },
+    {
+      "step": "herramienta de importacion productiva",
+      "state": "DONE",
+      "detalle": "tools/carga_inicial_optica_importar.py, ejecutada con --confirmar"
+    },
+    {
+      "step": "pre-guard productivo",
+      "state": "DONE",
+      "detalle": "PASS en los 6 puntos: base y backup con los sha256 esperados, HEAD e64c180, artefactos sin drift, plan identico al dry run 3 campo por campo, BC Caja cerrada"
+    },
+    {
+      "step": "importacion productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. 3.554 articulos, 3.583 movimientos, 5.849 + 2.899 unidades. Rollback no usado"
+    },
+    {
+      "step": "verificacion post-import independiente",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Caja historica intacta, catalogo y ledger exactos, las 11 filas rechazadas siguen fuera, los 5 pendientes auditados y sin movimiento"
+    },
+    {
+      "step": "idempotencia sobre produccion",
+      "state": "DONE",
+      "detalle": "PASS. Reaplicar el catalogo se rechaza por sha256, los recuentos devuelven la misma corrida, la base quedo byte a byte igual"
+    },
+    {
+      "step": "smoke de la aplicacion y de la UI Comercial",
+      "state": "DONE",
+      "detalle": "PASS. BC Caja abre sobre la base cargada; las tres pestanas comerciales y el buscador funcionan"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA",
+      "detalle": "main sigue en 7db56a0. Sigue siendo una decision propia"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "carga_productiva": "NO",
+    "clasificacion_por_texto_de_la_descripcion": "NO",
+    "resolucion_automatica_de_Compostura": "NO",
+    "invencion_de_codigos": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "force_push": "NO",
+    "resolucion_de_Par_de_patillas_por_vecindad": "NO: sugerir no es determinar",
+    "carga_de_los_centinelas_como_stock": "NO: 211.659 unidades declaradas quedaron en suspenso"
+  },
+  "generacion": 4
+}

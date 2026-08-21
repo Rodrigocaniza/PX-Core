@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from datetime import date, datetime, timedelta, timezone
 
-from modulos.caja_diaria.domain.models import CashDay, CashEntry, SaleItem
+from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE, CashDay, CashEntry, SaleItem
 from modulos.caja_diaria.application.services import CashDayService
 from modulos.caja_diaria.domain.tracking import (
     Laboratory,
@@ -16,7 +16,7 @@ from modulos.caja_diaria.domain.tracking import (
 )
 from modulos.caja_diaria.infrastructure.sqlite_repository import SQLiteCashDayRepository
 
-HOY = date.today()
+HOY = datetime.now(BUSINESS_TIMEZONE).date()
 
 
 class ShipmentRepositoryTests(unittest.TestCase):

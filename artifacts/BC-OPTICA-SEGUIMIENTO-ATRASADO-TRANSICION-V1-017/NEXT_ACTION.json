@@ -1,0 +1,12 @@
+{
+  "mision": "BC-OPTICA-SEGUIMIENTO-ATRASADO-TRANSICION-V1-017",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": false,
+  "requiere_apply_productivo": false,
+  "next_action": "Nada que aplicar sobre la base. El cambio es codigo y entra con el proximo empaquetado de BC Caja. El bloqueo operativo ya esta resuelto en la version que la Optica corre hoy (rc.32)",
+  "pendientes_de_otras_misiones": [
+    "V1-015: limpieza de marcas-laboratorio, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-016: migracion 029 de FactuFacil, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA"
+  ],
+  "no_iniciar_otra_mision": true
+}

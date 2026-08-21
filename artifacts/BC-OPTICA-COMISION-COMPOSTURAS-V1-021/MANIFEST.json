@@ -1,0 +1,159 @@
+{
+  "mision": "BC-OPTICA-COMISION-COMPOSTURAS-V1-021",
+  "titulo": "Comision de composturas: politica, vigencia, compensacion y reporte",
+  "estado": "COMPLETADA_EN_CASA - con migracion 032, sin apply productivo",
+  "base_git": {
+    "branch": "feature/bc-optica-comision-composturas-v1-021",
+    "parte_de": "feature/bc-optica-trabajos-operativos-v1-020 @ d44785f",
+    "worktree": ".worktrees/optica-comision-021",
+    "contiene_verificado": {
+      "V1-019B": "de767d9",
+      "origin/main": "7db56a0"
+    },
+    "metodo": "git merge-base --is-ancestor de 019b sobre 020, y lectura directa de rev-parse",
+    "main_no_tocado": true,
+    "comision_1pct_fuera_de_esta_linea": "vive en SobresVenta.py de BC Gestion, sobre archivos de texto plano (Datos/config_comision_pc.txt). No hay una sola tabla suya en esta base"
+  },
+  "migracion": {
+    "nueva": true,
+    "version": "032",
+    "archivo": "032_comision_composturas.sql",
+    "anterior_ultima": "031",
+    "aditiva_estricta": false,
+    "por_que_no_estrictamente_aditiva": "la politica de la 031 era una fila por alcance que se pisaba con UPDATE, y esa forma no puede tener vigencia ni historia. Se reemplaza por un log de versiones, se migra su contenido y se elimina la tabla vieja para no dejar dos lugares donde diga cuanto cobra una persona",
+    "verificado": "prueba que lee el .sql ignorando comentarios: no nombra cash_entries, cash_days, stock_movements, articles, sale_items, orders ni inventory; un solo ALTER TABLE, y es el ADD COLUMN policy_id",
+    "historia_economica_tocada": false,
+    "aplicada_en_produccion": false,
+    "tablas_nuevas": ["service_commission_policy_versions"],
+    "tablas_eliminadas": ["service_commission_policy"],
+    "columnas_agregadas": {"service_job_commissions": ["policy_id"]},
+    "backfill": "cada fila de la politica vieja queda como primera version, con id determinista para que reaplicar no duplique. Probado sobre una base cortada en la 031"
+  },
+  "politica": {
+    "tabla": "service_commission_policy_versions",
+    "forma": "log append-only con triggers que rechazan UPDATE y DELETE",
+    "identidad": "user_id contra admin_users (V1-019). display_name no es clave: cambiar el nombre visible no mueve la tarifa",
+    "alcance": ["user_id", "branch (vacio = todas)", "job_type (vacio = todos)"],
+    "precedencia": "de lo mas especifico a lo mas general: sucursal+tipo, luego sucursal sola, luego tipo solo, luego la global",
+    "multibranch": "soportado pero no obligatorio. Una politica global por persona alcanza para el negocio actual y es lo que se usa por defecto",
+    "campos": ["amount", "active", "effective_from", "previous_amount", "supersedes_id", "reason", "created_by", "created_at"],
+    "motivo": "obligatorio al cambiar y al activar/desactivar; opcional en la primera carga, que se explica sola",
+    "hard_delete": false,
+    "sembrado": "ninguno. Ni una persona ni un monto en codigo productivo"
+  },
+  "vigencia": {
+    "efectiva_desde": "effective_from, siempre en UTC. Una fecha suelta se toma desde el arranque de ese dia en BUSINESS_TIMEZONE",
+    "futura": "soportada: una tarifa acordada hoy puede empezar el mes que viene",
+    "empate": "dos versiones del mismo alcance pueden compartir effective_from; rige la escrita despues (created_at, id). Un UNIQUE habria convertido una correccion legitima en un error de base",
+    "recalculo_de_historia": "ninguno. Cada asiento guarda su importe y ademas el policy_id de la version que lo explico"
+  },
+  "devengo": {
+    "estado": "LISTO",
+    "constante": "ESTADO_DE_DEVENGO, sin cambios respecto de V1-020",
+    "resuelve": ["responsable", "politica vigente al momento del hecho", "importe", "auditoria"],
+    "sin_politica": "no devenga y no crea deuda. Queda una linea COMMISSION_SKIPPED con result SIN_POLITICA",
+    "importe_cero": "no devenga. Queda COMMISSION_SKIPPED con result IMPORTE_CERO, distinto de la ausencia",
+    "visibilidad_administrativa": "el reporte lista aparte los trabajos que llegaron a LISTO y no devengaron"
+  },
+  "idempotencia": {
+    "mecanismo": "event_id UNIQUE en service_job_commissions, preservado de V1-020",
+    "un_devengo_por_hecho": true,
+    "doble_click": "de LISTO a LISTO no es una transicion valida: el segundo intento se rechaza en el dominio",
+    "retry_transaccional": "ON CONFLICT(event_id) DO NOTHING; record_service_commission devuelve None",
+    "hecho_nuevo_legitimo": "reabrir y volver a marcar LISTO genera otro evento y por lo tanto otro devengo. Se distingue por el evento, no por fecha ni por importe"
+  },
+  "compensaciones": {
+    "borra": false,
+    "mecanismo": "asiento contrario con compensates_id, motivo, actor y timestamp",
+    "doble_compensacion": "bloqueada por indice unico sobre compensates_id",
+    "politica_heredada": "la compensacion arrastra el policy_id del devengo que revierte, no la politica de hoy",
+    "neto": "devengado bruto mas compensaciones, porque el signo vive en el asiento. Sin saldo opaco"
+  },
+  "estados_economicos": {
+    "existentes": ["DEVENGO", "COMPENSACION"],
+    "liquidacion": "NO se creo. Hoy el negocio no registra el pago de la comision de compostura; inventar un estado LIQUIDADA seria escribir un flujo que nadie ejecuta",
+    "investigado": "se busco un concepto canonico previo de LIQUIDADA o PAGADA en el esquema y no existe"
+  },
+  "panel_admin": {
+    "seccion": "Comisiones de composturas",
+    "modulo": "modulos/caja_diaria/ui/commission_panel.py",
+    "lineas_en_CajaDiaria": "+8 / -1, medido con git diff --numstat",
+    "acciones": ["Nueva politica", "Editar", "Activar / desactivar", "Ver historial"],
+    "hard_delete": false,
+    "enforcement": "require_admin() en el servicio, en cada llamada. La pestana no autoriza nada",
+    "operador": "no puede definir politica ni leer el reporte completo; si puede ver la comision del trabajo que tiene delante"
+  },
+  "reporte": {
+    "filtros": ["rango de fechas", "sucursal", "responsable", "estado DEVENGADA o COMPENSADA"],
+    "columnas": ["fecha", "trabajo", "cliente", "responsable", "sucursal", "importe original", "compensacion", "neto", "estado", "politica aplicada"],
+    "totales": ["cantidad de trabajos", "bruto devengado", "compensaciones", "neto", "sin politica"],
+    "dia_del_negocio": "los limites se calculan con _limites_utc_del_dia, la misma funcion que usan pedidos y trabajos",
+    "mezcla_el_1pct": false
+  },
+  "trazabilidad": {
+    "desde_el_trabajo": "comision_del_trabajo(job_id) devuelve si genero comision, quien, importe, politica aplicada, estado y compensaciones",
+    "en_pantalla": "el historial de la compostura termina con el bloque COMISION",
+    "desde_el_asiento": "job_id lleva al trabajo y event_id a un hecho de su propia historia"
+  },
+  "auditoria": {
+    "tabla": "admin_audit_log, la canonica",
+    "acciones": [
+      "COMMISSION_POLICY_CREATED",
+      "COMMISSION_POLICY_UPDATED",
+      "COMMISSION_POLICY_ACTIVATED",
+      "COMMISSION_POLICY_DEACTIVATED",
+      "COMMISSION_ACCRUED",
+      "COMMISSION_SKIPPED",
+      "COMMISSION_COMPENSATED",
+      "ADMIN_DENIED"
+    ],
+    "denegado_a_operador": "ADMIN_DENIED, la nomenclatura que ya existia en require_admin",
+    "cambios_de_importe": "previous_amount y amount en la version, mas importe_anterior, importe_nuevo, motivo y actor en la bitacora",
+    "transaccionalidad": "las auditorias del devengo y de la omision se escriben en la MISMA transaccion que el trabajo y sus asientos"
+  },
+  "sucursal": {
+    "autoridad": "la caja, via effective_branch de V1-019B. No se re-decide",
+    "en_la_politica": "opcional. Una excepcion por sucursal existe si el negocio la pide; desactivarla devuelve la regla general",
+    "en_el_reporte": "sale del trabajo y no del asiento: copiarla al asiento crearia una segunda verdad"
+  },
+  "inventario": {
+    "efecto": "ninguno",
+    "probado_de_tres_formas": [
+      "por conteo: stock_movements, articles, sale_items, orders, tracked_works y domain_events antes y despues de configurar, devengar y compensar",
+      "por estructura: la 032 no nombra ninguna tabla de inventario ni de ventas",
+      "por imposibilidad: ni service_jobs.py ni commission_panel.py importan modulos.comercial"
+    ]
+  },
+  "caja": {
+    "movimiento_automatico": false,
+    "gasto_o_entrega": "ninguno. Devengar no es pagar",
+    "probado": "cash_entries queda en cero despues de devengar"
+  },
+  "pruebas": {
+    "dirigidas": 77,
+    "de_dominio_servicio_y_persistencia": 68,
+    "de_ui": 9,
+    "suite_completa": "1365 passed, 0 failed",
+    "suite_antes_del_slice": "1288 passed"
+  },
+  "produccion": {
+    "apply_029": false,
+    "apply_030": false,
+    "apply_031": false,
+    "apply_032": false,
+    "personas_reales_cargadas": false,
+    "politica_de_comision_real_cargada": false,
+    "base_productiva_tocada": false
+  },
+  "archivos": {
+    "modulos/caja_diaria/infrastructure/migrations/032_comision_composturas.sql": "0ae543734354a0690b8446cce89b9ab5f75062ed9f6ba1901911d06dea7543bd",
+    "modulos/caja_diaria/application/service_jobs.py": "86c4e12224fa8d42bf8d63b8a42a8c4fc13ef79fb145a1e49f9be1cfc69c1062",
+    "modulos/caja_diaria/infrastructure/sqlite_repository.py": "6f872554ab0d1e4fb6983fae321553e8e035171875293fd1ab28d631041eaaa5",
+    "modulos/caja_diaria/ui/commission_panel.py": "19ffef0200b27a9da97dadbd486cc9c4a6cebc038503c72bc8fee4efe1787ded",
+    "modulos/caja_diaria/ui/service_jobs_panel.py": "24f5b48ecfcf8737249f5fe9cce5dd2d2360fab2e1f0f40981c9371227c54f46",
+    "CajaDiaria.py": "0f43c4d0e26b408f4514040f62111e4db24db3008a3635602cd56f8f22bd579c",
+    "tests/caja_diaria/test_v1021_comision_composturas.py": "6938e5510ea04a22de3e5c4561ec4a96ff16b1aa2373fd4370b541ef0dfd9776",
+    "tests/caja_diaria/test_v1021_panel_comisiones_ui.py": "594310a5437d416180a5ac4691aa6121b66b215d525a8a905d1fd2d88dba4b6b",
+    "tests/caja_diaria/test_v1020_trabajos_operativos.py": "64ae1440c6be6d0750f871f286bf670835bfb89062f59f3a75ee0cd9d5e92d42"
+  }
+}

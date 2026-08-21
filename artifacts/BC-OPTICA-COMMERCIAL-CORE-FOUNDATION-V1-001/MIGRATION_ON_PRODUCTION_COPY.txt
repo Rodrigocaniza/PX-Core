@@ -1,0 +1,28 @@
+﻿copia: C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\899ef934-7ea2-430f-9706-4f86c3d8ef51\scratchpad\prod-copy-022.sqlite3
+tablas antes: 24
+tablas despues: 29
+
+== tablas nuevas ==
+  + administrative_exit_reasons  (7 filas)
+  + article_categories  (0 filas)
+  + articles  (0 filas)
+  + brands  (0 filas)
+  + suppliers  (0 filas)
+
+== tablas perdidas ==
+  ninguna
+
+== cambios en tablas preexistentes ==
+  ~  sale_items: 10 filas intactas; se agrego article_id
+  ~  schema_migrations: 21 -> 22 (se suma 022)
+
+== integridad ==
+  integrity_check   : ok
+  foreign_key_check : 0 violaciones
+  migraciones       : 22 -> 022
+  sale_items.article_id: True
+  sale_items historicas sin articulo inventado: 10/10
+  motivos de salida sembrados: 7
+  SUM(cash_entries.total): 6400000
+
+RESULTADO: PASS

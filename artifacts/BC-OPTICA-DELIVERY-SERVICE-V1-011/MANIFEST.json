@@ -1,0 +1,145 @@
+{
+  "mission": "BC-OPTICA-DELIVERY-SERVICE-V1-011",
+  "tipo": "alta de un concepto de servicio. APLICADA",
+  "pc": "Optica",
+  "branch": "feature/bc-optica-delivery-service-v1-011",
+  "worktree": ".worktrees/optica-delivery-011",
+  "base_commit": "3d03dcfec77a9e094e9f6fa04a9766c7198d6842",
+  "base_branch": "feature/bc-optica-promo-limpia-cristal-v1-013",
+  "origin_main": "7db56a082d06c735583a2717da3ad273f4d41a84",
+  "main_tocado": false,
+  "pr": false,
+  "merge_to_main": false,
+  "force_push": false,
+  "estado": "SAFE_CLOSURE",
+  "base_canonica": {
+    "elegida": "3d03dcf",
+    "por_que_no_origin_main": "main = rc.31 sin Commercial Core",
+    "produccion_por_delante_de_main": true
+  },
+  "estado_productivo_verificado_al_empezar": {
+    "articulos": 3595,
+    "activos": 2828,
+    "movimientos": 4441,
+    "ASUNCION": 6166,
+    "PILAR": 2260,
+    "total": 8426,
+    "sha256": "d9a88e9f429f848b50edb2ac65cff9b9eb7f8cf2fdfa8a9dd656ee4d88ac63a1"
+  },
+  "investigacion_del_modelo": {
+    "servicios_ya_representados": 13,
+    "un_servicio_puede_tener_precio_editable": true,
+    "por_que": "el precio vive en la LINEA de venta (frame_price / lens_price), no en el articulo. articles.sale_price es apenas una sugerencia",
+    "excluido_del_stock": "_lineas_con_stock filtra por articulo.tracks_stock, que para SERVICIO_NO_STOCKEABLE es False. No hay caso especial",
+    "se_reutilizo_la_capacidad_existente": true,
+    "segundo_modelo_de_servicios": "NO se creo",
+    "concepto_de_delivery_preexistente": "ninguno. Se busco por delivery, envio y flete"
+  },
+  "concepto_creado": {
+    "sku": "SERV-DELIVERY",
+    "nombre": "Delivery / Envío",
+    "nature": "SERVICIO_NO_STOCKEABLE",
+    "categoria": "Servicios (creada)",
+    "precio_sugerido": 20000,
+    "precio_editable_por_venta": true,
+    "stock_inicial": "ninguno. No se creo una sola unidad",
+    "centinelas": "ninguno",
+    "activo_y_seleccionable": true,
+    "duplicados": 0
+  },
+  "aplicacion_productiva": {
+    "ejecutada": true,
+    "por_que_sin_HUMAN_GATE_aparte": "la orden lo autoriza expresamente si el concepto puede darse de alta sin cambiar datos economicos existentes. Verificado: stock, Caja y movimientos quedaron identicos",
+    "herramienta": "tools/alta_delivery_optica.py --confirmar",
+    "veredicto": "PASS, 0 fallas",
+    "rollback_usado": "NO",
+    "backup": {
+      "archivo": "C:/Users/Striker/AppData/Local/BC/Caja/Backups/bc-caja-predelivery-20260819-164103.sqlite3",
+      "sha256": "5409588e160e30821dd27e2222453c27068095e734bef7f0999bb4b38bcc80f4"
+    },
+    "sha256_antes": "d9a88e9f429f848b50edb2ac65cff9b9eb7f8cf2fdfa8a9dd656ee4d88ac63a1",
+    "sha256_despues": "ff6b2b6a2ec9d28a17ff51f2d9485877cecf646a854c9315fcecec572da37ae9",
+    "impacto": {
+      "articulos": "3595 -> 3596",
+      "activos": "2828 -> 2829",
+      "movimientos": "4441, sin cambios",
+      "ASUNCION": "6166, sin cambios",
+      "PILAR": "2260, sin cambios",
+      "total": "8426, sin cambios"
+    },
+    "idempotencia": "un segundo alta no escribe: reporta que el concepto ya esta y no duplica"
+  },
+  "ui": {
+    "boton": "Delivery / Envío, junto a Buscar artículo y Limpia-cristal de regalo",
+    "comportamiento": "pregunta el importe con 20.000 ya puesto, admite cambiarlo, rechaza un importe no numerico o negativo, y agrega la linea con el articulo vinculado",
+    "afecta_stock": false,
+    "rediseno_de_Caja": "NO",
+    "motor_de_logistica": "NO"
+  },
+  "trazabilidad": {
+    "en_la_linea": "concepto, precio cobrado, item_type DELIVERY, code y article_id",
+    "actor_y_fecha": "los de la venta, como cualquier linea",
+    "sucursal": "la de la caja",
+    "precio_historico": "se guarda el importe realmente cobrado. Cambiar el sugerido del catalogo despues NO reescribe ventas anteriores -- verificado"
+  },
+  "pruebas_dirigidas": {
+    "archivo": "tests/comercial/test_delivery_service.py",
+    "escritas_antes_de_tocar_nada": true,
+    "resultado": "17 passed",
+    "cubren": [
+      "Delivery a 20.000, a 15.000 y a 25.000",
+      "cambiar el precio sugerido no reescribe lo ya cobrado",
+      "no genera movimiento de stock",
+      "no aparece en stock_actual",
+      "no altera el stock de los demas",
+      "vender solo Delivery no mueve nada",
+      "producto + Delivery, cristal + Delivery, servicio + Delivery",
+      "anular no compensa inventario por el envio",
+      "anular una venta de solo Delivery no rompe",
+      "es servicio y no lleva stock",
+      "nace sin una sola unidad",
+      "se puede elegir en la linea de venta",
+      "el concepto no se duplica"
+    ]
+  },
+  "verification": {
+    "pruebas_dirigidas": "17 passed",
+    "suite_comercial": "285 passed",
+    "ciclo_de_ventana_de_Caja": "BC_CAJA_WINDOW_LIFECYCLE_OK, 2 ciclos",
+    "dry_run_sobre_copia_real": "PASS, 0 fallas",
+    "venta_con_delivery_editado_a_25000": "cobra 305.000, el armazon descuenta, Delivery no",
+    "anulacion": "el armazon vuelve, Delivery sigue sin un solo movimiento",
+    "integrity_check": "ok",
+    "foreign_key_check": 0,
+    "stock_negativo": 0,
+    "huerfanos": 0,
+    "efectos_sin_hecho": 0,
+    "caja_historica": "intacta, 12 / 6.400.000 / 10",
+    "V1_008": "intacta",
+    "V1_010": "intacta",
+    "V1_013": "intacta",
+    "stock_total_sin_cambios_por_delivery": "8426 antes y despues",
+    "smoke": "BC Caja abre, ventana 'Caja diaria - Optica'"
+  },
+  "defecto_encontrado_fuera_de_alcance": {
+    "que": "V1-010 y la adenda de V1-013 borraron category_id y brand_id de 5 articulos: 000010, 2000056, 2000070, 2000071 y 2000072",
+    "causa": "guardar_articulo reconstruye el registro entero. Se lo llamo pasando solo sku, name, nature y notes, asi que categoria y marca quedaron vacias",
+    "alcance_real": "solo etiquetas. No afecta stock, dinero, naturaleza ni movimientos. Los precios no se perdieron porque eran nulos",
+    "comprobado_contra": "el backup bc-caja-preconciliacion-20260819-155227.sqlite3",
+    "estado": "NO CORREGIDO. Esta fuera de este slice y no se asume autorizacion",
+    "propuesta": "restaurar las 5 categorias y marcas desde el backup, y de paso revisar si guardar_articulo deberia exigir los campos o preservarlos"
+  },
+  "fuera_de_scope": {
+    "tarifario_complejo": "no",
+    "motor_de_logistica": "no",
+    "rediseno_de_Caja": "no",
+    "laboratorio_por_defecto": "slice 012"
+  },
+  "no_ejecutado_a_proposito": {
+    "stock_inicial_para_Delivery": "NO",
+    "segundo_modelo_de_servicios": "NO",
+    "correccion_del_defecto_de_categorias": "NO, fuera de alcance",
+    "merge_a_main": "NO",
+    "pr": "NO"
+  }
+}

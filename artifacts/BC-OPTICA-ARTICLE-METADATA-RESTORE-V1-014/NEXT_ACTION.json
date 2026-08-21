@@ -1,0 +1,45 @@
+{
+  "mision": "BC-OPTICA-ARTICLE-METADATA-RESTORE-V1-014",
+  "generacion": 1,
+  "state": "SAFE_CLOSURE",
+  "blocked_on": null,
+  "produccion": "3.596 articulos (2.829 activos), 4.441 movimientos, ASU 6.166 / PIL 2.260, total 8.426. Los cinco con su categoria y su marca de vuelta. Caja historica intacta",
+  "next_action": "No iniciar nada automaticamente. BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012: poblar laboratories con Laboratorio Optilab, ServiOptica y Laboratorio Cristal, asociar laboratorio por defecto por tipo de cristal sin reescribir ventas historicas, y dejar 2000212 ST Fotocromatico sin laboratorio hasta que exista informacion real",
+  "verification": {
+    "dry_run": "PASS, 0 fallas",
+    "aplicacion_productiva": "PASS, 0 fallas",
+    "verificacion_post": "PASS, 0 fallas",
+    "pruebas_dirigidas": "14 PASS",
+    "suite_completa": "981 PASS",
+    "smoke_ui": "PASS",
+    "rollback_usado": "NO"
+  },
+  "deudas_explicitas_no_mezcladas": [
+    {
+      "id": "000010-ASUNCION-ES-UNA-ESTIMACION",
+      "estado": "ABIERTA, no bloqueante",
+      "detalle": "las 100 unidades siguen siendo ESTIMATED_INITIAL_STOCK. Cuando se cuente, la diferencia se compensa"
+    },
+    {
+      "id": "CUATRO-RECUENTOS-DE-PILAR-PENDIENTES",
+      "estado": "ABIERTA, V1-009 en pausa segura"
+    },
+    {
+      "id": "LABORATORIO-POR-DEFECTO",
+      "estado": "PENDIENTE, slice 012"
+    },
+    {
+      "id": "MARCA-DE-HILO-ES-UN-LABORATORIO",
+      "estado": "ABIERTA, no bloqueante",
+      "detalle": "2000070 Hilo tiene marca «Laboratorio Optilab». Se restauro tal cual porque es el dato legitimo anterior, pero un laboratorio como marca de un insumo de compostura huele a arrastre de la carga. Revisarlo en 012, que justamente trata laboratorios"
+    },
+    {
+      "id": "SIETE-SLICES-FUERA-DE-MAIN",
+      "estado": "PENDIENTE, no bloqueante"
+    },
+    {
+      "id": "ANULACION-EN-DIA-CERRADO",
+      "estado": "PENDIENTE, no bloqueante"
+    }
+  ]
+}

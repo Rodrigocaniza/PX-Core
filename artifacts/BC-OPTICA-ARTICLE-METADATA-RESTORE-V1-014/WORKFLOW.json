@@ -1,0 +1,79 @@
+{
+  "mision": "BC-OPTICA-ARTICLE-METADATA-RESTORE-V1-014",
+  "generacion": 1,
+  "state": "SAFE_CLOSURE",
+  "steps": [
+    {
+      "step": "base git canonica",
+      "state": "DONE",
+      "detalle": "7d17cce, tip de V1-011. No main: main es rc.31 y no tiene Commercial Core"
+    },
+    {
+      "step": "identificacion del daño contra produccion y backups",
+      "state": "DONE",
+      "detalle": "barrido campo por campo de los 3.554 articulos previos contra seis backups. Exactamente 5 perdieron categoria y marca; ningun otro campo se perdio; ninguna categoria cambio a otra distinta"
+    },
+    {
+      "step": "fuente historica verificada",
+      "state": "DONE",
+      "detalle": "bc-caja-prerecuento-20260819-142306.sqlite3, la ultima foto con las etiquetas puestas. Los valores se leyeron de ahi, no del prompt"
+    },
+    {
+      "step": "investigacion de guardar_articulo",
+      "state": "DONE",
+      "detalle": "es un reemplazo completo. El defecto general existe y la UI lo tenia latente sobre proveedor y unidad"
+    },
+    {
+      "step": "correccion: semantica PATCH",
+      "state": "DONE",
+      "detalle": "actualizar_articulo, mas desactivar_articulo y el formulario apoyados en el. No se rediseño el repositorio"
+    },
+    {
+      "step": "regresion",
+      "state": "DONE",
+      "detalle": "14 pruebas dirigidas. Suite completa 981 en verde"
+    },
+    {
+      "step": "dry-run sobre copia",
+      "state": "DONE",
+      "detalle": "PASS. 10 campos cambiados, 10 esperados, cero inesperados. Stock, movimientos, Caja y las cuatro misiones anteriores intactos"
+    },
+    {
+      "step": "idempotencia",
+      "state": "DONE",
+      "detalle": "la segunda corrida no escribe nada"
+    },
+    {
+      "step": "pre-guard productivo",
+      "state": "DONE",
+      "detalle": "sha256 ff6b2b6a, el mismo con el que cerro 011. BC Caja cerrada, WAL en cero, worktree limpio"
+    },
+    {
+      "step": "aplicacion productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. Rollback no usado"
+    },
+    {
+      "step": "verificacion post-produccion independiente",
+      "state": "DONE",
+      "detalle": "PASS. Contra el backup recien tomado: en los cinco cambiaron brand_id y category_id y nada mas, notas identicas al caracter"
+    },
+    {
+      "step": "smoke de la UI",
+      "state": "DONE",
+      "detalle": "PASS sobre copia del estado restaurado"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA"
+    },
+    {
+      "step": "V1-012 laboratorio por defecto",
+      "state": "NO INICIADA"
+    }
+  ]
+}

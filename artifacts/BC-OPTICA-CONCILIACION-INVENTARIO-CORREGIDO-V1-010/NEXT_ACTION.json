@@ -1,0 +1,87 @@
+{
+  "mission": "BC-OPTICA-CONCILIACION-INVENTARIO-CORREGIDO-V1-010",
+  "state": "SAFE_CLOSURE",
+  "repository": "PX-Core",
+  "worktree": ".worktrees/optica-conciliacion-010",
+  "branch": "feature/bc-optica-conciliacion-inventario-corregido-v1-010",
+  "base_commit": "f5a55b7cbcdd41cfb961ba35a79ad61e4ee8e62d",
+  "opened_on": "2026-08-19",
+  "opened_at": "PC Optica",
+  "blocked_on": null,
+  "produccion": "CONCILIADA. 3.595 articulos (2.829 activos), 4.439 movimientos, ASU 6.376 / PIL 2.776, total 9.152. Caja historica intacta. Los 5 pendientes de V1-008 quedaron cerrados",
+  "next_action": "No iniciar nada automaticamente. Orden recomendado: (1) BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013, que retira 000037 y sus 726 unidades ficticias y monta la promocion sobre 000010 + no_cost + salida de stock real; (2) BC-OPTICA-DELIVERY-SERVICE-V1-011; (3) BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012. BC-OPTICA-RECUENTO-FISICO-PENDIENTES-V1-009 se cierra: ya no le queda nada pendiente",
+  "next_role": "COMMAND_CENTER",
+  "next_pc": "Optica",
+  "autorizacion_requerida": true,
+  "por_que_este_next_action_y_no_otro": {
+    "evaluado_descontar_los_775_ausentes": "NO. Ausente en un informe que solo lista stock > 0 significa que el sistema viejo dice cero, no que alguien haya contado cero. Y 647 armazones en 16 dias no parece una venta",
+    "evaluado_usar_los_2857_directamente": "NO todavia. La evidencia mejoro mucho -bajo 3 en 16 dias, se mueve como un consumible real- pero es la misma fuente, y son el 33% del inventario de Asuncion",
+    "evaluado_retirar_000037_automaticamente": "NO. Son 726 unidades en el deposito y una practica comercial que cambia de forma",
+    "evaluado_implementar_Delivery_y_laboratorio_por_defecto": "NO. La orden los deja fuera de alcance si falta soporte, y falta"
+  },
+  "slices_separados_propuestos": [
+    {
+      "id": "BC-OPTICA-DELIVERY-Y-SERVICIOS-SIN-STOCK-V1-011",
+      "detalle": "crear el concepto Delivery / Envio como SERVICIO_NO_STOCKEABLE con precio editable por venta, precio orientativo 20.000, sin precio rigido"
+    },
+    {
+      "id": "BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012",
+      "detalle": "laboratorio por defecto por tipo de cristal, modificable despues sin reescribir ventas historicas. Poblar laboratories con Laboratorio Optilab, ServiOptica y Laboratorio Cristal. 2000212 sigue sin laboratorio"
+    },
+    {
+      "id": "BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013",
+      "detalle": "motivo PROMO_CRISTAL_ARMAZON_LIMPIA y transicion auditable de 000037 a 000010 + no_cost"
+    }
+  ],
+  "deudas_explicitas_no_mezcladas": [
+    {
+      "id": "000010-ASUNCION-ES-UNA-ESTIMACION",
+      "estado": "ABIERTA, no bloqueante",
+      "detalle": "las 100 unidades son una estimacion operativa, no un conteo. Esta marcada como ESTIMATED_INITIAL_STOCK en admin_audit_log y en las notas del articulo. Cuando haya un recuento real, la diferencia se corrige con un movimiento compensatorio"
+    },
+    {
+      "id": "000037-STOCK-FICTICIO",
+      "estado": "PENDIENTE, slice 013",
+      "detalle": "726 unidades ficticias (210 ASU / 516 PIL) y precio 0 clavado"
+    },
+    {
+      "id": "DELIVERY-NO-EXISTE",
+      "estado": "PENDIENTE, slice 011"
+    },
+    {
+      "id": "LABORATORIO-POR-DEFECTO",
+      "estado": "PENDIENTE, slice 012"
+    },
+    {
+      "id": "CENTINELAS-EN-LA-FUENTE",
+      "estado": "ACEPTADO",
+      "detalle": "28 centinelas seguiran apareciendo en los archivos. Ninguno entra al ledger"
+    },
+    {
+      "id": "SEIS-SLICES-FUERA-DE-MAIN",
+      "estado": "PENDIENTE, no bloqueante"
+    },
+    {
+      "id": "ANULACION-EN-DIA-CERRADO",
+      "estado": "PENDIENTE, no bloqueante"
+    }
+  ],
+  "verification": {
+    "pre_guard": "PASS en los 10 puntos",
+    "aplicacion_productiva": "PASS, 0 fallas",
+    "verificacion_post": "PASS",
+    "idempotencia_replay": "PASS, sin filas nuevas",
+    "smoke": "PASS",
+    "rollback_usado": "NO",
+    "gates": {
+      "librarian": "PASS",
+      "qa": "PASS",
+      "auditor": "PASS",
+      "artifact_consistency": "PASS"
+    },
+    "adenda_stock_estimado": "PASS, 0 fallas",
+    "pendientes_abiertos": 0
+  },
+  "generacion": 4,
+  "decisiones_pendientes": []
+}

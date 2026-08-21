@@ -1,0 +1,18 @@
+{
+  "mision": "BC-OPTICA-FACTUFACIL-CAJA-V1-016",
+  "estado": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+  "next_action": "En la Optica, con BC Caja cerrado: correr tools/factufacil_migracion_029_optica.py sin --confirmar para ver el plan, y despues con --confirmar. Es aditiva: crea dos tablas y no toca ninguna. Los pasos, el backup y el rollback estan en APLICACION_EN_LA_OPTICA.md",
+  "desde_casa": "nada mas: lo que queda necesita la base real",
+  "human_gate": [],
+  "no_iniciar_otra_mision": true,
+  "despues": [
+    {
+      "id": "puente-a-gestion-central",
+      "detalle": "real_sync.py sigue mandando factufacil_status='NO DISPONIBLE PILOTO'. Ahora hay un estado real que podria viajar. Es otra mision y toca Gestion Central"
+    },
+    {
+      "id": "V1-015",
+      "detalle": "sigue pendiente de aplicacion productiva, independiente de esta"
+    }
+  ]
+}

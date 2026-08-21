@@ -1,0 +1,29 @@
+{
+  "mision": "BC-OPTICA-COMISION-COMPOSTURAS-V1-021",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": true,
+  "migracion": "032",
+  "next_action": "En la Optica, cuando volvamos: aplicar 029, 030, 031 y 032 en ese orden con backup previo, cargar a las personas reales con su rol, y recien ahi entrar a Administrador > Comisiones de composturas y definir la politica de cada una: importe fijo por compostura a quien corresponda, y nada a quien no comisione. Sin politica cargada las composturas funcionan enteras y no devengan, que es lo correcto y no un error; el reporte lo va a listar aparte para que se vea",
+  "advertencia": "la 032 no es estrictamente aditiva: reemplaza la tabla de politica que creo la 031 por un log de versiones y le agrega una columna a los asientos. No toca ventas, stock, caja ni ningun asiento economico ya escrito. Va detras de la 029, la 030 y la 031, que siguen sin aplicarse. Aplicarlas fuera de orden no esta contemplado",
+  "orden_de_aplicacion": [
+    "029 (FactuFacil, V1-016)",
+    "030 (usuarios y roles, V1-019A)",
+    "031 (trabajos operativos, V1-020)",
+    "032 (comision de composturas, V1-021)"
+  ],
+  "configuracion_a_cargar_en_la_optica": {
+    "donde": "Administrador > Comisiones de composturas > Nueva politica",
+    "quien_puede": "solo ADMIN",
+    "campos": ["persona", "sucursal (vacio = todas)", "tipo de trabajo (vacio = todos)", "importe", "rige desde"],
+    "ejemplo_conocido": "responsable con comision: 5.000 Gs por compostura. Quien dirige la optica: sin politica, o politica de 0 si se prefiere dejarlo escrito",
+    "nada_sembrado": "ni una persona ni un monto vienen cargados desde el codigo"
+  },
+  "pendientes_de_otras_misiones": [
+    "V1-015: limpieza de marcas-laboratorio, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-016: migracion 029, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-019A: migracion 030, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-020: migracion 031, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-017, V1-018 y V1-019B: solo codigo"
+  ],
+  "no_iniciar_otra_mision": true
+}

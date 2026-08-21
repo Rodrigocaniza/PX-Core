@@ -1,0 +1,59 @@
+MIGRACION 030 -- usuarios y roles en BC Caja
+base   : C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1019\copia_upgrade.sqlite3
+sha256 : 71955ac4a83871eb15d2684a27154de832bd352cbcdc89752379bd6a8c4177ba
+
+== estado antes ==
+  migraciones        29
+  usuarios           1
+  usuarios_activos   1
+  dias               2
+  entradas           6
+  suma_caja          2700000
+  sale_items         0
+  articulos          0
+  movimientos        0
+  trabajos           0
+  laboratorios       0
+  factufacil         0
+  pedidos            0
+  integridad         ok
+  fk                 0
+
+== pre-guards ==
+  OK   integrity_check ok antes de tocar nada
+  OK   sin FK rotas antes
+  OK   las columnas nuevas todavia no existen ([])
+  OK   la 029 esta aplicada: esta base viene de la linea correcta
+
+== backup verificable ==
+  archivo: C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1019\Backups\bc-caja-preusuarios-20260819-205841.sqlite3
+  sha256 : 9dc4c0bf0a037022d27312ba09195725fe839ad9a9fe3b1d61220504b9020925
+  OK   el backup tiene el mismo contenido que la base
+
+== migracion ==
+  aplicada la 030
+
+== post-checks ==
+  OK   schema_migrations registra la 030
+  OK   migraciones: 29 -> 30
+  OK   exactamente cuatro columnas nuevas ({'updated_by', 'display_name', 'branch', 'created_by'})
+  OK   usuarios: 1 sin cambio
+  OK   usuarios_activos: 1 sin cambio
+  OK   dias: 2 sin cambio
+  OK   entradas: 6 sin cambio
+  OK   suma_caja: 2700000 sin cambio
+  OK   sale_items: 0 sin cambio
+  OK   articulos: 0 sin cambio
+  OK   movimientos: 0 sin cambio
+  OK   trabajos: 0 sin cambio
+  OK   laboratorios: 0 sin cambio
+  OK   factufacil: 0 sin cambio
+  OK   pedidos: 0 sin cambio
+  OK   integrity_check ok
+  OK   FK 0
+  usuario: sol · sol · ADMIN · activa
+  OK   todos los usuarios que ya existian tienen nombre
+  OK   y siguen siendo ADMIN: nadie perdio acceso al panel
+  OK   idempotencia: volver a migrar no cambia nada
+
+rollback si hiciera falta: copiar bc-caja-preusuarios-20260819-205841.sqlite3 sobre copia_upgrade.sqlite3

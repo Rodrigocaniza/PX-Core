@@ -1,0 +1,50 @@
+==============================================================================
+SAFE CLOSURE -- V1-018
+==============================================================================
+
+  branch  : feature/bc-optica-seguimiento-cierre-pilar-v1-018
+  parte de: origin/feature/bc-optica-seguimiento-atrasado-transicion-v1-017 @ 79405ef
+  worktree: .worktrees/optica-cierre-pilar-018
+
+QUE PASO
+  El finding se confirmo a medias, y la mitad que se confirmo no era la
+  esperada. No faltaba una transicion: close_work existia desde RC19, sin
+  motivo y correctamente guardado. Lo que faltaba era que la pantalla lo
+  ofreciera. La unica puerta visible era la excepcion, que pide motivo.
+
+  Buscando eso aparecio un hueco chico y real: archivar no exigia responsable.
+  Ahora lo exige.
+
+GATES
+  pruebas dirigidas .......... PASS  21 verdes
+  suite de Caja .............. PASS  746 verdes, 0 rojas
+  suite del repo ............. 1114 verdes, 2 rojas PREEXISTING_OUT_OF_SCOPE,
+                               estable en tres corridas seguidas
+  Librarian .................. PASS  artifacts completos y con procedencia
+  QA ......................... PASS  los 12 casos pedidos, y 9 mas
+  Auditor .................... PASS  la afirmacion central se probo contra una
+                               base antes de escribir la UI
+  Artifact Consistency ....... PASS  ARTIFACT_CONSISTENCY.md
+  main ....................... intacto en 7db56a0, no se toco
+  force-push ................. no se uso
+  produccion ................. no se toco nada
+
+ALCANCE
+  Dos archivos y un test. Sin migracion. La matriz de transiciones no se toco.
+  No se toco ventas, stock, inventario, FactuFacil, Delivery, laboratorios,
+  pedidos ni Caja historica.
+
+CORRECCION
+  El FINDINGS.json de V1-017 decia que el cierre normal exigia motivo. Era
+  incorrecto y salia de la propia prueba de esa mision. Queda corregido aca,
+  sin reescribir aquel artifact.
+
+ESTADO
+  COMPLETADA_EN_CASA. Sin migracion y sin apply productivo: entra con el
+  proximo empaquetado de BC Caja, junto con V1-017.
+
+  Lease liberada.
+
+NEXT_ACTION
+  Nada que aplicar por esta mision. Siguen pendientes de la Optica: V1-015
+  (marcas-laboratorio) y V1-016 (migracion 029 de FactuFacil).

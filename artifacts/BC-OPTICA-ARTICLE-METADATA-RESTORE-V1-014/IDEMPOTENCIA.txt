@@ -1,0 +1,36 @@
+﻿RESTAURACION DE CATEGORIA Y MARCA
+base   : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 : ffafb5c624af07e036f5a86d3348b6e0412eeb855b22883f64f862534386f7b2
+fuente : C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-prerecuento-20260819-142306.sqlite3
+sha256 : 71580fc835301902ca9c81eb38c0ddea41c386ee1ca1af47801942c80ea73f6c
+
+== diff exacto de los cinco ==
+  000010 «LIMPIA CRISTAL»
+      naturaleza : PRODUCTO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : 'Limpia Cristales' <- 'Limpia Cristales'
+      marca      : 'Óptica Puppilent`s' <- 'Óptica Puppilent`s'
+      nada que restaurar: ya tiene sus etiquetas
+  2000056 «Par de patillas»
+      naturaleza : SERVICIO_NO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : 'Compostura' <- 'Compostura'
+      marca      : 'Optica San Cayetano' <- 'Optica San Cayetano'
+      nada que restaurar: ya tiene sus etiquetas
+  2000070 «Hilo»
+      naturaleza : SERVICIO_NO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : 'Compostura' <- 'Compostura'
+      marca      : 'Laboratorio Optilab' <- 'Laboratorio Optilab'
+      nada que restaurar: ya tiene sus etiquetas
+  2000071 «Tornillo»
+      naturaleza : SERVICIO_NO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : 'Compostura' <- 'Compostura'
+      marca      : 'Optica San Cayetano' <- 'Optica San Cayetano'
+      nada que restaurar: ya tiene sus etiquetas
+  2000072 «Plaqueta»
+      naturaleza : SERVICIO_NO_STOCKEABLE  (se conserva, no se revierte)
+      categoria  : 'Compostura' <- 'Compostura'
+      marca      : 'Optica San Cayetano' <- 'Optica San Cayetano'
+      nada que restaurar: ya tiene sus etiquetas
+
+== guardas ==
+NO SE ESCRIBE NADA: los cinco ya tienen categoria y marca.
+Idempotencia: una segunda corrida no cambia nada.

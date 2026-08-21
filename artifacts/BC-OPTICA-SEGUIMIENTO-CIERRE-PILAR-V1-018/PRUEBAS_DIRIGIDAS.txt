@@ -1,0 +1,36 @@
+PRUEBAS DIRIGIDAS -- V1-018
+comando: python -m pytest tests/caja_diaria/test_v1018_cierre_pilar.py -v
+
+21 dirigidas nuevas, cubren los 12 casos pedidos.
+Suite de Caja completa: 746 passed, 0 failed.
+Suite total del repo: 1114 passed, 2 failed, en tres corridas seguidas.
+
+Los 2 rojos son tests/gestion_central/test_ui_interactions.py, PREEXISTING_OUT_OF_SCOPE,
+clasificados con evidencia en V1-015. Esta mision no toca Gestion Central.
+
+En una de siete corridas completas aparecio un tercer rojo transitorio que no se
+reprodujo en las tres siguientes ni en cuatro corridas dirigidas del conjunto que
+construye Tk. Queda anotado en FINDINGS.json, no se lo tapa.
+
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_el_circuito_termina_cuando_el_trabajo_vuelve_a_pilar PASSED [  4%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_un_trabajo_terminado_ya_cuenta_como_completado_sin_archivarlo PASSED [  9%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_el_cierre_normal_no_exige_motivo PASSED [ 14%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_el_cierre_normal_queda_auditado PASSED [ 19%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_el_cierre_normal_no_se_disfraza_de_excepcion PASSED [ 23%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_el_cierre_normal_exige_responsable PASSED [ 28%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_la_excepcion_sigue_exigiendo_motivo PASSED [ 33%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_la_excepcion_deja_el_motivo_escrito PASSED [ 38%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_el_cierre_normal_NO_puede_cerrar_algo_a_mitad_de_camino PASSED [ 42%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_una_etapa_intermedia_tampoco_se_archiva PASSED [ 47%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_un_trabajo_ya_archivado_no_vuelve_a_archivarse PASSED [ 52%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_un_trabajo_ya_archivado_tampoco_se_cierra_por_excepcion PASSED [ 57%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_el_tramo_de_asuncion_sigue_igual PASSED [ 61%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_archivar_no_saltea_ninguna_etapa PASSED [ 66%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_reiniciar_la_app_conserva_el_archivado PASSED [ 71%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_archivar_no_reescribe_la_historia_anterior PASSED [ 76%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_los_cerrados_por_excepcion_de_antes_siguen_diciendo_lo_mismo PASSED [ 80%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_archivar_no_toca_ni_stock_ni_dinero PASSED [ 85%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_la_pantalla_ofrece_el_cierre_normal PASSED [ 90%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_la_pantalla_no_deja_archivar_lo_que_no_termino PASSED [ 95%]
+tests/caja_diaria/test_v1018_cierre_pilar.py::test_los_dos_cierres_siguen_siendo_dos_cosas_distintas PASSED [100%]
+============================= 21 passed in 2.10s ==============================

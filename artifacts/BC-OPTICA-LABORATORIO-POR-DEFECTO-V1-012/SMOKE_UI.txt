@@ -1,0 +1,12 @@
+﻿== el campo Laboratorio, como se llena en la Caja ==
+  OK   Futurex Protec -> ServiOptica
+  OK   Multiblue -> Optilab
+  OK   FUTUREX G2 -> Lab Cristal
+  OK   ST Fotocromatico no autocompleta y no pisa lo escrito a mano
+  OK   la operadora lo cambia y queda cambiado
+
+== las pantallas abren ==
+  OK   el buscador de articulos abre
+  OK   la ventana Comercial abre
+
+VEREDICTO: PASS (0 fallas)

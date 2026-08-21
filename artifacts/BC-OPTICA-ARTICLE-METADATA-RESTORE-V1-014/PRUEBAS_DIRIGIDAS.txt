@@ -1,0 +1,23 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.6, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Striker\AppData\Local\Python\pythoncore-3.14-64\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Striker\Desktop\Proyecto X\PX-Core\.worktrees\optica-metadata-014
+configfile: pytest.ini
+collecting ... collected 14 items
+
+tests/comercial/test_article_metadata_patch.py::test_guardar_articulo_reemplaza_todo_y_por_eso_borro_los_metadatos PASSED [  7%]
+tests/comercial/test_article_metadata_patch.py::test_cambiar_la_naturaleza_no_borra_categoria_ni_marca PASSED [ 14%]
+tests/comercial/test_article_metadata_patch.py::test_cambiar_las_notas_no_borra_nada_mas PASSED [ 21%]
+tests/comercial/test_article_metadata_patch.py::test_no_borra_el_precio PASSED [ 28%]
+tests/comercial/test_article_metadata_patch.py::test_no_borra_proveedor_ni_unidad_que_el_formulario_no_muestra PASSED [ 35%]
+tests/comercial/test_article_metadata_patch.py::test_varios_campos_a_la_vez PASSED [ 42%]
+tests/comercial/test_article_metadata_patch.py::test_sin_campos_no_cambia_nada PASSED [ 50%]
+tests/comercial/test_article_metadata_patch.py::test_none_explicito_si_vacia_el_campo PASSED [ 57%]
+tests/comercial/test_article_metadata_patch.py::test_restaurar_categoria_y_marca_es_lo_unico_que_toca PASSED [ 64%]
+tests/comercial/test_article_metadata_patch.py::test_no_acepta_campos_que_el_articulo_no_tiene PASSED [ 71%]
+tests/comercial/test_article_metadata_patch.py::test_no_acepta_tocar_el_id PASSED [ 78%]
+tests/comercial/test_article_metadata_patch.py::test_un_articulo_que_no_existe_falla_sin_crear_nada PASSED [ 85%]
+tests/comercial/test_article_metadata_patch.py::test_queda_auditado_como_edicion PASSED [ 92%]
+tests/comercial/test_article_metadata_patch.py::test_la_baja_logica_conserva_categoria_y_marca PASSED [100%]
+
+============================= 14 passed in 3.24s ==============================

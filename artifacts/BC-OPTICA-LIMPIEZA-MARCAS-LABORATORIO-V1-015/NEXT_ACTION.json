@@ -1,0 +1,27 @@
+{
+  "mision": "BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015",
+  "estado": "READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+  "next_action": "En la Optica: seguir HANDOFF_OPTICA.md de punta a punta. Verificar el estado canonico de produccion, localizar Inventario P2 corregido del 19/08, dry-run con --fuente-corregida, comparar contra el baseline 28/2/1 de PLAN_SELLADO.json, y recien entonces --confirmar. 2000212 se resuelve solo si la fuente lo permite; si no, queda sin cambio y no bloquea a los otros 30",
+  "desde_casa": "nada mas. Lo que quedaba por hacer necesita la base real",
+  "bloqueantes": [],
+  "human_gate": [
+    "2000212 ST Fotocromatico: se cierra solo si la fuente corregida le da una marca real"
+  ],
+  "despues": [
+    {
+      "id": "V1-016-candidato",
+      "detalle": "los 6 cristales sin laboratorio por defecto. Cinco tenian «Laboratorio Optilab» de marca y esta mision borra ese dato: si se va a usar como pista hay que hacerlo antes, o leerlo del backup bc-caja-premarcas"
+    },
+    {
+      "id": "telefonos",
+      "detalle": "los tres laboratorios siguen sin numero. Se cargan desde el ABM de Laboratorios en Seguimiento"
+    },
+    {
+      "id": "marcas-duplicadas",
+      "detalle": "«Óptica Puppilent`s» vs «Optica Puppilents»"
+    }
+  ],
+  "handoff": "artifacts/BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015/HANDOFF_OPTICA.md",
+  "plan_sellado": "artifacts/BC-OPTICA-LIMPIEZA-MARCAS-LABORATORIO-V1-015/PLAN_SELLADO.json",
+  "no_iniciar_otra_mision": true
+}

@@ -1,0 +1,58 @@
+﻿sha256: a335805eb83cce46454e36eda1fdb25a567be1ad534427af687ef0fa8b225d13
+
+== lo declarado en la orden ==
+  OK   28 migraciones
+  OK   028 aplicada
+  OK   3 laboratorios
+  OK   24 cristales con laboratorio por defecto
+  OK   2000212 sin default
+  OK   ASUNCION 6.166
+  OK   PILAR 2.260
+  OK   total 8.426
+  OK   4.441 movimientos
+  OK   Caja historica: 12 entradas, 6.400.000, 10 lineas
+  OK   3.596 articulos
+  OK   2.829 activos
+
+== las reglas provisionales, verificadas en la base ==
+  OK   2000124 sigue sin crearse
+  OK   2000139 sigue sin crearse
+  OK   2000077 sigue sin crearse
+  OK   2000078 sigue sin crearse
+  OK   2000090 sigue sin crearse
+  OK   2000231 sigue sin crearse
+  OK   2000235 sigue sin crearse
+  OK   2000078 y 2000219 no se fusionaron
+  OK   los seis siguen en NULL: ['2000127', '2000210', '2000211', '2000219', '2000227', '2000239']
+  OK   las marcas-laboratorio siguen sin limpiar (31 articulos)
+  OK   ningun telefono inventado
+
+== invariantes ==
+  OK   integrity_check
+  OK   foreign_key_check
+  OK   stock negativo
+  OK   huerfanos
+  OK   efectos sin hecho
+
+== la cadena de misiones, entera ==
+  OK   V1-008/010: 3.629 movimientos de inventario inicial
+  OK   V1-010: 767 bajas
+  OK   V1-013: 000037 retirado
+  OK   V1-011: Delivery
+  OK   V1-014: los cinco con categoria y marca
+
+== bitacora, la historia completa ==
+      EDITA_ARTICULO                                801
+      ALTA_MARCA                                    136
+      ALTA_ARTICULO                                 42
+      DEFAULT_LABORATORY_ASSIGNED                   24
+      ALTA_CATEGORIA                                15
+      STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION   5
+      ARTICLE_METADATA_RESTORED                     5
+      NATURE_CORRECTION                             4
+      LABORATORY_CATALOG_CREATED                    3
+      PROMO_OBSEQUIO_LEGACY_RETIRED                 1
+      ESTIMATED_INITIAL_STOCK                       1
+      DELIVERY_SERVICE_CREATED                      1
+
+VEREDICTO: PASS (0 fallas)

@@ -1,0 +1,79 @@
+CONCILIACION V1-010 -- APLICACION
+base   : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 : 25cd7d04025dac867c05cb3a178f6c7ea4a132b6f50e264ae20351dedb2ca658
+antes  : 3554 articulos (3554 activos), 3583 movimientos, ASU 5849 / PIL 2899
+
+== el plan recalculado contra el sellado en el HUMAN_GATE ==
+  OK   altas_articulos    41 (sellado 41)
+  OK   altas_registros    45 (sellado 45)
+  OK   altas_unidades     1064 (sellado 1064)
+  OK   ausentes_reales    773 (sellado 773)
+  OK   retirados          766 (sellado 766)
+  OK   no_retirables      5 (sellado 5)
+  OK   comp_asuncion      645 (sellado 645)
+  OK   comp_pilar         128 (sellado 128)
+  OK   ajustes            37 (sellado 37)
+  OK   pos                47 (sellado 47)
+  OK   neg                34 (sellado 34)
+  OK   naturalezas        4 (sellado 4)
+  OK   renumerados        1 (sellado 1)
+  OK   nunca_existieron   1 (sellado 1)
+
+== backup verificable ==
+  archivo: C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-preconciliacion-20260819-155227.sqlite3
+  sha256 : 71580fc835301902ca9c81eb38c0ddea41c386ee1ca1af47801942c80ea73f6c
+  bytes  : 5906432
+  OK   el backup tiene exactamente el mismo contenido que la base
+  OK   el backup abre, pasa integrity_check y no tiene violaciones de FK
+
+== 1. altas ==
+  41 articulos de 45 registros
+  stock inicial: 45 lineas, 1064 unidades
+
+== 2. compensacion del stock de los que se retiran ==
+  ASUNCION 645 unidades, PILAR 128 unidades
+
+== 3. verificar stock cero antes de retirar ==
+  OK   los 766 a retirar quedaron en cero (0 todavia con stock)
+
+== 4. retiro del catalogo activo ==
+  766 articulos retirados; 5 no se retiran porque siguen vivos en la otra sucursal
+
+== 5. correcciones de naturaleza ==
+  OK   2000056 Par de patillas: SERVICIO_NO_STOCKEABLE
+  OK   2000070 Hilo: SERVICIO_NO_STOCKEABLE
+  OK   2000071 Tornillo: SERVICIO_NO_STOCKEABLE
+  OK   2000072 Plaqueta: SERVICIO_NO_STOCKEABLE
+
+== 6. ajustes del inventario corregido ==
+  AJUSTE_POSITIVO 47 unidades, AJUSTE_NEGATIVO 34 unidades
+  4 pendientes cerrados por NATURE_CORRECTION
+
+== verificacion post-produccion ==
+  OK   articulos    3595 (esperado 3595)
+  OK   activos      2829 (esperado 2829)
+  OK   movimientos  4438 (esperado 4438)
+  OK   asuncion     6276 (esperado 6276)
+  OK   pilar        2776 (esperado 2776)
+  OK   stock total 9052 (esperado 9052)
+  OK   integrity_check: ok
+  OK   foreign_key_check: 0
+  OK   stock negativo: 0
+  OK   huerfanos: 0
+  OK   efectos sin hecho: 0
+  OK   SKU duplicados: 0
+  OK   stock operativo en articulos retirados: 0
+  OK   Caja, entradas: 12
+  OK   Caja, suma_caja: 6400000
+  OK   Caja, sale_items: 10
+  OK   Caja, cash_days: 2
+  OK   Caja, orders: 8
+  OK   los 5 pendientes de V1-008 siguen registrados
+  OK   V1-008 intacta: 3.583 movimientos y 8.748 unidades
+  OK   000010 ASUNCION sigue sin unidades
+  OK   000010 PILAR intacto en 10
+  OK   000037 sin stock nuevo y sigue activo: su retiro es del slice 013
+  OK   ningun articulo de Compostura queda clasificado como producto
+
+sha256 base despues: ae67faffb7cad9a09fe6000749e27b536edd4098760062f807f38a3ec96f2232
+VEREDICTO: PASS (0 fallas)

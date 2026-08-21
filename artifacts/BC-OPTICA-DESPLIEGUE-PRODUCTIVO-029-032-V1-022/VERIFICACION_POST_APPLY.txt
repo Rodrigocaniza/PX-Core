@@ -1,0 +1,125 @@
+
+1. Esquema final
+----------------
+  OK    32 migraciones registradas  -> 32
+  OK    la ultima es la 032  -> 032
+  OK    la cadena 001..032 esta completa y sin huecos
+
+2. Integridad fisica
+--------------------
+  OK    integrity_check  -> ok
+  OK    foreign_key_check sin violaciones  -> sin violaciones
+  OK    pragma foreign_keys legible
+  OK    quick_check  -> ok
+
+3. Ventas historicas y pagos
+----------------------------
+  OK    12 ventas historicas, ninguna mas ni menos  -> 12
+  OK    ventas activas sin cambio  -> 11
+  OK    suma total de caja sin cambio  -> 6400000
+  OK    efectivo sin cambio  -> 2200000
+  OK    tarjeta/cheque sin cambio  -> 100000
+  OK    gastos sin cambio  -> 250000
+  OK    convenios sin cambio  -> 1350000
+  OK    cada venta, fila por fila, identica
+  OK    revisiones de venta sin cambio  -> 22
+  OK    la revision de cada venta no avanzo
+  OK    los dias de caja quedaron exactamente como estaban
+
+4. Arqueos
+----------
+  OK    cash_counts sin cambio  -> 0
+  OK    snapshots de arqueo sin cambio  -> 0
+  OK    correcciones de dia sin cambio  -> 0
+
+5. Articulos y catalogo
+-----------------------
+  OK    3596 articulos  -> 3596
+  OK    articulos activos sin cambio  -> 2829
+  OK    naturaleza de cada articulo sin cambio
+  OK    categorias sin cambio  -> 15
+  OK    marcas sin cambio  -> 136
+
+6. Stock y movimientos
+----------------------
+  OK    4441 movimientos  -> 4441
+  OK    unidades netas sin cambio  -> 8426
+  OK    stock por sucursal sin cambio  -> [['ASUNCION', 3277, 6166], ['PILAR', 1164, 2260]]
+  OK    movimientos por tipo sin cambio
+  OK    ningun articulo quedo con stock negativo  -> 0
+  OK    integraciones venta->stock sin cambio
+  OK    compensaciones de anulacion sin cambio
+
+7. FactuFacil (029)
+-------------------
+  OK    existe factufacil_loads
+  OK    existe factufacil_history
+  OK    nace vacia: no se invento ninguna marca de carga
+  OK    historia de FactuFacil vacia
+  OK    «para cargar» se deduce por consulta, no por estado  -> 10
+
+8. Seguimiento y laboratorios
+-----------------------------
+  OK    Seguimiento intacto  -> {'trabajos': 0, 'transiciones': 0, 'contactos': 0, 'envios_pilar': 0}
+  OK    los 3 laboratorios, iguales  -> 3
+  OK    laboratorio por defecto de cada articulo sin cambio  -> 24
+
+9. Pedidos
+----------
+  OK    8 pedidos  -> 8
+  OK    cada pedido, fila por fila, identico
+  OK    revisiones de estado sin cambio
+
+10. Trabajos operativos y comision de composturas (031 + 032)
+-------------------------------------------------------------
+  OK    existe service_job_types
+  OK    existe service_jobs
+  OK    existe service_job_events
+  OK    existe service_job_commissions
+  OK    existe service_commission_policy_versions
+  OK    service_commission_policy fue reemplazada por el log de versiones
+  OK    8 tipos de trabajo sembrados  -> ['COMPOSTURA', 'HILO', 'TORNILLO', 'PLAQUETA', 'PATILLA', 'AJUSTE', 'ARMADO', 'OTRO']
+  OK    ningun tipo con codigo vacio
+  OK    cero trabajos: nada sembrado
+  OK    cero comisiones devengadas
+  OK    cero politicas: ninguna persona ni monto viene del codigo
+  OK    service_job_commissions.policy_id agregada por la 032
+  OK    vista service_commission_balance disponible
+  OK    guarda append-only activa: service_jobs_sin_delete
+  OK    guarda append-only activa: service_job_events_sin_update
+  OK    guarda append-only activa: service_job_events_sin_delete
+  OK    guarda append-only activa: service_commissions_sin_update
+  OK    guarda append-only activa: service_commissions_sin_delete
+  OK    guarda append-only activa: service_policy_versions_sin_update
+  OK    guarda append-only activa: service_policy_versions_sin_delete
+
+11. Comision comercial del 1% - separacion estructural
+------------------------------------------------------
+  OK    las unicas tablas de comision son las de composturas  -> ['service_commission_policy_versions', 'service_job_commissions']
+  OK    el 1% vive en BC Gestion sobre texto plano: esta base no lo toca
+
+12. Usuarios y roles (030)
+--------------------------
+  OK    admin_users.display_name
+  OK    admin_users.branch
+  OK    admin_users.created_by
+  OK    admin_users.updated_by
+  OK    admin_users.role
+  OK    admin_users.active
+  OK    la 030 no invento ninguna persona  -> 0
+
+13. Outbox / sincronizacion
+---------------------------
+  OK    domain_events, event_effects, outbox, mail_history e import_runs intactos  -> {'domain_events': 0, 'event_effects': 0, 'mail_outbox': 0, 'mail_history': 0, 'import_runs': 5}
+
+14. Auditoria
+-------------
+  OK    la bitacora no se reescribio  -> 1038
+  OK    cada accion auditada sigue en su lugar
+
+================================================================
+RESULTADO: PRODUCTIVE_APPLY_PASS
+  base    C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+  sha256  484d5638e995341aa03c69b44a9ccad6c8f4611207ec8347110d4a00991c17c4
+  tamano  7585792
+  esquema 032

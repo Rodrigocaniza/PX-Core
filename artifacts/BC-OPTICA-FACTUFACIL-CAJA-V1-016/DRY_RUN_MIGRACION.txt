@@ -1,0 +1,30 @@
+MIGRACION 029 -- FactuFacil dentro de BC Caja
+base   : C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1016\copia_pre029.sqlite3
+sha256 : eca121dc8f7da773e2c052df3dce32771e060397598f39ab761740514429b932
+
+== estado antes ==
+  migraciones        28
+  dias               2
+  entradas           6
+  entradas_activas   5
+  suma_caja          2700000
+  sale_items         0
+  articulos          0
+  movimientos        0
+  asuncion           0
+  pilar              0
+  integridad         ok
+  fk                 0
+  negativos          0
+
+== pre-guards ==
+  OK   integrity_check ok antes de tocar nada
+  OK   sin FK rotas antes
+  OK   las tablas de FactuFacil todavia no existen ([])
+  OK   la 028 esta aplicada: esta base viene de la linea correcta
+
+DRY-RUN: no se escribio nada. Falta --confirmar.
+Esto aplicaria la migracion 029 y crearia dos tablas nuevas:
+  - factufacil_loads
+  - factufacil_history
+Ninguna tabla existente se modifica, y ningun dato se convierte.

@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import socket
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from modulos.caja_diaria.application.services import CashDayService
 from modulos.caja_diaria.application.tracking_service import TrackingService
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
-from modulos.caja_diaria.domain.models import CashEntry, SaleItem
+from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE, CashEntry, SaleItem
 from modulos.caja_diaria.domain.tracking import TrackingStatus
 from modulos.caja_diaria.infrastructure.sqlite_repository import SQLiteCashDayRepository
 
-HOY = date.today()
+HOY = datetime.now(BUSINESS_TIMEZONE).date()
 
 
 class RC20Base(unittest.TestCase):

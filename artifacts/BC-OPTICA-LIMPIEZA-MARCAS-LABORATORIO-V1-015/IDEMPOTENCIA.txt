@@ -1,0 +1,31 @@
+LIMPIEZA DE MARCAS QUE EN REALIDAD SON LABORATORIOS
+base   : C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1015\copia_apply.sqlite3
+sha256 : 7839bc0ce4ae090c9a92e188518d64c701bb232244cb37bd19fec0f8c6851c52
+
+== los casos, uno por uno ==
+fuente de marcas corregidas: evidencia registrada en artifacts (V1-010 y V1-012): la fuente corregida vive en la PC de la Óptica
+
+SKU       | Nombre                     | Categoria   | Marca actual               | Marca propuesta       | Lab. default | Accion
+---------------------------------------------------------------------------------------------------------------------------------
+2000212   | ST Fotocromatico           | Armazones   | Laboratorio Optilab        | (sin cambio)          | (ninguno)    | AMBIGUOUS
+
+  2000212: «Laboratorio Optilab» nombra un laboratorio, pero el artículo está en «Armazones» y ninguna fuente corregida disponible le da una marca real
+
+== resumen ==
+  LABORATORY_IN_BRAND_CONFIRMED      0
+  CORRECTED_SOURCE_HAS_REAL_BRAND    0
+  VALID_BRAND                        0
+  AMBIGUOUS                          1
+  NO_ACTION                          0
+  artículos que cambian              0
+
+== guardas previas ==
+  OK   todos los casos conservan su categoría
+  OK   ninguna marca-laboratorio fuera de la lista autorizada ([])
+
+== HUMAN_GATE: no se tocan ==
+  2000212 «ST Fotocromatico» (Armazones, PRODUCTO_STOCKEABLE): marca «Laboratorio Optilab»
+      «Laboratorio Optilab» nombra un laboratorio, pero el artículo está en «Armazones» y ninguna fuente corregida disponible le da una marca real
+
+NO SE ESCRIBE NADA: ya está todo limpio.
+Idempotencia: una segunda corrida no cambia nada.

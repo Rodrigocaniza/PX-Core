@@ -1,0 +1,64 @@
+VERIFICACION POST-PRODUCCION -- V1-013
+base   : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 : d9a88e9f429f848b50edb2ac65cff9b9eb7f8cf2fdfa8a9dd656ee4d88ac63a1
+
+== resultado contra el plan autorizado ==
+  OK   articulos    3595 (esperado 3595)
+  OK   activos      2828 (esperado 2828)
+  OK   movimientos  4441 (esperado 4441)
+  OK   ASUNCION     6166 (esperado 6166)
+  OK   PILAR        2260 (esperado 2260)
+  OK   stock total  8426 (esperado 8426)
+
+== 000037 ==
+  OK   esta inactivo
+  OK   no se borro: sigue existiendo
+  OK   stock en cero: {'ASUNCION': 0, 'PILAR': 0}
+  OK   4 movimientos: los 2 originales mas las 2 compensaciones -- [('INGRESO_ADMINISTRATIVO', 'ASUNCION', 210), ('INGRESO_ADMINISTRATIVO', 'PILAR', 516), ('AJUSTE_NEGATIVO', 'ASUNCION', -210), ('AJUSTE_NEGATIVO', 'PILAR', -516)]
+  OK   los 2 movimientos originales de V1-008 siguen ahi, sin tocar
+  OK   las 2 compensaciones son hechos nuevos al lado
+  OK   la causa quedo escrita en la nota
+  OK   queda la entrada PROMO_OBSEQUIO_LEGACY_RETIRED en la bitacora
+
+== 000010, sin alterar por este retiro ==
+  OK   {'ASUNCION': 100, 'PILAR': 10}. Ninguna de las 726 unidades ficticias se le traslado
+  OK   sigue con sus 2 movimientos, ninguno nuevo
+
+== invariantes ==
+  OK   integrity_check
+  OK   foreign_key_check
+  OK   stock negativo: 0
+  OK   huerfanos: 0
+  OK   efectos sin hecho: 0
+  OK   stock operativo en retirados: 0
+
+== Caja historica y misiones anteriores ==
+  OK   entradas: 12
+  OK   dinero: 6400000
+  OK   lineas de venta: 10
+  OK   dias: 2
+  OK   pedidos: 8
+  OK   V1-008 intacta: 3.583 movimientos y 8.748 unidades
+  OK   los movimientos de V1-010 siguen ahi
+
+== 000037 no es vendible ==
+  OK   no aparece en el buscador de la linea de venta
+  OK   000010 si aparece
+
+== circuito bonificado, sobre copia del estado ya retirado ==
+  (no se crea una venta en produccion: seria un hecho sin causa)
+  OK   el regalo vale 0
+  OK   la venta cobra 530.000 (530000)
+  OK   000010 en ASUNCION: 100 -> 99 (salio 1 de verdad)
+  OK   el movimiento dice que fue obsequio
+  OK   la linea quedo sin costo
+  OK   anular devuelve el frasco: 100
+  OK   la devolucion es compensatoria: el VENTA original no se borro
+
+== idempotencia sobre produccion ==
+  OK   un segundo retiro se rechaza en las guardas
+  OK   el replay no escribio nada
+
+sha256 final: d9a88e9f429f848b50edb2ac65cff9b9eb7f8cf2fdfa8a9dd656ee4d88ac63a1
+
+VEREDICTO: PASS (0 fallas)

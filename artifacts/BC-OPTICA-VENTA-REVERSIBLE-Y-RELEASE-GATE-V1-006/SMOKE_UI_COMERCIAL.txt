@@ -1,0 +1,9 @@
+base migrada  : C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\c543621d-30bc-4aa5-883c-e73f8bbd23d9\scratchpad\smoke006\bc_caja.sqlite3
+  OK   la ventana Comercial abre
+  OK   la pestaña Artículos se arma y se pinta
+  OK   la pestaña Proveedores se arma y se pinta
+  OK   la pestaña Compras se arma y se pinta
+  OK   refrescar artículos y proveedores no rompe
+  OK   el buscador de artículos de la línea de venta abre
+
+VEREDICTO: PASS (0 fallas)

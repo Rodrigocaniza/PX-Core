@@ -1,0 +1,134 @@
+{
+  "mission": "BC-OPTICA-PURCHASES-PROVIDERS-V1-003",
+  "slice": "3 de 6 - Proveedores + Compras, conectados al Event Spine y al Inventory Ledger",
+  "branch": "feature/bc-optica-purchases-providers-v1-003",
+  "worktree": ".worktrees/purchases-003",
+  "base_commit": "54f5f06",
+  "base_branch": "feature/bc-optica-inventory-ledger-v1-002",
+  "cadena_de_slices": {
+    "slice_1": "ed0dbba",
+    "slice_2": "54f5f06",
+    "origin_main": "7db56a0 = BC Caja 1.0.0-rc.31"
+  },
+  "packaged": false,
+  "installed": false,
+  "promoted": false,
+  "version_unchanged": true,
+  "por_que_no_se_promueve": "Agrega la 024 sobre la 023 y la 022. Ninguna de las tres se empaqueto ni se instalo. main es lo que se empaqueta: promover ahora haria que la proxima RC arrastre tres cambios de esquema sin gate de instalacion. Mismo criterio que los slices 1 y 2",
+  "migrations": 24,
+  "migrations_added": [
+    "024_purchases_providers.sql"
+  ],
+  "schema_changed": true,
+  "schema_change_shape": "ADITIVA: CREATE TABLE/INDEX/VIEW/TRIGGER IF NOT EXISTS y tres ALTER TABLE ADD COLUMN con default sobre suppliers, tabla que la 022 crea y que en produccion no tiene ni una fila. No reconstruye ni reescribe nada",
+  "economic_rules_changed": false,
+  "ui_changed": false,
+  "caja_tocada": false,
+  "ledger_rediseñado": false,
+  "que_se_toco_del_ledger": "Solo se EXPUSO lo que ya hacia: registrar_en(connection, ...), asegurar_evento_en(...) y marcar_evento_procesado_en(...). La logica no cambio; lo que cambio es que el dueño de la transaccion puede ser otro, que es lo que hace posible que confirmar sea atomico",
+  "reutilizado_no_duplicado": {
+    "suppliers": "extendido con address, email y contact_name. No se creo una tabla de proveedores paralela",
+    "articles y naturaleza": "la linea no lleva bandera de stock: se deriva, igual que en el slice 1",
+    "domain_events y event_effects": "PURCHASE_CONFIRMED es un hecho mas del mismo spine, sin cambiarle la forma",
+    "stock_movements": "los INGRESO_COMPRA son movimientos normales",
+    "referencia durable del movimiento": "supplier_id, document_kind, document_id, document_line_id y document_number ya estaban previstos en la 023 y se llenan ahora sin migrar el ledger",
+    "Destination": "ASUNCION/PILAR, mismo vocabulario, sin tabla de sucursales"
+  },
+  "tablas_nuevas": [
+    "purchases",
+    "purchase_lines",
+    "purchase_line_distributions"
+  ],
+  "columnas_agregadas": [
+    "suppliers.address",
+    "suppliers.email",
+    "suppliers.contact_name"
+  ],
+  "vistas_nuevas": [
+    "stock_origen_compra"
+  ],
+  "indices_unicos_nuevos": {
+    "idx_suppliers_documento_unico": "parcial: solo donde hay RUC. Sin identidad fiscal no se inventa una para poder comparar",
+    "idx_purchases_documento_unico": "(supplier_id, document_number): una factura real existe una sola vez"
+  },
+  "triggers_nuevos": 11,
+  "invariantes": {
+    "una_factura_una_vez": "indice unico (supplier_id, document_number)",
+    "vencimiento_derivado": "no se recibe (TypeError) y el trigger purchases_vencimiento_derivado verifica que la fila no contradiga fecha + plazo",
+    "plazo_solo_con_credito": "CHECK: plazo y vencimiento existen si y solo si la condicion es CREDITO",
+    "solo_se_distribuye_lo_que_mueve_stock": "trigger derivado de articles.nature",
+    "no_se_distribuye_mas_de_lo_comprado": "trigger acumulando lo ya repartido",
+    "al_confirmar_lo_repartido_iguala_lo_comprado": "servicio: un borrador puede estar incompleto, pero no puede generar stock estando incompleto",
+    "no_se_inventa_distribucion": "una linea stockeable sin reparto no se confirma, en vez de mandar todo a Asuncion por defecto",
+    "total_del_papel_vs_lineas": "se guardan los dos y se contrastan al confirmar. Que no coincidan es un hecho a mostrar, no uno a corregir solo",
+    "confirmada_es_historia": "9 triggers hacen imposible editar o borrar una compra confirmada, sus lineas o su reparto, desde cualquier escritor",
+    "proveedor_no_se_borra": "se desactiva: borrarlo dejaria facturas apuntando a nadie, y esas facturas explican stock que existe"
+  },
+  "flujo_confirmacion": {
+    "atomico": "una sola transaccion BEGIN IMMEDIATE",
+    "orden": [
+      "registrar el hecho PURCHASE_CONFIRMED",
+      "un INGRESO_COMPRA por (linea stockeable x destino)",
+      "cada movimiento como event_effect del hecho",
+      "el hecho pasa a PROCESADO",
+      "la compra pasa a CONFIRMADA con quien y cuando"
+    ],
+    "por_que_el_hecho_va_primero": "una factura de puros servicios se confirma igual y su PURCHASE_CONFIRMED tiene que quedar registrado aunque no arrastre un solo movimiento. La primera version lo insertaba como efecto colateral del primer movimiento y esa factura fallaba con violacion de clave foranea; la prueba de linea no-stock lo encontro",
+    "idempotencia": {
+      "evento": "COMPRA:{purchase_id}",
+      "movimiento": "COMPRA:{purchase_id}:{line_id}:{destino}",
+      "reintento": "devuelve el mismo hecho y los mismos movimientos sin escribir nada"
+    },
+    "rollback": "si falla a mitad no queda nada: la compra sigue en BORRADOR, 0 eventos, 0 efectos, 0 movimientos. Hay prueba que inyecta el fallo en el segundo movimiento"
+  },
+  "trazabilidad": "la vista stock_origen_compra contesta con una consulta que factura, que proveedor, que linea, que destino, que evento, cuando y quien confirmo, para cualquier unidad en el deposito",
+  "boundary_explicito": {
+    "notas_de_credito_y_anulacion": "NO implementadas y NO improvisadas. En su lugar se bloquea la mutacion destructiva. No existe el estado ANULADA",
+    "cuentas_por_pagar": "solo se guarda e indexa el vencimiento, que es lo necesario para preservar la factura",
+    "ui": "no se implemento. El flujo es demostrable de punta a punta por el servicio y las pruebas",
+    "transferencias_entre_sucursales": "vocabulario declarado en el slice 2, sigue sin usarse",
+    "iva": "la factura guarda su total. Inventar una apertura impositiva sin evidencia seria lo que el principio prohibe"
+  },
+  "tests": {
+    "dirigidas_primero": true,
+    "nuevas": 43,
+    "total": 806,
+    "baseline_slice_2": 763,
+    "subtests": 4,
+    "exit": 0
+  },
+  "contratos_ajenos_actualizados": {
+    "test_la_cadena_de_migraciones_llega_a_023": "era del slice 2 y fijaba el final de la cadena. Tercera vez que aparece el mismo error, asi que ademas de corregirla se agrego el helper afirmar_cadena_completa_con() en tests/migration_chain.py para que el proximo slice no lo repita"
+  },
+  "produccion": {
+    "base_tocada": false,
+    "sha256_antes": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "sha256_despues": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "migraciones_en_produccion": 21,
+    "migraciones_no_instaladas": [
+      "022",
+      "023",
+      "024"
+    ],
+    "verificacion": "la cadena 022+023+024 se aplico sobre una COPIA de la base real, abierta en modo lectura y copiada con la API de backup. Los 14 invariantes se probaron sobre esa copia con filas reales sembradas"
+  },
+  "gates": {
+    "librarian": "PASS",
+    "qa": "PASS",
+    "auditor": "PASS",
+    "artifact_consistency": "PASS"
+  },
+  "sha256_fuentes": {
+    "modulos/caja_diaria/infrastructure/migrations/024_purchases_providers.sql": "451363a8f406c34d36225594148e93cb1ececf101c59e3705bcba5c230267c89",
+    "modulos/comercial/domain/compras.py": "da0eb0df25435ed6ca951a6b99a531907c15fa230fadf9276b9be2c2b020916c",
+    "modulos/comercial/domain/models.py": "49cb9c127c2080e988a96ea36688ca1289d449ea4ff1e4f7e1a5194cdee86c7a",
+    "modulos/comercial/application/compras.py": "3f2488fecf7cbaf0d94ab25b12683305b4f347d408c93371c1763fa437ec1616",
+    "modulos/comercial/infrastructure/sqlite_purchase_repository.py": "d48107feb15263470cb873bed745a7225eeeec198705642a78d86e817c21bff8",
+    "modulos/comercial/infrastructure/sqlite_stock_ledger.py": "709e54105a90e7c90f04268896006c0473a9d0c61f98c8c02e2f564d0805f771",
+    "modulos/comercial/infrastructure/sqlite_catalog_repository.py": "768ad622d4b22f4d1da6fd5f023d0d4cdc9587646eb26251e2bf4b5677648fee",
+    "tests/comercial/test_purchases_providers.py": "789ae63fa8f12fa32d7c0489b264937519c6301baf858eebc0213f9398ab0be6",
+    "tests/comercial/test_inventory_ledger.py": "98b6b366ca605a577e3efc5e24871375ea412abd17f4c77fa108a653433fef68",
+    "tests/migration_chain.py": "7b1f1835e0dea1b02fc7644f2f1f72e7e73b767086c8545105fe4089cdd1c4a0"
+  },
+  "convencion_de_hash": "sha256 con saltos normalizados a LF, igual que los slices 1 y 2"
+}

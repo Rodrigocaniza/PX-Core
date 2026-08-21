@@ -1,0 +1,886 @@
+{
+  "archivo": {
+    "tamano": 7585792,
+    "sha256": "484d5638e995341aa03c69b44a9ccad6c8f4611207ec8347110d4a00991c17c4"
+  },
+  "integridad": "ok",
+  "foreign_key_check": [],
+  "migraciones": [
+    [
+      "001",
+      "2026-08-10 20:48:12"
+    ],
+    [
+      "002",
+      "2026-08-10 20:48:12"
+    ],
+    [
+      "003",
+      "2026-08-10 22:07:22"
+    ],
+    [
+      "004",
+      "2026-08-12 17:32:06"
+    ],
+    [
+      "005",
+      "2026-08-13 14:19:14"
+    ],
+    [
+      "006",
+      "2026-08-13 14:19:14"
+    ],
+    [
+      "007",
+      "2026-08-13T11:19:14.309384-03:00"
+    ],
+    [
+      "008",
+      "2026-08-13T11:19:14.324102-03:00"
+    ],
+    [
+      "009",
+      "2026-08-13 17:49:45"
+    ],
+    [
+      "010",
+      "2026-08-13 19:11:00"
+    ],
+    [
+      "011",
+      "2026-08-13 20:47:05"
+    ],
+    [
+      "012",
+      "2026-08-14T11:20:51.291679-03:00"
+    ],
+    [
+      "013",
+      "2026-08-14 15:33:36"
+    ],
+    [
+      "014",
+      "2026-08-14 20:03:21"
+    ],
+    [
+      "015",
+      "2026-08-17 19:47:13"
+    ],
+    [
+      "016",
+      "2026-08-17 21:15:57"
+    ],
+    [
+      "017",
+      "2026-08-17 21:15:57"
+    ],
+    [
+      "018",
+      "2026-08-17 21:15:57"
+    ],
+    [
+      "019",
+      "2026-08-17 21:15:57"
+    ],
+    [
+      "020",
+      "2026-08-17 21:15:57"
+    ],
+    [
+      "021",
+      "2026-08-17 21:15:57"
+    ],
+    [
+      "022",
+      "2026-08-19 14:45:47"
+    ],
+    [
+      "023",
+      "2026-08-19 14:45:47"
+    ],
+    [
+      "024",
+      "2026-08-19 14:45:47"
+    ],
+    [
+      "025",
+      "2026-08-19 14:45:47"
+    ],
+    [
+      "026",
+      "2026-08-19 14:45:47"
+    ],
+    [
+      "027",
+      "2026-08-19 14:45:47"
+    ],
+    [
+      "028",
+      "2026-08-19 20:31:34"
+    ],
+    [
+      "029",
+      "2026-08-20 15:52:18"
+    ],
+    [
+      "030",
+      "2026-08-20 15:52:19"
+    ],
+    [
+      "031",
+      "2026-08-20 15:52:21"
+    ],
+    [
+      "032",
+      "2026-08-20 15:52:22"
+    ]
+  ],
+  "caja": {
+    "dias": 2,
+    "dias_detalle": [
+      [
+        "01a557f9-765a-4752-b8a3-a6f755f2e34c",
+        "2026-08-12",
+        "PC",
+        1000000,
+        "OPEN",
+        null,
+        null,
+        null,
+        null,
+        5
+      ],
+      [
+        "f458d2db-ace1-42de-80a5-67baacc8ecc0",
+        "2026-08-13",
+        "PC",
+        500000,
+        "OPEN",
+        null,
+        null,
+        null,
+        null,
+        17
+      ]
+    ],
+    "entradas": 12,
+    "entradas_activas": 11,
+    "total": 6400000,
+    "efectivo": 2200000,
+    "tarjeta_cheque": 100000,
+    "gastos": 250000,
+    "convenio": 1350000,
+    "entradas_detalle": [
+      [
+        "3782b624-e89c-4e39-933c-9008d509d32d",
+        "01a557f9-765a-4752-b8a3-a6f755f2e34c",
+        "8222",
+        800000,
+        null,
+        null,
+        null,
+        "ACTIVE",
+        0,
+        "",
+        "",
+        "",
+        "",
+        0
+      ],
+      [
+        "44cec71d-2e88-4582-ab2a-8cacfa92b4b0",
+        "f458d2db-ace1-42de-80a5-67baacc8ecc0",
+        "",
+        500000,
+        250000,
+        0,
+        null,
+        "ACTIVE",
+        1,
+        "Belén",
+        "161561",
+        "51166",
+        "0",
+        250000
+      ],
+      [
+        "4835e7f1-b5f8-4a44-ac52-565139bb570d",
+        "f458d2db-ace1-42de-80a5-67baacc8ecc0",
+        "",
+        600000,
+        null,
+        0,
+        null,
+        "ACTIVE",
+        2,
+        "Ana",
+        "",
+        "",
+        "0",
+        600000
+      ],
+      [
+        "492207dc-709a-4dff-95f4-d2006fe9f735",
+        "f458d2db-ace1-42de-80a5-67baacc8ecc0",
+        "9885",
+        550000,
+        400000,
+        0,
+        null,
+        "ACTIVE",
+        1,
+        "Ana",
+        "5201642",
+        "0992289066",
+        "0",
+        150000
+      ],
+      [
+        "51ee2ee0-800e-47e7-ae84-9c785614092e",
+        "01a557f9-765a-4752-b8a3-a6f755f2e34c",
+        "8955",
+        450000,
+        400000,
+        50000,
+        null,
+        "ACTIVE",
+        0,
+        "Ana",
+        "5201642",
+        "0992289066",
+        "0",
+        0
+      ],
+      [
+        "541224ce-0d7f-43ae-b0d6-f5e801dabe78",
+        "f458d2db-ace1-42de-80a5-67baacc8ecc0",
+        "8811",
+        830000,
+        200000,
+        0,
+        null,
+        "VOIDED",
+        1,
+        "Ana",
+        "6133468",
+        "0992289066",
+        "630.000",
+        0
+      ],
+      [
+        "705700f2-6f08-4e79-bf11-93a8a65440b8",
+        "f458d2db-ace1-42de-80a5-67baacc8ecc0",
+        "",
+        500000,
+        250000,
+        0,
+        null,
+        "ACTIVE",
+        1,
+        "Ana",
+        "",
+        "",
+        "250.000",
+        0
+      ],
+      [
+        "a3184fc5-2d50-4bf8-88f5-c1cb7a257943",
+        "f458d2db-ace1-42de-80a5-67baacc8ecc0",
+        "88555",
+        600000,
+        250000,
+        0,
+        null,
+        "ACTIVE",
+        3,
+        "Ana",
+        "123456",
+        "555666",
+        "0",
+        350000
+      ],
+      [
+        "a46b43fa-ea96-4c94-8fef-465bbc452270",
+        "01a557f9-765a-4752-b8a3-a6f755f2e34c",
+        "",
+        null,
+        null,
+        null,
+        250000,
+        "ACTIVE",
+        0,
+        "",
+        "",
+        "",
+        "",
+        0
+      ],
+      [
+        "a47c716f-83fe-4a88-88fb-c4c2efe00a70",
+        "01a557f9-765a-4752-b8a3-a6f755f2e34c",
+        "9689",
+        570000,
+        250000,
+        null,
+        null,
+        "ACTIVE",
+        0,
+        "",
+        "",
+        "",
+        "",
+        0
+      ],
+      [
+        "baf7f9c6-f79f-48d3-92fb-20c627edcf60",
+        "f458d2db-ace1-42de-80a5-67baacc8ecc0",
+        "555",
+        600000,
+        null,
+        0,
+        null,
+        "ACTIVE",
+        1,
+        "Belén",
+        "2123",
+        "55666",
+        "600.000",
+        0
+      ],
+      [
+        "f1e973ab-b18f-4a52-ab9f-a58c3e2d3499",
+        "01a557f9-765a-4752-b8a3-a6f755f2e34c",
+        "8155",
+        400000,
+        200000,
+        50000,
+        null,
+        "ACTIVE",
+        0,
+        "",
+        "",
+        "",
+        "150.000",
+        0
+      ]
+    ],
+    "revisiones": 22,
+    "max_revision_por_entrada": [
+      [
+        "3782b624-e89c-4e39-933c-9008d509d32d",
+        0
+      ],
+      [
+        "44cec71d-2e88-4582-ab2a-8cacfa92b4b0",
+        1
+      ],
+      [
+        "4835e7f1-b5f8-4a44-ac52-565139bb570d",
+        2
+      ],
+      [
+        "492207dc-709a-4dff-95f4-d2006fe9f735",
+        1
+      ],
+      [
+        "51ee2ee0-800e-47e7-ae84-9c785614092e",
+        0
+      ],
+      [
+        "541224ce-0d7f-43ae-b0d6-f5e801dabe78",
+        1
+      ],
+      [
+        "705700f2-6f08-4e79-bf11-93a8a65440b8",
+        1
+      ],
+      [
+        "a3184fc5-2d50-4bf8-88f5-c1cb7a257943",
+        3
+      ],
+      [
+        "a46b43fa-ea96-4c94-8fef-465bbc452270",
+        0
+      ],
+      [
+        "a47c716f-83fe-4a88-88fb-c4c2efe00a70",
+        0
+      ],
+      [
+        "baf7f9c6-f79f-48d3-92fb-20c627edcf60",
+        1
+      ],
+      [
+        "f1e973ab-b18f-4a52-ab9f-a58c3e2d3499",
+        0
+      ]
+    ],
+    "arqueos": 0,
+    "arqueos_snapshots": 0,
+    "correcciones_dia": 0,
+    "sucursales": [
+      [
+        "P2",
+        "PILAR"
+      ],
+      [
+        "PC",
+        "ASUNCION"
+      ],
+      [
+        "PILAR",
+        "PILAR"
+      ]
+    ]
+  },
+  "venta_lineas": {
+    "cantidad": 10,
+    "detalle": [
+      [
+        "011566d0-60eb-4593-b32c-d3e191b275cd",
+        "a3184fc5-2d50-4bf8-88f5-c1cb7a257943",
+        0,
+        "100125",
+        "armazon",
+        280000,
+        250000,
+        0,
+        null,
+        null,
+        "optilab"
+      ],
+      [
+        "282e23fe-161f-46cb-ba82-009b911339d8",
+        "a3184fc5-2d50-4bf8-88f5-c1cb7a257943",
+        1,
+        "",
+        "cadenilla",
+        70000,
+        0,
+        0,
+        null,
+        null,
+        ""
+      ],
+      [
+        "2b7eb3fa-37f2-4343-82f3-7871eaa8e523",
+        "baf7f9c6-f79f-48d3-92fb-20c627edcf60",
+        0,
+        "15156",
+        "asasd",
+        500000,
+        100000,
+        0,
+        null,
+        null,
+        "SI"
+      ],
+      [
+        "3721d59f-f821-4407-a035-4d7535a8c597",
+        "705700f2-6f08-4e79-bf11-93a8a65440b8",
+        0,
+        "2255",
+        "arm",
+        250000,
+        250000,
+        0,
+        null,
+        null,
+        "asd"
+      ],
+      [
+        "4b5935b8-4f6e-454b-8693-391ccb88c1c1",
+        "541224ce-0d7f-43ae-b0d6-f5e801dabe78",
+        1,
+        "222555",
+        "armazones",
+        300000,
+        0,
+        0,
+        null,
+        null,
+        "asasa"
+      ],
+      [
+        "4de155e0-e351-46b4-b5ce-e3a74d5c7254",
+        "541224ce-0d7f-43ae-b0d6-f5e801dabe78",
+        0,
+        "104256",
+        "Armazon/org uvx",
+        280000,
+        250000,
+        0,
+        null,
+        null,
+        "Optilab"
+      ],
+      [
+        "51b46840-8baf-4091-af46-7acee83051af",
+        "4835e7f1-b5f8-4a44-ac52-565139bb570d",
+        0,
+        "225544",
+        "armazon",
+        350000,
+        250000,
+        0,
+        null,
+        null,
+        ""
+      ],
+      [
+        "554484cd-f2ad-41fa-86a7-314e69149be1",
+        "492207dc-709a-4dff-95f4-d2006fe9f735",
+        0,
+        "",
+        "armazon crtal",
+        250000,
+        300000,
+        0,
+        null,
+        null,
+        ""
+      ],
+      [
+        "dc6318e5-916d-4693-880a-6621e338818a",
+        "51ee2ee0-800e-47e7-ae84-9c785614092e",
+        0,
+        "105222",
+        "armazon",
+        225000,
+        225000,
+        0,
+        null,
+        null,
+        "Optilab"
+      ],
+      [
+        "f6c7f953-ddd1-4672-8deb-fe2239e10840",
+        "44cec71d-2e88-4582-ab2a-8cacfa92b4b0",
+        0,
+        "",
+        "armazon",
+        250000,
+        250000,
+        0,
+        null,
+        null,
+        ""
+      ]
+    ]
+  },
+  "catalogo": {
+    "articulos": 3596,
+    "articulos_activos": 2829,
+    "por_naturaleza": [
+      [
+        "PRODUCTO_STOCKEABLE",
+        3552
+      ],
+      [
+        "SERVICIO_NO_STOCKEABLE",
+        14
+      ],
+      [
+        "TRABAJO_BAJO_PEDIDO",
+        30
+      ]
+    ],
+    "con_laboratorio_default": 24,
+    "categorias": 15,
+    "marcas": 136,
+    "proveedores": 0,
+    "laboratorios": [
+      [
+        "6e502415-e38e-4d52-be98-c3ba6c1269cd",
+        "Laboratorio Cristal",
+        1
+      ],
+      [
+        "77210c37-f63e-4038-8262-1b859db967ac",
+        "Laboratorio Optilab",
+        1
+      ],
+      [
+        "cd6161a0-2d36-4c37-86ae-8aa6c53c8f60",
+        "ServiOptica",
+        1
+      ]
+    ]
+  },
+  "stock": {
+    "movimientos": 4441,
+    "unidades_netas": 8426,
+    "por_destino": [
+      [
+        "ASUNCION",
+        3277,
+        6166
+      ],
+      [
+        "PILAR",
+        1164,
+        2260
+      ]
+    ],
+    "por_tipo": [
+      [
+        "AJUSTE_NEGATIVO",
+        804,
+        -1533
+      ],
+      [
+        "AJUSTE_POSITIVO",
+        8,
+        47
+      ],
+      [
+        "INGRESO_ADMINISTRATIVO",
+        3629,
+        9912
+      ]
+    ],
+    "integraciones_venta": 0,
+    "compensaciones_anulacion": 0,
+    "compras": 0,
+    "lineas_compra": 0
+  },
+  "pedidos": {
+    "cantidad": 8,
+    "detalle": [
+      [
+        "0d201fd1-ea7e-4ec7-adde-e3cd08e51b50",
+        "PC",
+        "Rodrigo Cañiza",
+        "9885",
+        "Ana",
+        "PENDIENTE",
+        "492207dc-709a-4dff-95f4-d2006fe9f735",
+        "2026-08-14"
+      ],
+      [
+        "11d8f094-845d-4f86-8b3b-f5a30952d243",
+        "PC",
+        "tobi",
+        "",
+        "Ana",
+        "PENDIENTE",
+        "4835e7f1-b5f8-4a44-ac52-565139bb570d",
+        "2026-08-14"
+      ],
+      [
+        "4c72bc80-e5bf-4fdf-b3ca-1914d0ceb785",
+        "PC",
+        "aadssdas",
+        "",
+        "Belén",
+        "PENDIENTE",
+        "44cec71d-2e88-4582-ab2a-8cacfa92b4b0",
+        "2026-08-14"
+      ],
+      [
+        "5fd2aea2-ebd8-4bf0-b79d-c09bff6080bb",
+        "PC",
+        "ASD",
+        "555",
+        "Belén",
+        "ENTREGADO",
+        "baf7f9c6-f79f-48d3-92fb-20c627edcf60",
+        "2026-08-14"
+      ],
+      [
+        "a5cc0bd8-6e04-4315-9397-cf3642140bdf",
+        "PC",
+        "Alucard",
+        "88555",
+        "Ana",
+        "PENDIENTE",
+        "a3184fc5-2d50-4bf8-88f5-c1cb7a257943",
+        "2026-08-15"
+      ],
+      [
+        "aae6910f-86a0-440c-bd29-5b2011da4d21",
+        "PC",
+        "Sol Blaires",
+        "8811",
+        "Ana",
+        "PENDIENTE",
+        "541224ce-0d7f-43ae-b0d6-f5e801dabe78",
+        "2026-08-14"
+      ],
+      [
+        "c87f2b97-2adf-4625-b29d-918e081c3796",
+        "PC",
+        "Rodrigo",
+        "8955",
+        "Ana",
+        "PENDIENTE",
+        "51ee2ee0-800e-47e7-ae84-9c785614092e",
+        "2026-08-15"
+      ],
+      [
+        "f34c5e40-e956-4e59-9531-a00ae8f6ed6b",
+        "PC",
+        "asd",
+        "",
+        "Ana",
+        "PENDIENTE",
+        "705700f2-6f08-4e79-bf11-93a8a65440b8",
+        "2026-08-14"
+      ]
+    ],
+    "revisiones_estado": 0
+  },
+  "seguimiento": {
+    "trabajos": 0,
+    "transiciones": 0,
+    "contactos": 0,
+    "envios_pilar": 0
+  },
+  "personas": {
+    "admin_users": 0,
+    "por_rol": [],
+    "responsables_autorizados": 0
+  },
+  "auditoria": {
+    "eventos": 1038,
+    "por_accion": [
+      [
+        "ALTA_ARTICULO",
+        42
+      ],
+      [
+        "ALTA_CATEGORIA",
+        15
+      ],
+      [
+        "ALTA_MARCA",
+        136
+      ],
+      [
+        "ARTICLE_METADATA_RESTORED",
+        5
+      ],
+      [
+        "DEFAULT_LABORATORY_ASSIGNED",
+        24
+      ],
+      [
+        "DELIVERY_SERVICE_CREATED",
+        1
+      ],
+      [
+        "EDITA_ARTICULO",
+        801
+      ],
+      [
+        "ESTIMATED_INITIAL_STOCK",
+        1
+      ],
+      [
+        "LABORATORY_CATALOG_CREATED",
+        3
+      ],
+      [
+        "NATURE_CORRECTION",
+        4
+      ],
+      [
+        "PROMO_OBSEQUIO_LEGACY_RETIRED",
+        1
+      ],
+      [
+        "STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION",
+        5
+      ]
+    ],
+    "ultimo": [
+      [
+        "COMMAND_CENTER/BC-OPTICA-LABORATORIO-POR-DEFECTO-V1-012",
+        "EDITA_ARTICULO",
+        "2026-08-19T20:31:36+00:00"
+      ]
+    ]
+  },
+  "sincronizacion": {
+    "domain_events": 0,
+    "event_effects": 0,
+    "mail_outbox": 0,
+    "mail_history": 0,
+    "import_runs": 5
+  },
+  "ajustes": [
+    [
+      "branch",
+      "{\"branch\":\"Optica Central\",\"cashbox\":\"PC\"}"
+    ],
+    [
+      "counting",
+      "{\"blind_close\":true,\"tolerance\":0,\"reason_mode\":\"ANY_DIFFERENCE\",\"admin_limit\":0}"
+    ],
+    [
+      "mail",
+      "{\"enabled\":false,\"recipient\":\"\",\"cc\":[],\"subject\":\"Cierre {fecha} - {sucursal}\",\"host\":\"\",\"port\":587,\"username\":\"\",\"secret_ref\":\"smtp\"}"
+    ],
+    [
+      "tracking",
+      "{\"default_expected_time\":\"15:00\",\"alternate_expected_time\":\"15:30\"}"
+    ]
+  ],
+  "linea_nueva": {
+    "factufacil_loads": 0,
+    "factufacil_history": 0,
+    "service_job_types": 8,
+    "service_jobs": 0,
+    "service_job_events": 0,
+    "service_commission_policy": null,
+    "service_job_commissions": 0,
+    "service_commission_policy_versions": 0
+  },
+  "tablas": [
+    "admin_audit_log",
+    "admin_users",
+    "administrative_entry_reasons",
+    "administrative_exit_reasons",
+    "agreement_balance_corrections",
+    "app_settings",
+    "article_categories",
+    "articles",
+    "authorized_responsibles",
+    "brands",
+    "cash_count_snapshots",
+    "cash_counts",
+    "cash_day_corrections",
+    "cash_days",
+    "cash_entries",
+    "cash_entry_revisions",
+    "cash_register_branches",
+    "domain_events",
+    "event_effects",
+    "factufacil_history",
+    "factufacil_loads",
+    "import_runs",
+    "laboratories",
+    "mail_history",
+    "mail_outbox",
+    "order_status_revisions",
+    "orders",
+    "pilar_shipments",
+    "purchase_line_distributions",
+    "purchase_lines",
+    "purchases",
+    "sale_items",
+    "sale_stock_integrations",
+    "sale_void_compensations",
+    "schema_migrations",
+    "service_commission_policy_versions",
+    "service_job_commissions",
+    "service_job_events",
+    "service_job_types",
+    "service_jobs",
+    "stock_movements",
+    "suppliers",
+    "tracked_work_contacts",
+    "tracked_work_transitions",
+    "tracked_works"
+  ]
+}

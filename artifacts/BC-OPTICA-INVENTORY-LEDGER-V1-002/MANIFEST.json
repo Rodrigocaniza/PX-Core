@@ -1,0 +1,175 @@
+{
+  "mission": "BC-OPTICA-INVENTORY-LEDGER-V1-002",
+  "slice": "2 de 6 - Ledger de inventario auditable + BC Event Spine V1",
+  "branch": "feature/bc-optica-inventory-ledger-v1-002",
+  "worktree": ".worktrees/inventory-ledger-002",
+  "base_commit": "ed0dbba",
+  "base_branch": "feature/bc-optica-commercial-core-foundation-v1-001",
+  "baseline": "origin/main = 7db56a0 = BC Caja 1.0.0-rc.31, instalada y validada en la Optica",
+  "por_que_no_sale_de_main": "El ledger referencia articles(id) y suppliers(id), que crea la migracion 022. Sobre main no compilaria",
+  "packaged": false,
+  "installed": false,
+  "promoted": false,
+  "version_unchanged": true,
+  "por_que_no_se_promueve": "Agrega la migracion 023 sobre la 022, que tampoco se empaqueto ni se instalo. main es lo que se empaqueta: promover ahora haria que la proxima RC arrastre dos cambios de esquema que nunca pasaron gate de instalacion. Mismo criterio que el slice 1",
+  "migrations": 23,
+  "migrations_added": [
+    "023_inventory_ledger.sql"
+  ],
+  "schema_changed": true,
+  "schema_change_shape": "ADITIVA ESTRICTA: solo CREATE TABLE/INDEX/VIEW/TRIGGER IF NOT EXISTS. NI UN SOLO ALTER TABLE, a diferencia de la 022. No modifica ninguna tabla existente, asi que ninguna fila productiva puede perderse. Hay prueba que lo verifica leyendo el .sql",
+  "economic_rules_changed": false,
+  "ui_changed": false,
+  "caja_tocada": false,
+  "por_que_caja_no_se_toca": "Un movimiento de stock no tiene impacto monetario. Una salida administrativa por rotura descuenta una unidad y no toca un guarani. El ledger no escribe en ninguna tabla de Caja y hay verificacion mecanica de eso",
+  "event_spine": {
+    "tablas": [
+      "domain_events",
+      "event_effects"
+    ],
+    "es_event_bus": false,
+    "por_que_no": "Montar un bus hoy seria infraestructura antes que necesidad. Lo que no se puede agregar despues sin migrar dos veces es la FORMA del hecho, y eso si esta",
+    "campos_del_hecho": [
+      "event_id",
+      "event_type",
+      "source",
+      "entity_type",
+      "entity_id",
+      "destination",
+      "actor",
+      "occurred_at",
+      "recorded_at",
+      "payload",
+      "processing_state",
+      "processed_at",
+      "failure_reason",
+      "idempotency_key"
+    ],
+    "estados": [
+      "PENDIENTE",
+      "PROCESADO",
+      "FALLIDO",
+      "NO_APLICA"
+    ],
+    "primer_consumidor": "stock_movements",
+    "rutas_contempladas_no_implementadas": [
+      "PURCHASE_CONFIRMED -> proveedor/Gestion -> INGRESO_COMPRA por destino (slice 3)",
+      "SALE_COMPLETED -> Movimiento de Caja -> VENTA -> Pedido/Trabajo -> FactuFacil pendiente -> revision -> estadisticas (slices 4 y 6)"
+    ]
+  },
+  "ledger": {
+    "tabla": "stock_movements",
+    "append_only": true,
+    "stock_es": "SUM(quantity), expuesto como la vista stock_actual",
+    "hay_contador_editable": false,
+    "signo": "quantity va con signo y el signo lo decide kind; un CHECK ata las dos cosas. No hay columna de signo que pueda contradecir al tipo",
+    "entradas": [
+      "INGRESO_COMPRA",
+      "INGRESO_PRODUCCION",
+      "INGRESO_ADMINISTRATIVO",
+      "AJUSTE_POSITIVO",
+      "TRANSFERENCIA_ENTRADA"
+    ],
+    "salidas": [
+      "VENTA",
+      "SALIDA_ADMINISTRATIVA",
+      "DEVOLUCION_PROVEEDOR",
+      "AJUSTE_NEGATIVO",
+      "TRANSFERENCIA_SALIDA"
+    ],
+    "declarados_no_usados": [
+      "TRANSFERENCIA_ENTRADA",
+      "TRANSFERENCIA_SALIDA"
+    ],
+    "vocabulario_corregido": "El slice 1 dejo un unico TRANSFERENCIA, que no puede decir de que lado del traslado esta el destino y el signo se deriva de eso. Se abre en dos. Nada lo consumia todavia",
+    "referencia_durable_para_compras": [
+      "supplier_id",
+      "document_kind",
+      "document_id",
+      "document_line_id",
+      "document_number",
+      "destination"
+    ],
+    "correccion": "movimiento compensatorio con compensates_id; indice unico parcial impide compensar dos veces",
+    "delete_economico": false
+  },
+  "politica_stock_negativo": {
+    "regla": "bloqueado para ventas y salidas normales",
+    "donde_se_aplica": "trigger stock_movements_sin_negativo en la base, no solo en Python: vale para cualquier escritor",
+    "excepcion": "negative_override, solo en SALIDA_ADMINISTRATIVA y AJUSTE_NEGATIVO, exigiendo motivo y observacion por CHECK",
+    "venta_puede_forzar": false,
+    "silencioso": false
+  },
+  "tablas_nuevas": [
+    "domain_events",
+    "event_effects",
+    "administrative_entry_reasons",
+    "stock_movements"
+  ],
+  "vistas_nuevas": [
+    "stock_actual"
+  ],
+  "triggers_nuevos": [
+    "stock_movements_sin_update",
+    "stock_movements_sin_delete",
+    "stock_movements_solo_articulos_stockeables",
+    "stock_movements_sin_negativo",
+    "stock_movements_motivo_valido",
+    "stock_movements_observacion_requerida",
+    "domain_events_inmutable",
+    "domain_events_sin_delete",
+    "event_effects_sin_update",
+    "event_effects_sin_delete"
+  ],
+  "motivos_de_ingreso_sembrados": [
+    "STOCK_ENCONTRADO",
+    "CORRECCION_INVENTARIO",
+    "FUERA_DE_CIRCUITO",
+    "OTRO"
+  ],
+  "compatibilidad_historica": {
+    "backfill": "planificar_backfill_historico() calcula y NO escribe, igual que el importador del slice 1",
+    "fail_closed": true,
+    "movimientos_historicos_inventados": 0,
+    "lineas_con_article_id_null": "siguen funcionando; 10 en produccion, ninguna atribuida"
+  },
+  "tests": {
+    "dirigidas_primero": true,
+    "nuevas": 49,
+    "total": 763,
+    "baseline_slice_1": 714,
+    "subtests": 4,
+    "exit": 0
+  },
+  "contrato_ajeno_actualizado": {
+    "test_la_cadena_de_migraciones_llega_a_022": "contaba las migraciones a mano, que es lo que el slice 1 le corrigio a otros seis contratos y reintrodujo en su propia prueba. Ahora deriva la lista de tests/migration_chain.py y sigue exigiendo que la 022 este"
+  },
+  "produccion": {
+    "base_tocada": false,
+    "sha256_antes": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "sha256_despues": "1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec",
+    "migraciones_en_produccion": 21,
+    "migracion_022_instalada": false,
+    "migracion_023_instalada": false,
+    "verificacion": "la 022 y la 023 se aplicaron sobre una COPIA de la base real de la Optica, abierta en modo lectura y copiada con la API de backup"
+  },
+  "gates": {
+    "librarian": "PASS",
+    "qa": "PASS",
+    "auditor": "PASS",
+    "artifact_consistency": "PASS"
+  },
+  "sha256_fuentes": {
+    "modulos/caja_diaria/infrastructure/migrations/023_inventory_ledger.sql": "49ed57b1f4bfb31e1ff46bec0ee88a246f1f47ad430711d1724bbc2ca735f562",
+    "modulos/comercial/domain/models.py": "2a7ba97b06f78aaad02b8785ebf0c5bad2cca2b5640f22fa5b3cebcf4c0e9b7b",
+    "modulos/comercial/domain/eventos.py": "2f068bfbd4a30e68fd37c0796d837bfc3d0fdec42d5c3bc99e2f59e76257385f",
+    "modulos/comercial/application/ports.py": "a277a2bdb1645b7ee0555047bf4635cac5bc9ed6dcc1316f7f6139a8d689ee89",
+    "modulos/comercial/application/stock_ledger.py": "961bb2c1e93857d14fab37320f464a1f22d0e1c9d52d3e7697bb283fd3a3ab41",
+    "modulos/comercial/application/backfill.py": "6ddb5966f417fbe71374f89689816c0a59051091f621bc36dca6f2dfd8f42f87",
+    "modulos/comercial/infrastructure/sqlite_catalog_repository.py": "9ec97cc5ecb951e954fd768688a8a9e349ed8c5e65edac3319497d491667e2ea",
+    "modulos/comercial/infrastructure/sqlite_stock_ledger.py": "596ad16f285ed8d4ff4f818c60690113115bbfdf9af678c29c127ea976d90487",
+    "tests/comercial/test_inventory_ledger.py": "c1129830c1aef827fd6caca761cbd3e016b3adfa8bd6aed71c0e8b7576c274ca",
+    "tests/comercial/test_commercial_core_foundation.py": "bcd85541b739050ebd47cb0249f59dd5dc7fee0d74bc3502dd857876d5d3e4eb"
+  },
+  "convencion_de_hash": "sha256 con saltos normalizados a LF, igual que el slice 1"
+}

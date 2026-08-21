@@ -1,0 +1,82 @@
+CIERRE EN CASA - BC-OPTICA-TRABAJOS-OPERATIVOS-V1-020
+======================================================
+
+QUE QUEDA HECHO
+---------------
+
+BC Caja tiene una pestana nueva, "Composturas", donde se anotan y se siguen los
+trabajos que entran por el mostrador: una compostura, un hilo, un tornillo, una
+plaqueta, un ajuste.
+
+Cada trabajo tiene numero, cliente, telefono, que hay que hacerle, quien lo
+recibio, quien lo hace, en que anda y toda su historia. Se envia al taller, se
+marca listo, se entrega. Si algo sale mal se anula con motivo, y si vuelve el
+cliente porque el trabajo vino mal se reabre, tambien con motivo. Nada se borra.
+
+La pestana abre mostrando los que estan LISTOS PARA ENTREGAR, que es lo que se
+pregunta veinte veces por dia.
+
+
+LO QUE NO SE TOCO, Y ES LO IMPORTANTE
+-------------------------------------
+
+Un hilo, un tornillo y una plaqueta NO son inventario. Nunca lo fueron desde la
+V1-010, que ya los habia corregido. Esta mision no volvio a corregirlos: los
+probo. Crear, mandar al taller, terminar, entregar o anular un trabajo no mueve
+una sola unidad de stock, y hay pruebas que lo verifican paso por paso.
+
+Tampoco se toco ninguna venta, ningun pago, ninguna caja, ningun arqueo, ningun
+pedido, ningun trabajo de Seguimiento ni la comision del 1% de las vendedoras.
+Se comprobo con una foto de nueve tablas antes y despues del ciclo completo:
+identicas.
+
+
+LA COMISION DE COMPOSTURAS
+--------------------------
+
+Se paga por hacer el trabajo, asi que se genera cuando el trabajo queda LISTO,
+no cuando el cliente pasa a retirarlo. Si se anula el trabajo, la comision se
+compensa y el saldo vuelve a cero. Si el trabajo hay que rehacerlo, se genera de
+nuevo, porque se hizo de nuevo.
+
+NO hay ningun nombre ni ningun monto escrito en el sistema. Quien cobra cuanto
+se carga alla, contra las personas reales, una sola vez. Mientras no se cargue,
+la pestana funciona entera y no genera comision de nadie - que es exactamente lo
+que corresponde a quien dirige la optica, que no comisiona.
+
+Esta comision es distinta de la del 1% de las vendedoras y no se mezcla con ella
+en ningun lado.
+
+
+QUE HAY QUE HACER EN LA OPTICA
+------------------------------
+
+1. Backup de la base, como siempre.
+2. Aplicar 029, despues 030, despues 031. En ese orden.
+3. Cargar a las personas reales con su rol y su sucursal.
+4. Definir cuanto cobra cada una por compostura.
+
+Recien despues del paso 3 hay a quien asignarle un trabajo, y recien despues del
+4 se genera comision.
+
+
+LO QUE NO SE HIZO DESDE CASA
+----------------------------
+
+No se aplico ninguna migracion en la Optica.
+No se cargo ninguna persona real.
+No se toco la base productiva.
+No se toco main ni se mergeo nada.
+No se corrio nada sobre operacion real.
+
+
+DONDE MIRAR SI ALGO NO CIERRA
+-----------------------------
+
+SUMMARY.md              que se decidio y por que
+FINDINGS.json           los tres defectos que encontro la revision, y tres cosas
+                        que quedaron abiertas a proposito
+ARTIFACT_CONSISTENCY.md cada numero contra su fuente, y lo que no se pudo
+                        contrastar desde Casa
+PRUEBAS_DIRIGIDAS.txt   las 88, y cual mirar primero
+GATES.json              que mecanismo de revision fue real y cual no existe

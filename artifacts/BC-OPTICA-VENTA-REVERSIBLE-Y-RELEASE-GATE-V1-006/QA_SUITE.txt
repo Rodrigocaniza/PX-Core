@@ -1,0 +1,14 @@
+== pruebas dirigidas, escritas antes de la implementacion ==
+...............................                                          [100%]
+31 passed in 3.92s
+
+== suite completa, una sola vez al cierre ==
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/gestion_central/test_ui_interactions.py::test_refresh_and_filters_have_visible_feedback
+FAILED tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence
+2 failed, 934 passed, 5 warnings in 60.95s (0:01:00)
+<sys>:0: DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+== flake heredado, verificado sobre el commit base a8443a3 ==
+base: 903 passed, 2 failed -- las MISMAS dos. BC-GESTION-CENTRAL-UI-TIMING-FLAKE-001.

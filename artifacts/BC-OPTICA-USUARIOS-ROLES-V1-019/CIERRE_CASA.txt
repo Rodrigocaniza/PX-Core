@@ -1,0 +1,42 @@
+==============================================================================
+SAFE CLOSURE -- V1-019
+==============================================================================
+
+  branch  : feature/bc-optica-usuarios-roles-v1-019
+  parte de: origin/feature/bc-optica-seguimiento-cierre-pilar-v1-018 @ 0fc0667
+  worktree: .worktrees/optica-usuarios-019
+
+QUE PASO
+  admin_users ya era la tabla de usuarios y roles, con credenciales serias y
+  una columna `role` que nadie leia. No se creo una tercera lista: se le
+  termino de dar lo que le faltaba y se hizo que el rol signifique algo.
+
+  Y aparecio lo mas grave del hallazgo: la vendedora de cada venta real salia
+  de cuatro nombres cableados en la pantalla.
+
+GATES
+  pruebas dirigidas .......... PASS  38 verdes
+  suite de Caja .............. PASS  784 verdes
+  suite del repo ............. PASS  1154 verdes, 0 rojas, dos corridas
+  dry-run de migracion ....... PASS  pre-guards ok
+  upgrade simulado ........... PASS  29->30, 4 columnas, 0 datos tocados
+  idempotencia ............... PASS
+  Librarian .................. PASS
+  QA ......................... PASS  los 19 casos pedidos, y mas
+  Auditor .................... PASS  incluida la correccion de lo informado antes
+  Artifact Consistency ....... PASS
+  main ....................... intacto en 7db56a0
+  force-push ................. no se uso
+  produccion ................. no se toco nada
+
+CORRECCION IMPORTANTE
+  Los dos rojos de gestion_central que informe en V1-015 a V1-018 hoy pasan.
+  Comprobado en el mismo commit de V1-018: 1114/2 esta tarde, 1116/0 ahora, sin
+  cambio de codigo. No eran un rojo estable sino pruebas no deterministas.
+
+ESTADO
+  READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA por la migracion 030.
+  Lease liberada.
+
+NEXT_ACTION
+  APLICACION_EN_LA_OPTICA.md. La 030 exige la 029 aplicada primero.

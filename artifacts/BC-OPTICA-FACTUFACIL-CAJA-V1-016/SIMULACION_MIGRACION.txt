@@ -1,0 +1,55 @@
+MIGRACION 029 -- FactuFacil dentro de BC Caja
+base   : C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1016\copia_upgrade.sqlite3
+sha256 : eca121dc8f7da773e2c052df3dce32771e060397598f39ab761740514429b932
+
+== estado antes ==
+  migraciones        28
+  dias               2
+  entradas           6
+  entradas_activas   5
+  suma_caja          2700000
+  sale_items         0
+  articulos          0
+  movimientos        0
+  asuncion           0
+  pilar              0
+  integridad         ok
+  fk                 0
+  negativos          0
+
+== pre-guards ==
+  OK   integrity_check ok antes de tocar nada
+  OK   sin FK rotas antes
+  OK   las tablas de FactuFacil todavia no existen ([])
+  OK   la 028 esta aplicada: esta base viene de la linea correcta
+
+== backup verificable ==
+  archivo: C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1016\Backups\bc-caja-prefactufacil-20260819-195300.sqlite3
+  sha256 : 02225b7f4532897e8237a635d9bfb482a6321fb7f7ebed027654473c6ac891ec
+  OK   el backup tiene el mismo contenido que la base
+
+== migracion ==
+  aplicada la 029
+
+== post-checks ==
+  OK   schema_migrations registra la 029
+  OK   migraciones: 28 -> 29
+  OK   existe factufacil_loads
+  OK   existe factufacil_history
+  OK   no aparecio ninguna otra tabla ({'factufacil_history', 'factufacil_loads'})
+  OK   dias: 2 sin cambio
+  OK   entradas: 6 sin cambio
+  OK   entradas_activas: 5 sin cambio
+  OK   suma_caja: 2700000 sin cambio
+  OK   sale_items: 0 sin cambio
+  OK   articulos: 0 sin cambio
+  OK   movimientos: 0 sin cambio
+  OK   asuncion: 0 sin cambio
+  OK   pilar: 0 sin cambio
+  OK   integrity_check ok
+  OK   FK 0
+  OK   negativos 0
+  OK   las tablas nuevas nacen vacias: no se invento ninguna marca
+  OK   idempotencia: volver a migrar no cambia nada
+
+rollback si hiciera falta: copiar bc-caja-prefactufacil-20260819-195300.sqlite3 sobre copia_upgrade.sqlite3

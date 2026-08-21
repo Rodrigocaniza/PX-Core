@@ -1,0 +1,23 @@
+{
+  "mision": "BC-OPTICA-SEGUIMIENTO-CIERRE-PILAR-V1-018",
+  "no_absorbidos": [
+    "ATRASADO",
+    "telefono",
+    "llamar/mensaje",
+    "selector calendario",
+    "flicker"
+  ],
+  "nuevos": [
+    {
+      "id": "FLAKE-TK-EN-GESTION-CENTRAL",
+      "estado": "ABIERTO, no bloqueante",
+      "detalle": "en una de siete corridas completas aparecio un tercer rojo transitorio, no reproducible en las tres siguientes ni en cuatro corridas dirigidas del conjunto que construye Tk. tests/gestion_central/test_review_ui_interactions.py y test_ui_interactions.py crean un root de Tk por prueba, el mismo patron que agotaba los interpretes Tcl y que V1-016 corrigio del lado de Caja compartiendo un root por modulo",
+      "recomendacion": "aplicar el mismo arreglo del lado de Gestion Central, en su propia mision"
+    },
+    {
+      "id": "CIERRE-NORMAL-SIN-ATAJO-EN-LA-BARRA",
+      "estado": "ABIERTO, no bloqueante",
+      "detalle": "archivar vive en el menu Mas y no en la barra principal. Es deliberado -archivar es housekeeping, no la operacion del dia- pero si la Optica termina archivando mucho, conviene revisarlo con uso real delante"
+    }
+  ]
+}

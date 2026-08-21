@@ -1,0 +1,102 @@
+DRY RUN -- CARGA INICIAL DEL CATALOGO SOBRE COPIA DE LA BASE PRODUCTIVA
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 antes    : aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de
+copia aislada   : C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\55fef905-3b6d-44f0-bf35-8b120350484f\scratchpad\m008\v3\dry_run.sqlite3
+antes           : 0 articulos, 0 movimientos, 12 entradas de Caja, suma 6400000
+
+== paso 1 -- planificar el catalogo (no escribe) ==
+  archivo : catalogo_canonico.csv
+  sha256  : 9957c7384e6899ee705b23b27d8fabaab9d7c5af10afe2c4fde337cc9326f7b3
+  plan    : 3554 altas, 0 actualizaciones, 0 rechazadas
+  OK   el plan no tiene rechazos: es aplicable entero
+
+== paso 1b -- aplicar el catalogo (crea articulos, NI UNA unidad) ==
+  corrida : e2a63dba-2c8b-4a60-b968-0950de532c0b (APLICADA)
+  OK   3554 articulos creados
+  OK   catalogo no es stock: cero movimientos tras crear el catalogo
+  categorias: 14, marcas: 136
+
+== paso 2 -- inventario inicial como hecho auditado ==
+  OK   todos los articulos se resuelven por SKU
+  OK   ASUNCION: todas las lineas del recuento resuelven a un articulo
+  ASUNCION : 2575 lineas cargadas
+  OK   PILAR: todas las lineas del recuento resuelven a un articulo
+  PILAR    : 1008 lineas cargadas
+
+== stock resultante por sucursal ==
+  OK   ASUNCION: 5849 unidades (esperado 5849)
+  OK   PILAR: 2899 unidades (esperado 2899)
+  OK   3583 movimientos, uno por linea de recuento
+
+== el hecho quedo con origen, causa, actor y fecha ==
+  OK   todo entro como INGRESO_ADMINISTRATIVO, ninguna compra falseada
+  OK   el unico motivo es INVENTARIO_INICIAL
+  OK   ningun movimiento sin explicacion escrita
+  OK   ningun movimiento sin actor
+  fecha de corte grabada: {'2026-08-03': 2575, '2026-08-10': 1008}
+  OK   cada sucursal quedo con la fecha de su recuento, no con la de hoy
+
+== idempotencia: repetir exactamente lo mismo ==
+  OK   reaplicar el mismo archivo se rechaza: este archivo ya se cargó (catalogo_canonico.csv). Volver a a
+  OK   ASUNCION: repetir devuelve la misma corrida, no una nueva
+  OK   PILAR: repetir devuelve la misma corrida, no una nueva
+  OK   repetir no duplico movimientos: siguen 3583
+  OK   repetir no duplico articulos
+
+== invariantes e integridad ==
+  OK   integrity_check ok (ok)
+  OK   foreign_key_check sin violaciones (0)
+  OK   stock negativo: 0
+  OK   movimientos sin articulo: 0
+  OK   efectos sin hecho: 0
+
+== los datos de Caja no se tocaron ==
+  OK   entradas de Caja: 12
+  OK   dinero registrado: 6400000
+  OK   lineas de venta: 10
+
+== cantidad pendiente de verificacion fisica ==
+  OK   5 articulos anotados como STOCK_INITIAL_PENDING_PHYSICAL_VERIFICATION
+  OK   000010 LIMPIA CRISTAL en ASUNCION: sin movimiento por sus 2860 declarados
+  OK   000010 en ASUNCION: no figura en stock_actual -- el sistema no afirma cero, no afirma nada
+  OK   000010: el articulo si existe en el catalogo
+  OK   000010: la nota del articulo conserva el estado y la cifra fuente
+  OK   2000056 Par de patillas en PILAR: sin movimiento por sus 526 declarados
+  OK   2000056 en PILAR: no figura en stock_actual -- el sistema no afirma cero, no afirma nada
+  OK   2000056: el articulo si existe en el catalogo
+  OK   2000056: la nota del articulo conserva el estado y la cifra fuente
+  OK   2000070 Hilo en PILAR: sin movimiento por sus 99981 declarados
+  OK   2000070 en PILAR: no figura en stock_actual -- el sistema no afirma cero, no afirma nada
+  OK   2000070: el articulo si existe en el catalogo
+  OK   2000070: la nota del articulo conserva el estado y la cifra fuente
+  OK   2000071 Tornillo en PILAR: sin movimiento por sus 99425 declarados
+  OK   2000071 en PILAR: no figura en stock_actual -- el sistema no afirma cero, no afirma nada
+  OK   2000071: el articulo si existe en el catalogo
+  OK   2000071: la nota del articulo conserva el estado y la cifra fuente
+  OK   2000072 Plaqueta en PILAR: sin movimiento por sus 9393 declarados
+  OK   2000072 en PILAR: no figura en stock_actual -- el sistema no afirma cero, no afirma nada
+  OK   2000072: el articulo si existe en el catalogo
+  OK   2000072: la nota del articulo conserva el estado y la cifra fuente
+  ---  5 articulos, 212185 unidades declaradas por la fuente que NO se convirtieron en ledger
+
+== que entro y que no, por clase ==
+  articulos creados                          : 3554
+  con inventario inicial confirmado          : 3511
+  stockeables con cantidad PENDIENTE         : 5
+  servicios (no llevan stock por naturaleza) : 9
+  trabajos bajo pedido (idem)                : 30
+  productos stockeables                      : 3515
+  de esos pendientes, 1 tienen stock confirmado en la otra sucursal (codigo global)
+  OK   cuadra: 3511 con stock + 4 pendientes sin stock en ningun deposito + 39 que no llevan stock = 3554
+  ASUNCION  CONFIRMED_INITIAL_STOCK: 2575 lineas, 5849 unidades
+  PILAR     CONFIRMED_INITIAL_STOCK: 1008 lineas, 2899 unidades
+  ASUNCION  PENDING: 000010 LIMPIA CRISTAL               la fuente declara 2860
+  PILAR     PENDING: 2000056 Par de patillas              la fuente declara 526
+  PILAR     PENDING: 2000070 Hilo                         la fuente declara 99981
+  PILAR     PENDING: 2000071 Tornillo                     la fuente declara 99425
+  PILAR     PENDING: 2000072 Plaqueta                     la fuente declara 9393
+
+sha256 base productiva despues: aa13f36e0105bef7ca9ced5e258132cf5a247232d192f652f62268b45b8e60de
+  OK   la base productiva quedo intacta: nunca se abrio para escribir
+
+VEREDICTO: PASS (0 fallas)

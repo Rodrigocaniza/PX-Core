@@ -28,3 +28,7 @@ releases/BC-CAJA-1.0.0-rc.25-win64.zip
 releases/BC-CAJA-1.0.0-rc.27-win64.zip
 releases/BC-CAJA-1.0.0-rc.30-win64.zip
 releases/BC-CAJA-1.0.0-rc.31-win64.zip
+
+# Paquete rc.32 (BC-OPTICA-VENTA-REVERSIBLE-Y-RELEASE-GATE-V1-006): binario local,
+# solo su hash viaja en el MANIFEST.
+releases/BC-CAJA-1.0.0-rc.32-win64.zip

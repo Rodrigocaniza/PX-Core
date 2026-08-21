@@ -1,0 +1,52 @@
+base productiva : C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+sha256 antes    : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+copia           : C:\Users\Striker\AppData\Local\Temp\claude\c--Users-Striker-Desktop-Proyecto-X-PX-Core\3baea3ea-a357-4bf0-86f8-1dd9bfcaca1f\scratchpad\prod-copy-025.sqlite3
+tablas antes    : 25
+migraciones antes: 21 -> 021
+
+== tablas nuevas de este slice ==
+  + sale_stock_integrations  (0 filas)
+  (la cadena completa agrega 13 tablas: 022, 023, 024 y 025)
+
+== tablas perdidas ==
+  ninguna
+
+== filas cambiadas en tablas preexistentes ==
+  ninguna
+
+== columnas de sale_items ==
+  id, cash_entry_id, position, description, code, item_type, frame_price, lens_price, laboratory, prescription_doctor, frame_discount_percent, lens_discount_percent, frame_final_price, lens_final_price, no_cost, article_id, lens_article_id
+
+== invariantes verificados sobre la copia, con filas reales ==
+  registro de integracion creado: aceptado
+  borrar la linea de una venta integrada: rechazado (esta venta ya movio stock: su linea no se borra, se compensa)
+  reescribir la linea de una venta integrada: rechazado (esta venta ya movio stock: su linea no se reescribe)
+  agregar una linea a una venta integrada: rechazado (no se agregan lineas a una venta que ya movio stock)
+  anular una venta que ya movio stock: rechazado (esta venta ya movio stock: anularla dejaria la mercaderia afuera sin explicacion)
+  borrar el registro de integracion: rechazado (borrar la integracion dejaria el stock afuera sin nada que lo explique)
+  reescribir el registro de integracion: rechazado (una venta se integra una sola vez: el registro no se reescribe)
+  editar una venta que no movio stock: aceptado
+  borrar la linea de una venta que no movio stock: aceptado
+
+== integridad ==
+  integrity_check      : ok
+  foreign_key_check    : 0 violaciones
+  migraciones          : 25 -> 025
+  cash_entries         : 12 -> 12
+  sale_items           : 10 -> 10
+  lineas sin articulo inventado: 10/10
+  SUM(cash_entries.total): 6400000 -> 6400000
+  ventas integradas    : 0
+  vista stock_origen_venta: 0 filas
+  triggers del enlace  : 6
+    - cash_entries_integrada_sin_anular
+    - sale_items_de_venta_integrada_sin_delete
+    - sale_items_de_venta_integrada_sin_insert
+    - sale_items_de_venta_integrada_sin_update
+    - sale_stock_integrations_sin_delete
+    - sale_stock_integrations_sin_update
+
+sha256 despues  : 1c4fcc406904fe3eebc62e209a56c4e273192a27912331a43dbd0e4d9fde98ec
+base real intacta: True
+
+RESULTADO: PASS

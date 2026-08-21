@@ -1,0 +1,45 @@
+==============================================================================
+SAFE CLOSURE -- V1-019B
+==============================================================================
+
+  branch  : feature/bc-optica-login-operadora-v1-019b
+  parte de: origin/feature/bc-optica-usuarios-roles-v1-019 @ 4717acf
+  worktree: .worktrees/optica-login-019b
+
+QUE QUEDO
+  Alguien entra a BC Caja y lo que hace queda a su nombre. Dos sesiones: la
+  administrativa de 20 minutos, intacta, y la de caja, que dura la jornada y
+  vence a la medianoche. La de caja no autoriza nada sensible, ni la de una
+  administradora: para eso hay que identificarse de nuevo, y esa es la
+  reautenticacion sin construir nada nuevo.
+
+CADENA DE GATES
+  VERIFICATION_PASSED ........ PASS
+  PACKAGING_PASSED ........... PASS  sin migracion; es codigo
+  ARTIFACT_CONSISTENCY ....... PASS
+  LIBRARIAN .................. PASS
+  QA ......................... PASS  46 dirigidas
+  AUDITOR .................... PASS  encontro un defecto real y se corrigio
+                               antes del commit: cancelar el login dejaba la
+                               caja usable con "Sin sesion"
+  READY_FOR_COMMIT ........... PASS
+
+  Nota honesta: no hay runner externo de ChainState en este repo. La cadena se
+  ejecuto como revision disciplinada en esta sesion.
+
+PRUEBAS
+  dirigidas .................. 46 verdes
+  suite de Caja .............. 828 verdes
+  suite del repo ............. 1200 verdes, 0 rojas, dos corridas
+
+ALCANCE
+  Dos archivos y un test. Sin migracion. Sin tocar reglas economicas: una
+  prueba compara quince tablas antes y despues de un ciclo completo de sesiones.
+
+ESTADO
+  COMPLETADA_EN_CASA. Entra con el proximo empaquetado.
+  Lease liberada.
+
+NEXT_ACTION
+  En la Optica: aplicar 029 y 030 en ese orden, cargar a las personas reales
+  con su rol, y darle contrasena a quien tenga que entrar.

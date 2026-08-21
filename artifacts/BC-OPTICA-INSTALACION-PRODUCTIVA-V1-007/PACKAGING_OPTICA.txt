@@ -1,0 +1,49 @@
+PACKAGING rc.32 EN LA OPTICA -- BC-OPTICA-INSTALACION-PRODUCTIVA-V1-007
+
+== por que se reconstruyo el paquete en vez de reutilizarlo ==
+El slice 6 empaqueto rc.32 en PC Casa y dejo el zip declarado como LOCAL, no en
+el remoto (MANIFEST del slice 6: "zip_en_el_remoto": false, "zip_gitignored": true).
+Se verifico en esta PC: releases/ tiene rc.1 a rc.26 pero no rc.32. El artefacto
+binario de Casa no existe aca y no hay de donde traerlo automaticamente.
+
+Lo que si es reutilizable y se reutilizo es lo que define el paquete: el commit.
+Se construyo desde el mismo fuente canonico, verificado por SHA, con el mismo
+script de build del repositorio.
+
+== origen del build ==
+commit             : 5bc1540faa54ed56f04f77fc109af401426fe9f5
+rama               : origin/feature/bc-optica-venta-reversible-y-release-gate-v1-006
+worktree           : .worktrees/optica-instalacion-007
+rama de la mision  : feature/bc-optica-instalacion-productiva-v1-007
+script             : pilot/build_pilot.ps1 (sin modificar)
+version declarada  : pilot/package_docs/VERSION.txt -> BC Caja 1.0.0-rc.32
+
+== resultado ==
+BC_CAJA_BUILD_OK version=1.0.0-rc.32
+zip                : releases/BC-CAJA-1.0.0-rc.32-win64.zip
+zip_bytes          : 25209606
+zip_sha256_Optica  : fca5c0556f43f475d6c6fccd3f73e28a74449f1cf5eb3fdcf29400684714b735
+zip_sha256_Casa    : 119888956123fded9d5b4d35edaab437c7dc2068e974ce92f115d4f3a1a12336
+
+Los dos hashes son distintos y eso NO es una discrepancia a resolver: PyInstaller
+no produce binarios reproducibles byte a byte entre maquinas (timestamps, rutas
+de build, orden de recoleccion). La identidad del release es el commit, y el
+commit es el mismo. Lo que se verifico del binario no es su hash sino su
+comportamiento, en esta maquina y contra estos datos.
+
+== verificado sobre el paquete construido aca ==
+  OK   el ejecutable existe y lleva su VERSION.txt (BC Caja 1.0.0-rc.32)
+  OK   las 27 migraciones viajan dentro del paquete
+  OK   la 027 esta empaquetada
+  OK   arranca sobre una copia de la base real y no se cae
+  OK   aplica la cadena hasta la 027 por su cuenta
+  OK   integrity_check ok tras el arranque
+  OK   entradas, lineas y dinero sin cambios
+  OK   sin errores de SQLite en el log
+  OK   la base de origen quedo intacta durante el smoke
+evidencia          : tools/smoke_release_006.py, VEREDICTO PASS (0 fallas)
+
+== instalacion ==
+destino            : C:\Users\Striker\AppData\Local\Programs\BC-Caja-Pilot
+rollback           : BC-Caja-Pilot.rollback-rc31-20260819-1200 (rc.31 completa)
+acceso directo     : el .lnk del escritorio apunta a la misma ruta, no se toco

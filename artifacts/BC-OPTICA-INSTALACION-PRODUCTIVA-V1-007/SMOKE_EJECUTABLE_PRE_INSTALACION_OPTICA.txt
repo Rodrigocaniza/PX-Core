@@ -1,0 +1,24 @@
+paquete       : dist\BC-Caja
+base de origen: C:\Users\Striker\AppData\Local\BC\Caja\bc_caja.sqlite3
+  OK   el ejecutable existe
+  OK   el paquete lleva su VERSION.txt
+version       : BC Caja 1.0.0-rc.32
+  OK   las 27 migraciones viajan dentro del paquete (27 encontradas)
+  OK   la 027 esta empaquetada
+copia         : C:\Users\Striker\AppData\Local\Temp\bc-smoke-006\bc_caja.sqlite3
+antes         : 21 migraciones, 12 entradas, suma 6400000
+
+== arranque del ejecutable ==
+  OK   el ejecutable sigue vivo y no se cayo al arrancar
+  OK   el ejecutable aplico la cadena hasta la 027 por su cuenta
+
+== despues del arranque ==
+despues       : 27 migraciones, 12 entradas, suma 6400000
+  OK   integrity_check ok tras el arranque
+  OK   las entradas de Caja siguen ahi
+  OK   las lineas de venta siguen ahi
+  OK   el dinero registrado no cambio
+  OK   sin errores de SQLite en el log
+  OK   la base de origen quedo intacta
+
+VEREDICTO: PASS (0 fallas)

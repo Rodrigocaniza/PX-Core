@@ -1,0 +1,116 @@
+{
+  "mission": "BC-OPTICA-VENTA-REVERSIBLE-Y-RELEASE-GATE-V1-006",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "SAFE_CLOSURE",
+  "headless_executor": "NO DISPONIBLE en el BC-Core local; la mision corrio en sesion",
+  "lease": {
+    "held": false,
+    "released_at_close": true,
+    "otros_leases_vivos": 0
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "orquestacion, auto-resume y cierre",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS con flake heredado declarado",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "steps": [
+    {
+      "step": "auto-resume canonico",
+      "state": "DONE",
+      "detalle": "repo real, git-common-dir, origin, origin/main 7db56a0, 39 worktrees, ramas remotas de los 5 slices resueltas por fetch, ancestria lineal verificada, HEADs canonicos, upstreams, cero leases, cero sesiones activas"
+    },
+    {
+      "step": "dependencia canonica 022-026 cerrada",
+      "state": "DONE",
+      "detalle": "ed0dbba -> 54f5f06 -> ecc0c7b -> b580e50 -> a8443a3, cada uno ancestro del siguiente; ninguno en main"
+    },
+    {
+      "step": "worktree del slice 6 sobre el tip del slice 5",
+      "state": "DONE",
+      "detalle": ".worktrees/optica-venta-reversible-006 desde a8443a3"
+    },
+    {
+      "step": "objetivo A - pruebas dirigidas primero",
+      "state": "DONE",
+      "detalle": "tests/comercial/test_sale_void_compensation.py escrito antes de la implementacion"
+    },
+    {
+      "step": "objetivo A - migracion 027",
+      "state": "DONE"
+    },
+    {
+      "step": "objetivo A - circuito de negocio de la anulacion",
+      "state": "DONE",
+      "detalle": "VentasLedgerIntegrator.compensar_anulaciones_en, enganchado en el guardado de Caja antes del upsert de cash_entries"
+    },
+    {
+      "step": "objetivo A - invariantes mecanicas",
+      "state": "DONE",
+      "detalle": "31 casos dirigidos, todos verdes"
+    },
+    {
+      "step": "objetivo B - backup",
+      "state": "DONE",
+      "detalle": "por la API de backup de SQLite, no por copia de archivo"
+    },
+    {
+      "step": "objetivo B - upgrade 021 -> 027 sobre copia",
+      "state": "DONE",
+      "detalle": "PASS: integridad ok, 0 violaciones de FK, ninguna fila existente cambiada"
+    },
+    {
+      "step": "objetivo B - escenario completo sobre la copia migrada",
+      "state": "DONE",
+      "detalle": "14 comprobaciones, incluida la reversion compensatoria"
+    },
+    {
+      "step": "objetivo B - rollback",
+      "state": "DONE",
+      "detalle": "PASS: byte a byte y la cadena vuelve a 021"
+    },
+    {
+      "step": "objetivo B - packaging",
+      "state": "DONE",
+      "detalle": "BC-CAJA-1.0.0-rc.32-win64.zip, 34.846.201 bytes"
+    },
+    {
+      "step": "objetivo B - smoke del ejecutable",
+      "state": "DONE",
+      "detalle": "arranca, aplica la cadena hasta 027 por su cuenta, no pierde datos, sin errores en el log"
+    },
+    {
+      "step": "objetivo B - smoke de la UI Comercial",
+      "state": "DONE",
+      "detalle": "las tres pestanas y el buscador de articulos abren contra la base migrada"
+    },
+    {
+      "step": "suite completa, una sola vez",
+      "state": "DONE",
+      "detalle": "934 passed, 2 failed (flake heredado, identico en el commit base)"
+    },
+    {
+      "step": "gates",
+      "state": "DONE"
+    },
+    {
+      "step": "protected commit + protected push",
+      "state": "DONE",
+      "detalle": "rama propia, sin PR, sin merge a main, sin force-push"
+    },
+    {
+      "step": "instalacion productiva",
+      "state": "NO EJECUTADA",
+      "detalle": "requiere autorizacion separada, y antes correr el gate sobre la base real de la Optica"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "backfill_de_articulos_historicos": "NO. Las lineas viejas no identifican un articulo canonico",
+    "alteracion_de_stock_desde_texto_viejo": "NO",
+    "dataset_real_de_3000_articulos": "NO cargado. Se inspecciono el repositorio y no hay fuente canonica; sigue como deuda, no se pidio trabajo manual",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "instalacion": "NO"
+  }
+}

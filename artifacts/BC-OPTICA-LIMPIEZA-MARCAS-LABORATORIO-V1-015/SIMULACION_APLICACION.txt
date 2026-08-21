@@ -1,0 +1,154 @@
+LIMPIEZA DE MARCAS QUE EN REALIDAD SON LABORATORIOS
+base   : C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1015\copia_apply.sqlite3
+sha256 : e7e315692bdb3bf03ec7a4e147c98e21e4223695c2df365ddc307935b5136f60
+
+== los casos, uno por uno ==
+fuente de marcas corregidas: evidencia registrada en artifacts (V1-010 y V1-012): la fuente corregida vive en la PC de la Óptica
+
+SKU       | Nombre                     | Categoria   | Marca actual               | Marca propuesta       | Lab. default | Accion
+---------------------------------------------------------------------------------------------------------------------------------
+2000060   | Organico UVX               | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000061   | Fotocromático (AR)         | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000062   | Multifocal (OP)            | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000063   | Kripto (Kto) Organico UVX  | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000064   | Blue Ar                    | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000065   | Adaptacion de cristal      | Compostura  | Laboratorio Optilab        | Óptica Puppilent`s    | (ninguno)    | CORRECTED_SOURCE_HAS_REAL_BRAND
+2000067   | Bifocal (ST)               | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000070   | Hilo                       | Compostura  | Laboratorio Optilab        | Óptica Puppilent`s    | (ninguno)    | CORRECTED_SOURCE_HAS_REAL_BRAND
+2000073   | Multiblue                  | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000074   | Progresivo OP              | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000075   | Futurex Protec             | Cristales   | Laboratorio Servi Optical  | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000076   | Blue Protec                | Cristales   | Laboratorio Servi Optical  | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000086   | Foto Sunactive             | Cristales   | Laboratorio Servi Optical  | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000125   | FUTUREX STEEL              | Cristales   | Laboratorio Servi Optical  | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000126   | FUTUREX G2                 | Cristales   | Laboratorio Servi Optical  | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000127   | Green AR                   | Cristales   | Laboratorio Optilab        | (en blanco)           | (ninguno)    | LABORATORY_IN_BRAND_CONFIRMED
+2000206   | Kto.Invisible              | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000207   | Kto.AR                     | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000208   | Kto.Blue AR                | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000209   | Blue Fotocromatico AR      | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000210   | Multifocal Foto AR         | Cristales   | Laboratorio Optilab        | (en blanco)           | (ninguno)    | LABORATORY_IN_BRAND_CONFIRMED
+2000211   | Multifocal AR              | Cristales   | Laboratorio Optilab        | (en blanco)           | (ninguno)    | LABORATORY_IN_BRAND_CONFIRMED
+2000212   | ST Fotocromatico           | Armazones   | Laboratorio Optilab        | (sin cambio)          | (ninguno)    | AMBIGUOUS
+2000213   | Org AR                     | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000214   | Kto.Foto.AR                | Cristales   | Laboratorio Servi Optical  | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000215   | Kto.Foto                   | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000216   | Kto.Foto Blue AR           | Cristales   | Laboratorio Servi Optical  | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000217   | Policarbonato Blanco       | Cristales   | Laboratorio Servi Optical  | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000218   | Policarbonato AR           | Cristales   | Laboratorio Optilab        | (en blanco)           | si           | LABORATORY_IN_BRAND_CONFIRMED
+2000219   | Multiblue Foto Ar          | Cristales   | Laboratorio Optilab        | (en blanco)           | (ninguno)    | LABORATORY_IN_BRAND_CONFIRMED
+2000227   | Progresivo Rodensto        | Cristales   | Laboratorio Optilab        | (en blanco)           | (ninguno)    | LABORATORY_IN_BRAND_CONFIRMED
+
+  2000060: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000061: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000062: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000063: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000064: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000065: Compostura: la fuente corregida del 19/08 le da «Óptica Puppilent`s» a las 21 filas de la categoría (registrado en V1-012; desde Casa no se releyó el archivo)
+  2000067: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000070: Compostura: la fuente corregida del 19/08 le da «Óptica Puppilent`s» a las 21 filas de la categoría (registrado en V1-012; desde Casa no se releyó el archivo)
+  2000073: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000074: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000075: cristal: la planilla usaba «Marca» para el laboratorio («ServiOptica»), y hoy eso vive en default_laboratory_id
+  2000076: cristal: la planilla usaba «Marca» para el laboratorio («ServiOptica»), y hoy eso vive en default_laboratory_id
+  2000086: cristal: la planilla usaba «Marca» para el laboratorio («ServiOptica»), y hoy eso vive en default_laboratory_id
+  2000125: cristal: la planilla usaba «Marca» para el laboratorio («ServiOptica»), y hoy eso vive en default_laboratory_id
+  2000126: cristal: la planilla usaba «Marca» para el laboratorio («ServiOptica»), y hoy eso vive en default_laboratory_id
+  2000127: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000206: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000207: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000208: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000209: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000210: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000211: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000212: «Laboratorio Optilab» nombra un laboratorio, pero el artículo está en «Armazones» y ninguna fuente corregida disponible le da una marca real
+  2000213: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000214: cristal: la planilla usaba «Marca» para el laboratorio («ServiOptica»), y hoy eso vive en default_laboratory_id
+  2000215: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000216: cristal: la planilla usaba «Marca» para el laboratorio («ServiOptica»), y hoy eso vive en default_laboratory_id
+  2000217: cristal: la planilla usaba «Marca» para el laboratorio («ServiOptica»), y hoy eso vive en default_laboratory_id
+  2000218: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000219: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+  2000227: cristal: la planilla usaba «Marca» para el laboratorio («Laboratorio Optilab»), y hoy eso vive en default_laboratory_id
+
+== resumen ==
+  LABORATORY_IN_BRAND_CONFIRMED      28
+  CORRECTED_SOURCE_HAS_REAL_BRAND    2
+  VALID_BRAND                        0
+  AMBIGUOUS                          1
+  NO_ACTION                          0
+  artículos que cambian              30
+
+== guardas previas ==
+  OK   todos los casos conservan su categoría
+  OK   2000065: la marca «Óptica Puppilent`s» ya existe (no se crea ninguna)
+  OK   2000065: «Óptica Puppilent`s» está activa
+  OK   2000070: la marca «Óptica Puppilent`s» ya existe (no se crea ninguna)
+  OK   2000070: «Óptica Puppilent`s» está activa
+  OK   ninguna marca-laboratorio fuera de la lista autorizada ([])
+
+== HUMAN_GATE: no se tocan ==
+  2000212 «ST Fotocromatico» (Armazones, PRODUCTO_STOCKEABLE): marca «Laboratorio Optilab»
+      «Laboratorio Optilab» nombra un laboratorio, pero el artículo está en «Armazones» y ninguna fuente corregida disponible le da una marca real
+
+== backup verificable ==
+  archivo: C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1015\Backups\bc-caja-premarcas-20260819-190858.sqlite3
+  sha256 : 9f69479313dc8b789d739d3465708cc75e82d27d66ea17321cb7adcfd936f4ee
+  OK   el backup tiene el mismo contenido que la base
+
+== limpieza ==
+  2000060 «Organico UVX»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000061 «Fotocromático (AR)»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000062 «Multifocal (OP)»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000063 «Kripto (Kto) Organico UV»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000064 «Blue Ar»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000065 «Adaptacion de cristal»: «Laboratorio Optilab» -> Óptica Puppilent`s   [SERVICIO_NO_STOCKEABLE, laboratorio intacto]
+  2000067 «Bifocal (ST)»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000070 «Hilo»: «Laboratorio Optilab» -> Óptica Puppilent`s   [PRODUCTO_STOCKEABLE, laboratorio intacto]
+  2000073 «Multiblue»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000074 «Progresivo OP»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000075 «Futurex Protec»: «Laboratorio Servi Optical» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000076 «Blue Protec»: «Laboratorio Servi Optical» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000086 «Foto Sunactive»: «Laboratorio Servi Optical» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000125 «FUTUREX STEEL»: «Laboratorio Servi Optical» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000126 «FUTUREX G2»: «Laboratorio Servi Optical» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000127 «Green AR»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000206 «Kto.Invisible»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000207 «Kto.AR»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000208 «Kto.Blue AR»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000209 «Blue Fotocromatico AR»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000210 «Multifocal Foto AR»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000211 «Multifocal AR»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000213 «Org AR»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000214 «Kto.Foto.AR»: «Laboratorio Servi Optical» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000215 «Kto.Foto»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000216 «Kto.Foto Blue AR»: «Laboratorio Servi Optical» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000217 «Policarbonato Blanco»: «Laboratorio Servi Optical» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000218 «Policarbonato AR»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000219 «Multiblue Foto Ar»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+  2000227 «Progresivo Rodensto»: «Laboratorio Optilab» -> (en blanco)   [TRABAJO_BAJO_PEDIDO, laboratorio intacto]
+
+== verificación ==
+  OK   sólo cambió brand_id, y sólo donde correspondía ([])
+  OK   cambios: 30, esperados 30
+  OK   articulos: 3554 sin cambio
+  OK   activos: 3554 sin cambio
+  OK   movimientos: 0 sin cambio
+  OK   asuncion: 0 sin cambio
+  OK   pilar: 0 sin cambio
+  OK   entradas: 0 sin cambio
+  OK   suma_caja: 0 sin cambio
+  OK   sale_items: 0 sin cambio
+  OK   laboratorios_en_lineas: 0 sin cambio
+  OK   categorias: 14 sin cambio
+  OK   marcas: 136 sin cambio
+  OK   laboratorios: 3 sin cambio
+  OK   con_default: 24 sin cambio
+  OK   integrity_check ok
+  OK   FK 0
+  OK   negativos 0
+  OK   huérfanos 0
+  OK   efectos sin hecho 0
+  OK   idempotencia: una segunda corrida no cambiaría nada
+
+rollback si hiciera falta: copiar bc-caja-premarcas-20260819-190858.sqlite3 sobre copia_apply.sqlite3

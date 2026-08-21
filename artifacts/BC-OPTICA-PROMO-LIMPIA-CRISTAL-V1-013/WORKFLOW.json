@@ -1,0 +1,114 @@
+{
+  "mission": "BC-OPTICA-PROMO-LIMPIA-CRISTAL-V1-013",
+  "engine": "BC Command Center / Workflow Engine",
+  "state": "SAFE_CLOSURE",
+  "pc": "Optica",
+  "headless_executor": "NO USADO: el dry run levanta Caja y el controlador comercial contra una copia",
+  "lease": {
+    "held": false,
+    "otros_leases_vivos": 0
+  },
+  "role_state_binding": {
+    "COMMAND_CENTER": "verificacion canonica, investigacion, pruebas dirigidas, UI y dry run",
+    "LIBRARIAN": "PASS",
+    "QA": "PASS",
+    "AUDITOR": "PASS",
+    "ARTIFACT_CONSISTENCY": "PASS"
+  },
+  "regla_de_corte": "si el dry run o las pruebas fallaban no se llegaba al HUMAN_GATE",
+  "steps": [
+    {
+      "step": "verificacion canonica y base",
+      "state": "DONE",
+      "detalle": "main en 7db56a0 y detras; base elegida 09532f7, tip de V1-010. Estado productivo sin drift"
+    },
+    {
+      "step": "worktree propio",
+      "state": "DONE",
+      "detalle": ".worktrees/optica-promo-013"
+    },
+    {
+      "step": "fase 1 - investigacion",
+      "state": "DONE",
+      "detalle": "000037 tiene 726 unidades ficticias, 2 movimientos de la carga inicial y CERO ventas que lo referencien. El mecanismo de no_cost + stock real ya existia entero"
+    },
+    {
+      "step": "pruebas dirigidas primero",
+      "state": "DONE",
+      "detalle": "14 casos escritos antes de tocar nada. Pasaron sin cambiar codigo de producto: el modelo ya hacia lo correcto"
+    },
+    {
+      "step": "accion de UI",
+      "state": "DONE",
+      "detalle": "un boton «Limpia-cristal de regalo» con sus guardas. Sin rediseno"
+    },
+    {
+      "step": "herramienta de retiro",
+      "state": "DONE",
+      "detalle": "tools/retirar_obsequio_ficticio_optica.py: compensa, verifica cero, retira y audita. No escribe sin --confirmar"
+    },
+    {
+      "step": "dry run sobre copia real",
+      "state": "DONE",
+      "detalle": "10 escenarios, PASS con 0 fallas. Incluye venta bonificada, anulacion, venta sin promocion, retirado no vendible, regalar sin stock e idempotencia"
+    },
+    {
+      "step": "suite y ciclo de ventana",
+      "state": "DONE",
+      "detalle": "268 passed en tests/comercial; BC_CAJA_WINDOW_LIFECYCLE_OK"
+    },
+    {
+      "step": "pre-guard productivo",
+      "state": "DONE",
+      "detalle": "PASS en los 11 puntos: base con el sha256 esperado, HEAD 049c59a, worktree limpio, 000037 activo con 210+516, cero ventas que lo referencien, 000010 en 100/10, BC Caja cerrada, WAL en cero"
+    },
+    {
+      "step": "aplicacion productiva",
+      "state": "DONE",
+      "detalle": "PASS, 0 fallas. -210 ASUNCION y -516 PILAR, stock a cero verificado, y recien despues el retiro. Rollback no usado"
+    },
+    {
+      "step": "verificacion post-produccion",
+      "state": "DONE",
+      "detalle": "PASS. Los 6 totales del plan exactos, 000037 inactivo con 4 movimientos y stock cero, 000010 sin alterar, invariantes limpias, Caja e historia intactas"
+    },
+    {
+      "step": "circuito bonificado verificado sobre copia",
+      "state": "DONE",
+      "detalle": "no se creo una venta en produccion. Sobre copia del estado ya retirado: cobra 530.000, 000010 100 -> 99, nota con la promocion, linea sin costo, y anular devuelve el frasco"
+    },
+    {
+      "step": "idempotencia",
+      "state": "DONE",
+      "detalle": "el segundo retiro se rechaza en las guardas sin escribir"
+    },
+    {
+      "step": "smoke",
+      "state": "DONE",
+      "detalle": "BC Caja abre y la UI Comercial pasa sus seis comprobaciones"
+    },
+    {
+      "step": "Safe Closure",
+      "state": "DONE"
+    },
+    {
+      "step": "slices siguientes",
+      "state": "NO INICIADOS",
+      "detalle": "011 Delivery y 012 laboratorio por defecto, en ese orden"
+    },
+    {
+      "step": "merge a main",
+      "state": "NO EJECUTADA"
+    }
+  ],
+  "no_ejecutado_a_proposito": {
+    "escritura_en_produccion": "NO",
+    "hard_delete": "NO",
+    "motor_general_de_promociones": "NO",
+    "regalo_automatico": "NO",
+    "merge_a_main": "NO",
+    "pr": "NO",
+    "force_push": "NO"
+  },
+  "generacion": 2
+}

@@ -1,0 +1,88 @@
+{
+  "mision": "BC-OPTICA-SEGUIMIENTO-CIERRE-PILAR-V1-018",
+  "estado": "COMPLETADA_EN_CASA — sin migracion, sin apply productivo",
+  "base_git": {
+    "branch": "feature/bc-optica-seguimiento-cierre-pilar-v1-018",
+    "parte_de": "origin/feature/bc-optica-seguimiento-atrasado-transicion-v1-017 @ 79405ef",
+    "verificado": "contiene v1-016 (108ad5b) y v1-015 (1b07bf3) via merge-base --is-ancestor",
+    "origin_main_intacto": "7db56a082d06c735583a2717da3ad273f4d41a84"
+  },
+  "investigacion": {
+    "que_representa_RECIBIDO_EN_PILAR": "el final normal del circuito: el trabajo volvio. Documentado en ESTADOS_COMPLETADOS: 'RECIBIDO EN PILAR lo completa; CERRADO es el archivado posterior'",
+    "que_hecho_falta_despues": "ninguno dentro de Seguimiento. La entrega al cliente vive en la maquina de Pedidos (PENDIENTE -> LISTO -> ENTREGADO), que es otra y no se toca aca",
+    "cuando_se_cierra_legitimamente": "cuando alguien quiere archivarlo. Es opcional, no obligatorio",
+    "existe_otro_estado_intermedio": "no dentro de Seguimiento",
+    "como_se_cierra_en_asuncion": "igual: no hay matrices por sucursal. El circuito es uno solo y la sucursal responsable se deriva de la etapa (RESPONSABLE_POR_ETAPA)",
+    "pilar_tiene_flujo_especial": false,
+    "que_significa_close_by_exception": "la salida para lo que NO llego a completarse: cancelaciones, devoluciones a exhibicion, trabajos sin efecto y correcciones administrativas. Puede cerrar desde cualquier etapa y exige motivo"
+  },
+  "causa_real": {
+    "no_era": "una transicion que faltaba en la matriz",
+    "era": "close_work existia desde RC19, sin motivo y correctamente guardado -la matriz solo admite CERRADO desde RECIBIDO EN PILAR-, pero ningun punto de CajaDiaria.py lo llamaba. Solo lo usaban tests. La unica puerta visible era la excepcion",
+    "verificado_empiricamente": [
+      "close_work desde EN_LABORATORIO: BLOQUEADO (transicion invalida)",
+      "close_work desde RECIBIDO_EN_PILAR: CERRADO, nota vacia, actor registrado",
+      "cerrar dos veces: BLOQUEADO"
+    ]
+  },
+  "correccion_de_v1_017": "el finding de V1-017 que decia que el cierre normal exigia motivo salio de la propia prueba de esa mision, que llamaba a close_by_exception por ser el unico camino que se habia mirado. No era el comportamiento del producto. Queda corregido aqui",
+  "hueco_encontrado_y_cerrado": {
+    "id": "ARCHIVAR-SIN-RESPONSABLE",
+    "detalle": "close_work no exigia responsable: se podia archivar con el actor en blanco",
+    "corregido": true,
+    "por_que_importa": "no pedir motivo no es no pedir nada; quien archivo es la mitad de la respuesta"
+  },
+  "cambio": {
+    "archivos": [
+      "modulos/caja_diaria/application/tracking_service.py",
+      "CajaDiaria.py"
+    ],
+    "migracion": false,
+    "dominio": "sin cambios: la matriz de transiciones no se toco",
+    "servicio": "close_work ahora exige responsable, y documenta por que no pide motivo",
+    "ui": "nueva accion 'Archivar terminados' en el menu Mas, antes de 'Cerrar por excepcion'. Rechaza la seleccion si algo no volvio a Pilar y dice cual es el camino correcto"
+  },
+  "motivo": {
+    "archivar_terminados": {
+      "motivo": false,
+      "responsable": true
+    },
+    "cerrar_por_excepcion": {
+      "motivo": true,
+      "responsable": true
+    }
+  },
+  "historia": "las transiciones anteriores no se reescriben; la regla nueva es hacia adelante",
+  "pruebas": {
+    "dirigidas": 21,
+    "suite_caja": "746 passed, 0 failed",
+    "suite_repo": "1114 passed, 2 failed",
+    "estabilidad": "tres corridas completas seguidas con el mismo resultado",
+    "rojos": "PREEXISTING_OUT_OF_SCOPE, gestion_central, clasificados en V1-015"
+  },
+  "invariantes": {
+    "ventas": "sin cambio",
+    "stock": "sin cambio",
+    "inventario": "sin cambio",
+    "factufacil": "sin cambio",
+    "delivery": "sin cambio",
+    "catalogo_laboratorios": "sin cambio",
+    "caja_historica": "sin cambio",
+    "pedidos": "sin cambio",
+    "evidencia": "test_archivar_no_toca_ni_stock_ni_dinero compara ocho tablas antes y despues"
+  },
+  "codigo": {
+    "modulos/caja_diaria/application/tracking_service.py": {
+      "sha256": "75f36ecf069572403df5dfb945e8ffa58095fb4ea13b4d7b55dcaadcb460ae7a",
+      "bytes": 51790
+    },
+    "CajaDiaria.py": {
+      "sha256": "8cd76264f0721398d8b5152ed7fdb3275340a897f3c610318f7b3f8efdea6fde",
+      "bytes": 281791
+    },
+    "tests/caja_diaria/test_v1018_cierre_pilar.py": {
+      "sha256": "46cdc326ba2d2135aebbd4e69aaa46baeadf70eddfb7df5f21250a3037acc824",
+      "bytes": 14181
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "mision": "BC-OPTICA-TRABAJOS-OPERATIVOS-V1-020",
+  "cadena": [
+    {
+      "gate": "VERIFICATION_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "repo, git-common-dir, branch, HEAD, remoto, worktrees, migraciones y estado de V1-019A/V1-019B verificados con git antes de tocar codigo. Se comprobo con merge-base --is-ancestor que la linea elegida contiene 019A (4717acf), 018, 017 y origin/main (7db56a0), y que la rama de comision 1% NO es ancestro de esta linea"
+    },
+    {
+      "gate": "DOMAIN_RESEARCH",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "se busco entidad reutilizable antes de crear una: tracked_works, orders, laboratories, sale_items. Se documento por que ninguna servia. Se localizo la evidencia previa del invariante de inventario (V1-010) y el modelo de comision comercial (otra linea) antes de disenar"
+    },
+    {
+      "gate": "PACKAGING_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "migracion 031 creada, estrictamente aditiva, verificada leyendo el .sql. Sin apply productivo"
+    },
+    {
+      "gate": "ARTIFACT_CONSISTENCY_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "ARTIFACT_CONSISTENCY.md: cada numero afirmado se contrasto contra su fuente"
+    },
+    {
+      "gate": "LIBRARIAN_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "artifacts completos, con procedencia, hashes del codigo y decisiones fechadas"
+    },
+    {
+      "gate": "QA_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "88 dirigidas cubren creacion, estados, transiciones invalidas, reversion con motivo, responsables activos e inactivos, comision con y sin politica, no duplicacion, compensacion, separacion de la comision comercial, cero mutaciones de inventario en todos los estados, identidad de sesion, sucursal por caja, historial sin hard-delete y las vistas. Suite completa: 1288 verdes, 0 rojas"
+    },
+    {
+      "gate": "AUDITOR_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "la revision encontro tres defectos reales y se corrigieron antes del commit, cada uno con su prueba de regresion. El mas serio: el trabajo y su comision se guardaban en dos transacciones seguidas, asi que un corte en el medio dejaba un trabajo que decia haber devengado y una comision inexistente. Ver FINDINGS.json"
+    },
+    {
+      "gate": "READY_FOR_COMMIT",
+      "estado": "PASS",
+      "mecanismo": "REAL"
+    }
+  ],
+  "mecanismos_no_disponibles": [
+    {
+      "nombre": "ChainState externo",
+      "detalle": "no existe un runner de ChainState en este repo. La cadena se ejecuto como revision disciplinada dentro de esta sesion, igual que en V1-019B. Decir que corrio un runner externo seria falso"
+    },
+    {
+      "nombre": "tres identidades revisoras distintas",
+      "detalle": "Librarian, QA y Auditor fueron tres pasadas con criterios distintos hechas en la misma sesion, no tres agentes independientes. Se declara como es"
+    },
+    {
+      "nombre": "canary sobre operacion real",
+      "detalle": "no corresponde: estamos en Casa y no se toca la base productiva"
+    }
+  ],
+  "no_ejecutado_a_proposito": [
+    "apply de 029, 030 o 031 en la Optica",
+    "carga de personas o politicas de comision reales",
+    "merge a main"
+  ]
+}

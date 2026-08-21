@@ -1,0 +1,66 @@
+DRY-RUN FUNCIONAL -- FactuFacil en BC Caja
+base: C:\Users\Usuario\AppData\Local\Temp\claude\c--Users-Usuario-Desktop-Proyecto-X-PX-Core\5be62564-09cc-4357-8436-4b8620f5b9ad\scratchpad\v1016\copia_flujo.sqlite3
+ADVERTENCIA: copia local. NO es la base productiva de la Optica.
+
+== 1. lo que aparece para cargar ==
+  2026-08-19 | PILAR     | sobre 2001  | Lucia Ayala        | rosa   |   700.000
+  2026-08-18 | ASUNCION  | sobre 1001  | Maria Gonzalez     | ana    |   450.000
+  2026-08-18 | ASUNCION  | sobre 1002  | Jose Ramirez       | rosa   |   300.000
+  2026-08-18 | ASUNCION  | sobre 1003  | Ana Duarte         | ana    | 1.250.000
+  OK   4 ventas para cargar (hay 4)
+      (5 entradas activas menos el gasto de nafta; la anulada ya no cuenta)
+  OK   todas en PARA CARGAR
+  OK   el gasto no esta
+  OK   la anulada no esta
+
+== 2. copiar los datos de una ==
+    Cliente: Maria Gonzalez
+    CI/RUC: 1234567
+    Teléfono: 0981111222
+    Fecha: 2026-08-18
+    Sucursal: ASUNCION
+    Sobre: 1001
+    Vendedora: ana
+    Observaciones: OD esf -2.00 cil -0.75 eje 90 · OI esf -1.75 cil -0.50 eje 85 · adición 2.00
+    Total: 450.000
+  OK   copiar no cambio la fila
+  OK   la receta va completa
+
+== 3. marcarla como cargada ==
+  OK   se marco
+  OK   marcarla de nuevo no hace nada
+  OK   quedo CARGADA
+  OK   la cargo rosa
+  OK   a las 2026-08-19T19:53:57-03:00
+  OK   una sola linea de historia
+
+== 4. cambia de lista ==
+  OK   quedan 3 para cargar
+  OK   1001 esta en cargadas
+  OK   chips: {'PARA_CARGAR': 3, 'CARGADA': 1}
+
+== 5. filtros ==
+  OK   por sucursal PILAR: 1
+  OK   por sucursal ASUNCION: 3
+  OK   desde el 19: 1
+  OK   por sobre 1003
+  OK   por vendedora ana: 2
+  OK   por cliente Ayala: 1
+
+== 6. revertir ==
+  OK   sin motivo no se revierte: revertir requiere un motivo
+  OK   volvio a PARA CARGAR
+  OK   la historia tiene las dos lineas
+  OK   sigue diciendo que la cargo rosa
+  OK   y por que volvio
+
+== 7. persistencia: se cierra y se vuelve a abrir ==
+  OK   despues de reiniciar sigue cargada por rosa
+  OK   y la historia entera esta
+
+== 8. la caja del dia, intacta ==
+  OK   entradas/total/efectivo/revisiones: (5, 2700000, 2700000, 0) -> (5, 2700000, 2700000, 0)
+  OK   integrity_check ok
+  OK   FK 0
+
+RESULTADO: PASS
