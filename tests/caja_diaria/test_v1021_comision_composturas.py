@@ -28,6 +28,7 @@ from modulos.caja_diaria.application.admin_ops import (
 )
 from modulos.caja_diaria.application.service_jobs import ServiceJobsService
 from modulos.caja_diaria.domain.errors import InvalidCashDayError
+from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE
 from modulos.caja_diaria.infrastructure.sqlite_repository import SQLiteCashDayRepository
 from tests.migration_chain import afirmar_cadena_completa_con
 
@@ -736,12 +737,13 @@ def test_el_reporte_filtra_por_responsable(servicio, sol, con_politica, direccio
 
 def test_el_reporte_filtra_por_rango_de_fechas(servicio, sol, con_politica):
     terminado(servicio, responsible="Rita")
-    ayer = date.today() - timedelta(days=1)
+    hoy = datetime.now(BUSINESS_TIMEZONE).date()
+    ayer = hoy - timedelta(days=1)
     vacio = servicio.reporte_de_comisiones(
         token=sol.token, date_from=ayer - timedelta(days=5), date_to=ayer)
     assert vacio["totales"]["trabajos"] == 0
     hoy = servicio.reporte_de_comisiones(
-        token=sol.token, date_from=date.today(), date_to=date.today())
+        token=sol.token, date_from=hoy, date_to=hoy)
     assert hoy["totales"]["trabajos"] == 1
 
 

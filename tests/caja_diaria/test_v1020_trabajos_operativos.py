@@ -14,9 +14,11 @@ unidad de inventario, en ningún estado y por ningún camino.
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import pytest
+
+from modulos.caja_diaria.domain.models import BUSINESS_TIMEZONE
 
 from modulos.caja_diaria.application.admin_ops import (
     ROL_OPERADOR,
@@ -761,7 +763,7 @@ def test_se_puede_filtrar_por_responsable(servicio, tallerista, direccion):
 
 def test_se_puede_filtrar_por_fecha(servicio):
     nuevo(servicio)
-    hoy = date.today()
+    hoy = datetime.now(BUSINESS_TIMEZONE).date()
     assert len(servicio.tablero(vista=VISTA_TODOS, received_from=hoy,
                                 received_to=hoy)) == 1
     ayer = hoy - timedelta(days=1)
