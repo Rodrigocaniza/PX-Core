@@ -1,18 +1,13 @@
-"""Lanzador de BC Historial desde BC Caja (integracion V1).
+"""Lanzador de BC Historial desde BC Caja.
 
-Regla de acoplamiento: **Caja no sabe nada del historico**. No abre el SQLite
-historico, no ejecuta SQL, no lee los RAW y no reimplementa el parser ni las
-reglas de identidad. Solo arma una linea de comandos y lanza un proceso
-aparte; BC Historial sigue siendo dueno de su propio historico.
+La UI de Caja no consulta ni escribe datos históricos: solamente arma una
+línea de comandos y abre un proceso separado. Ese proceso puede ser una
+instalación dedicada o el lector integrado, que consulta la misma base
+canónica de Caja en modo de solo lectura.
 
-Por eso este modulo **no decide** si un documento es valido: pasa lo que Caja
-tiene en pantalla y deja que BC Historial aplique su prioridad canonica
-(CI valida -> RUC -> nombre). Si el documento es un relleno tipico de
-FactuFacil (`1`, `111`, `222`), BC Historial lo descarta solo y busca por
-nombre. Duplicar esa validacion aca seria tener dos verdades.
-
-La ruta del ejecutable esta centralizada aca y se puede sobrescribir con la
-variable de entorno ``BC_HISTORIAL_EXE``; no hay rutas dispersas en la UI.
+Este módulo tampoco interpreta identidades; pasa CI/RUC y nombre tal como
+están en pantalla. La ruta dedicada se puede sobrescribir con
+``BC_HISTORIAL_EXE`` y el fallback integrado queda centralizado aquí.
 """
 
 from __future__ import annotations
@@ -27,6 +22,7 @@ VARIABLE_ENTORNO = "BC_HISTORIAL_EXE"
 
 #: Ubicacion estandar de BC Historial en las PC de la optica.
 RUTA_PREDETERMINADA = Path(r"C:\BC\factufacil-history\bc-historial\dist\BC Historial.exe")
+SCRIPT_INTEGRADO = Path(__file__).resolve().parents[2] / "bc_historial.py"
 
 MENSAJE_NO_DISPONIBLE = (
     "BC Historial no esta disponible en esta PC.\n\n"
@@ -82,6 +78,17 @@ def construir_argumentos(nombre: object = "", documento: object = "") -> list:
     return argumentos
 
 
+def comando_historial(nombre: object = "", documento: object = "") -> tuple[list, Path]:
+    """Prefiere la instalación dedicada y cae al lector integrado de PX-Core."""
+    ejecutable = ruta_ejecutable()
+    if ejecutable is not None:
+        return [str(ejecutable)] + construir_argumentos(nombre, documento), ejecutable.parent
+    if SCRIPT_INTEGRADO.is_file():
+        return ([sys.executable, str(SCRIPT_INTEGRADO)]
+                + construir_argumentos(nombre, documento), SCRIPT_INTEGRADO.parent)
+    raise HistorialNoDisponible(detalle="sin ejecutable ni script integrado")
+
+
 def abrir_historial(nombre: object = "", documento: object = "", lanzar=None) -> Path:
     """Abre BC Historial prefiltrado, sin bloquear a Caja.
 
@@ -89,11 +96,7 @@ def abrir_historial(nombre: object = "", documento: object = "", lanzar=None) ->
     esperarlo. En produccion es ``subprocess.Popen``, que retorna de inmediato:
     Caja nunca queda esperando a que el operador cierre el historial.
     """
-    ejecutable = ruta_ejecutable()
-    if ejecutable is None:
-        raise HistorialNoDisponible(detalle="ejecutable ausente en " + str(RUTA_PREDETERMINADA))
-
-    comando = [str(ejecutable)] + construir_argumentos(nombre, documento)
+    comando, directorio = comando_historial(nombre, documento)
     arranque = {}
     if sys.platform.startswith("win"):
         # Sin consola parpadeando y desprendido de Caja: si Caja se cierra, el
@@ -104,11 +107,11 @@ def abrir_historial(nombre: object = "", documento: object = "", lanzar=None) ->
         )
     ejecutor = lanzar or subprocess.Popen
     try:
-        ejecutor(comando, cwd=str(ejecutable.parent), close_fds=True, **arranque)
+        ejecutor(comando, cwd=str(directorio), close_fds=True, **arranque)
     except OSError as exc:
         raise HistorialNoDisponible(
             "No se pudo abrir BC Historial en esta PC.\n\n"
             "BC Caja sigue funcionando normalmente.",
             detalle="popen: " + str(exc),
         ) from exc
-    return ejecutable
+    return Path(comando[0])

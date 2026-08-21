@@ -125,12 +125,27 @@ def test_se_lanza_desprendido_y_sin_consola(ejecutable_falso, monkeypatch):
 def test_ejecutable_faltante_da_mensaje_amigable(monkeypatch, tmp_path):
     monkeypatch.setenv(launcher.VARIABLE_ENTORNO, str(tmp_path / "no-existe.exe"))
     monkeypatch.setattr(launcher, "RUTA_PREDETERMINADA", tmp_path / "tampoco.exe")
+    monkeypatch.setattr(launcher, "SCRIPT_INTEGRADO", tmp_path / "tampoco.py")
     assert ruta_ejecutable() is None
     with pytest.raises(HistorialNoDisponible) as error:
         abrir_historial("Ana", "1234567")
     assert "BC Historial no esta disponible" in error.value.mensaje
     assert "Traceback" not in error.value.mensaje
     assert error.value.titulo
+
+
+def test_sin_exe_usa_el_historial_integrado(monkeypatch, tmp_path):
+    script = tmp_path / "bc_historial.py"
+    script.write_text("# lector integrado", encoding="utf-8")
+    monkeypatch.delenv(launcher.VARIABLE_ENTORNO, raising=False)
+    monkeypatch.setattr(launcher, "RUTA_PREDETERMINADA", tmp_path / "ausente.exe")
+    monkeypatch.setattr(launcher, "SCRIPT_INTEGRADO", script)
+    lanzador = LanzadorFalso()
+    abrir_historial("Ana", "123", lanzar=lanzador)
+    comando, kwargs = lanzador.llamadas[0]
+    assert comando[:2] == [launcher.sys.executable, str(script)]
+    assert comando[2:] == ["--ci", "123", "--name", "Ana"]
+    assert kwargs["cwd"] == str(tmp_path)
 
 
 def test_error_del_sistema_operativo_no_rompe_caja(ejecutable_falso):
