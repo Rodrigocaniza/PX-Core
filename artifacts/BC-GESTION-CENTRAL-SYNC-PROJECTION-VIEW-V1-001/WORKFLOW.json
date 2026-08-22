@@ -1,0 +1,20 @@
+{
+  "mission": "BC-GESTION-CENTRAL-SYNC-PROJECTION-VIEW-V1-001",
+  "generation": 1,
+  "worktree": "C:/PX/GC1",
+  "base_branch": "feature/bc-gestion-central-sync-receiver-v1-001",
+  "base_head": "3385226b6874e2f6bc3d00340d9622e65afc3c7d",
+  "implementation_head": "59c84fb",
+  "mode": {"continuous_session": true, "auto_resume": true, "workflow_engine": true},
+  "mission_lease": "RELEASED_AFTER_SAFE_CLOSURE",
+  "role_state_binding": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"},
+  "artifact_consistency": "PASS",
+  "safe_closure": "PASS",
+  "tests": {"targeted": "13 passed", "gestion_central": "67 passed", "regression": "1477 passed"},
+  "production_changes": false,
+  "service_installed": false,
+  "pr_14_15_16_modified": false,
+  "merge_performed": false,
+  "pushed": false,
+  "touched_other_domains": {"telegram": false, "inventario": false, "seguridad": false}
+}
