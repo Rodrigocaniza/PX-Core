@@ -1,0 +1,60 @@
+{
+  "mision": "BC-OPTICA-TK-ROOT-UNICO-GESTION-CENTRAL-V1-024",
+  "fecha": "2026-08-22",
+  "origen": "FLAKE-TK-EN-GESTION-CENTRAL, anotado por BC-OPTICA-SEGUIMIENTO-CIERRE-PILAR-V1-018 con recomendacion explicita de hacerlo en su propia mision",
+  "cerrados": [
+    {
+      "id": "FLAKE-TK-EN-GESTION-CENTRAL",
+      "titulo": "Dos intérpretes Tcl por proceso, y un widget colgado del default global",
+      "donde": "tests/gestion_central/test_ui_interactions.py y tests/gestion_central/test_review_ui_interactions.py",
+      "sintoma": "un tercer rojo transitorio en una de siete corridas completas, no reproducible en las tres siguientes ni en cuatro corridas dirigidas",
+      "mecanismo": "cada modulo tenia su propio tk.Tk() con scope=module. tkinter guarda un _default_root global: Tk.__init__ se lo queda solo si estaba vacio -el segundo Tk de un proceso no llega a ser el default- y Tk.destroy lo pone en None solo si el que se destruye es el default. Con dos roots por proceso, cual es el default y cuando deja de haberlo depende del orden de los modulos. Y habia un tk.Toplevel() sin master colgando de esa variable",
+      "verificado_como": "leyendo el fuente de tkinter.Tk.__init__, Tk.destroy y Toplevel.__init__ en el interprete de esta maquina, no de memoria",
+      "arreglo": [
+        "un solo tk.Tk() para todo el paquete, en tests/gestion_central/conftest.py con scope=package",
+        "guarda de entorno grafico con pytest.skip, la misma que ya usaban las pruebas de UI de Caja",
+        "master explicito en el Toplevel que no lo tenia"
+      ],
+      "por_que_package_y_no_session": "session lo dejaria vivo durante todo tests/caja_diaria, que crea sus propios roots CTk: seria mas coexistencia, no menos. Con package hay uno solo y muere cuando termina el paquete",
+      "estado": "CERRADO"
+    },
+    {
+      "id": "TEST-DUPLICADA-QUE-SE-PISABA-A-SI-MISMA",
+      "titulo": "Una prueba de Gestion Central estaba definida dos veces, byte a byte igual",
+      "donde": "tests/gestion_central/test_ui_interactions.py, test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll",
+      "detalle": "la segunda definicion pisaba a la primera, asi que python se quedaba con una sola y pytest recogia una sola. No cambiaba el resultado hoy, pero quien editara la copia de arriba habria estado editando codigo muerto sin enterarse: el archivo se veria modificado y la prueba que corre seria la otra",
+      "origen": "preexistente, viene de bb27034/09d94e7. Lo levanto la revision adversarial de esta mision",
+      "arreglo": "se elimino la segunda despues de verificar por programa que eran identicas caracter por caracter. El conteo de la suite no cambia porque solo se recogia una",
+      "estado": "CERRADO"
+    },
+    {
+      "id": "GUARDA-DE-PANTALLA-DUPLICADA-Y-DIVERGENTE",
+      "titulo": "La guarda de entorno grafico existia en dos versiones, y una era la vieja",
+      "donde": "tests/caja_diaria/test_arranque_ventana_principal.py y el conftest nuevo",
+      "detalle": "Caja ya habia estrechado su except tras un incidente -un except Exception suelto convirtio una falla real en un salteo, y un salteo se lee como verde: asi llego ese fallo hasta la Optica-. El conftest de esta mision nacio con la version ancha y su docstring afirmaba usar 'la misma guarda que Caja', que era cierto solo de las copias que nadie habia arreglado",
+      "arreglo": "la guarda se extrajo a tests/entorno_grafico.py, junto a tests/migration_chain.py que ya sigue ese patron, y las dos la importan. Ahora hay una sola y el proximo arreglo que reciba lo reciben las dos",
+      "estado": "CERRADO"
+    }
+  ],
+  "lo_que_no_se_puede_afirmar": {
+    "el_flake_no_se_reprodujo": "era una de siete corridas completas y no se logro provocarlo a pedido. Se intento un loop dirigido sobre el paquete y quedo contaminado a mitad por el propio arreglo, asi que se descarto en vez de presentarlo como baseline",
+    "por_que_igual_se_da_por_cerrado": "porque lo que se verifica no es la ausencia del sintoma sino la del mecanismo, y las guardas que lo fijan se vieron fallar cuando el mecanismo se reintrodujo a proposito"
+  },
+  "abiertos_que_esta_mision_no_toco": [
+    {
+      "id": "GESTION-CENTRAL-NO-DETERMINISTA",
+      "detalle": "test_ui_interactions.py depende de bootstrap_synthetic_pilot(). Es otro eje -datos sembrados, no el root de Tk- y no se absorbio para no mezclar dos causas en una mision",
+      "estado": "ABIERTO"
+    },
+    {
+      "id": "RESPONSABLES-DISPONIBLES-ORDENA-POR-COLUMNA-CRUDA",
+      "detalle": "responsables_disponibles() de V1-020 ordena por display_name y manda al principio a quien no lo tenga cargado. Cosmetico, con precedente resuelto en personas_para_comision(). El propio finding dice 'vale la pena unificarlo cuando se toque esa pantalla', y esta mision no la toca",
+      "estado": "ABIERTO"
+    },
+    {
+      "id": "TABLA-MUERTA-authorized_responsibles",
+      "detalle": "creada por la 015, vacia y sin referencias. Borrarla es limpieza de esquema y necesita migracion, que es otra clase de trabajo",
+      "estado": "ABIERTO"
+    }
+  ]
+}

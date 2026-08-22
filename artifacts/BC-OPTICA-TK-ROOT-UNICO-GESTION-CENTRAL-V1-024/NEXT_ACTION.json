@@ -1,0 +1,28 @@
+{
+  "mision": "BC-OPTICA-TK-ROOT-UNICO-GESTION-CENTRAL-V1-024",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": false,
+  "requiere_binario": false,
+  "requiere_la_pc_de_la_optica": false,
+  "next_action": "El frente sigue con un solo pendiente real, y es el mismo de siempre: el HUMAN_GATE de personas y tarifas, entregado en artifacts/BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023/HUMAN_GATE/ y no ejecutado. Nada de esta mision lo toca ni lo adelanta",
+  "siguientes_candidatas_de_codigo_desde_casa": [
+    {
+      "id": "GESTION-CENTRAL-NO-DETERMINISTA",
+      "que_es": "test_ui_interactions.py depende de bootstrap_synthetic_pilot(). Es el otro eje de no determinismo del mismo paquete, ahora que el del root de Tk esta cerrado",
+      "depende_de_decisiones_humanas": false
+    },
+    {
+      "id": "RESPONSABLES-DISPONIBLES-ORDENA-POR-COLUMNA-CRUDA",
+      "que_es": "responsables_disponibles() de V1-020 ordena por display_name y manda al principio a quien no lo tenga cargado. Cosmetico, con el precedente ya resuelto en personas_para_comision()",
+      "depende_de_decisiones_humanas": false,
+      "reserva": "el propio finding dice 'vale la pena unificarlo cuando se toque esa pantalla'"
+    },
+    {
+      "id": "TABLA-MUERTA-authorized_responsibles",
+      "que_es": "creada por la 015, vacia y sin referencias. Borrarla necesita migracion, o sea apply productivo mas adelante",
+      "depende_de_decisiones_humanas": false,
+      "reserva": "agrega una migracion a una cola que la Optica acaba de terminar de aplicar; no conviene sin motivo"
+    }
+  ],
+  "no_iniciar_otra_mision": true
+}

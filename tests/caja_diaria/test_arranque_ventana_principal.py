@@ -25,6 +25,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.entorno_grafico import sin_pantalla
+
 import CajaDiaria
 from modulos.caja_diaria.application.admin_ops import ROL_OPERADOR
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
@@ -41,14 +43,6 @@ def datos(tmp_path, monkeypatch):
     # es automatizado es lo que ya hace el resto del arranque.
     monkeypatch.setenv("BC_CAJA_AUTOMATED", "1")
     return tmp_path
-
-
-def _sin_pantalla(error: BaseException) -> bool:
-    """Si el intérprete gráfico no existe, y no si existe y algo salió mal."""
-    motivo = str(error).lower()
-    return any(pista in motivo for pista in (
-        "no display name", "display name", "couldn't connect",
-        "can't find a usable", "no $display"))
 
 
 @pytest.fixture(scope="module")
@@ -74,7 +68,7 @@ def interprete():
         # salteo, y un salteo se lee como verde: la prueba que existe para que
         # la ventana no deje de abrir habría dejado de correr sin avisar, que
         # es exactamente el modo en que este fallo llegó hasta la Óptica.
-        if not _sin_pantalla(error):
+        if not sin_pantalla(error):
             raise
         pytest.skip(f"sin entorno gráfico: {error}")
     raiz.withdraw()

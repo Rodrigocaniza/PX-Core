@@ -10,13 +10,6 @@ from modulos.gestion_central.ui import CentralPilotWindow
 from tests.gestion_central.test_real_sync_review import make_snapshot
 
 
-@pytest.fixture(scope="module")
-def tk_session():
-    root = tk.Tk(); root.withdraw()
-    yield root
-    root.destroy()
-
-
 @pytest.fixture
 def review_app(tmp_path, tk_session):
     central = CentralManagementService(CentralRepository(tmp_path / "central.sqlite3"))

@@ -1,0 +1,85 @@
+{
+  "mision": "BC-OPTICA-TK-ROOT-UNICO-GESTION-CENTRAL-V1-024",
+  "fecha": "2026-08-22",
+  "lugar": "casa. Solo pruebas: no toca codigo de produccion, ni migraciones, ni ninguna maquina de la Optica",
+  "cadena": [
+    {
+      "gate": "VERIFICATION_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "estado canonico revalidado tras cerrar V1-023: HEAD 85dbadf, arbol limpio, local == origin con divergencia 0 0. Worktree de Seguridad BC intacta"
+    },
+    {
+      "gate": "MISSION_LEASE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "la mision no se eligio a dedo. Se recorrieron los 26 findings ABIERTO de todos los artifacts del frente y se descartaron los que dependen de decisiones humanas -F3 los dos dias de caja, F5 las personas- y los declarados deliberados o fuera de alcance. FLAKE-TK-EN-GESTION-CENTRAL fue el unico con recomendacion explicita de hacerse en su propia mision, escrita por V1-018"
+    },
+    {
+      "gate": "DOMAIN_RESEARCH",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "se leyo el fuente de tkinter.Tk.__init__, Tk.destroy y Toplevel.__init__ en el interprete de esta maquina para entender por que el orden de los modulos importa, en vez de asumirlo. Y se leyo como quedo el arreglo del lado de Caja tras V1-016, incluido el incidente que estrecho su guarda de entorno grafico"
+    },
+    {
+      "gate": "QA_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "3 guardas nuevas, y se verifico que fallan: ctk.CTk(), ttk.Frame(), tk.StringVar() y tk.Toplevel(master=None) las ponen en rojo nombrando archivo y linea; tk.Toplevel(otro) y el patron mencionado en prosa las dejan verdes. Las dos ultimas se probaron a proposito: una guarda que da rojo por todo no es una guarda"
+    },
+    {
+      "gate": "ADVERSARIAL_REVIEW",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "revision independiente en alto esfuerzo. 5 hallazgos, los 5 corregidos antes de commitear. Tres eran sobre las guardas mismas -el except ancho, y las dos busquedas por subcadena que se perdian ctk.CTk() y ttk.Frame() y a la vez daban falso rojo por prosa-, uno era una prueba definida dos veces byte a byte que se pisaba a si misma, y uno era la afirmacion sobre _default_root, que se dejo a proposito con el mensaje corregido"
+    },
+    {
+      "gate": "REGRESSION_BASELINE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "1380 verdes antes, 1383 despues de sumar las 3 guardas. Borrar la prueba duplicada no cambia el conteo porque solo se recogia una de las dos definiciones"
+    },
+    {
+      "gate": "PACKAGING_PASSED",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "no hay migracion ni binario. Ni una linea de codigo de produccion cambio: el diff es todo tests/"
+    },
+    {
+      "gate": "PRODUCTIVE_APPLY",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "nada que aplicar en ningun lado"
+    },
+    {
+      "gate": "LIBRARIAN_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "SUMMARY, FINDINGS, GATES, MANIFEST y ARTIFACT_CONSISTENCY, con el mecanismo explicado y la decision de package en vez de session justificada donde se toma"
+    },
+    {
+      "gate": "ARTIFACT_CONSISTENCY_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "cada afirmacion al lado del comando que la produce, incluida la tabla de casos probados contra las guardas y el descarte explicito del loop de reproduccion contaminado"
+    },
+    {
+      "gate": "HONEST_LIMITS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "el flake NO se reprodujo y esta dicho en el SUMMARY, en el FINDINGS y en el ARTIFACT_CONSISTENCY, no en una nota al pie. El loop de 12 corridas dirigidas quedo contaminado a mitad por el propio arreglo y se descarto entero en vez de presentarse como baseline. Lo que se da por cerrado es el mecanismo, no el sintoma"
+    },
+    {
+      "gate": "SAFE_CLOSURE",
+      "estado": "PENDIENTE",
+      "mecanismo": "REAL",
+      "detalle": "se cierra despues del push, con la salida real de los comandos, igual que en V1-023"
+    }
+  ],
+  "lo_que_esta_mision_no_hizo": [
+    "no toco una sola linea de codigo de produccion",
+    "no aplico ninguna migracion ni construyo binario",
+    "no absorbio GESTION-CENTRAL-NO-DETERMINISTA, que es otro eje: datos sembrados, no el root de Tk",
+    "no toco main ni la worktree de Seguridad BC"
+  ]
+}

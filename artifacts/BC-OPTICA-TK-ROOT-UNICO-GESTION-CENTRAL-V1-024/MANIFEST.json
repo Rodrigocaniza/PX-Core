@@ -1,0 +1,63 @@
+{
+  "mision": "BC-OPTICA-TK-ROOT-UNICO-GESTION-CENTRAL-V1-024",
+  "titulo": "Un solo interprete Tcl en Gestion Central, y guardas que lo fijan",
+  "fecha": "2026-08-22",
+  "lugar": "casa",
+  "rama": "feature/bc-optica-comision-composturas-v1-021",
+  "parte_de": "85dbadf (cierre de BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023)",
+  "cierra": [
+    "FLAKE-TK-EN-GESTION-CENTRAL",
+    "TEST-DUPLICADA-QUE-SE-PISABA-A-SI-MISMA (preexistente, lo levanto la revision)",
+    "GUARDA-DE-PANTALLA-DUPLICADA-Y-DIVERGENTE (idem)"
+  ],
+  "requiere_migracion": false,
+  "requiere_binario": false,
+  "requiere_la_pc_de_la_optica": false,
+  "toca_codigo_de_produccion": false,
+  "archivos": [
+    {
+      "archivo": "tests/entorno_grafico.py",
+      "sha256": "9ddbccfc56842a23db34cdeae897d6a2298499607406e19f23d85aadc15712b2",
+      "nuevo": true
+    },
+    {
+      "archivo": "tests/gestion_central/conftest.py",
+      "sha256": "3a93786c1210d82ce73018dc853e631b02b80cff18a44d422bdc47b3245eaf4f",
+      "nuevo": true
+    },
+    {
+      "archivo": "tests/gestion_central/test_tk_root_unico.py",
+      "sha256": "03a844fd3ecf730b254001415fa8f036d709ab80fcdcbaf2871ef706998ab11a",
+      "nuevo": true
+    },
+    {
+      "archivo": "tests/gestion_central/test_ui_interactions.py",
+      "sha256": "f567e9d7dbb5da3a719c4235d5e8e267175b9dd16bcc7d0a13d6f7dd22ff59e6",
+      "nuevo": false
+    },
+    {
+      "archivo": "tests/gestion_central/test_review_ui_interactions.py",
+      "sha256": "3ee78ace6acd04e9e001e89d9fe4c3f4bf20aed4567a9e99906e715825d9d1d6",
+      "nuevo": false
+    },
+    {
+      "archivo": "tests/caja_diaria/test_arranque_ventana_principal.py",
+      "sha256": "587aefdf834c51d7d5799a3df4490c71334955a66700220f968b75c3ca1ce69c",
+      "nuevo": false
+    }
+  ],
+  "artifacts": [
+    "ARTIFACT_CONSISTENCY.md",
+    "FINDINGS.json",
+    "GATES.json",
+    "SUMMARY.md",
+    "MANIFEST.json"
+  ],
+  "suite": {
+    "antes": "1380 passed, 0 failed",
+    "con_las_guardas": "1383 passed in 207.53s",
+    "paquete_tocado": "tests/gestion_central: 32 passed",
+    "guardas_nuevas": 3
+  },
+  "no_reproducido": "el flake era 1 de 7 corridas completas y no se logro provocar a pedido. Lo que se cierra es el mecanismo, con guardas que se vieron fallar. Esta dicho igual en SUMMARY.md, FINDINGS.json y ARTIFACT_CONSISTENCY.md"
+}

@@ -9,13 +9,6 @@ from modulos.gestion_central.service import CentralManagementService
 from modulos.gestion_central.ui import CentralPilotWindow, build_ui_logger
 
 
-@pytest.fixture(scope="module")
-def tk_session():
-    root = tk.Tk(); root.withdraw()
-    yield root
-    root.destroy()
-
-
 @pytest.fixture
 def interactive_app(tmp_path, tk_session):
     service = CentralManagementService(CentralRepository(tmp_path / "central.sqlite3"))
@@ -67,22 +60,6 @@ def test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll(i
     app.root.withdraw()
 
 
-def test_detail_uses_horizontal_full_hd_layout_without_primary_vertical_scroll(interactive_app):
-    app, _, _ = interactive_app
-    app.root.deiconify(); app.root.geometry("1920x1080+0+0"); app.root.update()
-    app.card_buttons[Unit.OPTICA_ASUNCION].invoke(); app.root.update()
-    assert len(app.detail_kpis) == 7
-    assert app.economics_tree["columns"] == ("concept", "amount", "reference", "status")
-    assert app.detail_alerts.winfo_ismapped()
-    assert app.economics_tree.winfo_ismapped()
-    assert app.back_button.winfo_ismapped()
-    assert app.detail_refresh_button.winfo_ismapped()
-    assert max(child.winfo_y() + child.winfo_height() for child in app.body.winfo_children()) <= app.body.winfo_height()
-    app.detail_refresh_button.invoke(); app.root.update()
-    assert app.status_var.get().startswith("Detalle actualizado ")
-    app.root.withdraw()
-
-
 def test_refresh_and_filters_have_visible_feedback(interactive_app):
     app, _, _ = interactive_app
     app.refresh_button.invoke(); app.root.update()
@@ -94,7 +71,7 @@ def test_refresh_and_filters_have_visible_feedback(interactive_app):
     assert len(app.card_buttons) == 4
 
 
-def test_alert_selection_acknowledgement_and_restart_persistence(interactive_app):
+def test_alert_selection_acknowledgement_and_restart_persistence(interactive_app, tk_session):
     app, service, _ = interactive_app
     alert_id = app.alerts.get_children()[0]
     app.alerts.selection_set(alert_id); app.alerts.event_generate("<<TreeviewSelect>>"); app.root.update()
@@ -105,7 +82,9 @@ def test_alert_selection_acknowledgement_and_restart_persistence(interactive_app
     assert "Alerta reconocida" in app.status_var.get()
     assert any(row["action"] == "ALERT_ACK" and row["target"] == alert_id for row in service.repository.audit_log())
     app.root.destroy()
-    reopened_root = tk.Toplevel(); reopened_root.withdraw()
+    # Con master explícito: sin él colgaba del `_default_root` global, que es
+    # justo la variable cuyo valor depende del orden de los módulos.
+    reopened_root = tk.Toplevel(tk_session); reopened_root.withdraw()
     reopened = CentralPilotWindow(service, root=reopened_root, notifier=lambda *_: None)
     reopened_root.update()
     assert alert_id not in reopened.alerts.get_children()
