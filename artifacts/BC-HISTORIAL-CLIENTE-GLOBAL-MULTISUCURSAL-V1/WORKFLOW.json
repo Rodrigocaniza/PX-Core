@@ -5,7 +5,13 @@
   "implementation_head": "86f87b379d5366e0ee9e348787fa417ae7d47c9a",
   "role_state": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"},
   "artifact_consistency": "PASS",
-  "safe_closure": "PENDING_REMOTE_CI",
+  "safe_closure": "PASS",
+  "remote_ci": {
+    "run_id": 32539018964,
+    "workflow": "PR CI / pytest",
+    "result": "PASS",
+    "duration": "3m03s"
+  },
   "production_changes": false,
   "force_push": false
 }
