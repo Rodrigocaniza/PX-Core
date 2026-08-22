@@ -77,9 +77,9 @@
     },
     {
       "gate": "SAFE_CLOSURE",
-      "estado": "PASS_CON_PUSH_PENDIENTE",
+      "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "arbol limpio y commit entero: `git status --porcelain` vacio y HEAD en 0d76b32fbc81c71333b7d1e0d75b3bfe490968c4, verificados despues de commitear y registrados en ARTIFACT_CONSISTENCY.md. La suite quedo en 1380 verdes. El push a origin NO esta hecho: lo denego el clasificador de auto mode de la sesion, no git, y no se intento rodearlo. `git rev-list --left-right --count @{u}...HEAD` da `0 1`. Es lo unico que falta para el cierre completo, y necesita una autorizacion que la sesion no tiene. Ninguna otra mision iniciada"
+      "detalle": "cerrado con evidencia real, no por declaracion. El push se hizo con autorizacion explicita despues de que el clasificador de auto mode lo denegara la primera vez -eso quedo registrado como pendiente en vez de darse por hecho-. Verificado tras `git fetch`: `git push` reporto `38ef01b..93b0c37`, `git rev-parse HEAD` y `git rev-parse @{u}` dan los dos 93b0c37f09e53b47d9ea2d78787c38e624f02bea, `git rev-list --left-right --count @{u}...HEAD` da `0 0`, y `git status --porcelain` sale vacio. Suite en 1380 verdes. El unico pendiente del frente es el HUMAN_GATE de personas y tarifas, entregado y no ejecutado. Ninguna otra mision iniciada dentro de esta"
     }
   ],
   "lo_que_esta_mision_no_hizo": [

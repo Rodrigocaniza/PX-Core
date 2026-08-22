@@ -92,9 +92,20 @@ Tomado después de commitear, con la salida real:
 | commit de la misión | `git log -1 --format=%H` | `0d76b32fbc81c71333b7d1e0d75b3bfe490968c4` |
 | un commit local por encima de origin | `git rev-list --left-right --count @{u}...HEAD` | `0  1` |
 
-**El push no está hecho.** El `git push` a
-`origin/feature/bc-optica-comision-composturas-v1-021` fue denegado por el
-clasificador de auto mode de la sesión, no por un fallo de git. No se intentó
-rodearlo. El commit está entero y verificado en local, y el frente queda a un
-solo comando autorizado de estar arriba. Mientras eso no pase, el `0  1` de la
-tabla es la lectura correcta y este archivo no dice otra cosa.
+### Publicación
+
+El primer intento de `git push` fue denegado por el clasificador de auto mode de
+la sesión —no por git— y no se intentó rodearlo: quedó registrado como pendiente
+en vez de darse por hecho. Con la autorización explícita, se publicó:
+
+| Afirmación | Comando | Resultado |
+| --- | --- | --- |
+| la rama subió | `git push origin feature/bc-optica-comision-composturas-v1-021` | `38ef01b..93b0c37` |
+| local y origin son el mismo commit | `git rev-parse HEAD` y `git rev-parse @{u}` tras `git fetch` | ambos `93b0c37f09e53b47d9ea2d78787c38e624f02bea` |
+| sin divergencia en ninguna dirección | `git rev-list --left-right --count @{u}...HEAD` | `0  0` |
+| árbol limpio | `git status --porcelain` | vacío |
+
+Esta sección se agrega en el commit siguiente a `93b0c37`, así que describe la
+publicación de `93b0c37`, que es un hecho ya ocurrido y verificado con los
+comandos de arriba. El `0  0` del propio commit que contiene esta línea se
+comprueba después de su push y se registra abajo.

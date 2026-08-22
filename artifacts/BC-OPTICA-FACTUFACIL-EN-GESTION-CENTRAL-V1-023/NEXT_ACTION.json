@@ -11,5 +11,11 @@
     "F4: el valor de respaldo de la version ya sigue al paquete. La suite volvio a verde"
   ],
   "verificable_en_la_optica_sin_riesgo": "importar un snapshot en Gestion Central y mirar la columna FactuFacil: donde antes decia NO DISPONIBLE PILOTO en todas las filas, ahora dice PARA CARGAR o CARGADA segun lo que haya hecho la operadora. Es una lectura: no escribe en el snapshot ni en la base de Caja",
-  "no_iniciar_otra_mision": true
+  "no_iniciar_otra_mision": true,
+  "publicada": {
+    "rama": "feature/bc-optica-comision-composturas-v1-021",
+    "commit": "93b0c37f09e53b47d9ea2d78787c38e624f02bea",
+    "en_origin": true,
+    "divergencia": "0 0"
+  }
 }
