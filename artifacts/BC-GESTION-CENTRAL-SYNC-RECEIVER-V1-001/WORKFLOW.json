@@ -1,0 +1,17 @@
+{
+  "mission": "BC-GESTION-CENTRAL-SYNC-RECEIVER-V1-001",
+  "generation": 1,
+  "base_branch": "feature/bc-security-sync-contract-v1-001",
+  "base_head": "2bb4a3c9eb096024246ceab1ca856f3f41ba01ed",
+  "implementation_head": "f7c428875feeca2ec505fdb6310dbf4490c136a3",
+  "mode": {"continuous_session": true, "auto_resume": true, "workflow_engine": true},
+  "mission_lease": "RELEASED_AFTER_SAFE_CLOSURE",
+  "role_state_binding": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"},
+  "artifact_consistency": "PASS",
+  "safe_closure": "PASS",
+  "tests": {"targeted": "34 passed", "regression_non_gui": "1414 passed, 37 skipped"},
+  "production_changes": false,
+  "service_installed": false,
+  "pr_14_15_16_modified": false,
+  "merge_performed": false
+}
