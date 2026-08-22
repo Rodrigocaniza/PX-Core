@@ -1,0 +1,24 @@
+{
+  "mission": "BC-HISTORIAL-SAFE-HOME-V1-001",
+  "implementation_head": "2cd88689863a1153445f6194294bbef866935ff1",
+  "bundle": {
+    "path": "BC-HISTORIAL-SAFE-HOME-V1-001-HUMAN-GATE.zip",
+    "sha256": "4019392532457693a96f5e6620579c51ef8dddc77de84690a4cfdf8524ab8626",
+    "members": [
+      "PROMPT.md",
+      "SUMMARY.md",
+      "TEST_EVIDENCE.md",
+      "ROLE_VERDICTS.md",
+      "WORKFLOW.json"
+    ]
+  },
+  "files": {
+    "PROMPT.md": "32220daa0d0b00b4de3795a87840f691bf8c63a66fb2da330117ed3ea0d562b3",
+    "SUMMARY.md": "f35cb36db38a0c2379539eabc2965b64d4e176d608b0c72e83384ddc11d85a50",
+    "TEST_EVIDENCE.md": "8b6d49fddb29c199f1119ac62e34525c3acefd51d6d875fad06b1848b40bea92",
+    "ROLE_VERDICTS.md": "bbe5bd2494f409a547656ca1bdb9bd88336378c154ce7945d1d334b403e15f49",
+    "WORKFLOW.json": "ef78393107893b5166540328f160eadf23f63000a1a56a3e5be6103b572d3532"
+  },
+  "production_changes": false,
+  "physical_evidence_created": false
+}

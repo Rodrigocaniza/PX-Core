@@ -1,0 +1,15 @@
+{
+  "mission": "BC-HISTORIAL-CONTINUACION-001",
+  "implementation_head": "399ba4490ec7c12173469797129fe491230fba98",
+  "files": {
+    "CajaDiaria.py": "ec6e982d33ec8b74c63ff5558aaaec851487484b",
+    "bc_historial.py": "48915a7adc68ee90f6b6bb0f2b2e9a3b88824329",
+    "docs/HISTORIAL_EXTERNO.md": "4f553741ea0ec535935a9d5aa56bf12aebe68085",
+    "modulos/historial_externo/__init__.py": "bf0a6cdd06aaa23059fdd7278c05b640156a7fdb",
+    "modulos/historial_externo/launcher.py": "059aab1d4260130ac92eccba29ccd19566aefc14",
+    "modulos/historial_externo/history.py": "05bb9c01a0b150c7a4b44c822d1a1aa288365869",
+    "modulos/historial_externo/sqlite_reader.py": "f8baba8735e7e77fa434c6e9ccdc4e866f4da339",
+    "tests/caja_diaria/test_historial_externo.py": "b7ce021d020531440b0c6054918e60e45e9d62cb",
+    "tests/caja_diaria/test_historial_reader.py": "a4f77eaf4776d5f73586885f6e2d512e066c4eb8"
+  }
+}

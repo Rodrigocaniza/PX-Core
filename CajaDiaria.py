@@ -37,6 +37,11 @@ from ImportadorExcel import (
     texto_seguro,
 )
 from datos import guardar_datos, leer_datos
+from modulos.historial_externo import (
+    HistorialNoDisponible,
+    abrir_historial,
+    hay_datos_de_cliente,
+)
 from Movimientos import UNIDADES, formatear_monto
 from modulos.caja_diaria.bootstrap import build_cash_day_controller
 from modulos.caja_diaria.config import resolve_data_paths
@@ -1851,6 +1856,46 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 sticky="ew", padx=(0, 10), pady=2,
             )
             campos_manual[clave] = campo
+
+    # BC Historial: acceso al historico rescatado (Asuncion + Pilar).
+    # Se lanza como aplicacion aparte; Caja no lee el indice historico.
+    bloque_cliente = secciones_widgets["CLIENTE Y COMPROBANTE"]
+
+    def abrir_historial_del_cliente():
+        nombre = campos_manual["descripcion"].get()
+        documento = campos_manual["cliente_documento"].get()
+        sesion = operadora_actual()
+        if sesion is None:
+            messagebox.showinfo(
+                "Ver historial", "Inicia sesión para consultar el historial global.",
+                parent=ventana)
+            return
+        if not hay_datos_de_cliente(nombre, documento):
+            messagebox.showinfo(
+                "Ver historial",
+                "Carga el nombre o la CI/RUC del cliente para buscar su historial.",
+                parent=ventana,
+            )
+            return
+        try:
+            from bc_historial import open_for_verified_session
+            from modulos.historial_externo.history import HistoryQuery
+            open_for_verified_session(
+                ventana, controller.service.repository.database_path, sesion,
+                HistoryQuery(document=documento, name=nombre),
+                verify_session=controller.admin.require_operator)
+        except HistorialNoDisponible as exc:
+            messagebox.showinfo(exc.titulo, exc.mensaje, parent=ventana)
+
+    boton_historial = ctk.CTkButton(
+        bloque_cliente, text="Ver historial", height=perfil["campo_alto"],
+        width=(120 if perfil["nombre"] == "full-hd" else 96),
+        fg_color="#FFFFFF", hover_color="#EAF2FC", text_color=color_azul,
+        border_width=1, border_color=color_borde_suave,
+        font=ctk.CTkFont(size=perfil["fuente_label"], weight="bold"),
+        command=abrir_historial_del_cliente,
+    )
+    boton_historial.grid(row=7, column=0, columnspan=2, sticky="e", padx=(10, 10), pady=(2, 7))
 
     detalle_venta = secciones_widgets["DETALLE DE VENTA"]
     detalle_venta.grid_columnconfigure(2, weight=0, minsize=44)

@@ -1,0 +1,16 @@
+{
+  "mission": "BC-HISTORIAL-CLIENTE-GLOBAL-MULTISUCURSAL-V1",
+  "implementation_head": "86f87b379d5366e0ee9e348787fa417ae7d47c9a",
+  "files": {
+    "CajaDiaria.py": "b62dab059004288c14fe4bed83c6b3de38ba5054",
+    "bc_historial.py": "ddc3a2d33a24b4a21e613bb45c83f6e9cb22873b",
+    "docs/HISTORIAL_EXTERNO.md": "5eee9153a6aca957999a61ad1a35abe9ac8f6ce4",
+    "modulos/historial_externo/__init__.py": "6618d34be6d014eea479c8c22381cfcaa5858aa5",
+    "modulos/historial_externo/global_history.py": "1c2d46155cebf9be29a31ee886881ad67abc3cc3",
+    "modulos/historial_externo/history.py": "dcfffd1d2d7f772a8aa2be1712dbf9784f648959",
+    "modulos/historial_externo/sqlite_reader.py": "dfe893b1abcf0578fa5b73df9a50ba8139fb025a",
+    "tests/caja_diaria/test_historial_externo.py": "aa8eeab14d83545c2d2c0a8704b811175c788dcf",
+    "tests/caja_diaria/test_historial_multisucursal.py": "18658aa1a35b465b6e7b97e91e92d9135cd1a6f4",
+    "tests/caja_diaria/test_historial_reader.py": "0f7606123e5e35486564e81843f6e9a4ae70a423"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "mission": "BC-HISTORIAL-SAFE-HOME-V1-001",
+  "generation": 1,
+  "workflow": "Librarian -> QA -> Auditor -> HUMAN_GATE",
+  "base_snapshot": "eb414a38640177d2ff3f6691ff483b3ccbd9854b",
+  "implementation_head": "2cd88689863a1153445f6194294bbef866935ff1",
+  "canonical_branch": "feature/bc-historial-multisucursal-v1-001",
+  "role_state": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"},
+  "artifact_consistency": "PASS",
+  "safe_closure": "SAFE_CLOSURE_PARTIAL",
+  "state": "HUMAN_GATE",
+  "waiting_for": "PHYSICAL_PC_P2_VALIDATION",
+  "remote_ci": {"run_id": 32594536940, "workflow": "PR CI / pytest", "result": "PASS"},
+  "production_changes": false,
+  "physical_evidence_created": false,
+  "force_push": false
+}
