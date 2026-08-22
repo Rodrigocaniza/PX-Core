@@ -12,6 +12,7 @@ from typing import Any, Mapping, Protocol
 from modulos.bc_sync.model import SyncEvent
 from modulos.bc_sync.security import AuthenticatedMessage, SecurityAuthorizationError
 from modulos.bc_sync.security_bc import VerifiedRemoteLicenseProvider
+from modulos.historial_externo.history import HistoryEvent, HistoryQuery, PersonHistory
 from .models import Unit
 
 
@@ -261,3 +262,54 @@ class CentralSyncInbox:
         with closing(self._connect()) as db:
             return tuple(dict(row) for row in db.execute(
                 "SELECT * FROM central_sync_audit ORDER BY sequence"))
+
+
+class CentralHistoryReader:
+    """Adapter read-only de la proyección Central al contrato de BC Historial."""
+    def __init__(self, database: str | Path) -> None:
+        self.database = Path(database)
+
+    @staticmethod
+    def _normalized(value: Any) -> str:
+        return "".join(character for character in str(value or "").casefold()
+                       if character.isalnum())
+
+    def search(self, query: HistoryQuery, *, limit: int = 200) -> PersonHistory:
+        query = query.cleaned()
+        needles = tuple(self._normalized(value) for value in
+                        (query.document, query.name, query.phone, query.envelope) if value)
+        uri = self.database.resolve().as_uri() + "?mode=ro"
+        connection = sqlite3.connect(uri, uri=True)
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA query_only=ON")
+        try:
+            rows = connection.execute(
+                "SELECT * FROM central_sync_projection ORDER BY occurred_at DESC,event_id LIMIT ?",
+                (max(1, min(int(limit), 1000)),)).fetchall()
+        finally:
+            connection.close()
+        events, names, documents, phones = [], [], [], []
+        for row in rows:
+            payload = json.loads(row["payload_json"])
+            searchable = " ".join(str(payload.get(name, "")) for name in
+                                  ("customer_document", "customer_name", "customer_phone", "envelope"))
+            if needles and not any(needle in self._normalized(searchable) for needle in needles):
+                continue
+            names.append(_safe(payload.get("customer_name")))
+            documents.append(_safe(payload.get("customer_document")))
+            phones.append(_safe(payload.get("customer_phone")))
+            events.append(HistoryEvent(
+                row["occurred_at"], row["category"], branch=row["branch_id"],
+                envelope=row["envelope"], status=row["factufacil_state"],
+                total=payload.get("total"), description=_safe(payload.get("description")),
+                items=tuple(payload.get("items", ())),
+                prescription=tuple(payload.get("prescription", ())),
+                observations=_safe(payload.get("observations")),
+                trace=(f"central-sync:{row['event_id']}",),
+                identity_document=_safe(payload.get("customer_document")),
+                identity_phone=_safe(payload.get("customer_phone")),
+                identity_name=_safe(payload.get("customer_name")),
+                source_reference=row["event_id"]))
+        unique = lambda values: tuple(dict.fromkeys(value for value in values if value))
+        return PersonHistory((unique(names) or (query.name,))[0], unique(documents),
+                             unique(phones), tuple(events))

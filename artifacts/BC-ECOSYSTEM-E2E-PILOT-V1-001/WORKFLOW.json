@@ -1,0 +1,24 @@
+{
+  "mission": "BC-ECOSYSTEM-E2E-PILOT-V1-001",
+  "generation": 1,
+  "base": "3385226b6874e2f6bc3d00340d9622e65afc3c7d",
+  "composition": {
+    "historial": "eb414a38640177d2ff3f6691ff483b3ccbd9854b",
+    "sync": "f269997f5f071c616d091b5b6e0e45ee60d15e70",
+    "security_sync": "2bb4a3c9eb096024246ceab1ca856f3f41ba01ed",
+    "central_receiver": "3385226b6874e2f6bc3d00340d9622e65afc3c7d",
+    "security": "19ee0477a36b639115e2b495fdffe5db225a5fe6"
+  },
+  "implementation_head": "ea612ff83ca47b763c68fe6752482d57c3797c69",
+  "mode": {"continuous_session": true, "auto_resume": true, "workflow_engine": true},
+  "mission_lease": "RELEASED_AFTER_SAFE_CLOSURE",
+  "role_state_binding": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"},
+  "artifact_consistency": "PASS",
+  "safe_closure": "PASS",
+  "tests": {"e2e": "6 passed", "relevant": "57 passed", "regression": "1424 passed, 37 skipped"},
+  "production_databases": 0,
+  "production_licenses": 0,
+  "production_endpoints": 0,
+  "previous_prs_modified": false,
+  "merge_performed": false
+}
