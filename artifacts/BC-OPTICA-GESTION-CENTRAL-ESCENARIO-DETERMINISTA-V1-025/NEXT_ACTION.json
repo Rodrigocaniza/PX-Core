@@ -1,0 +1,26 @@
+{
+  "mision": "BC-OPTICA-GESTION-CENTRAL-ESCENARIO-DETERMINISTA-V1-025",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": false,
+  "requiere_binario": false,
+  "requiere_la_pc_de_la_optica": false,
+  "next_action": "El frente sigue con un solo pendiente real: el HUMAN_GATE de personas y tarifas, entregado en artifacts/BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023/HUMAN_GATE/ y no ejecutado",
+  "candidatas_de_codigo_que_quedan": [
+    {
+      "id": "LATE-OPEN-LEE-LA-HORA-SIN-HUSO",
+      "depende_de_decisiones_humanas": true,
+      "por_que": "hay que decidir que significa el horario del piloto y en que huso se mide. No es de nombres ni montos, pero es de negocio igual"
+    },
+    {
+      "id": "RESPONSABLES-DISPONIBLES-ORDENA-POR-COLUMNA-CRUDA",
+      "depende_de_decisiones_humanas": false,
+      "reserva": "el propio finding pide hacerlo cuando se toque esa pantalla"
+    },
+    {
+      "id": "TABLA-MUERTA-authorized_responsibles",
+      "depende_de_decisiones_humanas": false,
+      "reserva": "necesita migracion, y la Optica acaba de terminar de aplicar una cola de cuatro"
+    }
+  ],
+  "no_iniciar_otra_mision": true
+}

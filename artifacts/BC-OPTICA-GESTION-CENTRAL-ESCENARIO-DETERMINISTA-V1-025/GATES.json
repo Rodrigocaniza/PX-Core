@@ -1,0 +1,84 @@
+{
+  "mision": "BC-OPTICA-GESTION-CENTRAL-ESCENARIO-DETERMINISTA-V1-025",
+  "fecha": "2026-08-22",
+  "lugar": "casa. Una costura en produccion sin cambio de comportamiento; nada de migraciones ni maquinas de la Optica",
+  "cadena": [
+    {
+      "gate": "VERIFICATION_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "estado canonico revalidado tras cerrar V1-024: HEAD fb0d896, arbol limpio, local == origin 0 0"
+    },
+    {
+      "gate": "MISSION_LEASE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "GESTION-CENTRAL-NO-DETERMINISTA es la primera candidata que dejo escrita el NEXT_ACTION de V1-024, y la unica de las tres sin reserva. Las otras dos la tienen y esta anotado por que"
+    },
+    {
+      "gate": "DOMAIN_RESEARCH",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "antes de tocar nada se busco quien construye CashSnapshot en produccion y resulto que nadie: solo el bootstrap sintetico y el smoke de bc_gestion_central.py. Eso es lo que decidio no arreglar la semantica de LATE_OPEN, y esta escrito donde se decidio"
+    },
+    {
+      "gate": "ROOT_CAUSE_REPRODUCIDA",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "a diferencia de V1-024, aca el fallo SI se reprodujo de forma determinista: con utc_now a las 22:30 UTC, 2 failed 30 passed antes del arreglo y 35 passed despues. Mismo experimento las dos veces"
+    },
+    {
+      "gate": "QA_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "3 pruebas nuevas. Una caracteriza LATE_OPEN, que no tenia ninguna: salta a las 22 y 23 y en ninguna otra hora. Otra fija que el escenario de los fixtures es uno solo. La tercera fija que la costura no cambio el comportamiento por omision"
+    },
+    {
+      "gate": "ADVERSARIAL_REVIEW",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "revision independiente en alto esfuerzo, que reprodujo la tabla de verificacion en vez de creerla. 3 hallazgos, los 3 corregidos: tools/capture_gestion_central_detail.py seguia sembrando con el reloj y se llama a si mismo reproducible; INSTANTE estaba copiado en tres modulos con un comentario que afirmaba que eran el mismo y nada lo sostenia, ahora vive en el conftest; y el finding diferido apuntaba a una linea que esta misma mision habia movido. Mas un import sin uso, quitado"
+    },
+    {
+      "gate": "REGRESSION_BASELINE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "1383 verdes antes, 1386 despues"
+    },
+    {
+      "gate": "PACKAGING_PASSED",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "sin migracion ni binario"
+    },
+    {
+      "gate": "PRODUCTIVE_APPLY",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "nada que aplicar"
+    },
+    {
+      "gate": "LIBRARIAN_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "SUMMARY, FINDINGS, GATES, MANIFEST y ARTIFACT_CONSISTENCY. El finding diferido queda con la funcion nombrada y no solo el numero de linea, justamente porque el numero se movio"
+    },
+    {
+      "gate": "ARTIFACT_CONSISTENCY_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "cada tabla al lado del comando que la produce, incluida la de alertas por hora y la de antes/despues con el reloj movido"
+    },
+    {
+      "gate": "SAFE_CLOSURE",
+      "estado": "PENDIENTE",
+      "mecanismo": "REAL",
+      "detalle": "se cierra despues del push con la salida real"
+    }
+  ],
+  "lo_que_esta_mision_no_hizo": [
+    "no cambio la semantica de LATE_OPEN: queda como finding y como decision de negocio",
+    "no aplico migraciones ni construyo binario",
+    "no toco main ni la worktree de Seguridad BC"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "mision": "BC-OPTICA-GESTION-CENTRAL-ESCENARIO-DETERMINISTA-V1-025",
+  "fecha": "2026-08-22",
+  "origen": "GESTION-CENTRAL-NO-DETERMINISTA, anotado por V1-019B, V1-020 y V1-021 con la misma frase y sin la causa",
+  "cerrados": [
+    {
+      "id": "GESTION-CENTRAL-NO-DETERMINISTA",
+      "titulo": "El escenario de las pruebas de UI dependia de la hora del reloj de pared",
+      "donde": "modulos/gestion_central/service.py, bootstrap_synthetic_pilot() y refresh_alerts()",
+      "causa": "bootstrap_synthetic_pilot sembraba source_updated_at=utc_now(), y refresh_alerts levanta LATE_OPEN cuando la caja sigue OPEN y la hora de ese timestamp es 22 o mas. Las cuatro cajas del piloto quedan OPEN, asi que entre las 22:00 y las 23:59 UTC el escenario trae cuatro alertas que a las 21:00 no existen",
+      "por_que_parecia_aleatorio": "22:00-23:59 UTC son las 18:00-20:00 en Paraguay. No era aleatorio, era vespertino",
+      "reproducido": "SI, de forma determinista. Con utc_now parcheado a las 22:30 UTC desde un plugin temporal: 2 failed, 30 passed -test_refresh_and_filters_have_visible_feedback y test_alert_selection_acknowledgement_and_restart_persistence-. Con el reloj normal, 32 passed",
+      "arreglo": "bootstrap_synthetic_pilot acepta source_updated_at opcional; por omision sigue siendo utc_now() y hay una prueba que lo fija. Los dos fixtures de UI siembran en 2099-01-15 14:00 UTC, el mismo anho en que ya vivia su business_date",
+      "por_que_una_costura_y_no_parchear_el_modulo_en_el_fixture": "parchear un global de produccion desde un fixture esconde la causa en vez de nombrarla, y deja el proximo que lo lea sin saber por que. La costura tiene precedente en la misma clase: refresh_alerts ya recibia su propio now",
+      "verificado_despues": "35 passed con el reloj normal y 35 passed con el reloj a las 22:30 UTC. El mismo experimento antes y despues",
+      "estado": "CERRADO"
+    }
+  ],
+  "abierto_nuevo": [
+    {
+      "id": "LATE-OPEN-LEE-LA-HORA-SIN-HUSO",
+      "titulo": "LATE_OPEN compara la hora sin normalizar el huso, y la linea de al lado si lo hace",
+      "donde": "modulos/gestion_central/service.py, la condicion de LATE_OPEN dentro de refresh_alerts (linea 147 en el commit de esta mision; se nombra la funcion y no solo el numero porque el numero se movio dentro de esta misma mision al agregar la costura)",
+      "detalle": "datetime.fromisoformat(row['source_updated_at']).hour >= 22 lee la hora tal como venga el timestamp. La linea de arriba, la de SYNC_STALE, hace .astimezone(timezone.utc) antes de comparar. Si el snapshot llega en UTC, 'las 22' son las 19:00 en Paraguay, y el mensaje dice 'Caja aun abierta fuera del horario del piloto', que es una frase sobre hora local",
+      "por_que_no_se_arreglo": "decidir que significa 'el horario del piloto' y en que huso se mide es decision de negocio. Y hoy no afecta a la Optica: ingest_snapshot no tiene ningun productor real -se construye CashSnapshot solo en el bootstrap sintetico y en el smoke de bc_gestion_central.py-, porque el camino productivo es real_sync.import_snapshot, que no pasa por aca",
+      "que_queda_hecho_igual": "la regla no tenia ni una prueba y ahora tiene una que la deja escrita tal como se comporta: salta a las 22 y a las 23, y en ninguna otra hora. Dejo de ser invisible",
+      "estado": "ABIERTO — decision de negocio, no bloqueante"
+    }
+  ],
+  "abiertos_que_esta_mision_no_toco": [
+    {
+      "id": "RESPONSABLES-DISPONIBLES-ORDENA-POR-COLUMNA-CRUDA",
+      "estado": "ABIERTO",
+      "reserva": "el propio finding dice 'vale la pena unificarlo cuando se toque esa pantalla', y esta mision no la toca"
+    },
+    {
+      "id": "TABLA-MUERTA-authorized_responsibles",
+      "estado": "ABIERTO",
+      "reserva": "borrarla necesita migracion, y la Optica acaba de terminar de aplicar una cola de cuatro"
+    }
+  ]
+}

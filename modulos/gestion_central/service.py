@@ -66,8 +66,20 @@ class CentralManagementService:
             raise AccessDenied("Credenciales inválidas")
         return Principal(row["username"], Role(row["role"]), Unit(row["unit"]) if row["unit"] else None)
 
-    def bootstrap_synthetic_pilot(self):
-        """Creates an explicitly synthetic admin and sample snapshots once."""
+    def bootstrap_synthetic_pilot(self, *, source_updated_at: datetime | None = None):
+        """Creates an explicitly synthetic admin and sample snapshots once.
+
+        `source_updated_at` es una costura, no una opción de producto: por
+        omisión sigue siendo `utc_now()` y el piloto se comporta igual que
+        siempre. Existe porque las pruebas de UI construían su escenario con el
+        reloj de pared, y las alertas que salen de ese escenario dependen de la
+        hora: `refresh_alerts` marca `LATE_OPEN` cuando la caja sigue abierta y
+        la hora del snapshot es 22 o más. Corrida la suite entre las 22:00 y las
+        23:59 UTC, aparecían cuatro alertas que a las 21:00 no existen, y dos
+        pruebas se ponían en rojo sin que nada hubiera cambiado.
+
+        `refresh_alerts` ya recibe su propio `now` por la misma razón.
+        """
         with self.repository.connection() as con:
             exists = con.execute("SELECT 1 FROM central_users LIMIT 1").fetchone()
             usernames = {row[0] for row in con.execute("SELECT username FROM central_users")}
@@ -87,7 +99,8 @@ class CentralManagementService:
                 cash=700_000 + index * 100_000, card_check=500_000 + index * 75_000,
                 expenses=80_000 + index * 10_000, withdrawals=100_000,
                 expected_cash=1_020_000 + index * 90_000, counted_cash=None,
-                entry_count=8 + index * 2, source_updated_at=utc_now(),
+                entry_count=8 + index * 2,
+                source_updated_at=source_updated_at or utc_now(),
             ))
 
     def ingest_snapshot(self, actor: Principal, snapshot: CashSnapshot) -> bool:

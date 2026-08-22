@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import sys
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 from PIL import ImageGrab
@@ -22,7 +23,11 @@ def main() -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="bc-central-horizontal-") as directory:
         service = build_service(Path(directory))
-        service.bootstrap_synthetic_pilot()
+        # Con el instante fijo: sin el, la misma captura salia distinta segun la
+        # hora -entre las 22:00 y las 23:59 UTC el panel muestra una fila
+        # LATE_OPEN de mas- y la herramienta se llama a si misma reproducible.
+        service.bootstrap_synthetic_pilot(
+            source_updated_at=datetime(2099, 1, 15, 14, 0, tzinfo=timezone.utc))
         app = CentralPilotWindow(service, notifier=lambda *_: None)
         app.root.geometry("1920x1080+0+0")
         app.root.attributes("-topmost", True)

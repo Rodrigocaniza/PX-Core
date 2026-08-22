@@ -1,9 +1,10 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 import tkinter as tk
 
 import pytest
 
-from modulos.gestion_central.models import CashSnapshot, Principal, Role, Unit, utc_now
+from tests.gestion_central.conftest import INSTANTE
+from modulos.gestion_central.models import CashSnapshot, Principal, Role, Unit
 from modulos.gestion_central.repository import CentralRepository
 from modulos.gestion_central.service import CentralManagementService
 from modulos.gestion_central.ui import CentralPilotWindow, build_ui_logger
@@ -12,13 +13,13 @@ from modulos.gestion_central.ui import CentralPilotWindow, build_ui_logger
 @pytest.fixture
 def interactive_app(tmp_path, tk_session):
     service = CentralManagementService(CentralRepository(tmp_path / "central.sqlite3"))
-    service.bootstrap_synthetic_pilot()
+    service.bootstrap_synthetic_pilot(source_updated_at=INSTANTE)
     service.ingest_snapshot(Principal("system", Role.ADMIN_CENTRAL), CashSnapshot(
         event_id="interactive-alert", unit=Unit.OPTICA_ASUNCION,
         business_date="2099-01-15", status="OPEN", opening_cash=500_000,
         income=800_000, cash=500_000, card_check=300_000, expenses=50_000,
         withdrawals=25_000, expected_cash=925_000, counted_cash=900_000,
-        entry_count=5, source_updated_at=utc_now() + timedelta(seconds=2),
+        entry_count=5, source_updated_at=INSTANTE + timedelta(seconds=2),
     ))
     root = tk.Toplevel(tk_session); root.withdraw()
     notices = []

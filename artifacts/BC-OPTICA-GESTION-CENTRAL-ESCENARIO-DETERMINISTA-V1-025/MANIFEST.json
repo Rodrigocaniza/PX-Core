@@ -1,0 +1,57 @@
+{
+  "mision": "BC-OPTICA-GESTION-CENTRAL-ESCENARIO-DETERMINISTA-V1-025",
+  "titulo": "El escenario del piloto sintetico deja de depender de la hora del reloj",
+  "fecha": "2026-08-22",
+  "lugar": "casa",
+  "rama": "feature/bc-optica-comision-composturas-v1-021",
+  "parte_de": "fb0d896 (cierre de V1-024)",
+  "cierra": [
+    "GESTION-CENTRAL-NO-DETERMINISTA"
+  ],
+  "abre": [
+    "LATE-OPEN-LEE-LA-HORA-SIN-HUSO"
+  ],
+  "requiere_migracion": false,
+  "requiere_binario": false,
+  "requiere_la_pc_de_la_optica": false,
+  "toca_codigo_de_produccion": "si, una costura: un parametro opcional por nombre que por omision no cambia nada",
+  "archivos": [
+    {
+      "archivo": "modulos/gestion_central/service.py",
+      "sha256": "4770ab4b095f0faeeaacbe24e48d955ec4f241d434e1e3984a63250f308d8b24"
+    },
+    {
+      "archivo": "tools/capture_gestion_central_detail.py",
+      "sha256": "8079b6924b7d633104cc70194ff4585d75214689a5a9f55d95aa37f9d1940b68"
+    },
+    {
+      "archivo": "tests/gestion_central/conftest.py",
+      "sha256": "0999e94f535bee8d49d93c895fa8bb3b79c8b83a485e43ff64248af4a4ad6a02"
+    },
+    {
+      "archivo": "tests/gestion_central/test_escenario_no_depende_del_reloj.py",
+      "sha256": "fbbce1534baf171047c4ebae2bb219bed7f37733266f9c702affbae772aa31a8"
+    },
+    {
+      "archivo": "tests/gestion_central/test_ui_interactions.py",
+      "sha256": "5916810844acc4dab9886ddc10ec6e46ac01b390ed4b36fadd6a8d3fc0e175f1"
+    },
+    {
+      "archivo": "tests/gestion_central/test_review_ui_interactions.py",
+      "sha256": "af4fc5c665f404b5f288887a0ddbb7dfab4674ac4493f1f3d6133f7125b70aa9"
+    }
+  ],
+  "suite": {
+    "antes": "1383 passed",
+    "despues": "1386 passed in 216.73s",
+    "paquete": "35 passed con el reloj normal y 35 con el reloj a las 22:30 UTC",
+    "antes_a_las_2230": "2 failed, 30 passed"
+  },
+  "artifacts": [
+    "ARTIFACT_CONSISTENCY.md",
+    "FINDINGS.json",
+    "GATES.json",
+    "SUMMARY.md",
+    "MANIFEST.json"
+  ]
+}

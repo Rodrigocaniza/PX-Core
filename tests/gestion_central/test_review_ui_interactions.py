@@ -1,7 +1,9 @@
 import tkinter as tk
+from datetime import datetime, timezone
 
 import pytest
 
+from tests.gestion_central.conftest import INSTANTE
 from modulos.gestion_central.models import Principal, Role
 from modulos.gestion_central.real_sync import REVIEW_FIELDS, ReviewService
 from modulos.gestion_central.repository import CentralRepository
@@ -13,7 +15,7 @@ from tests.gestion_central.test_real_sync_review import make_snapshot
 @pytest.fixture
 def review_app(tmp_path, tk_session):
     central = CentralManagementService(CentralRepository(tmp_path / "central.sqlite3"))
-    central.bootstrap_synthetic_pilot()
+    central.bootstrap_synthetic_pilot(source_updated_at=INSTANTE)
     review = ReviewService(central.repository)
     review.import_snapshot(
         Principal("admin", Role.ADMIN_CENTRAL), make_snapshot(tmp_path / "source.sqlite3"),

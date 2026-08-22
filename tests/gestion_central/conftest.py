@@ -18,6 +18,7 @@ deja de haber orden que pueda salir mal.
 """
 
 import tkinter as tk
+from datetime import datetime, timezone
 
 import pytest
 
@@ -44,3 +45,17 @@ def tk_session():
         yield root
     finally:
         root.destroy()
+
+
+#: El instante en que estas pruebas siembran el escenario del piloto.
+#:
+#: Vive acá y no en cada módulo porque es una invariante compartida: los dos
+#: fixtures de UI y la prueba que verifica que el escenario es uno solo tienen
+#: que usar el MISMO instante, o la prueba deja de cubrir lo que dice cubrir sin
+#: ponerse roja. Estaba copiado en tres archivos con un comentario que afirmaba
+#: que eran el mismo, y nada lo sostenía.
+#:
+#: La hora importa: `refresh_alerts` levanta `LATE_OPEN` cuando la caja sigue
+#: abierta y la hora del snapshot es 22 o más. Las 14:00 no son mágicas, son una
+#: hora que no es ni de madrugada ni de noche.
+INSTANTE = datetime(2099, 1, 15, 14, 0, tzinfo=timezone.utc)
