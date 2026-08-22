@@ -83,16 +83,27 @@ class MessageLibraryService:
         query: str = "",
         *,
         category_slug: str | None = None,
+        branch: str | None = None,
         only_favorites: bool = False,
         include_inactive: bool = False,
     ) -> Sequence[Template]:
         found = self.repository.search_templates(
             query=query,
             category_slug=slugify(category_slug) if category_slug else None,
+            branch=str(branch).strip() if branch is not None else None,
             only_favorites=only_favorites,
             include_inactive=include_inactive,
         )
         return rank_templates(found, query)
+
+    def list_branches(self) -> tuple[str, ...]:
+        """Sucursales declaradas, sin convertirlas en una entidad nueva."""
+        values = {
+            template.branch
+            for template in self.repository.list_templates(include_inactive=True)
+            if template.branch
+        }
+        return tuple(sorted(values, key=str.casefold))
 
     def get(self, template_id: str) -> Template:
         template = self.repository.get_template(template_id)

@@ -366,7 +366,7 @@ def default_values_for(template: Template) -> dict[str, str]:
 
 def has_unsaved_changes(original: Template | None, draft: Mapping[str, object]) -> bool:
     """Compara el formulario de administración contra la plantilla guardada."""
-    fields = ("title", "body", "category_slug", "keywords", "active")
+    fields = ("title", "body", "category_slug", "keywords", "branch", "active")
     if original is None:
         return any(str(draft.get(name, "")).strip() for name in ("title", "body"))
     for name in fields:

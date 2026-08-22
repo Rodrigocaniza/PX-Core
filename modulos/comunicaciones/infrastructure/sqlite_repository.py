@@ -243,6 +243,7 @@ class SQLiteCommunicationsRepository:
         *,
         query: str = "",
         category_slug: str | None = None,
+        branch: str | None = None,
         only_favorites: bool = False,
         include_inactive: bool = False,
     ) -> Sequence[Template]:
@@ -255,6 +256,11 @@ class SQLiteCommunicationsRepository:
         if category_slug:
             sql += " AND category_slug = ?"
             params.append(category_slug)
+        if branch is not None:
+            # Una plantilla sin sucursal es compartida y sigue visible al
+            # trabajar en cualquier sucursal concreta.
+            sql += " AND (branch = '' OR branch = ? COLLATE NOCASE)"
+            params.append(str(branch).strip())
         needle = normalize_search_text(query)
         if needle:
             sql += " AND search_blob LIKE ? ESCAPE '\\'"

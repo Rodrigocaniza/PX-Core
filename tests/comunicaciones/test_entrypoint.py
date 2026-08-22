@@ -54,7 +54,7 @@ class EntrypointTests(unittest.TestCase):
     def test_startup_failures_are_written_where_support_can_read_them(self):
         with tempfile.TemporaryDirectory() as directory:
             with patch.dict(os.environ, {"BC_COMUNICACIONES_DATA_DIR": directory}, clear=True):
-                bc_comunicaciones.report_fatal_error(RuntimeError("fallo simulado"))
+                bc_comunicaciones.report_fatal_error(RuntimeError("fallo simulado"), show_dialog=False)
             log = Path(directory) / "Logs" / "startup-error.log"
             self.assertTrue(log.is_file())
             self.assertIn("fallo simulado", log.read_text(encoding="utf-8"))

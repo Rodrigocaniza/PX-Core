@@ -71,6 +71,7 @@ class VentanaComunicaciones(ctk.CTkToplevel):
         self.configure(fg_color=COLOR_FONDO)
 
         self._categoria_actual: str = ""
+        self._sucursal_actual: str | None = None
         self._solo_favoritas: bool = False
         self._ver_inactivas: bool = False
         self._resultados: list[Template] = []
@@ -159,6 +160,15 @@ class VentanaComunicaciones(ctk.CTkToplevel):
 
         filtros = ctk.CTkFrame(panel, fg_color="transparent")
         filtros.grid(row=4, column=0, padx=14, pady=(8, 14), sticky="ew")
+
+        ctk.CTkLabel(filtros, text="SUCURSAL", anchor="w", font=ctk.CTkFont(size=11, weight="bold"),
+                     text_color=COLOR_TEXTO_SUAVE).pack(fill="x", pady=(0, 3))
+        self.selector_sucursal = ctk.CTkOptionMenu(
+            filtros, values=["Todas"], height=30, command=self._elegir_sucursal,
+            fg_color=COLOR_PANEL_SECUNDARIO[1], button_color=COLOR_PRIMARIO,
+            button_hover_color=COLOR_PRIMARIO_HOVER,
+        )
+        self.selector_sucursal.pack(fill="x", pady=(0, 6))
 
         self.var_favoritas = ctk.BooleanVar(value=False)
         ctk.CTkCheckBox(
@@ -275,6 +285,7 @@ class VentanaComunicaciones(ctk.CTkToplevel):
         operador = self.controller.operator()
         if operador:
             self.entrada_operador.insert(0, operador)
+        self.selector_sucursal.configure(values=["Todas", *self.controller.branch_options()])
         self._refrescar_categorias()
         self._refrescar_resultados()
         self._foco_busqueda()
@@ -301,6 +312,7 @@ class VentanaComunicaciones(ctk.CTkToplevel):
             self.controller.search(
                 consulta,
                 category_slug=self._categoria_actual or None,
+                branch=self._sucursal_actual,
                 only_favorites=self._solo_favoritas,
                 include_inactive=self._ver_inactivas,
             )
@@ -356,6 +368,10 @@ class VentanaComunicaciones(ctk.CTkToplevel):
     def _elegir_categoria(self, slug: str) -> None:
         self._categoria_actual = slug
         self._refrescar_categorias()
+        self._refrescar_resultados()
+
+    def _elegir_sucursal(self, value: str) -> None:
+        self._sucursal_actual = None if value == "Todas" else value
         self._refrescar_resultados()
 
     def _cambiar_favoritas(self) -> None:
@@ -422,7 +438,8 @@ class VentanaComunicaciones(ctk.CTkToplevel):
         self.titulo_panel.configure(text=plantilla.title)
         self.subtitulo_panel.configure(
             text=f"{self.controller.library.category_name(plantilla.category_slug)}"
-                 f"   ·   usada {plantilla.usage_count} veces"
+                 + (f"   ·   {plantilla.branch}" if plantilla.branch else "   ·   Todas las sucursales")
+                 + f"   ·   usada {plantilla.usage_count} veces"
                  + ("" if plantilla.active else "   ·   DESACTIVADA")
         )
         self.boton_favorita.configure(text="★" if plantilla.favorite else "☆")
@@ -722,6 +739,13 @@ class VentanaComunicaciones(ctk.CTkToplevel):
         self.editor_claves.grid(row=1, column=0, sticky="ew", pady=(2, 0))
         self.editor_claves.insert(0, borrador["keywords"])
 
+        ctk.CTkLabel(derecha, text="SUCURSAL  (vacío = todas)", anchor="w",
+                     font=ctk.CTkFont(size=11, weight="bold"),
+                     text_color=COLOR_TEXTO_SUAVE).grid(row=2, column=0, sticky="w", pady=(6, 0))
+        self.editor_sucursal = ctk.CTkEntry(derecha, height=34, placeholder_text="Ej.: Casa Central")
+        self.editor_sucursal.grid(row=3, column=0, sticky="ew", pady=(2, 0))
+        self.editor_sucursal.insert(0, borrador["branch"])
+
         ctk.CTkLabel(marco, text="MENSAJE", anchor="w", font=ctk.CTkFont(size=11, weight="bold"),
                      text_color=COLOR_TEXTO_SUAVE).grid(row=3, column=0, sticky="w")
         self.editor_cuerpo = ctk.CTkTextbox(
@@ -768,6 +792,7 @@ class VentanaComunicaciones(ctk.CTkToplevel):
             "body": self.editor_cuerpo.get("1.0", "end").strip(),
             "category_slug": self._nombres_categoria.get(nombre, nombre),
             "keywords": self.editor_claves.get(),
+            "branch": self.editor_sucursal.get(),
             "active": bool(self.var_editor_activa.get()),
         }
 

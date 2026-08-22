@@ -156,7 +156,7 @@ def main(argv=None) -> int:
     return 0
 
 
-def report_fatal_error(error: BaseException) -> None:
+def report_fatal_error(error: BaseException, *, show_dialog: bool = True) -> None:
     """Deja el fallo de arranque donde soporte pueda encontrarlo, incluso sin consola."""
     try:
         from modulos.comunicaciones.config import resolve_data_paths
@@ -169,7 +169,7 @@ def report_fatal_error(error: BaseException) -> None:
         )
     except Exception:
         log = None
-    if "--self-check" not in sys.argv and "--first-run-check" not in sys.argv:
+    if show_dialog and "--self-check" not in sys.argv and "--first-run-check" not in sys.argv:
         try:
             from tkinter import messagebox
 

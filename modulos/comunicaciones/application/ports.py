@@ -25,6 +25,7 @@ class TemplateRepository(Protocol):
         *,
         query: str = "",
         category_slug: str | None = None,
+        branch: str | None = None,
         only_favorites: bool = False,
         include_inactive: bool = False,
     ) -> Sequence[Template]: ...

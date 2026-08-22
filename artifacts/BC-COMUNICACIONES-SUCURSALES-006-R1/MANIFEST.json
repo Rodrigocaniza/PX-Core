@@ -1,0 +1,127 @@
+{
+  "manifest_version": "1.0",
+  "generator": "tools/package_mission_evidence.py",
+  "algorithm": "sha256",
+  "mission": "BC-COMUNICACIONES-SUCURSALES-006-R1",
+  "generated_at": "2026-08-22T20:47:19Z",
+  "status": "PASSED",
+  "repository": {
+    "root": "C:/Users/Usuario/Desktop/Proyecto X/PX-Core/.worktrees/comunicaciones-sucursales-006",
+    "branch": "feature/comunicaciones-sucursales-006",
+    "head_before": "27e4a93dae79fd61d82f41b4fad98e12fdd06e50",
+    "head_after": "27e4a93dae79fd61d82f41b4fad98e12fdd06e50",
+    "head_consistent": true,
+    "status_before": [
+      "M bc_comunicaciones.py",
+      " M modulos/comunicaciones/application/ports.py",
+      " M modulos/comunicaciones/application/services.py",
+      " M modulos/comunicaciones/domain/models.py",
+      " M modulos/comunicaciones/infrastructure/sqlite_repository.py",
+      " M modulos/comunicaciones/ui/app.py",
+      " M modulos/comunicaciones/ui/controller.py",
+      " M tests/comunicaciones/test_entrypoint.py",
+      " M tests/comunicaciones/test_ui_layout.py",
+      "?? artifacts/BC-COMUNICACIONES-SUCURSALES-006-R1/",
+      "?? artifacts/BC-COMUNICACIONES-SUCURSALES-006/",
+      "?? tests/comunicaciones/test_branches.py"
+    ],
+    "status_after": [
+      "M bc_comunicaciones.py",
+      " M modulos/comunicaciones/application/ports.py",
+      " M modulos/comunicaciones/application/services.py",
+      " M modulos/comunicaciones/domain/models.py",
+      " M modulos/comunicaciones/infrastructure/sqlite_repository.py",
+      " M modulos/comunicaciones/ui/app.py",
+      " M modulos/comunicaciones/ui/controller.py",
+      " M tests/comunicaciones/test_entrypoint.py",
+      " M tests/comunicaciones/test_ui_layout.py",
+      "?? artifacts/BC-COMUNICACIONES-SUCURSALES-006-R1/",
+      "?? artifacts/BC-COMUNICACIONES-SUCURSALES-006/",
+      "?? tests/comunicaciones/test_branches.py"
+    ]
+  },
+  "files": {
+    "implementation": [
+      {
+        "path": "bc_comunicaciones.py",
+        "sha256": "00c0230fdac6bac49d71aa2355b2d8ab12c643c3c207300cdd6e41aea47afa9c"
+      },
+      {
+        "path": "modulos/comunicaciones/application/ports.py",
+        "sha256": "6d116993f52646e004b272ae71183c0ca1deb779cd9588d0023e112c61862a68"
+      },
+      {
+        "path": "modulos/comunicaciones/application/services.py",
+        "sha256": "21a39fb85ccf117f1b4f4f7d3f0afee7c3bec41a316fa5881ea25d679333c260"
+      },
+      {
+        "path": "modulos/comunicaciones/domain/models.py",
+        "sha256": "b36a54835937b1a036a93a692a04c2ba0880758bc4e1c947d32e8dae85447e97"
+      },
+      {
+        "path": "modulos/comunicaciones/infrastructure/sqlite_repository.py",
+        "sha256": "8cf0c171d7ce3a5360fbb63afe08c13572d4b9d0c358844a42d62ff946d643b7"
+      },
+      {
+        "path": "modulos/comunicaciones/ui/app.py",
+        "sha256": "b4ea4636a7e2e942540ad4a350d25d0296d6964e8dd8a7fd8730e998a55b4c99"
+      },
+      {
+        "path": "modulos/comunicaciones/ui/controller.py",
+        "sha256": "f33c99bb8e653609d528550985d71624212def1e6fd5082a8a74ec43cafef362"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/comunicaciones/test_branches.py",
+        "sha256": "c89b77ac5cc064115bcd717a65a90ff5f4c36df686470c8c5f3efa04bd743c7c"
+      },
+      {
+        "path": "tests/comunicaciones/test_entrypoint.py",
+        "sha256": "26d1f884a9436395ace93ab97b3176d507b492651555048dad5b333c4a8f2e56"
+      },
+      {
+        "path": "tests/comunicaciones/test_ui_layout.py",
+        "sha256": "7a01065696b024eec5d3180cb38dc29f34a143b31022091e5aa0bdb6d6867df0"
+      }
+    ],
+    "dependencies": []
+  },
+  "tests": {
+    "targeted": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "tests/comunicaciones/test_branches.py",
+        "tests/comunicaciones/test_entrypoint.py",
+        "tests/comunicaciones/test_ui_layout.py",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "31 passed, 1 warning in 17.51s"
+    },
+    "full_suite": {
+      "command": [
+        "C:\\Users\\Usuario\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pytest",
+        "-v"
+      ],
+      "exit_code": 0,
+      "summary": "242 passed, 1 skipped, 1 warning in 26.36s"
+    }
+  },
+  "zip": {
+    "path": "BC-Core-BC-COMUNICACIONES-SUCURSALES-006-R1.zip",
+    "sha256": "88377cf4e272b0e62e9821f09046d2bc1998d1798dc5c7394bc7eff2d586ef00",
+    "file_count": 10
+  },
+  "summary_file": "SUMMARY.txt",
+  "prompts": {
+    "librarian": "PROMPT_LIBRARIAN.txt",
+    "qa": "PROMPT_QA.txt",
+    "auditor": "PROMPT_AUDITOR.txt"
+  },
+  "warnings": []
+}

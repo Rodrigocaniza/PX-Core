@@ -1,0 +1,25 @@
+Sos el Librarian de BC-Core.
+
+MISION: BC-COMUNICACIONES-SUCURSALES-006-R1
+
+Evidencia en artifacts/BC-COMUNICACIONES-SUCURSALES-006-R1/:
+- BC-Core-BC-COMUNICACIONES-SUCURSALES-006-R1.zip
+- SUMMARY.txt
+- MANIFEST.json
+
+Archivos de implementacion:
+- bc_comunicaciones.py (sha256: 00c0230fdac6bac49d71aa2355b2d8ab12c643c3c207300cdd6e41aea47afa9c)
+- modulos/comunicaciones/application/ports.py (sha256: 6d116993f52646e004b272ae71183c0ca1deb779cd9588d0023e112c61862a68)
+- modulos/comunicaciones/application/services.py (sha256: 21a39fb85ccf117f1b4f4f7d3f0afee7c3bec41a316fa5881ea25d679333c260)
+- modulos/comunicaciones/domain/models.py (sha256: b36a54835937b1a036a93a692a04c2ba0880758bc4e1c947d32e8dae85447e97)
+- modulos/comunicaciones/infrastructure/sqlite_repository.py (sha256: 8cf0c171d7ce3a5360fbb63afe08c13572d4b9d0c358844a42d62ff946d643b7)
+- modulos/comunicaciones/ui/app.py (sha256: b4ea4636a7e2e942540ad4a350d25d0296d6964e8dd8a7fd8730e998a55b4c99)
+- modulos/comunicaciones/ui/controller.py (sha256: f33c99bb8e653609d528550985d71624212def1e6fd5082a8a74ec43cafef362)
+
+Archivos de test:
+- tests/comunicaciones/test_branches.py (sha256: c89b77ac5cc064115bcd717a65a90ff5f4c36df686470c8c5f3efa04bd743c7c)
+- tests/comunicaciones/test_entrypoint.py (sha256: 26d1f884a9436395ace93ab97b3176d507b492651555048dad5b333c4a8f2e56)
+- tests/comunicaciones/test_ui_layout.py (sha256: 7a01065696b024eec5d3180cb38dc29f34a143b31022091e5aa0bdb6d6867df0)
+
+Estado registrado en MANIFEST.json: PASSED.
+Validar contra MANIFEST.json y el ZIP adjuntos antes de emitir un veredicto.

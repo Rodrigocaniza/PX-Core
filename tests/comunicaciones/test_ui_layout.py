@@ -10,6 +10,7 @@ import inspect
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from modulos.comunicaciones.bootstrap import build_controller
 from modulos.comunicaciones.infrastructure.clipboard import InMemoryClipboard
@@ -21,6 +22,7 @@ def tk_disponible() -> bool:
         import tkinter
 
         root = tkinter.Tk()
+        root.withdraw()
     except Exception:
         return False
     root.destroy()
@@ -96,6 +98,14 @@ class WindowSmokeTests(unittest.TestCase):
         import customtkinter as ctk
 
         self.ctk = ctk
+        self.dialog_patches = (
+            patch.object(app_module.messagebox, "showwarning", return_value=None),
+            patch.object(app_module.messagebox, "showinfo", return_value=None),
+            patch.object(app_module.messagebox, "askyesno", return_value=True),
+        )
+        for dialog_patch in self.dialog_patches:
+            dialog_patch.start()
+            self.addCleanup(dialog_patch.stop)
         self.directory = Path(tempfile.mkdtemp())
         self.clipboard = InMemoryClipboard()
         try:

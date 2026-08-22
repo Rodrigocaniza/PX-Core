@@ -101,12 +101,14 @@ class CommunicationsUIController:
         query: str = "",
         *,
         category_slug: str | None = None,
+        branch: str | None = None,
         only_favorites: bool = False,
         include_inactive: bool = False,
     ) -> Sequence[Template]:
         return self.library.search(
             query,
             category_slug=category_slug or None,
+            branch=branch,
             only_favorites=only_favorites,
             include_inactive=include_inactive,
         )
@@ -194,6 +196,7 @@ class CommunicationsUIController:
             "body": str(draft.get("body", "")),
             "category_slug": str(draft.get("category_slug", "")),
             "keywords": str(draft.get("keywords", "")),
+            "branch": str(draft.get("branch", "")).strip(),
         }
         if template_id:
             active = draft.get("active")
@@ -207,14 +210,18 @@ class CommunicationsUIController:
 
     def draft_from(self, template: Template | None, default_category: str = "") -> dict[str, Any]:
         if template is None:
-            return {"title": "", "body": "", "category_slug": default_category, "keywords": "", "active": True}
+            return {"title": "", "body": "", "category_slug": default_category, "keywords": "", "branch": "", "active": True}
         return {
             "title": template.title,
             "body": template.body,
             "category_slug": template.category_slug,
             "keywords": template.keywords,
+            "branch": template.branch,
             "active": template.active,
         }
+
+    def branch_options(self) -> tuple[str, ...]:
+        return self.library.list_branches()
 
     # ------------------------------------------------------------------ respaldo
 
