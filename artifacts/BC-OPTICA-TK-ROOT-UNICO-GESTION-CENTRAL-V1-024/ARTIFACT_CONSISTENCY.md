@@ -50,4 +50,14 @@ de arriba, no el color de la suite.
 
 ## Cierre
 
-Se registra abajo, después del push, con la salida real de los comandos.
+Tomado después del push, con la salida real:
+
+| Afirmación | Comando | Resultado |
+| --- | --- | --- |
+| commit de la misión | `git log -1 --format=%H` | `8042b54c7c25dc977f57e58b1c35dbe82c40ff6e` |
+| local y origin son el mismo commit | `git rev-parse HEAD` y `git rev-parse @{u}` tras `git fetch` | ambos `8042b54c7c25dc977f57e58b1c35dbe82c40ff6e` |
+| sin divergencia | `git rev-list --left-right --count @{u}...HEAD` | `0  0` |
+| árbol limpio | `git status --porcelain` | vacío |
+
+Esta sección se agrega en el commit siguiente a `8042b54`, así que describe la
+publicación de `8042b54`, ya ocurrida y verificada con los comandos de arriba.

@@ -71,9 +71,9 @@
     },
     {
       "gate": "SAFE_CLOSURE",
-      "estado": "PENDIENTE",
+      "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "se cierra despues del push, con la salida real de los comandos, igual que en V1-023"
+      "detalle": "cerrado con evidencia real. Tras `git push` y `git fetch`: `git rev-parse HEAD` y `git rev-parse @{u}` dan los dos 8042b54c7c25dc977f57e58b1c35dbe82c40ff6e, `git rev-list --left-right --count @{u}...HEAD` da `0 0`, y `git status --porcelain` sale vacio. Suite en 1383 verdes. El unico pendiente del frente sigue siendo el HUMAN_GATE de personas y tarifas, entregado en V1-023 y no ejecutado. Ninguna otra mision iniciada"
     }
   ],
   "lo_que_esta_mision_no_hizo": [

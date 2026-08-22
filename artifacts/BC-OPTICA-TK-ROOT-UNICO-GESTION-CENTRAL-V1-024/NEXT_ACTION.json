@@ -24,5 +24,11 @@
       "reserva": "agrega una migracion a una cola que la Optica acaba de terminar de aplicar; no conviene sin motivo"
     }
   ],
-  "no_iniciar_otra_mision": true
+  "no_iniciar_otra_mision": true,
+  "publicada": {
+    "rama": "feature/bc-optica-comision-composturas-v1-021",
+    "commit": "8042b54c7c25dc977f57e58b1c35dbe82c40ff6e",
+    "en_origin": true,
+    "divergencia": "0 0"
+  }
 }
