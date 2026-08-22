@@ -1,0 +1,31 @@
+{
+  "mision": "BC-OPTICA-RESPONSABLES-ORDEN-VISIBLE-V1-026",
+  "titulo": "responsables_disponibles ordena por el nombre que se ve, igual que personas_para_comision",
+  "fecha": "2026-08-22",
+  "rama": "feature/bc-optica-comision-composturas-v1-021",
+  "parte_de": "f71f23f (cierre de V1-025)",
+  "cierra": [
+    "RESPONSABLES-DISPONIBLES-ORDENA-POR-COLUMNA-CRUDA"
+  ],
+  "requiere_migracion": false,
+  "requiere_binario": false,
+  "requiere_la_pc_de_la_optica": false,
+  "archivos": [
+    {
+      "archivo": "modulos/caja_diaria/application/service_jobs.py",
+      "sha256": "e248b567b50775c6abb3c67457adb37e24ce4cb4970a10dab212dda67d4d642d"
+    },
+    {
+      "archivo": "tests/caja_diaria/test_v1020_trabajos_operativos.py",
+      "sha256": "a07215664b3aabd9b7f78214b42337ca5008f570f7fbce0e5ae2d0ca27e86ee0"
+    }
+  ],
+  "artifacts": [
+    "ARTIFACT_CONSISTENCY.md",
+    "FINDINGS.json",
+    "GATES.json",
+    "MANIFEST.json",
+    "NEXT_ACTION.json",
+    "SUMMARY.md"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "mision": "BC-OPTICA-RESPONSABLES-ORDEN-VISIBLE-V1-026",
+  "estado": "COMPLETADA_EN_CASA",
+  "next_action": "No queda ninguna mision de codigo avanzable desde casa sin decisiones humanas. El frente queda esperando el HUMAN_GATE de personas y tarifas, entregado en artifacts/BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023/HUMAN_GATE/",
+  "lo_que_queda_abierto_y_por_que_no_se_toca": [
+    {
+      "id": "F5 / HUMAN_GATE personas y tarifas",
+      "motivo": "los nombres, roles, sucursales y montos son decision de la duena. Entregado como PROMPT + ZIP + MANIFEST + SUMMARY"
+    },
+    {
+      "id": "F3 dos dias de caja abiertos",
+      "motivo": "cerrar hoy un dia del 12 de agosto fabricaria un cierre economico que nadie hizo"
+    },
+    {
+      "id": "LATE-OPEN-LEE-LA-HORA-SIN-HUSO",
+      "motivo": "hay que decidir que significa 'el horario del piloto' y en que huso se mide"
+    },
+    {
+      "id": "TABLA-MUERTA-authorized_responsibles",
+      "motivo": "borrarla necesita migracion, o sea otro apply productivo en la Optica, y no hay motivo para agregar uno ahora"
+    }
+  ],
+  "no_iniciar_otra_mision": true
+}

@@ -1,0 +1,67 @@
+{
+  "mision": "BC-OPTICA-RESPONSABLES-ORDEN-VISIBLE-V1-026",
+  "fecha": "2026-08-22",
+  "lugar": "casa",
+  "cadena": [
+    {
+      "gate": "VERIFICATION_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "estado canonico revalidado tras cerrar V1-025: HEAD f71f23f, arbol limpio, local == origin 0 0"
+    },
+    {
+      "gate": "MISSION_LEASE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "ultima candidata de codigo sin decisiones humanas que quedaba en el frente. Las otras dos que siguen abiertas no lo son: LATE-OPEN-LEE-LA-HORA-SIN-HUSO es decision de negocio y TABLA-MUERTA-authorized_responsibles necesita migracion"
+    },
+    {
+      "gate": "DOMAIN_RESEARCH",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "se leyo create_user antes de escribir la prueba, y por eso se sabe -y se dice- que el defecto no es alcanzable por la API publica. Sin ese paso, la mision habria afirmado arreglar un bug de produccion que no lo era"
+    },
+    {
+      "gate": "QA_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "1 prueba dirigida, verificada contra la consulta vieja: falla con assert 'zoe' in ['sol', '   ', 'Ana'], que muestra el defecto entero en una linea"
+    },
+    {
+      "gate": "HONEST_LIMITS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "que no sea alcanzable por la puerta normal esta en el SUMMARY, en el FINDINGS y en el docstring de la funcion. Es una unificacion defensiva, no un bug de produccion, y no se presenta como otra cosa"
+    },
+    {
+      "gate": "PACKAGING_PASSED",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "sin migracion ni binario"
+    },
+    {
+      "gate": "PRODUCTIVE_APPLY",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "nada que aplicar"
+    },
+    {
+      "gate": "LIBRARIAN_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "artifact deliberadamente corto: la mision es chica y estirarlo seria decir que paso mas de lo que paso"
+    },
+    {
+      "gate": "ARTIFACT_CONSISTENCY_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "la unica afirmacion no trivial -que la prueba falla con la consulta vieja- se produjo restaurando la consulta vieja, corriendo la prueba y volviendo a aplicar el arreglo. La salida citada es literal"
+    },
+    {
+      "gate": "SAFE_CLOSURE",
+      "estado": "PENDIENTE",
+      "mecanismo": "REAL",
+      "detalle": "se cierra despues del push con la salida real"
+    }
+  ]
+}

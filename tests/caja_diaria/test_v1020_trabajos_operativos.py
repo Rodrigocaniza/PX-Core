@@ -882,3 +882,25 @@ def test_editar_a_un_tipo_valido_se_registra(servicio):
     trabajo = nuevo(servicio)
     trabajo = servicio.actualizar_datos(trabajo.id, actor="Leti", job_type="HILO")
     assert trabajo.job_type == "HILO"
+
+
+def test_los_responsables_se_ordenan_por_el_nombre_que_se_ve(repo, servicio, admin, sol):
+    """Sin nombre visible, la persona se lista por su usuario y en su lugar.
+
+    `create_user` no deja crear a alguien sin nombre visible: si viene vacío lo
+    reemplaza por el usuario. Así que esta fila se escribe por SQL, que es el
+    único camino por el que hoy puede aparecer —una importación, una migración,
+    una corrección a mano— y es exactamente el caso en que las dos consultas que
+    listan personas dejaban de coincidir entre sí.
+    """
+    admin.create_user(sol.token, username="ana", display_name="Ana", role=ROL_OPERADOR)
+    admin.create_user(sol.token, username="zoe", display_name="Zoe", role=ROL_OPERADOR)
+    with repo._connection() as conexion:
+        conexion.execute("UPDATE admin_users SET display_name='   ' WHERE username='zoe'")
+        conexion.commit()
+    disponibles = list(servicio.responsables_disponibles())
+    assert "zoe" in disponibles, "sin nombre visible tiene que listarse por su usuario"
+    # Ordenado por lo que se ve: 'Ana' antes que 'zoe', y no 'zoe' al principio
+    # por tener la columna cruda vacía.
+    assert disponibles.index("Ana") < disponibles.index("zoe")
+    assert disponibles == sorted(disponibles, key=str.lower)

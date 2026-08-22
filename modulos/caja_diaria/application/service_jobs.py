@@ -204,12 +204,27 @@ class ServiceJobsService:
         return (fila["display_name"] or fila["username"]), fila["id"]
 
     def responsables_disponibles(self) -> Sequence[str]:
-        """Las personas activas, del catálogo real. Sin lista cableada."""
+        """Las personas activas, del catálogo real. Sin lista cableada.
+
+        Ordena por el nombre que se ve y no por la columna `display_name`, igual
+        que `personas_para_comision`: quien no tenga uno cargado se muestra por
+        su usuario, y ordenar por la columna cruda lo mandaba al principio por
+        ser NULL, a un lugar que no se corresponde con nada de lo que está en
+        pantalla.
+
+        Hoy `create_user` no deja que eso pase —si el nombre visible viene vacío
+        lo reemplaza por el usuario—, así que por la puerta de entrada normal la
+        lista salía bien igual. Se unifica porque la fila puede llegar por otro
+        lado (SQL directo, una importación, una migración futura) y porque tener
+        dos consultas que dicen lo mismo de dos maneras es cómo empiezan las
+        pantallas que no coinciden entre sí.
+        """
         with self.repository._connection() as connection:
             filas = connection.execute(
-                "SELECT display_name, username FROM admin_users WHERE active = 1"
-                " ORDER BY display_name COLLATE NOCASE").fetchall()
-        return [(fila["display_name"] or fila["username"]) for fila in filas]
+                "SELECT COALESCE(NULLIF(TRIM(display_name), ''), username) AS visible"
+                " FROM admin_users WHERE active = 1"
+                " ORDER BY visible COLLATE NOCASE").fetchall()
+        return [fila["visible"] for fila in filas]
 
     def tipos_de_trabajo(self) -> Sequence[dict]:
         return self.repository.service_job_types()

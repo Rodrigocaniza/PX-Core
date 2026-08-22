@@ -1,0 +1,17 @@
+{
+  "mision": "BC-OPTICA-RESPONSABLES-ORDEN-VISIBLE-V1-026",
+  "fecha": "2026-08-22",
+  "origen": "RESPONSABLES-DISPONIBLES-ORDENA-POR-COLUMNA-CRUDA, anotado por V1-021 al arreglar el mismo defecto en personas_para_comision()",
+  "cerrados": [
+    {
+      "id": "RESPONSABLES-DISPONIBLES-ORDENA-POR-COLUMNA-CRUDA",
+      "donde": "modulos/caja_diaria/application/service_jobs.py, responsables_disponibles()",
+      "detalle": "ordenaba por la columna display_name y mostraba display_name or username. Quien no tuviera nombre visible se ordenaba por NULL -al principio- y se mostraba por su usuario, en un lugar que no se corresponde con nada de lo que esta en pantalla. Y un nombre de solo espacios pasaba el 'or' y salia como un renglon en blanco",
+      "alcanzabilidad": "NO alcanzable por la API publica. create_user hace nombre = display_name.strip() or usuario, asi que la fila nunca se escribe vacia por ese camino. No se pudo construir el fallo llamando al servicio, y esta dicho asi en el SUMMARY en vez de presentarlo como un bug de produccion que no es",
+      "por_que_se_arreglo_igual": "la fila puede llegar por SQL directo, una importacion o una migracion futura; y tener dos consultas que responden la misma pregunta de dos maneras es como terminan dos pantallas mostrando listas distintas. La otra ya estaba arreglada desde V1-021",
+      "arreglo": "la misma consulta que personas_para_comision: COALESCE(NULLIF(TRIM(display_name), ''), username) AS visible, y ORDER BY visible",
+      "prueba": "escribe la fila por SQL, que es el unico camino por el que hoy puede aparecer. Verificado que falla con la consulta vieja: assert 'zoe' in ['sol', '   ', 'Ana']",
+      "estado": "CERRADO"
+    }
+  ]
+}
