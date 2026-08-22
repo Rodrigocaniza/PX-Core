@@ -1,0 +1,11 @@
+{
+  "mission": "BC-HISTORIAL-CLIENTE-GLOBAL-MULTISUCURSAL-V1",
+  "generation": 1,
+  "base_snapshot": "f37ebd8f42456d99f6ec898c2e08d00067534403",
+  "implementation_head": "86f87b379d5366e0ee9e348787fa417ae7d47c9a",
+  "role_state": {"librarian": "PASS", "qa": "PASS", "auditor": "PASS"},
+  "artifact_consistency": "PASS",
+  "safe_closure": "PENDING_REMOTE_CI",
+  "production_changes": false,
+  "force_push": false
+}
