@@ -14,7 +14,7 @@
   ],
   "human_gate": {
     "por_que_existe": "lo que queda depende del hardware de la PC real y de la base productiva. Ninguna de las dos cosas esta en esta computadora.",
-    "cuanto_se_redujo": "en la ronda anterior eran ocho pasos, dos de ellos por trabajo que faltaba hacer aca (construir el paquete y respaldar la clave del emisor). Los dos estan hechos: el paquete esta construido, empaquetado y verificado con una ceremonia de 31 pasos contra los .exe, y el respaldo del emisor esta escrito y comprobado. Lo que queda es solo lo fisico.",
+    "cuanto_se_redujo": "Todo el trabajo ejecutable desde Casa esta hecho: el paquete esta construido, empaquetado y verificado con una ceremonia de 31 pasos contra los .exe, y el respaldo del emisor esta escrito y comprobado. Lo que queda es solo lo fisico.",
     "pasos": [
       {
         "n": 1,

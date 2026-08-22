@@ -1,6 +1,7 @@
 # BC SEGURIDAD V1 — resumen
 
 **Rama:** `feature/bc-security-installation-binding-v1-001`
+**HEAD de código y paquete verificado:** `40749f9e968071df0a9e72399444310ab73cd3b7` (`origin` idéntico, `0/0`, worktree limpio antes del cierre documental)
 **Base:** `origin/feature/bc-optica-comision-composturas-v1-021 @ 38ef01b`
 **Suite:** 1549 verdes, **0 rojas** (1369 verdes y 3 rojas antes de empezar; 1541 al congelar el paquete, +8 del cierre preinstalacion)
 **Paquete:** `BC-CAJA-1.0.0-rc.33-win64.zip`, verificado con `SMOKE_PAQUETE_OK pasos=31`

@@ -2,7 +2,10 @@
   "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
   "estado": "READY_FOR_PHYSICAL_PILOT",
   "rama": "feature/bc-security-installation-binding-v1-001",
-  "head": "19ee0477a36b639115e2b495fdffe5db225a5fe6",
+  "head_de_codigo_y_paquete_verificado": "40749f9e968071df0a9e72399444310ab73cd3b7",
+  "origin_head_al_verificar": "40749f9e968071df0a9e72399444310ab73cd3b7",
+  "ahead_behind": "0/0",
+  "worktree_limpio_al_cierre": true,
   "worktree": "C:/PX/SEC1",
   "paquete": {
     "zip": "releases/BC-CAJA-1.0.0-rc.33-win64.zip",
@@ -109,7 +112,7 @@
   ],
   "produccion_no_tocada": {
     "base_productiva_abierta": false,
-    "commits_nuevos": false,
-    "detalle": "ningun comando de esta sesion abrio la base de la Optica; el trabajo quedo en el worktree C:/PX/SEC1 sin commitear"
+    "estado_git": "este archivo integra el commit documental de cierre; su publicacion se verifica despues del push mediante HEAD=origin y 0/0",
+    "detalle": "ningun comando de esta sesion abrio la base de la Optica; la evidencia de codigo y paquete esta vinculada a 40749f9e968071df0a9e72399444310ab73cd3b7, base del commit documental de Artifact Consistency"
   }
 }

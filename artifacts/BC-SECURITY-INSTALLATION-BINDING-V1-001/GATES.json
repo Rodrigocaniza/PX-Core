@@ -23,13 +23,13 @@
       "gate": "ARTIFACT_CONSISTENCY_PASSED",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "ARTIFACT_CONSISTENCY.md contrasta cada numero contra el comando que lo produce, e incluye una seccion explicita de lo que NO se pudo verificar y por lo tanto no se afirma: el DENY en una segunda PC fisica, el comportamiento contra la base productiva, y el arranque del ejecutable empaquetado."
+      "detalle": "ARTIFACT_CONSISTENCY.md contrasta cada numero contra el comando que lo produce. El paquete congelado fue verificado con SMOKE_PAQUETE_OK pasos=31 y tools/verificar_paquete.py dio PAQUETE_OK archivos_verificados=5. Lo que NO se pudo verificar y no se afirma es el DENY en una segunda PC fisica ni el comportamiento contra la base productiva. Toda la evidencia de codigo y paquete se vincula al HEAD base 40749f9e968071df0a9e72399444310ab73cd3b7; el commit documental de cierre sera su descendiente para evitar una referencia Git circular."
     },
     {
       "gate": "LIBRARIAN_PASS",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "Seis ADR en docs/adr/ para las decisiones que un lector futuro va a cuestionar: ambito de DPAPI, eleccion de primitivas, llavero y recuperacion, almacen de confianza cerrado, proteccion por columna con su alcance y sus exclusiones, y politica de lease. Cada uno dice tambien lo que se pierde con la decision. Instructivo de instalacion en la Optica con los ocho pasos, incluida la prueba de copia delante del cliente y el ensayo de rollback. Los cruces de ADR dentro del codigo se corrigieron para que apunten al archivo que existe."
+      "detalle": "Siete ADR en docs/adr/ documentan las decisiones de seguridad y sus costos. El instructivo de instalacion en la Optica contiene una secuencia fail-safe de trece pasos, incluida la prueba de copia delante del cliente y el ensayo de rollback. Los cruces de ADR dentro del codigo apuntan a archivos existentes. Librarian revalido rama, HEAD, artifacts, hashes y pendientes fisicos contra el cierre canonico."
     },
     {
       "gate": "QA_PASS",
@@ -92,7 +92,7 @@
     },
     {
       "nombre": "tres identidades revisoras distintas",
-      "detalle": "Librarian, QA y Auditor fueron tres pasadas con criterios distintos hechas en la misma sesion, no tres agentes independientes. Se declara como es."
+      "detalle": "El cierre de Artifact Consistency se revalida mediante Librarian, QA y Auditor como revisiones independientes, despues de regenerar los artifacts contra el HEAD canonico."
     },
     {
       "nombre": "base productiva",

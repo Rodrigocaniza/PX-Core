@@ -8,6 +8,8 @@ redactado como si se hubiera podido.
 
 ## Git
 
+Revalidado para el cierre documental contra el HEAD de código y paquete `40749f9e968071df0a9e72399444310ab73cd3b7`: HEAD local y `origin/feature/bc-security-installation-binding-v1-001` identicos (`0/0`) y worktree limpio antes de regenerar estos artifacts. El commit que contiene este cierre documental es necesariamente descendiente de ese HEAD; no se intenta guardar el hash del propio commit dentro de sí mismo.
+
 | Afirmado | Fuente | Resultado |
 |---|---|---|
 | branch `feature/bc-security-installation-binding-v1-001` | `git rev-parse --abbrev-ref HEAD` | coincide |
