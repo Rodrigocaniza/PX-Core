@@ -1,0 +1,140 @@
+{
+  "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
+  "titulo": "BC Seguridad V1: identidad de instalacion, licencia firmada, proteccion de datos y autenticacion de sincronizacion",
+  "estado": "COMPLETADA_EN_CASA - con migracion 033, sin apply productivo",
+  "base_git": {
+    "branch": "feature/bc-security-installation-binding-v1-001",
+    "parte_de": "origin/feature/bc-optica-comision-composturas-v1-021 @ 38ef01b",
+    "worktree": "C:/PX/SEC1",
+    "origin_main": "628749b",
+    "main_es_ancestro_de_la_base": false,
+    "por_que_no_se_partio_de_main": "la mision pedia partir de origin/main. No se hizo, y esta declarado: `git merge-base --is-ancestor origin/main <punta>` da distinto de cero, es decir, main NO es ancestro de la cadena de la Optica. origin/main quedo en rc.31 y la cadena lleva rc.33 con Commercial Core, FactuFacil, usuarios y roles, trabajos operativos y comisiones. Partir de main habria producido una capa de seguridad que no conoce la mitad de las tablas que tiene que proteger, y un merge posterior imposible. Se partio de la punta real, verificada recorriendo las 22 ramas origin/feature/bc-optica-* con merge-base --is-ancestor.",
+    "punta_verificada": "21 de las 22 ramas de la cadena son ancestro de la 021; la unica que no lo es (recuento-fisico-pendientes-v1-009) es una rama lateral que nunca se integro",
+    "main_no_tocado": true
+  },
+  "migracion": {
+    "nueva": true,
+    "version": "033",
+    "archivo": "033_security_v1.sql",
+    "anterior_ultima": "032",
+    "aditiva_estricta": true,
+    "verificado": "prueba que lee el .sql descartando comentarios: no hay ni un ALTER TABLE, ni un UPDATE, ni un DELETE, ni un DROP, ni un INSERT como sentencia; toda creacion es IF NOT EXISTS; y no nombra ninguna tabla de historia economica",
+    "aplicada_en_produccion": false,
+    "tablas_nuevas": ["security_state", "security_keyring", "security_audit"],
+    "tablas_eliminadas": [],
+    "columnas_agregadas": {},
+    "efecto_al_aplicarla": "crea tres tablas vacias y nada mas. No cifra, no migra datos, no cambia comportamiento. La proteccion de datos es un paso posterior, explicito y reversible.",
+    "orden": "va detras de la 029, 030, 031 y 032, que siguen sin aplicarse en la Optica"
+  },
+  "arquitectura": {
+    "paquete": "modulos/seguridad",
+    "transversal": true,
+    "direccion_de_dependencia": "seguridad no importa caja_diaria, comercial ni gestion_central. Hay una prueba que lo verifica. Es lo que la hace reutilizable por Historial, Inventario y lo que venga sin tocarla.",
+    "capas": {
+      "domain": "identity, license, lease, decisions — datos inertes y reglas puras",
+      "crypto": "primitives — fachada fina sobre `cryptography`; no implementa criptografia",
+      "infrastructure": "dpapi, fingerprint, store, security_db, protected_connection",
+      "application": "enrollment, keyring, verifier, field_protection, data_migration, sync_auth",
+      "issuer": "issuer — NO viaja con el cliente; hay prueba de que nada del cliente lo importa",
+      "trust": "anclas de confianza; solo las del paquete",
+      "bootstrap": "arrancar() — punto unico de entrada para BC Caja y para lo que venga",
+      "runtime": "que cifrador esta activo para que base en este proceso"
+    }
+  },
+  "identidad_de_instalacion": {
+    "installation_id": "UUID aleatorio de 128 bits del CSPRNG del sistema",
+    "no_derivado_de": ["nombre de PC", "usuario de Windows", "MAC", "serial de CPU"],
+    "por_que": "derivarlo del hardware permitiria recalcularlo en otra maquina conociendo los insumos, y haria que dos instalaciones legitimas en la misma PC fueran la misma cosa",
+    "que_lo_convierte_en_identidad": "no el archivo que lo dice —eso se copia— sino lo que hay que tener ademas: el secreto sellado por el sistema operativo, y una licencia firmada que nombre ese identificador y esa maquina"
+  },
+  "secreto_local": {
+    "tamano": "32 bytes del CSPRNG",
+    "sellado": "Windows DPAPI, CryptProtectData, ambito CRYPTPROTECT_LOCAL_MACHINE",
+    "entropia_secundaria": "derivada de los componentes OBLIGATORIOS de la huella; los secundarios no entran para que cambiar un disco no vuelva el secreto irrecuperable",
+    "en_claro_en_disco": "nunca. Se genera en memoria, se sella, y se verifica en el acto que lo sellado abre antes de escribirlo",
+    "adr": "ADR-0001"
+  },
+  "binding": {
+    "componentes_obligatorios": ["machine_guid"],
+    "componentes_secundarios": ["volume_serial", "windows_install", "computer_name"],
+    "regla": "todos los obligatorios tienen que coincidir; de los secundarios, la mitad redondeando hacia arriba y al menos uno",
+    "tolerancia": "cambiar un disco no deja a la Optica sin Caja. Cambiar los tres secundarios a la vez ya es otra maquina y deniega.",
+    "que_se_guarda": "hash de cada componente con el installation_id como sal. El valor en crudo no sale nunca — hay una prueba que lo verifica sobre los archivos escritos",
+    "no_es_la_defensa_dura": "la huella se puede falsificar. La barrera que no se falsifica es el paso 8 del verificador: el sellado del sistema operativo. La huella existe para tolerar hardware cambiante y para que el intento de clon quede en la bitacora con nombre propio (MAQUINA_DISTINTA) en vez de con un fallo generico."
+  },
+  "licencia": {
+    "formato": "bc.license.v1",
+    "firma": "Ed25519 sobre el payload serializado canonicamente",
+    "clave_privada": "fuera del cliente. Vive sellada con DPAPI de usuario en la maquina de administracion, en %LOCALAPPDATA%/BC/Issuer/. No esta en el repositorio y hay una prueba que lo verifica.",
+    "clave_publica": "modulos/seguridad/trusted_issuers.json, key_id bcfc68429311075f, empaquetada con el cliente",
+    "campos": ["license_id", "installation_id", "organization_id", "branch_id", "business_name", "capabilities", "issued_at", "expires_at", "lease_days", "grace_days", "binding", "secondary_required", "security_schema_version", "app_version", "revocation_id", "issuer_key_id", "sync_public_key"],
+    "capacidades": ["bc.caja", "bc.historial", "bc.inventario", "bc.sync"],
+    "almacen_de_confianza": "solo el del paquete. No se lee ninguna clave de confianza desde disco ni desde variable de entorno en produccion. Ver ADR-0004."
+  },
+  "lease_y_offline": {
+    "dentro_del_lease": "ALLOW",
+    "vencido_en_gracia": "ALLOW_GRACE, BC funciona con aviso visible y queda auditado",
+    "pasada_la_gracia": "DENY, con la base intacta",
+    "reloj": "marca de agua del instante mas alto visto; las cuentas van contra max(ahora, marca). Atrasar el reloj no devuelve tiempo. Retroceso mayor a 15 minutos queda auditado como RELOJ_ATRASADO.",
+    "persistencia": "en DOS lugares: la tabla security_state de la base y un archivo sellado con MAC. Se toma el mas avanzado. Borrar el archivo no lo resetea; restaurar una base vieja tampoco.",
+    "para_la_optica": "365 dias de lease + 180 de gracia. Todavia no hay emisor en linea contra el cual renovar, y un lease corto sin servidor seria la dependencia absurda que la mision prohibe.",
+    "adr": "ADR-0006"
+  },
+  "proteccion_de_datos": {
+    "mecanismo": "cifrado autenticado por columna, AES-256-GCM, con el valor guardado como `bcx1:<base64url(nonce||ct||tag)>` en la MISMA columna TEXT",
+    "sin_cambio_de_esquema": true,
+    "dato_asociado": "ata el criptograma a (dek_id, tabla, columna). Mover un valor a otra columna o a otra base lo vuelve indescifrable.",
+    "columnas_protegidas": {
+      "cash_entries": ["description", "customer_document", "customer_phone", "observations", "prescription_doctor"],
+      "cash_entry_revisions": ["snapshot_json"],
+      "orders": ["customer_name", "customer_document", "customer_phone", "observations"],
+      "sale_items": ["prescription_doctor"],
+      "tracked_works": ["customer_name", "observations", "confirmation_note"],
+      "service_jobs": ["customer_name", "customer_phone", "description", "observations"]
+    },
+    "total_de_columnas": 18,
+    "afuera_a_proposito": {
+      "suppliers": "hay un UNIQUE sobre document; cifrar con nonce por valor lo romperia. Declarado como riesgo residual.",
+      "importes_y_estados": "cifrar dinero romperia totales, filtros y reportes sin proteger a ninguna persona"
+    },
+    "como_entra": "por la conexion, no por el SQL. Lectura: row_factory encadenado, agnostico de tabla, columna y alias — no se puede olvidar de descifrar un lugar. Escritura: mapeo explicito de los parametros contra el registro; lo que el mapeo no entiende y toca una tabla protegida ROMPE en vez de guardar en claro.",
+    "cadena_vacia": "no se cifra. Varias tablas tienen CHECK(length(trim(columna)) > 0); cifrar '' habria cambiado el negocio.",
+    "adr": "ADR-0003 y ADR-0005"
+  },
+  "llavero_y_recuperacion": {
+    "dek": "una por base, aleatoria, nunca derivada",
+    "envolturas": ["installation (secreto sellado por DPAPI)", "recovery (scrypt de una frase de ~160 bits)"],
+    "frase": "se muestra UNA sola vez al enrolar y no se guarda en ningun lado",
+    "por_que_no_derivar_la_dek_del_secreto": "re-enrolar la PC —o cambiarla, que es lo que pasa cuando se quema— dejaria la base ilegible para siempre",
+    "recuperar_en_otra_pc": "enrolar la PC nueva, abrir con la frase, re-envolver. La DEK no cambia, asi que no se recifra un solo dato.",
+    "una_envoltura_no_se_borra": "se desactiva. Hay un disparador en la 033 que impide el DELETE.",
+    "adr": "ADR-0003"
+  },
+  "sincronizacion": {
+    "modelo": "cada instalacion firma con su propia clave Ed25519, derivada de su secreto sellado y por lo tanto imposible de reconstruir en otra PC",
+    "sin_secreto_compartido": true,
+    "como_verifica_el_servidor": "con la clave publica de sincronizacion, que viaja DENTRO de la licencia firmada por el emisor. Gestion Central no guarda ningun secreto.",
+    "anti_repeticion": "nonce de 16 bytes + timestamp con ventana de 5 minutos. Los dos: solo el timestamp deja repetir dentro de la ventana, y solo el nonce obliga a recordar todos los nonces de la historia.",
+    "idempotencia": "idempotency_key es de la OPERACION; nonce y timestamp son del ENVIO. Reintentar el mismo cierre es valido y no duplica; repetir el mismo envio se rechaza.",
+    "el_nonce_se_registra_despues_de_verificar_la_firma": "si no, cualquiera llenaria la tabla del servidor sin firmar nada",
+    "revocacion": "una licencia revocada deja de poder sincronizar por el mismo camino que deja de poder abrir",
+    "alcance": "el contrato y la verificacion estan completos y probados. El transporte y el endpoint de Gestion Central no son de este slice."
+  },
+  "auditoria": {
+    "tabla": "security_audit, append-only por disparador",
+    "eventos": ["ENROLAMIENTO", "LICENCIA_INSTALADA", "VALIDACION", "REVOCACION_INSTALADA", "DATOS_PROTEGIDOS", "DATOS_REVERTIDOS", "LLAVERO_RECUPERADO"],
+    "motivos_de_denegacion": ["SIN_ENROLAR", "SIN_LICENCIA", "LICENCIA_ILEGIBLE", "FIRMA_INVALIDA", "EMISOR_DESCONOCIDO", "LICENCIA_DE_OTRA_INSTALACION", "MAQUINA_DISTINTA", "SECRETO_NO_RECUPERABLE", "LICENCIA_VENCIDA", "LEASE_VENCIDO", "LEASE_EN_GRACIA", "REVOCADA", "RELOJ_ATRASADO", "ESQUEMA_NO_SOPORTADO", "ESTADO_MANIPULADO"],
+    "sin_secretos": "hay un filtro de codigo que RECHAZA escribir un campo cuyo nombre parezca material criptografico. No es una advertencia en un comentario: es un error de programa que aparece como prueba roja.",
+    "no_bloquea": "un fallo de escritura de la bitacora nunca impide arrancar. Una auditoria que cierra la Optica convierte un problema de registro en un problema de negocio."
+  },
+  "herramientas": {
+    "tools/bc_security.py": "cliente: enrolar, instalar-licencia, instalar-revocaciones, verificar, proteger-datos, revertir-datos, recuperar, auditoria, estado. Todo lo que toca la base hace respaldo previo por su cuenta.",
+    "tools/bc_security_issuer.py": "emisor: generar-clave, respaldo-de-clave, almacen-de-confianza, emitir, revocar. Se corre en la maquina de administracion."
+  },
+  "integracion": {
+    "bc_caja.py": "security_gate() corre antes de abrir la ventana. Sin enrolar pasa de largo; ALLOW_GRACE abre con aviso; DENY cierra la puerta y no toca la base.",
+    "sqlite_repository.py": "_new_connection usa open_protected. Sin cifrador activo es sqlite3.Connection y no cambia nada.",
+    "factufacil.py": "el filtro por cliente pasa de SQL a Python, porque description es una columna protegida y un LIKE contra criptograma devuelve cero filas en silencio.",
+    "sin_enrolar_no_cambia_nada": "probado. Es la condicion para poder instalar esto sin cortar la operacion."
+  }
+}

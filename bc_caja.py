@@ -127,6 +127,44 @@ def first_run_check(data_directory: Path) -> int:
     return 0
 
 
+def security_gate() -> "object | None":
+    """Autoriza esta instalacion antes de abrir la ventana, y activa el cifrado.
+
+    Devuelve el resultado del arranque de seguridad, o `None` si la capa no
+    esta disponible en este entorno.
+
+    Dos reglas gobiernan esta funcion:
+
+      * Una BC **sin enrolar** pasa de largo y abre como abria siempre. Es lo
+        que permite instalar la capa sin cortar la operacion.
+      * Un DENY cierra la puerta y **no toca la base**. Los datos quedan
+        enteros, que es lo unico que hace posible el rollback.
+    """
+    from modulos.caja_diaria.config import resolve_data_paths
+    from modulos.seguridad import bootstrap as seguridad
+
+    paths = resolve_data_paths()
+    arranque = seguridad.arrancar(seguridad.build_context(paths.database))
+    if arranque.allowed:
+        if arranque.degraded:
+            _avisar("BC Caja", arranque.message)
+        return arranque
+    _avisar("BC Caja", arranque.message, error=True)
+    return None
+
+
+def _avisar(titulo: str, mensaje: str, *, error: bool = False) -> None:
+    if not mensaje:
+        return
+    try:
+        from tkinter import messagebox
+
+        (messagebox.showerror if error else messagebox.showwarning)(titulo, mensaje)
+    except Exception:
+        # Sin entorno grafico —arranque desde consola— el mensaje va a stdout.
+        print(mensaje)
+
+
 def main(argv=None) -> int:
     args = _arguments(argv)
     if args.first_run_check:
@@ -135,6 +173,9 @@ def main(argv=None) -> int:
         return first_run_check(args.data_dir)
     if args.self_check:
         return self_check(args.data_dir)
+
+    if security_gate() is None:
+        return 2
 
     enable_windows_dpi_awareness()
     import customtkinter as ctk

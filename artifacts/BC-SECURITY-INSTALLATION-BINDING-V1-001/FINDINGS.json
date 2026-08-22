@@ -1,0 +1,146 @@
+{
+  "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
+  "cerrados_en_esta_mision": [
+    {
+      "id": "LA-BITACORA-DE-REVISIONES-GUARDABA-LA-VENTA-ENTERA-EN-CLARO",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "detalle": "Se protegieron las columnas de cash_entries y la base robada seguia diciendo el nombre del paciente. cash_entry_revisions.snapshot_json guarda la entrada COMPLETA como JSON en cada guardado: nombre, telefono, documento, observaciones y receta, todo legible, en el mismo archivo. Proteger las columnas y dejar el snapshot habria sido teatro: el dato estaba a una consulta de distancia.",
+      "correccion": "cash_entry_revisions.snapshot_json entra al registro de columnas protegidas. Se verifico que nadie consulta esa columna en SQL —solo se lee y se hace json.loads— asi que cifrarla no rompe ninguna consulta.",
+      "prueba": "test_los_datos_del_paciente_no_se_leen_con_sqlite_normal y test_la_bitacora_de_revisiones_esta_dentro",
+      "como_se_encontro": "la prueba no mira solo las columnas: busca los literales del paciente en los BYTES CRUDOS del archivo. Las columnas ya daban verde y el archivo seguia diciendo MARIA GONZALEZ."
+    },
+    {
+      "id": "DESACTIVAR-UNA-ENVOLTURA-APAGABA-EL-CIFRADO",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "detalle": "El arranque decidia si activar el cifrador preguntando has_data_key(), que responde si hay una envoltura ACTIVA. Con la envoltura desactivada —o corrupta— la respuesta era 'no hay clave de datos', y BC concluia que esta base no esta protegida: abria sin cifrador sobre datos cifrados. Habria mostrado criptograma en pantalla y, mucho peor, habria empezado a guardar datos nuevos en claro al lado de los viejos cifrados, mezclando los dos mundos en la misma tabla.",
+      "correccion": "se separo protection_configured() —esta base tiene clave de datos, se pueda abrir hoy o no— de has_data_key() —se puede abrir hoy—. El arranque usa la primera. Si la base esta protegida y la clave no abre, DENIEGA; los datos quedan enteros esperando la frase de recuperacion.",
+      "prueba": "test_sin_clave_de_datos_pero_con_datos_cifrados_no_abre_en_claro"
+    },
+    {
+      "id": "LLEVARSE-SOLO-LA-BASE-ABRIA-SIN-CIFRADOR",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "detalle": "Variante del anterior y mas facil de ejecutar: copiar unicamente bc_caja.sqlite3 a una PC con BC instalado y sin enrolar. Como esa PC no esta enrolada, la capa contestaba 'no aplica' y BC abria como siempre —que es la regla correcta para una base normal— pero la base copiada estaba cifrada. Mismo final: criptograma en pantalla y escrituras nuevas en claro sobre una base ajena.",
+      "correccion": "antes de concluir 'no aplica', el arranque le pregunta a la BASE si esta protegida. Si lo esta y esta instalacion no esta enrolada, deniega con un mensaje que dice exactamente eso. Ante la duda —una base que no se puede interrogar— se la trata como protegida: se resuelve del lado que no arruina datos.",
+      "prueba": "test_llevarse_solo_la_base_tampoco_sirve"
+    },
+    {
+      "id": "UN-INSERT-CON-UNA-FUNCION-ADENTRO-ESCRIBIA-EN-CLARO",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "detalle": "El patron que reconoce un INSERT usaba [^()]* para la lista de VALUES, asi que cualquier sentencia con parentesis anidados —coalesce(?, '')— no coincidia. No coincidir significaba 'esta sentencia no tiene columnas protegidas', es decir, guardar en claro y sin decir una palabra. Es el peor final posible para esta capa: la filtracion silenciosa.",
+      "correccion": "dos cambios. (1) El VALUES se delimita con un recorrido que cuenta parentesis y respeta comillas, no con una expresion regular; asi soporta funciones anidadas y tambien el ON CONFLICT(...) que el repositorio usa en casi todos los guardados. (2) Un detector suelto identifica primero la tabla destino: si tiene columnas protegidas y el analisis fino no cierra, se levanta StatementNotUnderstood. Lo que el mapeo no entiende ahora rompe en vez de filtrar.",
+      "prueba": "test_un_insert_con_expresion_en_columna_protegida_se_rechaza, y las 148 de la suite que ejercen los guardados reales del repositorio"
+    },
+    {
+      "id": "UNA-REVOCACION-POR-ERROR-ERA-IRREVERSIBLE",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "detalle": "La revocacion se persiste en el estado del lease para que borrar revocations.bcrl no la deshaga. Eso es correcto y la volvia eterna: la comprobacion del flag persistido corria ANTES de mirar una lista nueva, asi que ninguna lista posterior podia levantarla. Un identificador mal tipeado por el administrador mataba una instalacion sin vuelta, y la unica salida habria sido re-enrolar, que invalida la clave de datos.",
+      "correccion": "se reordeno: primero se procesa la lista, y solo despues se decide. Una lista con serial MAYOR al conocido es autoritativa y reemplaza lo que se sabia, en los dos sentidos. Una lista con serial menor se sigue ignorando, que es lo que impide desrevocarse reponiendo un archivo viejo.",
+      "prueba": "test_una_lista_mas_nueva_puede_deshacer_una_revocacion_equivocada, junto con test_reponer_una_lista_vieja_no_desrevoca que verifica que la puerta no quedo abierta de mas"
+    },
+    {
+      "id": "EL-FILTRO-DE-SECRETOS-DE-LA-BITACORA-ERA-INUSABLE",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "detalle": "El filtro que impide escribir material criptografico en la auditoria comparaba por subcadena. Rechazaba issuer_key_id y dek_id —que son identificadores, no claves— y habria rechazado cualquier campo con 'machine' adentro, porque contiene 'mac'. Un control que da falsos positivos en el uso normal no se corrige: se apaga. Ese era el riesgo real.",
+      "correccion": "se compara por palabra y no por subcadena, y un nombre terminado en _id se acepta como identificador. Auditar sin poder nombrar con que clave se firmo no habria servido de nada.",
+      "prueba": "test_la_bitacora_rechaza_campos_que_parecen_material y test_la_bitacora_si_acepta_identificadores"
+    },
+    {
+      "id": "CONEXIONES-FILTRADAS-EN-EL-REGISTRO-DE-NONCES",
+      "gravedad": "BAJA",
+      "estado": "CERRADO",
+      "detalle": "NonceLedger usaba `with self._connect()`, que hace commit o rollback pero NO cierra. En el camino de la excepcion —justamente el de la credencial repetida, que es el que mas se va a ejercer bajo ataque— la conexion quedaba abierta.",
+      "correccion": "contextlib.closing en los tres metodos.",
+      "prueba": "test_una_credencial_no_se_puede_presentar_dos_veces"
+    },
+    {
+      "id": "DESCIFRAR-PROBABA-VEINTIUNA-COMBINACIONES-POR-VALOR",
+      "gravedad": "BAJA",
+      "estado": "CERRADO",
+      "detalle": "La lectura no sabe de que columna viene un valor, asi que probaba los datos asociados de las 21 combinaciones registradas hasta acertar. Una pantalla de historial descifra miles de valores; el trabajo desperdiciado se multiplicaba.",
+      "correccion": "se usa cursor.description como PISTA para probar primero la columna que la consulta nombro. Es una optimizacion pura: si la consulta usa un alias —FactuFacil llama `cliente` a `description`— la pista no acierta y se recorre la lista completa igual. El resultado no depende de que la pista sea correcta, y hay una prueba que lo fija.",
+      "prueba": "test_la_pista_de_columna_es_solo_una_optimizacion"
+    }
+  ],
+  "defectos_preexistentes_encontrados_y_no_corregidos": [
+    {
+      "id": "PRUEBA-DE-SESION-DE-OPERADORA-DEPENDE-DE-LA-HORA-DEL-DIA",
+      "gravedad": "BAJA",
+      "archivo": "tests/caja_diaria/test_v1019b_login_operadora.py::test_la_sesion_dura_la_jornada_y_no_veinte_minutos",
+      "detalle": "La sesion de operadora vence al fin de la jornada, y la prueba afirma que dura mas de 20 minutos. Corriendo la suite despues de las 23:40 quedan menos de 20 minutos de jornada y la prueba falla. Se observo fallando a las 23:50 y pasando a las 20:25 y a las 00:15 del mismo dia, con el mismo codigo.",
+      "por_que_no_se_corrigio": "es de la V1-019B y no tiene nada que ver con este slice. La mision pide no mezclar. Queda anotado para quien lo tome.",
+      "arreglo_sugerido": "congelar el reloj en la prueba, o afirmar contra el fin de jornada calculado en vez de contra un umbral fijo"
+    },
+    {
+      "id": "PRUEBA-DE-VERSION-DEL-PAQUETE-ROJA-EN-LA-BASE",
+      "gravedad": "INFORMATIVA",
+      "archivo": "tests/caja_diaria/test_rc18_rc20_integration.py::VersionDelPaqueteTests::test_el_valor_de_respaldo_sigue_al_paquete",
+      "detalle": "Ya fallaba antes de tocar una sola linea. Se midio la base al empezar justamente para poder afirmar esto sin adivinar.",
+      "por_que_no_se_corrigio": "preexistente y ajeno al slice"
+    }
+  ],
+  "decisiones_de_diseno_deliberadas": [
+    {
+      "id": "SUPPLIERS-QUEDA-SIN-CIFRAR-EN-V1",
+      "detalle": "idx_suppliers_documento_unico es un UNIQUE sobre suppliers.document. El cifrado autenticado usa un nonce por valor, asi que dos proveedores con el mismo RUC dejarian de colisionar y el indice dejaria de cumplir su funcion. Protegerlo pide un indice ciego con clave, que es otro slice. Se declara como riesgo residual en vez de romper una invariante o cifrar a medias."
+    },
+    {
+      "id": "EL-AAD-NO-ATA-LA-FILA",
+      "detalle": "El dato asociado ata el criptograma a (dek_id, tabla, columna) pero no a la fila. Atar la fila obligaria a conocer la clave primaria en cada UPDATE, y quien puede reordenar filas de un SQLite ya puede reordenarlas sin tocar el cifrado. El costo no compraba nada. Ver ADR-0005."
+    },
+    {
+      "id": "DPAPI-DE-MAQUINA-Y-NO-DE-USUARIO",
+      "detalle": "Los dos ambitos frenan igual la amenaza priorizada —llevarse los archivos a otra PC—. El de usuario habria roto BC al iniciar sesion con otra cuenta de Windows sobre la misma instalacion, que en la Optica pasa. Se elige el de maquina y se declara lo que se pierde: en la PC autorizada, otro proceso local puede pedirle a Windows que abra el blob. Ver ADR-0001."
+    },
+    {
+      "id": "EL-ALMACEN-DE-CONFIANZA-NO-SE-AMPLIA-DESDE-EL-DISCO",
+      "detalle": "Rotar la clave del emisor exige una version nueva del paquete. Es un costo real y aceptado: un cliente que acepta anclas de confianza nuevas desde un archivo que esta a su lado no esta atado a nada. Ver ADR-0004."
+    },
+    {
+      "id": "SE-AGREGA-LA-DEPENDENCIA-cryptography",
+      "detalle": "La alternativa era implementar Ed25519 y un AEAD en Python puro para no sumar una rueda binaria al paquete. Eso es exactamente la criptografia artesanal que la mision prohibe, sin tiempo constante y sin auditoria, para ahorrar una dependencia que tiene rueda para Windows y soporte de PyInstaller. Ver ADR-0002."
+    },
+    {
+      "id": "LEASE-LARGO-PARA-LA-OPTICA",
+      "detalle": "La politica de lease existe y esta probada en los tres tramos. Para la instalacion real se emite con 365 dias y 180 de gracia porque todavia no hay un emisor en linea contra el cual renovar: un lease corto sin servidor seria la dependencia absurda que la mision prohibe. Cuando Gestion Central exista, el mismo mecanismo renueva solo."
+    }
+  ],
+  "riesgos_residuales": [
+    {
+      "id": "MOVIMIENTOS-TXT-EN-TEXTO-PLANO",
+      "gravedad": "MEDIA",
+      "detalle": "LegacyMovementsExporter escribe Datos/movimientos.txt en texto plano, fuera de la base. Este slice no lo toco. Un pendrive con ese archivo sigue diciendo lo que dice.",
+      "siguiente_paso": "decidir si el exportador legacy sigue haciendo falta; si sigue, protegerlo o restringir donde escribe"
+    },
+    {
+      "id": "BC-ABIERTO-EN-LA-PC-AUTORIZADA",
+      "gravedad": "MEDIA",
+      "detalle": "Nada de esto protege contra alguien sentado frente a la PC autorizada con BC abierto. La mision lo declara asi: la amenaza priorizada es la extraccion digital, no el acceso fisico autorizado."
+    },
+    {
+      "id": "EL-CLON-EN-LA-MISMA-MAQUINA",
+      "gravedad": "BAJA",
+      "detalle": "Copiar la instalacion a otra carpeta de la MISMA PC produce una copia que funciona. Es la consecuencia directa del ambito de maquina de DPAPI (ADR-0001) y no es la amenaza priorizada: quien ya esta en esa PC ya tiene la instalacion original."
+    },
+    {
+      "id": "SIN-VALIDACION-CONTRA-OTRA-PC-REAL",
+      "gravedad": "MEDIA",
+      "detalle": "Que el blob sellado con DPAPI real NO abra en otra computadora no se puede probar desde una sola maquina. La suite lo ejerce con un sellador simulado, y hay pruebas contra el DPAPI real de esta Windows para que la simulacion no sea la unica evidencia. La verificacion contra dos PCs distintas es el paso 7 del HUMAN_GATE y esta declarada como pendiente, no como hecha."
+    },
+    {
+      "id": "PERDER-LA-FRASE-Y-LA-PC",
+      "gravedad": "ALTA-SI-OCURRE",
+      "detalle": "Es el unico camino de perdida total que este diseno deja abierto, y es inherente a cifrar. Esta escrito en la salida del enrolamiento, en el CLI y en el instructivo. Mitigacion: la frase se muestra en el paso 3 del instructivo con la instruccion de anotarla en papel antes de seguir."
+    },
+    {
+      "id": "REVOCACION-SIN-CANAL",
+      "gravedad": "BAJA",
+      "detalle": "Hoy la lista de revocacion se instala a mano. Hasta que exista el canal de sincronizacion, revocar una instalacion exige llegar a esa PC. El formato, la firma, el serial monotono y la persistencia ya estan; falta el transporte."
+    }
+  ]
+}

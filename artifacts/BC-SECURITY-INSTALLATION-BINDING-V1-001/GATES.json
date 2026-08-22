@@ -1,0 +1,85 @@
+{
+  "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
+  "cadena": [
+    {
+      "gate": "VERIFICATION_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "Se verifico el estado en vez de asumirlo, y el primer hallazgo cambio la mision: la instruccion decia partir de origin/main, y `git merge-base --is-ancestor origin/main <punta de la cadena>` devuelve distinto de cero. main quedo en 628749b (rc.31) y la cadena de la Optica lleva rc.33. Se recorrieron las 22 ramas origin/feature/bc-optica-* con merge-base para determinar la punta real —21 son ancestro de la 021, la 009 es lateral— y se partio de ahi, declarandolo. Ademas se midio la suite ANTES de tocar una linea: 1369 verdes, 3 rojas, con los nombres anotados, para no poder confundir despues una roja preexistente con una regresion."
+    },
+    {
+      "gate": "DOMAIN_RESEARCH",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "Se investigo antes de decidir, en los puntos donde la decision dependia del codigo real y no de una preferencia. (1) Esquema: se volco el esquema completo corriendo la cadena de migraciones, y de ahi salio el registro de columnas protegidas — no de una lista imaginada. (2) Consultas: se buscaron todos los LIKE, WHERE, ORDER BY y GROUP BY sobre columnas candidatas; aparecieron exactamente dos que rompian (search_untracked_orders y el filtro de cliente de FactuFacil) y se movieron a Python. (3) Indices y disparadores: se leyeron los CHECK y los UNIQUE de las seis tablas; de ahi salieron dos reglas de diseno —no cifrar la cadena vacia, y dejar suppliers afuera por su UNIQUE— y el manejo del disparador de sale_items. (4) Conexiones: se enumeraron los siete sitios de produccion que abren la base, para saber donde entra la proteccion. (5) Criptografia: se comprobo que no habia ni `cryptography` ni `pynacl` instalados, y se decidio con ADR en vez de improvisar."
+    },
+    {
+      "gate": "PACKAGING_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "Migracion 033 creada y aplicada sobre base limpia dentro de la suite. Estrictamente aditiva, verificado por prueba que lee el .sql. `cryptography>=43,<47` agregada a requirements.txt con el motivo escrito al lado. NO se construyo el paquete PyInstaller en esta sesion: eso queda declarado como pendiente y como paso 1 del HUMAN_GATE, en vez de afirmar que el ejecutable arranca."
+    },
+    {
+      "gate": "ARTIFACT_CONSISTENCY_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "ARTIFACT_CONSISTENCY.md contrasta cada numero contra el comando que lo produce, e incluye una seccion explicita de lo que NO se pudo verificar y por lo tanto no se afirma: el DENY en una segunda PC fisica, el comportamiento contra la base productiva, y el arranque del ejecutable empaquetado."
+    },
+    {
+      "gate": "LIBRARIAN_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "Seis ADR en docs/adr/ para las decisiones que un lector futuro va a cuestionar: ambito de DPAPI, eleccion de primitivas, llavero y recuperacion, almacen de confianza cerrado, proteccion por columna con su alcance y sus exclusiones, y politica de lease. Cada uno dice tambien lo que se pierde con la decision. Instructivo de instalacion en la Optica con los ocho pasos, incluida la prueba de copia delante del cliente y el ensayo de rollback. Los cruces de ADR dentro del codigo se corrigieron para que apunten al archivo que existe."
+    },
+    {
+      "gate": "QA_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "148 pruebas nuevas en tests/seguridad. Las de aceptacion A a L cubren las doce letras de la mision, con la letra en el nombre de la clase para que la trazabilidad no dependa de una tabla que alguien mantenga. Ademas: pruebas contra el DPAPI REAL de esta Windows para que el sellador simulado no sea la unica evidencia; pruebas de contrato que verifican estaticamente que el cliente no importa el emisor, que no hay clave privada en el repositorio, que el almacen de confianza se ignora cuando el ejecutable esta congelado, que la 033 es aditiva, y que ninguna consulta de produccion compara, ordena ni agrupa por una columna protegida. Suite completa: 1519 verdes, 1 roja preexistente."
+    },
+    {
+      "gate": "AUDITOR_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "La revision encontro ocho defectos reales y se corrigieron antes del commit, cada uno con su prueba. Los cuatro graves comparten la misma forma y son los que importan: la proteccion parecia funcionar y no protegia. (1) La bitacora de revisiones guardaba la venta entera en claro, asi que cifrar las columnas era teatro — lo destapo la prueba que busca al paciente en los bytes crudos del archivo, no en las columnas. (2) Desactivar una fila del llavero apagaba el cifrado y BC habria abierto guardando datos nuevos en claro al lado de los viejos cifrados. (3) Copiar solo el .sqlite3 a una PC sin enrolar producia lo mismo. (4) Un INSERT con una funcion adentro no coincidia con el patron, y no coincidir significaba escribir en claro sin decir una palabra. Ver FINDINGS.json."
+    },
+    {
+      "gate": "READY_FOR_COMMIT",
+      "estado": "PASS",
+      "mecanismo": "REAL"
+    }
+  ],
+  "suite": {
+    "base_antes_del_slice": {"verdes": 1369, "rojas": 3},
+    "rojas_de_la_base": [
+      "tests/caja_diaria/test_rc18_rc20_integration.py::VersionDelPaqueteTests::test_el_valor_de_respaldo_sigue_al_paquete",
+      "tests/gestion_central/test_ui_interactions.py::test_refresh_and_filters_have_visible_feedback",
+      "tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence"
+    ],
+    "despues_del_slice": {"verdes": 1519, "rojas": 1},
+    "rojas_despues": [
+      "tests/caja_diaria/test_rc18_rc20_integration.py::VersionDelPaqueteTests::test_el_valor_de_respaldo_sigue_al_paquete"
+    ],
+    "cuadra": "1369 de base + 2 que eran inestables y ahora pasaron + 148 nuevas = 1519. Ninguna roja nueva.",
+    "regresiones_atribuibles_al_slice": 0,
+    "suite_de_seguridad": 148
+  },
+  "mecanismos_no_disponibles": [
+    {
+      "nombre": "ChainState externo",
+      "detalle": "no existe un runner de ChainState en este repo. La cadena se ejecuto como revision disciplinada dentro de esta sesion, igual que en V1-019B, V1-020 y V1-021. Decir que corrio un runner externo seria falso."
+    },
+    {
+      "nombre": "tres identidades revisoras distintas",
+      "detalle": "Librarian, QA y Auditor fueron tres pasadas con criterios distintos hechas en la misma sesion, no tres agentes independientes. Se declara como es."
+    },
+    {
+      "nombre": "segunda computadora fisica",
+      "detalle": "no hay una segunda PC en esta sesion. El caso PC A -> PC B se ejerce con un sellador simulado que reproduce una sola propiedad —lo sellado con una identidad de maquina no abre con otra— y esta declarado como simulacion en el encabezado del conftest. La verificacion real es el paso 7 del HUMAN_GATE."
+    },
+    {
+      "nombre": "base productiva",
+      "detalle": "vive solo en la Optica. Ningun comando de esta sesion la abrio."
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": true,
+  "migracion": "033",
+  "next_action": "En la Optica: seguir docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md de punta a punta, por PC. Son ocho pasos y hasta el paso 5 no se toca un solo dato. El paso 3 muestra una frase de recuperacion UNA sola vez: hay que anotarla en papel antes de seguir.",
+  "advertencia": "la 033 va DETRAS de la 029, 030, 031 y 032, que siguen sin aplicarse en la Optica. Aplicarlas fuera de orden no esta contemplado. La 033 por si sola no cifra nada: crea tres tablas vacias y BC sigue funcionando igual hasta que alguien enrole la PC a proposito.",
+  "orden_de_aplicacion": [
+    "029 (FactuFacil, V1-016)",
+    "030 (usuarios y roles, V1-019A)",
+    "031 (trabajos operativos, V1-020)",
+    "032 (comision de composturas, V1-021)",
+    "033 (seguridad, este slice)"
+  ],
+  "human_gate": {
+    "por_que_existe": "los ocho pasos dependen del hardware de la PC real y de la base productiva. Ninguno se puede automatizar desde Casa: no hay una segunda computadora en esta sesion y la base productiva no viaja.",
+    "pasos": [
+      {"n": 1, "que": "construir el paquete con `pilot/build_pilot.ps1` y comprobar que el EXE arranca", "por_que_no_se_hizo_aca": "no se corrio PyInstaller en esta sesion; `cryptography` tiene rueda para Windows y hook, pero afirmar que el ejecutable arranca sin haberlo construido seria adivinar"},
+      {"n": 2, "que": "instalar el paquete y abrir BC una vez para que corra la 033", "verificacion": "`bc_security.py estado` dice tablas de seguridad: si, enrolada: no"},
+      {"n": 3, "que": "respaldo manual de bc_caja.sqlite3 a un pendrive, aparte del que hace la herramienta"},
+      {"n": 4, "que": "`bc_security.py enrolar` y ANOTAR LA FRASE EN PAPEL", "critico": true},
+      {"n": 5, "que": "emitir la licencia en la maquina de administracion e instalarla; `verificar` tiene que dar ALLOW / OK"},
+      {"n": 6, "que": "`proteger-datos` primero como ensayo, despues con --confirmar"},
+      {"n": 7, "que": "prueba de copia delante del cliente: llevar la carpeta y la base a OTRA PC y comprobar que dice DENY y que el .sqlite3 muestra bcx1:", "es_la_verificacion_que_no_se_pudo_hacer_desde_casa": true},
+      {"n": 8, "que": "ensayo de rollback: revertir-datos, comprobar que todo vuelve a texto plano, y volver a proteger"}
+    ],
+    "tambien_pendiente": "respaldar la clave privada del emisor fuera de linea con `bc_security_issuer.py respaldo-de-clave`. Sin ese respaldo, perder la maquina de administracion es perder la capacidad de emitir y de revocar. La clave ya existe: key_id bcfc68429311075f, sellada con DPAPI de usuario en %LOCALAPPDATA%/BC/Issuer/."
+  },
+  "lo_que_NO_hace_falta_pedirle_a_nadie": [
+    "modelo, primitivas, adaptador de DPAPI, emisor, verificador, identidad, formato de licencia, lease, almacenamiento, integracion, contrato de autenticacion de sincronizacion, migracion y proteccion de datos: hechos",
+    "simulacion PC A / PC B, manipulacion de licencia, respaldo robado, licencia modificada, licencia vencida, revocacion, rollback: probados",
+    "las herramientas de instalacion: escritas y ejercidas de punta a punta con DPAPI real, clave de emisor real y almacen de confianza commiteado"
+  ],
+  "pendientes_de_otras_misiones": [
+    "V1-015: limpieza de marcas-laboratorio, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-016: migracion 029, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-019A: migracion 030, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-020: migracion 031, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA",
+    "V1-021: migracion 032, READY_FOR_PRODUCTIVE_APPLY_AT_OPTICA"
+  ],
+  "siguiente_slice_sugerido": [
+    "transporte de la lista de revocacion y endpoint de Gestion Central que verifique las credenciales de sincronizacion (el contrato ya esta y esta probado)",
+    "indice ciego con clave para suppliers.document, que es lo que falta para poder cifrarlo sin romper su UNIQUE",
+    "decidir el futuro de Datos/movimientos.txt, que sigue escribiendo texto plano fuera de la base"
+  ],
+  "no_iniciar_otra_mision": true
+}

@@ -174,7 +174,6 @@ class FactuFacilService:
             (" AND d.business_date <= ?", hasta),
             (" AND UPPER(COALESCE(b.branch, d.unit)) = UPPER(?)", _limpio(sucursal)),
             (" AND COALESCE(e.envelope,'') LIKE ?", _contiene(sobre)),
-            (" AND COALESCE(e.description,'') LIKE ?", _contiene(cliente)),
             (" AND COALESCE(e.saleswoman,'') LIKE ?", _contiene(vendedora)),
         ):
             if valor:
@@ -183,6 +182,14 @@ class FactuFacilService:
         consulta += " ORDER BY d.business_date DESC, sobre, e.created_at"
         with self._repository._connection() as conexion:
             filas = conexion.execute(consulta, parametros).fetchall()
+        # El filtro por cliente se aplica despues de traer las filas.
+        # `cash_entries.description` —que es de quien es el trabajo— es una
+        # columna protegida: en la base hay criptograma y un LIKE contra
+        # criptograma no da error, da cero filas. La conexion ya devolvio el
+        # valor descifrado, asi que el resultado es el mismo que con el LIKE.
+        buscado = str(cliente or "").strip().casefold()
+        if buscado:
+            filas = [fila for fila in filas if buscado in str(fila["cliente"] or "").casefold()]
         return tuple(FilaFactuFacil(**dict(fila)) for fila in filas)
 
     def obtener(self, cash_entry_id: str) -> FilaFactuFacil | None:

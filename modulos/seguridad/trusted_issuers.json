@@ -1,0 +1,11 @@
+{
+  "format": "bc.trust.v1",
+  "issuers": [
+    {
+      "key_id": "bcfc68429311075f",
+      "label": "BC Emisor V1 2026",
+      "public_key": "uq2WEx4Z-hA6NaIb0sVUbRrx-WSFVSkq4yg7UVYScbk",
+      "active": true
+    }
+  ]
+}

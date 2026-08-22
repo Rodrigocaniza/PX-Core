@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
 from uuid import uuid4
 
+from modulos.seguridad import runtime as seguridad_runtime
+from modulos.seguridad.infrastructure.protected_connection import open_protected
+
 from ..domain.errors import InvalidCashDayError
 
 from ..domain.models import (
@@ -40,6 +43,11 @@ from ..domain.tracking import (
 
 
 MIGRATIONS_DIR = Path(__file__).with_name("migrations")
+
+# Cuantos pedidos sin seguimiento se traen antes de filtrar por texto en Python.
+# Alto a proposito: la lista de pendientes de una optica no llega ni cerca, y el
+# tope existe para que un dia raro no cargue la tabla entera en memoria.
+_TOPE_BUSQUEDA_PEDIDOS = 2000
 
 
 def _iso(value: date | datetime | None) -> str | None:
@@ -90,7 +98,13 @@ class SQLiteCashDayRepository:
         self.migrate()
 
     def _new_connection(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(str(self.database_path))
+        # La conexion protegida cifra las columnas sensibles al escribir y las
+        # descifra al leer. Sin cifrador activo para esta base —una BC sin
+        # enrolar, o una prueba— se comporta como `sqlite3.Connection` y no
+        # cambia absolutamente nada.
+        connection = open_protected(
+            str(self.database_path), seguridad_runtime.cipher_for(self.database_path)
+        )
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA busy_timeout = 5000")
@@ -970,22 +984,32 @@ class SQLiteCashDayRepository:
         """
         if not str(term or "").strip():
             return []
-        patron = f"%{str(term).strip()}%"
+        buscado = str(term).strip().casefold()
         condicion_sucursal = "AND o.branch = ? COLLATE NOCASE" if branch else ""
-        parametros = [patron, patron] + ([branch] if branch else []) + [int(limit)]
+        parametros = ([branch] if branch else []) + [_TOPE_BUSQUEDA_PEDIDOS]
+        # El filtro por cliente se resuelve en Python y no en SQL. `customer_name`
+        # es una columna protegida: en la base hay criptograma, y un LIKE contra
+        # criptograma no falla — devuelve cero filas, en silencio. La conexion
+        # entrega el nombre ya descifrado, asi que comparar aca da exactamente el
+        # mismo resultado que daba el LIKE COLLATE NOCASE de antes.
+        # El tope acota cuanto se trae: los pedidos sin seguimiento son los que
+        # estan pendientes, no la historia entera, y aun asi no se lee sin limite.
         with self._connection() as connection:
             rows = connection.execute(
                 f"""SELECT o.* FROM orders o
                 LEFT JOIN tracked_works t ON t.order_id = o.id
                 WHERE t.id IS NULL
-                  AND (o.envelope LIKE ? COLLATE NOCASE
-                       OR o.customer_name LIKE ? COLLATE NOCASE)
                   {condicion_sucursal}
                 ORDER BY o.created_at DESC, o.envelope
                 LIMIT ?""",
                 tuple(parametros),
             ).fetchall()
-        return [self._hydrate_order(row) for row in rows]
+        elegidas = [
+            row for row in rows
+            if buscado in str(row["envelope"] or "").casefold()
+            or buscado in str(row["customer_name"] or "").casefold()
+        ][: int(limit)]
+        return [self._hydrate_order(row) for row in elegidas]
 
     def customer_phones(
         self, order_ids: Sequence[str] = (), cash_entry_ids: Sequence[str] = (),

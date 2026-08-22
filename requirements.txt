@@ -2,3 +2,9 @@ customtkinter==5.2.2
 openpyxl>=3.1,<4
 reportlab>=4,<5
 pypdf>=5,<7
+
+# BC Seguridad V1 firma licencias con Ed25519 y cifra los datos del paciente con
+# AES-256-GCM. Es la biblioteca estandar de criptografia de Python, con rueda
+# para Windows y soporte de PyInstaller; implementar esas primitivas a mano
+# habria sido criptografia artesanal. Ver docs/adr/ADR-0002.
+cryptography>=43,<47
