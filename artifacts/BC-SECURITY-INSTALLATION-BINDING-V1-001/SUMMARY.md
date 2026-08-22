@@ -6,6 +6,8 @@
 **Suite:** 1549 verdes, **0 rojas** (1369 verdes y 3 rojas antes de empezar; 1541 al congelar el paquete, +8 del cierre preinstalacion)
 **Paquete:** `BC-CAJA-1.0.0-rc.33-win64.zip`, verificado con `SMOKE_PAQUETE_OK pasos=31`
 
+**PC-B fisica, ZIP limpio:** arranco hasta login y `CONFIGURACION INICIAL SEGURA`, sin crear credenciales. Es el comportamiento correcto de una instalacion sin enrolar y **no** constituye la prueba de clonacion. La evidencia esta en `EVIDENCIA_PC_B_LIMPIA.md`.
+
 ---
 
 ## La propiedad que se pedia

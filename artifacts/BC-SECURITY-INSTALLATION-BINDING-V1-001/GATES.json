@@ -59,6 +59,12 @@
       "estado": "PASS",
       "mecanismo": "REAL",
       "detalle": "Cierre preinstalacion, sin funciones nuevas. Se reverificaron rama, HEAD y worktree (el trabajo vive en C:/PX/SEC1, no en .worktrees/); los hashes del zip y de los dos ejecutables contra dist/; que el almacen de confianza viaja en los dos bundles y es byte por byte el commiteado; y que la clave privada del emisor no esta en el worktree (2591 archivos), en git (4958 objetos de todas las refs), en el zip (1256 entradas) ni en artifacts o logs. El instructivo se reescribio como secuencia fail-safe de trece pasos con \"tiene que decir\" y \"si no dice eso\" en cada uno, punto de no retorno senalado y dos respaldos verificados antes de cifrar. Se agrego tools/verificar_paquete.py, que comprueba solo los hashes contra HASHES_PAQUETE.txt. Evidencia preparada para las dos instalaciones reales en INSTALACIONES/."
+    },
+    {
+      "gate": "PC_B_CLEAN_INSTALL_OBSERVED",
+      "estado": "PASS",
+      "mecanismo": "FISICO_INFORMADO",
+      "detalle": "En una notebook PC-B el ZIP limpio arranco hasta login y CONFIGURACION INICIAL SEGURA; se cerro sin crear administrador ni contrasena. Es el comportamiento esperado de una instalacion sin enrolar, no la prueba de clonacion. El gate fisico de clon PC-A con identidad, licencia, secreto sellado y base protegida sigue pendiente y debe dar DENY."
     }
   ],
   "suite": {

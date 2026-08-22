@@ -1,6 +1,7 @@
 {
   "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
   "estado": "COMPLETADA_EN_CASA - paquete construido, empaquetado y verificado contra los .exe",
+  "evidencia_pc_b_limpia": "PASS_INSTALACION_LIMPIA_NO_ES_CLON: el ZIP limpio llego a login y CONFIGURACION INICIAL SEGURA; no se esperaba DENY porque no llevaba identidad, secreto, licencia ni base protegida de PC-A",
   "requiere_migracion": true,
   "migracion": "033",
   "next_action": "Paso 1 hoy, en esta PC: llevar el respaldo del emisor a un pendrive o a papel y borrarlo de aca. Despues, en la Optica, los pasos 2 a 9 siguiendo docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md, que ahora usa los ejecutables del paquete y no Python.",

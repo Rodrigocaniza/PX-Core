@@ -119,6 +119,8 @@ archivo dio `ninguna`.
 
 ## Lo que NO se pudo verificar, y no se afirma
 
+La notebook PC-B ya ejecuto el ZIP limpio: llego a login y `CONFIGURACION INICIAL SEGURA` sin crear credenciales. Esto confirma el camino sin enrolar, pero no es una clonacion de PC-A y por eso no se esperaba `DENY`. Ver `EVIDENCIA_PC_B_LIMPIA.md`.
+
 | Afirmacion que seria natural hacer | Por que no se hace |
 |---|---|
 | "el blob DPAPI no abre en otra PC" | No se puede ejercer desde una sola computadora. La suite lo prueba con un sellador **simulado**, declarado como tal en el encabezado de `conftest.py`, y hay pruebas contra el DPAPI **real** de esta Windows (`test_dpapi_real.py`) para que la simulacion no sea la unica evidencia. La verificacion contra dos PCs distintas es el paso 8 del HUMAN_GATE. |
