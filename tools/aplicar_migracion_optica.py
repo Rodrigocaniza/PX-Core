@@ -110,6 +110,46 @@ def columnas_de(base: Path, tabla: str) -> set[str]:
         con.close()
 
 
+def version_de(archivo: Path) -> str:
+    return archivo.stem.split("_", 1)[0]
+
+
+def aplicar_una(base: Path, version: str) -> Path:
+    """Ejecuta exactamente `version`, ni la anterior ni la siguiente.
+
+    Es una funcion aparte y no codigo dentro de `main` porque las herramientas
+    de la 029 y la 030 la necesitan igual. Esas dos se escribieron cuando su
+    migracion era la punta de la cola y aplicaban la migracion construyendo
+    `SQLiteCashDayRepository`, que corre todas las pendientes. Corridas mas
+    tarde llevaban la base hasta el final de la cola sin decirlo: ese es el F2.
+
+    Levanta `RuntimeError` si la version ya esta aplicada, si falta alguna
+    previa, o si no hay exactamente un archivo para esa version. Aplicar fuera
+    de orden no esta contemplado y no se hace en silencio.
+    """
+    ya = aplicadas(base)
+    if version in ya:
+        raise RuntimeError(f"la {version} ya esta aplicada")
+    faltantes = sorted({version_de(p) for p in MIGRACIONES.glob("*.sql")
+                        if version_de(p) < version and version_de(p) not in ya})
+    if faltantes:
+        raise RuntimeError(f"faltan migraciones previas: {faltantes}")
+    candidatas = sorted(MIGRACIONES.glob(f"{version}_*.sql"))
+    if len(candidatas) != 1:
+        raise RuntimeError(f"no hay exactamente un archivo {version}_*.sql: {candidatas}")
+    archivo = candidatas[0]
+    con = sqlite3.connect(str(base))
+    try:
+        con.executescript(archivo.read_text(encoding="utf-8"))
+        con.execute(
+            "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)",
+            (version, datetime.now().astimezone().isoformat()))
+        con.commit()
+    finally:
+        con.close()
+    return archivo
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("version", help="version a aplicar, por ejemplo 031")
@@ -209,24 +249,13 @@ def main() -> int:
         registrar()
 
     registrar(f"Aplicando {archivo.name}")
-    con = sqlite3.connect(str(base))
     try:
-        con.executescript(archivo.read_text(encoding="utf-8"))
-        con.execute(
-            "INSERT OR IGNORE INTO schema_migrations(version, applied_at) VALUES (?, ?)",
-            (version, datetime.now().astimezone().isoformat()))
-        con.commit()
+        aplicar_una(base, version)
     except Exception as exc:  # noqa: BLE001
-        con.close()
         registrar(f"FALLO: {exc}")
         if copia:
             registrar(f"Rollback: restaurar {copia} sobre {base}")
         return 1
-    finally:
-        try:
-            con.close()
-        except Exception:  # noqa: BLE001
-            pass
 
     registrar()
     registrar("Post-checks")

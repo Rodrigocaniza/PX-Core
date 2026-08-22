@@ -1,0 +1,38 @@
+{
+  "_como_se_completa": [
+    "administrador_inicial: solo hace falta la primera vez, cuando la base no",
+    "  tiene ninguna credencial administrativa. Si ya hay una, borra este bloque.",
+    "personas: una por cada persona real. `contrasena` en null significa que la",
+    "  persona existe, se la puede elegir como vendedora y como responsable de un",
+    "  trabajo, y no puede entrar al sistema. Eso es lo normal para quien atiende.",
+    "  Minimo 10 caracteres si se pone. `sucursal` vacia significa todas, que es",
+    "  lo que corresponde a quien administra.",
+    "comisiones: una por cada persona que cobre por compostura. Quien no cobra no",
+    "  necesita ninguna linea: sin politica el trabajo funciona entero y no",
+    "  devenga, y el reporte lo lista aparte. `sucursal` y `tipo_de_trabajo`",
+    "  vacios significan todas y todos. `rige_desde` puede ser futura."
+  ],
+  "administrador_inicial": {
+    "usuario": "",
+    "contrasena": ""
+  },
+  "personas": [
+    {
+      "usuario": "",
+      "nombre_visible": "",
+      "rol": "OPERADOR",
+      "sucursal": "ASUNCION",
+      "contrasena": null
+    }
+  ],
+  "comisiones": [
+    {
+      "usuario": "",
+      "importe": 0,
+      "sucursal": "",
+      "tipo_de_trabajo": "",
+      "rige_desde": "",
+      "motivo": ""
+    }
+  ]
+}

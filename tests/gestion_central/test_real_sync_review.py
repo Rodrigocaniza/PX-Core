@@ -113,3 +113,67 @@ def test_cli_snapshot_import_writes_safe_local_evidence(tmp_path):
     assert '"source_mode": "SQLITE_SNAPSHOT_QUERY_ONLY"' in evidence
     assert '"production_write": false' in evidence
     assert snapshot.read_bytes() == source_before
+
+
+# --- F1: la marca de FactuFácil viaja de Caja a Gestión Central -------------
+#
+# Antes, `import_snapshot` escribía el literal "NO DISPONIBLE PILOTO" en todas
+# las ventas: el campo tenía texto y el dato no viajaba. Era el único de los
+# trece datos exigidos que no llegaba.
+
+
+def _sql(path: Path, sentencia, parametros=()):
+    import sqlite3
+    con = sqlite3.connect(path)
+    con.execute(sentencia, parametros)
+    con.commit()
+    con.close()
+
+
+def _factufacil(service, envelope):
+    return next(r["payload"]["factufacil_status"] for r in service.list_sales(ADMIN) if r["payload"]["envelope"] == envelope)
+
+
+def test_factufacil_status_viaja_desde_la_marca_de_caja(review):
+    service, snapshot, _ = review
+    _sql(snapshot, "INSERT INTO factufacil_loads(cash_entry_id,status,loaded_by,loaded_at,entry_revision,updated_at) VALUES('sale-1','CARGADA','operadora','2099-02-20T11:00:00-03:00',1,'2099-02-20T11:00:00-03:00')")
+    _sql(snapshot, "INSERT INTO factufacil_loads(cash_entry_id,status,loaded_by,loaded_at,entry_revision,updated_at) VALUES('sale-2','CARGADA','operadora','2099-02-20T11:00:00-03:00',0,'2099-02-20T11:00:00-03:00')")
+    service.import_snapshot(ADMIN, snapshot)
+    assert _factufacil(service, "S-001") == "PARA CARGAR"
+    assert _factufacil(service, "S-002") == "CARGADA"
+    # sale-2 se marcó sobre la revisión 0 y la venta va por la 1: lo que está
+    # en FactuFácil ya no es lo que dice Caja, y hay que avisarlo.
+    assert _factufacil(service, "S-003") == "CARGADA (VENTA EDITADA)"
+
+
+def test_factufacil_no_aplica_a_un_gasto(review):
+    service, snapshot, _ = review
+    _sql(snapshot, """INSERT INTO cash_entries(id,cash_day_id,description,envelope,total,cash,card_check,agreement_amount,balance_text,customer_document,customer_phone,saleswoman,delivery_date,observations,performed_by,created_at,updated_at,revision,outflow_type)
+      VALUES('gasto','day','Pago de luz','G-001',150000,150000,0,0,'0','','','','','','operador.piloto','2099-02-20T12:00:00-03:00','2099-02-20T12:00:00-03:00',1,'GASTO')""")
+    service.import_snapshot(ADMIN, snapshot)
+    assert _factufacil(service, "G-001") == "NO APLICA"
+    assert _factufacil(service, "S-001") == "PARA CARGAR"
+
+
+def test_snapshot_anterior_a_la_029_no_dice_para_cargar(review):
+    service, snapshot, _ = review
+    _sql(snapshot, """INSERT INTO cash_entries(id,cash_day_id,description,envelope,total,cash,card_check,agreement_amount,balance_text,customer_document,customer_phone,saleswoman,delivery_date,observations,performed_by,created_at,updated_at,revision,outflow_type)
+      VALUES('gasto','day','Pago de luz','G-001',150000,150000,0,0,'0','','','','','','operador.piloto','2099-02-20T12:00:00-03:00','2099-02-20T12:00:00-03:00',1,'GASTO')""")
+    _sql(snapshot, "DROP TABLE factufacil_loads")
+    service.import_snapshot(ADMIN, snapshot)
+    # No tener dónde guardar la marca no es lo mismo que no tenerla.
+    assert {_factufacil(service, f"S-00{n}") for n in (1, 2, 3)} == {"NO DISPONIBLE"}
+    # Pero un gasto no es una venta ni acá: `outflow_type` existe desde la 012,
+    # mucho antes que la 029, así que eso el archivo sí lo sabe.
+    assert _factufacil(service, "G-001") == "NO APLICA"
+
+
+def test_marcar_en_caja_invalida_la_revision_de_ese_campo(review):
+    service, snapshot, _ = review
+    service.import_snapshot(ADMIN, snapshot)
+    identity = next(r["identity"] for r in service.list_sales(ADMIN) if r["payload"]["envelope"] == "S-001")
+    service.mark_fields(ADMIN, identity, ["factufacil_status", "total"])
+    _sql(snapshot, "INSERT INTO factufacil_loads(cash_entry_id,status,loaded_by,loaded_at,entry_revision,updated_at) VALUES('sale-0','CARGADA','operadora','2099-02-20T11:00:00-03:00',1,'2099-02-20T11:00:00-03:00')")
+    assert service.import_snapshot(ADMIN, snapshot).changed == 1
+    assert _factufacil(service, "S-001") == "CARGADA"
+    assert service.reviewed_fields(ADMIN, identity) == {"total"}

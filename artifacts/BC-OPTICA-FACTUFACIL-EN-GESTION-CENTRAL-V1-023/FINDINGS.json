@@ -1,0 +1,51 @@
+{
+  "mision": "BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023",
+  "fecha": "2026-08-22",
+  "origen": "los tres findings vienen de BC-OPTICA-DESPLIEGUE-PRODUCTIVO-029-032-V1-022, que los dejo abiertos por ser trabajo de codigo",
+  "cerrados": [
+    {
+      "id": "F1",
+      "titulo": "Gestion Central no lee la marca de FactuFacil",
+      "donde": "modulos/gestion_central/real_sync.py:167",
+      "era": "import_snapshot escribia el literal \"NO DISPONIBLE PILOTO\" en factufacil_status para todas las ventas. El campo tenia texto y el dato no viajaba: la unica de las 13 cosas exigidas que no se pudo demostrar en el canary",
+      "ahora": "la marca se lee de factufacil_loads con la misma politica que 029_factufacil_caja.sql, y se distinguen cinco situaciones: PARA CARGAR, CARGADA, CARGADA (VENTA EDITADA), NO APLICA y NO DISPONIBLE",
+      "por_que_cinco_y_no_dos": "CARGADA (VENTA EDITADA) es el aviso que Caja ya daba y Gestion Central perdia: se cargo, y despues la venta cambio. NO APLICA separa a los gastos y las entregas a administracion, que pasan por cash_entries y no son ventas. NO DISPONIBLE es un snapshot anterior a la 029: no tener donde guardar la marca no es lo mismo que no tenerla, y decir PARA CARGAR ahi seria afirmar algo que el archivo no dice",
+      "acoplamiento": "ninguno nuevo. Gestion Central no importa modulos.caja_diaria: lee el snapshot como archivo ajeno de solo lectura, igual que antes. La politica se replica con su procedencia escrita al lado, no se importa",
+      "efecto_heredado": "factufacil_status ya estaba en REVIEW_FIELDS, asi que un cambio de marca entre dos importaciones invalida ese campo revisado y manda la venta a CORRECTED_PENDING_REVALIDATION. Probado, no supuesto",
+      "estado": "CERRADO"
+    },
+    {
+      "id": "F2",
+      "titulo": "Las herramientas canonicas de la 029 y la 030 aplican toda la cola, no su propia migracion",
+      "donde": "tools/factufacil_migracion_029_optica.py y tools/usuarios_migracion_030_optica.py",
+      "era": "las dos aplicaban construyendo SQLiteCashDayRepository, que corre todas las pendientes. Corrida sobre una copia en 028, la de la 029 llevo la base a 032 de una vez y sus propios post-checks lo denunciaron",
+      "ahora": "las dos aplican por aplicar_una(base, version), extraida de tools/aplicar_migracion_optica.py. Ejecuta exactamente el archivo pedido, exige la cadena previa completa, y levanta RuntimeError en vez de seguir sola",
+      "el_chequeo_que_lo_denuncio": "el de idempotencia era el que construia el repositorio, y por eso fallaba. Ahora afirma lo que queria decir: volver a correrla no reaplica la migracion",
+      "verificacion": "end-to-end sobre una base desechable construida en 028: la 029 dio 'migraciones: 28 -> 29' y 'no aparecio ninguna otra tabla'; la 030, sobre esa misma base, dio 'migraciones: 29 -> 30'",
+      "estado": "CERRADO"
+    },
+    {
+      "id": "F4",
+      "titulo": "El valor de respaldo de la version se quedo en rc.32",
+      "donde": "CajaDiaria.py:157",
+      "era": "la mision 022 subio pilot/package_docs/VERSION.txt a 1.0.0-rc.33 y dejo VERSION_APLICACION en 1.0.0-rc.32. La suite del commit canonico 38ef01b estaba en rojo por eso: test_el_valor_de_respaldo_sigue_al_paquete, 1 failed de 1376",
+      "impacto": "un binario que no encuentre el VERSION.txt empaquetado se autodeclara con una version que no es la suya. Es la mitad del F4 que quedo sin hacer",
+      "ahora": "VERSION_APLICACION = 1.0.0-rc.33, que es lo que dice el paquete y lo que declara el binario instalado en la Optica",
+      "estado": "CERRADO"
+    }
+  ],
+  "abiertos_que_no_son_de_codigo": [
+    {
+      "id": "F3",
+      "titulo": "Dos dias de caja abiertos desde el 12 y el 13 de agosto",
+      "por_que_sigue_abierto": "cerrar hoy un dia del 12 fabricaria un cierre economico que nadie hizo. Es decision de la duena, no un defecto",
+      "estado": "ABIERTO"
+    },
+    {
+      "id": "F5",
+      "titulo": "admin_users sigue en cero en produccion",
+      "por_que_sigue_abierto": "crear la primera credencial administrativa es decision de la duena, y las personas y tarifas reales no se pueden inventar desde casa",
+      "estado": "ABIERTO — es el HUMAN_GATE de esta entrega"
+    }
+  ]
+}

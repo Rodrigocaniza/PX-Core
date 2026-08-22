@@ -1,0 +1,15 @@
+{
+  "mision": "BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023",
+  "estado": "COMPLETADA_EN_CASA",
+  "requiere_migracion": false,
+  "requiere_la_pc_de_la_optica": false,
+  "requiere_binario_nuevo": "no para que la marca viaje. El fix del F1 vive en Gestion Central, que corre en la PC de gestion y lee el snapshot: no hay que reinstalar BC Caja en la Optica para que empiece a mostrarse. El del F4 si viaja en el proximo binario que se construya, y no hay ninguno pendiente",
+  "next_action": "Lo unico que queda del frente es el HUMAN_GATE que ya estaba: completar el formulario de personas y tarifas con los nombres, roles, sucursales y montos reales, que solo la duena puede decidir. Esta entregado como PROMPT + ZIP + MANIFEST + SUMMARY en artifacts/BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023/HUMAN_GATE/. Hasta que eso este hecho, la app pide Configuracion inicial administrativa al abrir y las composturas funcionan enteras sin devengar nada, que es lo correcto y no un error",
+  "lo_que_ya_no_hace_falta_hacer": [
+    "F1: la marca de FactuFacil ya viaja. Los 13 datos exigidos viajan los 13",
+    "F2: las herramientas de la 029 y la 030 ya no saltan pasos. No hay que evitarlas",
+    "F4: el valor de respaldo de la version ya sigue al paquete. La suite volvio a verde"
+  ],
+  "verificable_en_la_optica_sin_riesgo": "importar un snapshot en Gestion Central y mirar la columna FactuFacil: donde antes decia NO DISPONIBLE PILOTO en todas las filas, ahora dice PARA CARGAR o CARGADA segun lo que haya hecho la operadora. Es una lectura: no escribe en el snapshot ni en la base de Caja",
+  "no_iniciar_otra_mision": true
+}

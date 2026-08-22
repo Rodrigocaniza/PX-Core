@@ -19,6 +19,28 @@ REVIEW_FIELDS = (
     "total", "cash", "card_transfer", "agreement", "balance",
     "delivery_date", "factufacil_status", "recorded_by",
 )
+#: Cómo se ve en Gestión Central la marca de FactuFácil que vive en Caja.
+#:
+#: Gestión Central lee la base de Caja como un archivo ajeno y de sólo lectura:
+#: no importa el módulo de Caja, para no atarse a su código, pero sí respeta su
+#: política, que está escrita una sola vez en `029_factufacil_caja.sql`. La
+#: marca no se recalcula ni se inventa: si Caja no dice nada, la venta está
+#: para cargar; lo único que Gestión Central agrega es distinguir los dos casos
+#: en que la pregunta no tiene sentido.
+#:
+#: - `NO APLICA`: un gasto o una entrega a administración pasan por
+#:   `cash_entries` y no son ventas. No hay nada que facturar.
+#: - `NO DISPONIBLE`: el snapshot viene de una Caja anterior a la 029 y no
+#:   tiene dónde guardar la marca. Es distinto de «nadie la cargó»: acá no se
+#:   sabe, y decir «PARA CARGAR» sería afirmar algo que el archivo no dice.
+#: - `CARGADA (VENTA EDITADA)`: se cargó, y después la venta cambió en Caja. Lo
+#:   que está en FactuFácil ya no coincide, y quien revisa tiene que mirarlo.
+FACTUFACIL_PARA_CARGAR = "PARA CARGAR"
+FACTUFACIL_CARGADA = "CARGADA"
+FACTUFACIL_CARGADA_DESACTUALIZADA = "CARGADA (VENTA EDITADA)"
+FACTUFACIL_NO_APLICA = "NO APLICA"
+FACTUFACIL_NO_DISPONIBLE = "NO DISPONIBLE"
+
 REVIEW_STATUSES = {
     "UNREVIEWED", "IN_REVIEW", "REVIEWED", "WITH_OBSERVATION",
     "REQUIRES_CORRECTION", "CORRECTED_PENDING_REVALIDATION",
@@ -139,6 +161,7 @@ class ReviewService:
             entries = source.execute("SELECT * FROM cash_entries WHERE cash_day_id=? AND status='ACTIVE' ORDER BY created_at,id", (day["id"],)).fetchall()
             items = source.execute("SELECT * FROM sale_items WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id=?) ORDER BY cash_entry_id,position", (day["id"],)).fetchall()
             orders = source.execute("SELECT * FROM orders WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id=?)", (day["id"],)).fetchall()
+            factufacil = self._factufacil_marks(source, day["id"])
         finally:
             source.close()
         source_hash_after_read = self.snapshot_hash(snapshot_path)
@@ -164,7 +187,7 @@ class ReviewService:
                     "total": entry["total"] or 0, "cash": entry["cash"] or 0, "card_transfer": entry["card_check"] or 0,
                     "agreement": entry["agreement_amount"] or 0, "balance": entry["balance_text"] or "",
                     "delivery_date": (order["delivery_date"] if order else entry["delivery_date"]) or "",
-                    "factufacil_status": "NO DISPONIBLE PILOTO", "recorded_by": entry["performed_by"] or entry["saleswoman"],
+                    "factufacil_status": self._factufacil_status(entry, factufacil), "recorded_by": entry["performed_by"] or entry["saleswoman"],
                 }
                 identity = digest({"organization":organization,"branch":branch,"cashbox":cashbox,"date":day["business_date"],"entry":entry["id"]})
                 content_hash = digest(payload); version = int(entry["revision"] or 0)
@@ -189,6 +212,44 @@ class ReviewService:
             self.repository.audit(con,actor.username,"REAL_SNAPSHOT_IMPORT",snapshot_id,details={"period":day["business_date"],"unit":cashbox,"processed":len(entries)})
             con.commit()
         return ImportResult(snapshot_id,day["business_date"],cashbox,len(entries),inserted,unchanged,changed)
+
+    @staticmethod
+    def _factufacil_marks(source, cash_day_id):
+        """Las marcas del día, o `None` si el snapshot es anterior a la 029.
+
+        `None` no es «ninguna marca»: es «esta base no tiene dónde guardarlas».
+        Se distingue acá, una sola vez, para que el resto no tenga que
+        preguntarse por qué el diccionario vino vacío.
+        """
+        if not source.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='factufacil_loads'").fetchone():
+            return None
+        rows = source.execute("SELECT cash_entry_id,status,entry_revision FROM factufacil_loads WHERE cash_entry_id IN (SELECT id FROM cash_entries WHERE cash_day_id=?)", (cash_day_id,)).fetchall()
+        return {row["cash_entry_id"]: row for row in rows}
+
+    @staticmethod
+    def _factufacil_status(entry, marks):
+        """Qué decir de una venta, mirando la marca que dejó Caja.
+
+        El orden importa: primero si la pregunta aplica, y recién después si
+        hay con qué contestarla. Un gasto no es una venta ni en un snapshot
+        anterior a la 029 —`outflow_type` existe desde la 012—, así que decir
+        ahí «no se sabe» sería perder un dato que el archivo sí tiene.
+        """
+        # La misma política que 029_factufacil_caja.sql: una venta anulada no
+        # llega hasta acá, y un gasto o una entrega a administración no tienen
+        # cliente ni sobre que facturar.
+        columnas = entry.keys()
+        tipo = entry["outflow_type"] if "outflow_type" in columnas else ""
+        if (tipo or "") or (entry["total"] or 0) <= 0:
+            return FACTUFACIL_NO_APLICA
+        if marks is None:
+            return FACTUFACIL_NO_DISPONIBLE
+        mark = marks.get(entry["id"])
+        if mark is None or mark["status"] != "CARGADA":
+            return FACTUFACIL_PARA_CARGAR
+        if int(mark["entry_revision"] or 0) != int(entry["revision"] or 0):
+            return FACTUFACIL_CARGADA_DESACTUALIZADA
+        return FACTUFACIL_CARGADA
 
     def _event(self, con, identity, actor, action, before, after, details=None):
         con.execute("INSERT INTO review_events VALUES(?,?,?,?,?,?,?,?)",(str(uuid.uuid4()),identity,actor,action,before,after,canonical(details or {}),now_iso()))

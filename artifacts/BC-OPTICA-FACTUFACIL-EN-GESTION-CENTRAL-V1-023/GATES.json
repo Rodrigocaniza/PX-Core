@@ -1,0 +1,92 @@
+{
+  "mision": "BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023",
+  "fecha": "2026-08-22",
+  "lugar": "casa. No se abrio la base de la Optica ni se toco ninguna maquina productiva",
+  "cadena": [
+    {
+      "gate": "VERIFICATION_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "worktree, rama, HEAD, remoto y arbol verificados con git antes de tocar codigo. Se encontro que el worktree local estaba 2 commits ATRAS de origin -no adelante- y se hizo fast-forward limpio de 3d31ea8 a 38ef01b tras comprobar con merge-base --is-ancestor que no habia divergencia. El punto canonico real resulto traer una mision entera que el worktree no tenia: BC-OPTICA-DESPLIEGUE-PRODUCTIVO-029-032-V1-022. Se confirmo que la worktree de Seguridad BC es C:/PX/SEC1 y no se la toco"
+    },
+    {
+      "gate": "MISSION_LEASE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "la siguiente mision no se eligio: se leyo. NEXT_ACTION_CAJA.json de la 022 nombra dos pendientes y los separa el mismo: el alta de personas, que 'no se puede automatizar sin vos', y el F1, que 'es trabajo de codigo y da para su propia mision'. Se tomo el segundo, que es el unico completable desde casa"
+    },
+    {
+      "gate": "DOMAIN_RESEARCH",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "antes de escribir la primera linea se leyo 029_factufacil_caja.sql entera, modulos/caja_diaria/application/factufacil.py entero, y se verifico con git log -S que outflow_type existe desde la 012 -bastante antes de la 029-, que es lo que hace seguro leer esa columna sin guardas. Se comprobo que gestion_central no importa caja_diaria en ningun lado y se decidio no ser el primero: la politica se replica con su procedencia escrita al lado"
+    },
+    {
+      "gate": "QA_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "8 pruebas dirigidas nuevas. Cuatro sobre F1: la marca viaja en sus tres formas (PARA CARGAR, CARGADA, CARGADA (VENTA EDITADA)); un gasto da NO APLICA y no contamina a las ventas del mismo dia; un snapshot sin factufacil_loads da NO DISPONIBLE y no miente diciendo PARA CARGAR; y un cambio de marca entre dos importaciones invalida el campo revisado y deja los otros intactos. Cuatro sobre F2: aplica exactamente la pedida y no la que sigue, repetirla no reaplica, saltearse una previa no pasa en silencio, y la cadena completa se puede recorrer de a una. Suite completa: 1380 passed, 0 failed, 212s"
+    },
+    {
+      "gate": "REGRESSION_BASELINE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "se corrio la suite completa ANTES de tocar tools/ para tener baseline, y aparecio 1 failed que no era nuestro: test_el_valor_de_respaldo_sigue_al_paquete, rojo en el propio commit canonico 38ef01b. Se lo trato como lo que era -la mitad sin hacer del F4- y se corrigio en vez de convivir con el. La baseline pasa de 1375 passed + 1 failed a 1380 passed + 0 failed"
+    },
+    {
+      "gate": "PACKAGING_PASSED",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "no hay migracion nueva ni binario nuevo. El fix del F1 vive en Gestion Central, que lee el snapshot: no requiere reinstalar BC Caja en la Optica"
+    },
+    {
+      "gate": "PRODUCTIVE_APPLY",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "nada que aplicar. Las 029 a 032 ya estan aplicadas y verificadas desde el 2026-08-20. Esta mision no escribe en ninguna base productiva"
+    },
+    {
+      "gate": "TOOLING_VERIFIED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "el F2 no se dio por arreglado con una prueba unitaria: se corrieron las dos herramientas end-to-end sobre una base desechable construida en 028, primero en dry-run y despues con --confirmar. La 029 reporto 'migraciones: 28 -> 29' y 'no aparecio ninguna otra tabla'; la 030, sobre esa misma base, 'migraciones: 29 -> 30'. Antes de esto la primera reportaba 28 -> 32"
+    },
+    {
+      "gate": "LIBRARIAN_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "artifacts completos con procedencia: SUMMARY.md, FINDINGS.json, GATES.json, MANIFEST.json, ARTIFACT_CONSISTENCY.md y el paquete HUMAN_GATE/ con su propio PROMPT, ZIP, MANIFEST y SUMMARY. Cada decision de diseno esta explicada donde se toma, incluida la de no importar caja_diaria desde gestion_central y la de agregar NO DISPONIBLE en vez de asumir PARA CARGAR"
+    },
+    {
+      "gate": "ARTIFACT_CONSISTENCY_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "ARTIFACT_CONSISTENCY.md: cada numero, hash y salida citada en los artifacts esta al lado del comando que la produce, incluida la baseline de la suite antes y despues, los sha256 del ZIP y su contenido, y el estado del arbol al cerrar"
+    },
+    {
+      "gate": "HUMAN_GATE",
+      "estado": "ABIERTO_Y_ENTREGADO",
+      "mecanismo": "REAL",
+      "detalle": "PERSONAS_Y_TARIFAS_REALES. Entregado como PROMPT + ZIP + MANIFEST + SUMMARY en HUMAN_GATE/. No es un gate inventado para cerrar: los nombres, roles, sucursales y montos son decisiones de la duena y no estan en ningun archivo del repo"
+    },
+    {
+      "gate": "ADVERSARIAL_REVIEW",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "revision independiente en alto esfuerzo sobre el arbol completo. Levanto 5 hallazgos y los 5 se corrigieron antes de commitear, ninguno se dejo como observacion. Dos eran de codigo: (1) en _factufacil_status el corte por NO DISPONIBLE iba antes que el de NO APLICA, asi que un gasto en un snapshot anterior a la 029 se etiquetaba 'no se sabe' cuando outflow_type -que existe desde la 012- prueba que no es una venta; se invirtio el orden y la prueba se extendio para fijarlo. (2) el chequeo de idempotencia de las dos herramientas capturaba solo RuntimeError, asi que una base bloqueada por BC Caja abierta se llevaba puesto el volcado de evidencia con la migracion ya escrita. Tres eran de artifacts: el ZIP se declaraba autosuficiente y no lo es -la herramienta importa modulos.caja_diaria-, faltaban ARTIFACT_CONSISTENCY.md y el MANIFEST de mision que los propios gates citaban, y SAFE_CLOSURE afirmaba 'todo commiteado y pusheado' con el arbol entero sin commitear"
+    },
+    {
+      "gate": "SAFE_CLOSURE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "el cierre se verifica despues del push, no se afirma antes: la evidencia esta en ARTIFACT_CONSISTENCY.md, que registra `git status --porcelain` vacio y `git rev-list --left-right --count @{u}...HEAD` en 0 0 corridos una vez que el commit estaba arriba. La suite quedo en verde y el unico pendiente del frente es el HUMAN_GATE, entregado. Ninguna otra mision iniciada"
+    }
+  ],
+  "lo_que_esta_mision_no_hizo": [
+    "no aplico ninguna migracion",
+    "no construyo ningun binario",
+    "no abrio la base productiva de la Optica",
+    "no toco main ni ninguna rama de otro frente",
+    "no toco la worktree de Seguridad BC (C:/PX/SEC1)"
+  ]
+}

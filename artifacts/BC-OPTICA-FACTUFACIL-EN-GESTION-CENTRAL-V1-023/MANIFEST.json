@@ -1,0 +1,83 @@
+{
+  "mision": "BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023",
+  "titulo": "La marca de FactuFacil viaja de Caja a Gestion Central (F1), y una migracion vuelve a ser una (F2)",
+  "fecha": "2026-08-22",
+  "lugar": "casa",
+  "rama": "feature/bc-optica-comision-composturas-v1-021",
+  "parte_de": "38ef01b (BC-OPTICA-DESPLIEGUE-PRODUCTIVO-029-032-V1-022)",
+  "cierra": [
+    "F1",
+    "F2",
+    "F4 (la mitad que habia quedado sin hacer)"
+  ],
+  "requiere_migracion": false,
+  "requiere_binario": false,
+  "requiere_la_pc_de_la_optica": false,
+  "codigo": [
+    {
+      "archivo": "modulos/gestion_central/real_sync.py",
+      "sha256": "11733d1b3e2beaffb04d6df56fcea6b7f946027eccfbb5616abb840984451c5b"
+    },
+    {
+      "archivo": "CajaDiaria.py",
+      "sha256": "49171005a9cfa2f08bac25232fa94e806985630788a9f2e3659047667ab0923e"
+    },
+    {
+      "archivo": "tools/aplicar_migracion_optica.py",
+      "sha256": "5d9bf587171cbc44aadfce547cd846718b62961a41f792dabf69a94af4a648a0"
+    },
+    {
+      "archivo": "tools/factufacil_migracion_029_optica.py",
+      "sha256": "7ad66de4d5199d1356ea4ddd65d36479c022d3c373f24c945bc3d5e8cde3837a"
+    },
+    {
+      "archivo": "tools/usuarios_migracion_030_optica.py",
+      "sha256": "be6d802cf0f7a38d1d2a1bf8fcb5e6b3b14bd325f0713559417b9b666b5d2e79"
+    }
+  ],
+  "pruebas": [
+    {
+      "archivo": "tests/gestion_central/test_real_sync_review.py",
+      "sha256": "da724fc72dd1d6e11a29ad067465f00b2686180c1c3fcb5c7ab8f7956a01f222"
+    },
+    {
+      "archivo": "tests/herramientas/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "archivo": "tests/herramientas/test_aplicar_migracion_optica.py",
+      "sha256": "7da2101532888455f19f06ac89e8536c3b3d23cff87b34c99f39cf7f9c51634e"
+    }
+  ],
+  "artifacts": [
+    "ARTIFACT_CONSISTENCY.md",
+    "FINDINGS.json",
+    "GATES.json",
+    "HUMAN_GATE/BC-OPTICA-PERSONAS-Y-TARIFAS.zip",
+    "HUMAN_GATE/MANIFEST.json",
+    "HUMAN_GATE/PROMPT.txt",
+    "HUMAN_GATE/SUMMARY.md",
+    "HUMAN_GATE/alta_personas_y_comisiones_optica.py",
+    "HUMAN_GATE/personas.PLANTILLA.json",
+    "MANIFEST.json",
+    "NEXT_ACTION.json",
+    "SUMMARY.md"
+  ],
+  "suite": {
+    "antes": "1375 passed, 1 failed (218s) — el failed venia del commit canonico",
+    "despues": "1380 passed, 0 failed (213s)",
+    "dirigidas_nuevas": 8
+  },
+  "que_no_toca": [
+    "ninguna migracion",
+    "ningun importe",
+    "ningun dato productivo",
+    "main ni ninguna rama de otro frente",
+    "la worktree de Seguridad BC (C:/PX/SEC1)"
+  ],
+  "human_gate": {
+    "cual": "PERSONAS_Y_TARIFAS_REALES",
+    "estado": "ABIERTO_Y_ENTREGADO",
+    "donde": "HUMAN_GATE/ (PROMPT.txt + BC-OPTICA-PERSONAS-Y-TARIFAS.zip + MANIFEST.json + SUMMARY.md)"
+  }
+}

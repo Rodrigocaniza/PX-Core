@@ -1,0 +1,69 @@
+{
+  "human_gate": "PERSONAS_Y_TARIFAS_REALES",
+  "mision": "BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023",
+  "heredado_de": "BC-OPTICA-DESPLIEGUE-PRODUCTIVO-029-032-V1-022 (findings F5 y next_action)",
+  "fecha": "2026-08-22",
+  "por_que_es_un_gate_real": "los nombres, los roles, las sucursales y los montos son decisiones de la duena. No estan en ningun archivo del repo, no se deducen de la base productiva y sembrarlos seria inventar datos en una base real. Ninguna automatizacion puede cubrir esto sin ella",
+  "donde_se_ejecuta": {
+    "maquina": "la PC de la Optica (DESKTOP-CALRL2F)",
+    "desde": "la raiz del checkout de PX-Core que ya esta en esa maquina -la misma desde la que se aplicaron las cuatro migraciones el 2026-08-20-, es decir la carpeta donde vive tools/",
+    "sobre": "C:\\Users\\Striker\\AppData\\Local\\BC\\Caja\\bc_caja.sqlite3",
+    "por_que_no_desde_el_zip": "la herramienta importa modulos.caja_diaria y necesita el proyecto alrededor: corrida suelta falla al arrancar. La copia del zip es de referencia"
+  },
+  "entrega": {
+    "prompt": "PROMPT.txt",
+    "zip": "BC-OPTICA-PERSONAS-Y-TARIFAS.zip",
+    "manifest": "MANIFEST.json",
+    "summary": "SUMMARY.md"
+  },
+  "zip": {
+    "archivo": "BC-OPTICA-PERSONAS-Y-TARIFAS.zip",
+    "sha256": "43cf1bc2ee65f6704a042d4c95606babc6ce186698912554a87d8b6b6971273c",
+    "tamano": 7706,
+    "contenido": [
+      {
+        "en_el_zip": "personas.json",
+        "origen": "artifacts/BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023/HUMAN_GATE/personas.PLANTILLA.json",
+        "sha256": "6a9ddf78ee0e5cdc38b3721454def40806d7e69a61ecc733adbce714f06663b4",
+        "generado_por": "python tools/alta_personas_y_comisiones_optica.py --plantilla",
+        "que_es": "el formulario vacio. Se llama personas.json dentro del zip porque es el nombre con el que se corre. Es lo unico que se saca del zip para usar"
+      },
+      {
+        "en_el_zip": "alta_personas_y_comisiones_optica.py",
+        "origen": "tools/alta_personas_y_comisiones_optica.py",
+        "sha256": "355843183b87dfc13a32b2e588b6ffc0774b8a3590bdd3960492de40bd6833a6",
+        "que_es": "copia de referencia, byte a byte, de la herramienta que vive en el repo. NO se corre desde el zip. Sirve para verificar que la del checkout de la Optica es la misma, comparando este sha256"
+      },
+      {
+        "en_el_zip": "INSTRUCCIONES.txt",
+        "sha256": "7ef8be117e37bad40831966f1d34d00406dcef40f0e5efd47455e6d6b4abd07d",
+        "que_es": "copia byte a byte de PROMPT.txt, para leerla sin abrir esta carpeta"
+      }
+    ]
+  },
+  "que_valida_la_herramienta_antes_de_escribir": [
+    "el archivo entero, antes de escribir una sola fila",
+    "usuario de 3 caracteres o mas",
+    "nombre visible presente",
+    "rol ADMIN u OPERADOR",
+    "sucursal ASUNCION, PILAR o vacia",
+    "contrasena de 10 caracteres o null",
+    "importes enteros y no negativos",
+    "el tipo de trabajo existe entre los ocho de la 031: COMPOSTURA, HILO, TORNILLO, PLAQUETA, PATILLA, AJUSTE, ARMADO, OTRO"
+  ],
+  "es_re_corrible": "si. Una persona que ya existe se actualiza en vez de duplicarse y una tarifa igual a la vigente no agrega una version que no cambia nada. Probado corriendolo dos veces seguidas sobre una copia, en la mision 022",
+  "dry_run": "correrlo sin --confirmar no escribe nada y dice exactamente que haria",
+  "rollback": {
+    "punto_unico": "C:\\Users\\Striker\\AppData\\Local\\BC\\Caja\\Backups\\bc-caja-pre-029-032-20260820-124947.sqlite3",
+    "sha256": "d325fba522df086c0f2a5dcd898e2486846dbf804fe4e351151de97d0051297e",
+    "como": "cerrar BC Caja y copiar el backup sobre bc_caja.sqlite3. Probado en la mision 022"
+  },
+  "precondiciones_ya_cumplidas": {
+    "migraciones": "029, 030, 031 y 032 aplicadas y verificadas el 2026-08-20. Base en esquema 032, sha256 484d5638e995341aa03c69b44a9ccad6c8f4611207ec8347110d4a00991c17c4",
+    "binario": "1.0.0-rc.33 instalado y verificado por comportamiento",
+    "nada_mas_que_aplicar": true
+  },
+  "decisiones_de_negocio_que_siguen_abiertas": [
+    "F3: que se hace con los dos dias de caja abiertos, 2026-08-12 (apertura 1.000.000) y 2026-08-13 (apertura 500.000)"
+  ]
+}

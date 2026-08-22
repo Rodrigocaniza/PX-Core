@@ -24,9 +24,7 @@ RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
 from modulos.caja_diaria.config import resolve_data_paths  # noqa: E402
-from modulos.caja_diaria.infrastructure.sqlite_repository import (  # noqa: E402
-    SQLiteCashDayRepository,
-)
+from tools.aplicar_migracion_optica import aplicar_una  # noqa: E402
 
 VERSION = "029"
 TABLAS_NUEVAS = ("factufacil_loads", "factufacil_history")
@@ -177,11 +175,18 @@ def main() -> int:
     registrar()
 
     registrar("== migracion ==")
-    repositorio = SQLiteCashDayRepository(base)
+    # Se ejecuta exactamente la 029 y nada mas. Antes esto construia el
+    # repositorio, que aplica todas las migraciones pendientes: escrito cuando
+    # la 029 era la punta de la cola, corrido mas tarde llevaba la base hasta
+    # el final sin decirlo. Es el F2 de BC-OPTICA-DESPLIEGUE-PRODUCTIVO-029-032.
     try:
-        repositorio.integrity_check()
-    finally:
-        repositorio.close()
+        archivo = aplicar_una(base, VERSION)
+    except Exception as exc:  # noqa: BLE001
+        registrar(f"  FALLO: {exc}")
+        registrar(f"  Rollback: copiar {respaldo.name} sobre {base.name}")
+        _volcar(args.salida)
+        return 1
+    registrar(f"  ejecutado {archivo.name}")
     registrar(f"  aplicada la {VERSION}")
     registrar()
 
@@ -211,11 +216,21 @@ def main() -> int:
         c.close()
     comprobar(vacias, "las tablas nuevas nacen vacias: no se invento ninguna marca")
 
-    repositorio = SQLiteCashDayRepository(base)
+    # Volver a correr la herramienta no reaplica nada ni sigue con la cola.
+    # Este mismo chequeo fue el que denuncio el F2: construir el repositorio
+    # aca aplicaba las migraciones siguientes y la radiografia dejaba de dar.
     try:
-        repositorio.close()
-    finally:
-        pass
+        aplicar_una(base, VERSION)
+        repetible = False
+    except RuntimeError:
+        repetible = True
+    except Exception as exc:  # noqa: BLE001
+        # La migracion ya esta escrita: que este chequeo reviente no puede
+        # llevarse la evidencia con el. Una base bloqueada porque alguien dejo
+        # BC Caja abierta entra por aca.
+        registrar(f"  no se pudo comprobar la idempotencia: {exc}")
+        repetible = False
+    comprobar(repetible, "volver a correrlo no reaplica la migracion")
     comprobar(radiografia(base) == despues,
               "idempotencia: volver a migrar no cambia nada")
     registrar()

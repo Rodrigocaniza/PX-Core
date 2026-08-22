@@ -1,0 +1,128 @@
+HUMAN_GATE — BC Óptica / Caja
+Personas reales y tarifas de comisión por compostura
+
+Qué se necesita de vos
+======================
+
+Los nombres. Nada más, pero nada menos: ni el código ni yo podemos inventar
+quién trabaja en la Óptica, con qué rol, en qué sucursal, ni cuánto cobra cada
+una por una compostura. Eso es tuyo y no se deduce de ningún archivo.
+
+Todo lo demás ya está hecho, probado y desplegado. Esto es lo único que falta
+para que la línea operativa de la Óptica quede entera.
+
+
+Por qué está frenado exactamente acá
+====================================
+
+La migración 030 creó la tabla de usuarios y NO inventó ninguna persona, a
+propósito: sembrar nombres de maqueta en una base productiva es peor que no
+tener ninguno. Por eso hoy `admin_users` está en cero, y al abrir BC Caja la
+app pide «Configuración inicial administrativa».
+
+La 032 hace lo mismo con las tarifas: sin política cargada, una compostura
+funciona entera —se recibe, va al taller, queda lista, se entrega, deja su
+historia— y no devenga nada. El reporte la lista aparte para que se vea. Eso
+es lo correcto y no un error: es preferible no devengar a devengar un monto
+que nadie autorizó.
+
+
+Qué hay en el ZIP
+=================
+
+  personas.json             el formulario a completar. Es lo único que se saca
+                            de acá para usar.
+  alta_personas_y_comisiones_optica.py   copia de referencia de la herramienta,
+                            para comparar contra la del repo. NO se corre desde
+                            el ZIP: necesita el resto del proyecto alrededor
+                            (importa `modulos.caja_diaria`), así que corrida
+                            suelta falla al arrancar. Su sha256 está en el
+                            MANIFEST para poder verificar que la del repo es
+                            la misma.
+  INSTRUCCIONES.txt         estos mismos pasos, para leer sin la pantalla
+
+
+Dónde se corre
+==============
+
+Desde el checkout de PX-Core que ya está en la PC de la Óptica, parado en la
+raíz del proyecto —la carpeta donde está `tools/`—. Es desde donde se corrieron
+las cuatro migraciones el 20 de agosto. Copiar `personas.json` ahí y trabajar en
+esa carpeta.
+
+
+Los tres pasos, en la PC de la Óptica
+=====================================
+
+1) Completar el formulario.
+
+   Abrir `personas.json` y llenarlo. El archivo trae sus propias instrucciones
+   adentro, en `_como_se_completa`. Lo importante:
+
+   - `administrador_inicial`: la primera credencial administrativa. Sólo hace
+     falta esta vez, porque hoy no hay ninguna. Contraseña de 10 caracteres o
+     más.
+
+   - `personas`: una línea por persona real. `contrasena: null` significa que
+     la persona existe, se la puede elegir como vendedora de una venta y como
+     responsable de un trabajo, y no puede entrar al sistema. Eso es lo normal
+     para quien atiende: no todo el mundo necesita entrar. `sucursal` vacía
+     significa todas, que es lo que corresponde a quien administra.
+     `rol` es ADMIN u OPERADOR.
+
+   - `comisiones`: una línea SÓLO por cada persona que cobre por compostura.
+     Quien no cobra no necesita ninguna línea —no hace falta escribirle un
+     cero—. `sucursal` y `tipo_de_trabajo` vacíos significan todas y todos.
+     Los ocho tipos que existen son: COMPOSTURA, HILO, TORNILLO, PLAQUETA,
+     PATILLA, AJUSTE, ARMADO, OTRO.
+
+2) Ver qué haría, sin que escriba nada:
+
+       python tools/alta_personas_y_comisiones_optica.py personas.json
+
+   Sin `--confirmar` no toca la base. Valida el archivo entero antes de
+   escribir una sola fila —usuario de 3 caracteres, nombre visible presente,
+   rol válido, sucursal válida, contraseña de 10 o null, importes enteros y no
+   negativos, y que el tipo de trabajo exista entre los ocho— y después dice
+   exactamente qué crearía y qué actualizaría. Leer esa salida es el paso, no
+   un trámite.
+
+3) Aplicarlo:
+
+       python tools/alta_personas_y_comisiones_optica.py personas.json --confirmar
+
+
+Si algo sale mal
+================
+
+Se puede volver a correr. Una persona que ya existe se actualiza en vez de
+duplicarse, y una tarifa igual a la vigente no agrega una versión que no
+cambia nada. Está probado corriéndolo dos veces seguidas sobre una copia.
+
+Subir una tarifa más adelante no reescribe el pasado: agrega una versión
+nueva, y cada trabajo ya devengado conserva su importe y la versión con la que
+se calculó. Cambiar una tarifa sin motivo se rechaza.
+
+El punto único para volver al estado previo a las cuatro migraciones sigue
+siendo:
+
+  C:\Users\Striker\AppData\Local\BC\Caja\Backups\bc-caja-pre-029-032-20260820-124947.sqlite3
+  sha256 d325fba522df086c0f2a5dcd898e2486846dbf804fe4e351151de97d0051297e
+
+Cerrar BC Caja y copiar ese archivo sobre `bc_caja.sqlite3`. Probado.
+
+
+Lo que NO te estoy pidiendo
+===========================
+
+No hay que aplicar ninguna migración: la 029, 030, 031 y 032 ya están
+aplicadas y verificadas. No hay que instalar ningún binario: la Óptica ya
+corre 1.0.0-rc.33. No hay que tocar Gestión Central: la marca de FactuFácil
+ya viaja sola desde este commit.
+
+Y quedan dos decisiones que son tuyas y que nadie va a tomar por vos:
+
+  - Los dos días de caja abiertos, 2026-08-12 (apertura 1.000.000) y
+    2026-08-13 (apertura 500.000). No se cerraron a propósito: cerrar hoy un
+    día del 12 fabricaría un cierre económico que nadie hizo. Hay que decidir
+    qué se hace con esos dos días.
