@@ -88,6 +88,8 @@ class CentralPilotWindow:
         self.refresh_button.pack(side="right")
         self.review_button = tk.Button(toolbar, text="Revisión de ventas", command=self.show_review, bg=COLORS["navy"], fg="white", relief="flat", padx=18, pady=7)
         self.review_button.pack(side="right", padx=8)
+        self.pending_button = tk.Button(toolbar, text="Pendientes y bitácora", command=self.show_pending, bg=COLORS["navy"], fg="white", relief="flat", padx=18, pady=7)
+        self.pending_button.pack(side="right")
         self.cards = tk.Frame(self.body, bg=COLORS["surface"]); self.cards.pack(fill="both", expand=True, padx=18)
         self._dashboard_data = data; self._render_cards(data["cards"])
         section = tk.Frame(self.body, bg=COLORS["surface"]); section.pack(fill="x", padx=24, pady=(8, 4))
@@ -141,6 +143,21 @@ class CentralPilotWindow:
         )
         self.review_panel.pack(fill="both", expand=True)
         self.status_var.set("Revisión fila por fila · datos de copia local")
+
+    def show_pending(self):
+        return self._guard(self._show_pending, "abrir pendientes y bitácora")
+
+    def _show_pending(self):
+        from .pending_ui import PendingPanel
+        from .real_sync import ReviewService
+        self.current_screen = "pending"
+        self._clear_body()
+        self.pending_panel = PendingPanel(
+            self.body, ReviewService(self.service.repository), self.principal,
+            back=self.show_dashboard, notifier=self.notifier,
+        )
+        self.pending_panel.pack(fill="both", expand=True)
+        self.status_var.set("Pendientes y bitácora · sólo lectura, nada se envía")
 
     def show_detail(self, unit): return self._guard(lambda: self._show_detail(unit), f"abrir detalle de {unit.label}")
 

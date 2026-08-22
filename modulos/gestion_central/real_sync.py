@@ -364,6 +364,13 @@ class ReviewService:
         query += " ORDER BY requested_at,id"
         with self.repository.connection() as con: return [dict(r) for r in con.execute(query,params)]
 
+    def pending_alerts(self, actor, *, branch=None):
+        self._require(actor,"reviews.read")
+        query="SELECT * FROM review_alert_outbox WHERE status='PENDING'"; params=[]
+        if branch: query += " AND branch=?"; params.append(branch)
+        query += " ORDER BY created_at,id"
+        with self.repository.connection() as con: return [dict(r) for r in con.execute(query,params)]
+
     def create_branch_alert(self, actor, identity, message):
         self._require(actor,"reviews.manage"); message=message.strip()
         if not message: raise ValueError("mensaje obligatorio")
