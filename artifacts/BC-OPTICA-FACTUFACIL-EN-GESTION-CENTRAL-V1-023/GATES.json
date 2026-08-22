@@ -77,9 +77,9 @@
     },
     {
       "gate": "SAFE_CLOSURE",
-      "estado": "PASS",
+      "estado": "PASS_CON_PUSH_PENDIENTE",
       "mecanismo": "REAL",
-      "detalle": "el cierre se verifica despues del push, no se afirma antes: la evidencia esta en ARTIFACT_CONSISTENCY.md, que registra `git status --porcelain` vacio y `git rev-list --left-right --count @{u}...HEAD` en 0 0 corridos una vez que el commit estaba arriba. La suite quedo en verde y el unico pendiente del frente es el HUMAN_GATE, entregado. Ninguna otra mision iniciada"
+      "detalle": "arbol limpio y commit entero: `git status --porcelain` vacio y HEAD en 0d76b32fbc81c71333b7d1e0d75b3bfe490968c4, verificados despues de commitear y registrados en ARTIFACT_CONSISTENCY.md. La suite quedo en 1380 verdes. El push a origin NO esta hecho: lo denego el clasificador de auto mode de la sesion, no git, y no se intento rodearlo. `git rev-list --left-right --count @{u}...HEAD` da `0 1`. Es lo unico que falta para el cierre completo, y necesita una autorizacion que la sesion no tiene. Ninguna otra mision iniciada"
     }
   ],
   "lo_que_esta_mision_no_hizo": [

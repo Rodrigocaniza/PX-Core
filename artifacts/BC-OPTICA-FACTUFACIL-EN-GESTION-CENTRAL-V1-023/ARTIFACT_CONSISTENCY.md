@@ -84,4 +84,17 @@ impedir.
 
 ## Cierre
 
-Se registra abajo, después del push, con la salida real de los comandos.
+Tomado después de commitear, con la salida real:
+
+| Afirmación | Comando | Resultado |
+| --- | --- | --- |
+| árbol limpio, nada suelto | `git status --porcelain` | vacío |
+| commit de la misión | `git log -1 --format=%H` | `0d76b32fbc81c71333b7d1e0d75b3bfe490968c4` |
+| un commit local por encima de origin | `git rev-list --left-right --count @{u}...HEAD` | `0  1` |
+
+**El push no está hecho.** El `git push` a
+`origin/feature/bc-optica-comision-composturas-v1-021` fue denegado por el
+clasificador de auto mode de la sesión, no por un fallo de git. No se intentó
+rodearlo. El commit está entero y verificado en local, y el frente queda a un
+solo comando autorizado de estar arriba. Mientras eso no pase, el `0  1` de la
+tabla es la lectura correcta y este archivo no dice otra cosa.
