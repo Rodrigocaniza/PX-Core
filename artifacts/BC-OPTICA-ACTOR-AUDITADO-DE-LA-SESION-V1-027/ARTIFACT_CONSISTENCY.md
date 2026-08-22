@@ -69,4 +69,14 @@ pendiente ni se construyó acá.
 
 ## Cierre
 
-Se registra abajo, después del push, con la salida real de los comandos.
+Tomado después del push, con la salida real:
+
+| Afirmación | Comando | Resultado |
+| --- | --- | --- |
+| commit de la misión | `git log -1 --format=%H` | `b8c253e03984bf04282e7f861610f4cdb1450a58` |
+| local y origin son el mismo commit | `git rev-parse HEAD` y `git rev-parse @{u}` tras `git fetch` | ambos `b8c253e03984bf04282e7f861610f4cdb1450a58` |
+| sin divergencia | `git rev-list --left-right --count @{u}...HEAD` | `0  0` |
+| árbol limpio | `git status --porcelain` | vacío |
+
+Esta sección se agrega en el commit siguiente a `b8c253e`, así que describe
+la publicación de `b8c253e`, ya ocurrida y verificada con los comandos de arriba.

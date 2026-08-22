@@ -41,5 +41,11 @@
       "motivo": "ya aplicado el 2026-08-20; los findings son historicos"
     }
   ],
-  "no_iniciar_otra_mision": true
+  "no_iniciar_otra_mision": true,
+  "publicada": {
+    "rama": "feature/bc-optica-comision-composturas-v1-021",
+    "commit": "b8c253e03984bf04282e7f861610f4cdb1450a58",
+    "en_origin": true,
+    "divergencia": "0 0"
+  }
 }

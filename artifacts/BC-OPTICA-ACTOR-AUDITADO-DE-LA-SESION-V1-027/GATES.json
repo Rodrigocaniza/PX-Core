@@ -77,9 +77,9 @@
     },
     {
       "gate": "SAFE_CLOSURE",
-      "estado": "PENDIENTE",
+      "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "se cierra despues del push con la salida real"
+      "detalle": "cerrado con evidencia real. Tras push y fetch: HEAD y @{u} dan los dos b8c253e03984bf04282e7f861610f4cdb1450a58, divergencia `0 0`, arbol limpio. Suite en 1394 verdes. Con esta mision se agota el trabajo de codigo SAFE desde casa: lo que queda abierto en el frente son decisiones -las cuatro congeladas por el operador, mas CIERRE-SOLO-POR-EXCEPCION y el atajo de archivar, que sus propios findings marcan como conversacion o como deliberado- o depende de la PC de la Optica"
     }
   ]
 }
