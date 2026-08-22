@@ -1,0 +1,42 @@
+{
+  "mision": "BC-OPTICA-ACTOR-AUDITADO-DE-LA-SESION-V1-027",
+  "fecha": "2026-08-22",
+  "origen": "OTROS-ACTORES-SIGUEN-SIENDO-TEXTO (V1-019B) y OTROS-DIALOGOS-DE-RESPONSABLE (V1-020, V1-021): tres misiones lo anotaron con la misma frase, 'revisarlos es otra mision'",
+  "cerrados": [
+    {
+      "id": "OTROS-ACTORES-SIGUEN-SIENDO-TEXTO",
+      "titulo": "Cuatro acciones auditadas firmaban con la cuenta de Windows o con texto escrito a mano",
+      "donde": "CajaDiaria.py: edicion auditada de un movimiento, anulacion de un movimiento, correccion de la caja inicial, y el responsable de los pedidos",
+      "lo_que_decia_la_nota": "que preguntaban de mas por dialogo",
+      "lo_que_habia": "lo contrario en dos de los cuatro. Tomaban os.environ['USERNAME'] y el dialogo era el respaldo de algo que en Windows siempre esta definido: codigo muerto. Lo que se registraba era la cuenta de Windows, que en la Optica es una sola y la comparten todas, asi que toda edicion auditada y toda anulacion quedaba firmada con el mismo nombre. No era una atribucion: era una constante disfrazada de persona",
+      "el_cuarto": "la correccion de la caja inicial -que es plata- pedia el nombre por teclado. Escrito a mano, cualquiera podia firmar una correccion con el nombre de otra",
+      "arreglo": "una sola funcion, a nivel de modulo para poder probarla sin abrir Tk, y los cinco sitios pasan por ella. Sin sesion devuelve 'Sin sesion'",
+      "por_que_sin_sesion_y_no_un_respaldo": "las dos alternativas eran peores: una constante que parece un nombre propio, o un nombre que puede poner cualquiera por cualquier otra. 'Sin sesion' no identifica a nadie, que es exactamente lo que paso. No es una idea nueva: responsable_actual de V1-019B ya lo hacia para los pedidos y esta en produccion desde entonces",
+      "estado": "CERRADO"
+    },
+    {
+      "id": "RESPONSABLE-ACTUAL-DEFINIDA-DOS-VECES",
+      "titulo": "Habia dos def responsable_actual() en el mismo closure, y la primera estaba muerta",
+      "donde": "CajaDiaria.py, dentro de abrir_caja_diaria",
+      "detalle": "la segunda pisaba a la primera y las 17 referencias resolvian a la de abajo, que V1-019B ya habia arreglado. La de arriba parecia activa, se podia editar entera, y no corria nunca",
+      "como_aparecio": "editandola. El primer intento de esta mision parcheo la definicion muerta y la prueba pasaba porque miraba el texto del archivo. Lo levanto la revision adversarial",
+      "arreglo": "borrada, con una prueba que exige que haya una sola definicion",
+      "estado": "CERRADO"
+    },
+    {
+      "id": "RC5-FIJABA-EL-ORIGEN-DE-LA-IDENTIDAD-Y-NO-LA-REGLA",
+      "titulo": "Un contrato existente fijaba literalmente la expresion del entorno",
+      "donde": "tests/caja_diaria/test_rc5_operational_ux.py",
+      "detalle": "assert 'user=os.environ.get(\"USERNAME\") or ...' in SOURCE. RC5 protegia que el responsable no fuera un campo del formulario, y eso sigue vigente y sigue verificado; lo que fijo de mas fue de donde salia, con la mejor opcion que habia antes de que existieran las sesiones",
+      "arreglo": "actualizado al contrato nuevo, con el motivo escrito en el docstring para que se entienda por que cambio y no parezca que se aflojo una prueba",
+      "estado": "CERRADO"
+    }
+  ],
+  "descartado": [
+    {
+      "id": "DEGRADACION-SILENCIOSA-AL-VENCER-LA-SESION",
+      "detalle": "en el primer intento, con el respaldo puesto en la cuenta de Windows, una sesion vencida terminaba firmando con ella y sin avisar, mientras el encabezado seguia diciendo 'Operando: Leti'. Lo levanto la revision adversarial",
+      "por_que_ya_no_aplica": "al pasar el respaldo a 'Sin sesion' desaparece por construccion: sesion vencida y sesion inexistente dan lo mismo, y las dos veces es cierto. No quedo codigo defensivo para esto porque no hace falta"
+    }
+  ]
+}

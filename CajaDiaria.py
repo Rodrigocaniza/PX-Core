@@ -936,6 +936,34 @@ def registrar_arqueo(fecha, unidad, conteo):
 # Interfaz gráfica
 # ------------------------------------------------------------------
 
+SIN_SESION = "Sin sesión"
+
+
+def actor_de_una_accion_auditada(sesion) -> str:
+    """Quién queda registrado en una acción auditada.
+
+    Está acá arriba y no dentro de la ventana porque es una decisión, no un
+    detalle de la pantalla, y porque adentro de un closure de tres mil líneas no
+    se puede probar sin abrir Tk.
+
+    Sin sesión devuelve `SIN_SESION`, y eso es deliberado. Las alternativas que
+    había eran peores las dos: `USERNAME` es la cuenta de Windows, que en la
+    Óptica es una sola y la comparten todas —firmaba cada corrección con el
+    mismo nombre sin importar quién la hiciera, o sea una constante disfrazada
+    de persona—, y el nombre escrito a mano en un diálogo lo puede poner
+    cualquiera por cualquier otra. «Sin sesión» no identifica a nadie, que es
+    justo lo que pasó, y se lee como lo que es.
+
+    No es una idea nueva: `responsable_actual`, de V1-019B, ya hacía esto para
+    los pedidos y está en producción desde entonces. Lo que faltaba era que las
+    otras cuatro acciones auditadas hicieran lo mismo.
+    """
+    if sesion is None:
+        return SIN_SESION
+    nombre = str(getattr(sesion, "display_name", "") or "").strip()
+    return nombre or str(getattr(sesion, "username", "") or "").strip() or SIN_SESION
+
+
 def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
     """Abre la UI conocida usando Core + SQLite para toda operación nueva."""
     controller = controller or build_cash_day_controller()
@@ -1053,6 +1081,10 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         except Exception:
             sesion_caja["sesion"] = None
             return None
+
+    def actor_auditado() -> str:
+        """La persona de la sesión vigente, o «Sin sesión». Nunca la máquina."""
+        return actor_de_una_accion_auditada(operadora_actual())
 
     def vendedoras_disponibles():
         """Las personas activas del catalogo. Nunca rompe la carga de la venta.
@@ -2916,13 +2948,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
                 )
                 if not str(motivo_edicion or "").strip():
                     return
-                responsable = os.environ.get("USERNAME") or os.environ.get("USER") or ""
-                if not responsable:
-                    responsable = simpledialog.askstring(
-                        "Edición auditada", "Usuario responsable:", parent=ventana
-                    )
-                if not str(responsable or "").strip():
-                    return
+                responsable = actor_auditado()
                 cash_day, _ = controller.update_manual_entry(
                     estado_edicion["entry_id"], valores,
                     reason=motivo_edicion, user=responsable,
@@ -3877,7 +3903,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         try:
             controller.void_entry(
                 cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit, entry.id, motivo,
-                user=os.environ.get("USERNAME") or os.environ.get("USER") or "",
+                user=actor_auditado(),
             )
         except Exception as exc:
             mostrar_error(exc)
@@ -3897,11 +3923,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         if not motivo:
             messagebox.showwarning("Motivo requerido", "La corrección no fue guardada.", parent=ventana)
             return
-        usuario = simpledialog.askstring(
-            "Corrección auditada", "Usuario responsable:", parent=ventana
-        )
-        if not usuario:
-            return
+        usuario = actor_auditado()
         try:
             controller.correct_opening_cash(
                 cash_day.business_date.strftime("%d-%m-%Y"), cash_day.unit,
@@ -4223,9 +4245,6 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         if not nombre or nombre == "—":
             return "", {}
         return nombre, controller.laboratory_contact(nombre)
-
-    def responsable_actual():
-        return os.environ.get("USERNAME") or os.environ.get("USER") or "Sistema"
 
     def avanzar_pedido():
         """Camino rápido hacia adelante: no pide motivo, queda igual auditado."""
@@ -4797,8 +4816,7 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
         casi todo quedaba registrado como "Operadora". Ahora es la persona que
         entro.
         """
-        sesion = operadora_actual()
-        return sesion.display_name if sesion is not None else "Sin sesión"
+        return actor_auditado()
 
     # ---- FactuFacil V1-016: que ventas faltan cargar en el sistema externo ----
     #

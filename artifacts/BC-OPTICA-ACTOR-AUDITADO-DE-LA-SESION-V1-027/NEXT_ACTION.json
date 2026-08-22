@@ -1,0 +1,45 @@
+{
+  "mision": "BC-OPTICA-ACTOR-AUDITADO-DE-LA-SESION-V1-027",
+  "estado": "COMPLETADA_EN_CASA",
+  "next_action": "No queda ninguna mision de codigo SAFE desde casa. Los findings abiertos que restan son todos decisiones o dependen de la PC de la Optica",
+  "barrido_hecho": "se recorrieron los findings ABIERTO de los 23 artifacts del frente. Los marcados 'deliberado' no se tocan por definicion -son decisiones ya tomadas, no pendientes-, y los 'fuera de alcance' que quedaban ya se cerraron en V1-024 a V1-027",
+  "lo_que_queda_y_por_que_no_se_toca": [
+    {
+      "id": "HUMAN_GATE personas y tarifas",
+      "clase": "HUMAN_GATE REAL",
+      "motivo": "los nombres, roles, sucursales y montos son decision de la duena. Entregado en artifacts/BC-OPTICA-FACTUFACIL-EN-GESTION-CENTRAL-V1-023/HUMAN_GATE/",
+      "congelado_por_el_operador": true
+    },
+    {
+      "id": "F3 dias de caja 12 y 13 de agosto",
+      "clase": "decision",
+      "congelado_por_el_operador": true
+    },
+    {
+      "id": "LATE-OPEN-LEE-LA-HORA-SIN-HUSO",
+      "clase": "decision",
+      "congelado_por_el_operador": true
+    },
+    {
+      "id": "TABLA-MUERTA-authorized_responsibles",
+      "clase": "necesita migracion",
+      "congelado_por_el_operador": true
+    },
+    {
+      "id": "CIERRE-SOLO-POR-EXCEPCION",
+      "clase": "decision",
+      "motivo": "su propio texto lo dice: 'no se toco: decidirlo es una conversacion, no un fix'. Un trabajo RECIBIDO EN PILAR solo llega a CERRADO por close_by_exception, que pide motivo, y para el cierre normal el motivo es un tramite. Puede que convenga un cierre sin motivo, o que CERRADO sobre"
+    },
+    {
+      "id": "CIERRE-NORMAL-SIN-ATAJO-EN-LA-BARRA",
+      "clase": "decision",
+      "motivo": "el finding lo marca deliberado: archivar es housekeeping y vive en el menu Mas a proposito"
+    },
+    {
+      "id": "APPLY-PRODUCTIVO-*",
+      "clase": "requiere la PC de la Optica",
+      "motivo": "ya aplicado el 2026-08-20; los findings son historicos"
+    }
+  ],
+  "no_iniciar_otra_mision": true
+}

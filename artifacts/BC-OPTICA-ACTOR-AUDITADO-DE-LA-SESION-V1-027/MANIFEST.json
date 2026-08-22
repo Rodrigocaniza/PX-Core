@@ -1,0 +1,40 @@
+{
+  "mision": "BC-OPTICA-ACTOR-AUDITADO-DE-LA-SESION-V1-027",
+  "titulo": "Las acciones auditadas firman con la sesion, no con la cuenta de Windows",
+  "fecha": "2026-08-22",
+  "rama": "feature/bc-optica-comision-composturas-v1-021",
+  "parte_de": "58ceb0a (cierre de V1-026)",
+  "cierra": [
+    "OTROS-ACTORES-SIGUEN-SIENDO-TEXTO",
+    "OTROS-DIALOGOS-DE-RESPONSABLE",
+    "RESPONSABLE-ACTUAL-DEFINIDA-DOS-VECES",
+    "RC5-FIJABA-EL-ORIGEN-DE-LA-IDENTIDAD-Y-NO-LA-REGLA"
+  ],
+  "requiere_migracion": false,
+  "requiere_binario": "no para el repo; el cambio llega a la Optica con el proximo binario que se construya, y no hay ninguno pendiente",
+  "requiere_la_pc_de_la_optica": false,
+  "toca_codigo_de_produccion": "si: CajaDiaria.py, -6 lineas netas",
+  "cambio_visible_en_la_optica": "el dialogo 'Usuario responsable' de la correccion de caja inicial deja de aparecer. En su lugar el registro dice quien estaba operando, y hasta que se carguen las personas, 'Sin sesion'. El de la edicion auditada no se pierde porque nunca aparecia: USERNAME siempre esta definido en Windows",
+  "archivos": [
+    {
+      "archivo": "CajaDiaria.py",
+      "sha256": "d8d8c949f443ee615a5b15d6d5faa199e8ac3ebb39b87d165956e645f78321ce"
+    },
+    {
+      "archivo": "tests/caja_diaria/test_v1027_actor_auditado.py",
+      "sha256": "930a0892e3af463aee3d0d83f46325ef98600ca92a224ed40806aa8061df9006"
+    },
+    {
+      "archivo": "tests/caja_diaria/test_rc5_operational_ux.py",
+      "sha256": "915d06ed51a6b6a4720f8740a158616f88bdc2d4a3af1c45bdc423b9ef8ba3ae"
+    }
+  ],
+  "artifacts": [
+    "ARTIFACT_CONSISTENCY.md",
+    "FINDINGS.json",
+    "GATES.json",
+    "MANIFEST.json",
+    "NEXT_ACTION.json",
+    "SUMMARY.md"
+  ]
+}

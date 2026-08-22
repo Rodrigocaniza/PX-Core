@@ -1,0 +1,85 @@
+{
+  "mision": "BC-OPTICA-ACTOR-AUDITADO-DE-LA-SESION-V1-027",
+  "fecha": "2026-08-22",
+  "lugar": "casa",
+  "cadena": [
+    {
+      "gate": "VERIFICATION_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "estado canonico revalidado: HEAD 58ceb0a, arbol limpio, local == origin 0 0, tras git fetch"
+    },
+    {
+      "gate": "MISSION_LEASE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "se barrieron los findings abiertos de todo el frente descartando los cuatro puntos congelados por el operador. Quedaron dos: CIERRE-SOLO-POR-EXCEPCION, que se auto-excluye porque su propio texto dice 'decidirlo es una conversacion, no un fix', y OTROS-ACTORES-SIGUEN-SIENDO-TEXTO, que tres misiones marcaron como 'otra mision'. Se tomo la segunda"
+    },
+    {
+      "gate": "AISLAMIENTO_DE_FRENTES",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "no se toco nada de BC Inventario: el diff es CajaDiaria.py y dos archivos de tests. Ni modulos/comercial, ni el ledger de inventario, ni las ramas inventory-ledger-v1-002 o conciliacion-inventario-corregido-v1-010. Tampoco la worktree de Seguridad BC"
+    },
+    {
+      "gate": "DOMAIN_RESEARCH",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "se leyeron los cuatro sitios antes de tocarlos, y por eso se descubrio que la nota original describia el problema al reves: no preguntaban de mas, casi nunca preguntaban. Y se busco el precedente antes de inventar uno: responsable_actual de V1-019B ya registraba 'Sin sesion' y esta en produccion"
+    },
+    {
+      "gate": "QA_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "7 pruebas dirigidas. Tres sobre la decision -con sesion, sin nombre visible, sin sesion-, una sobre la equivalencia entre sesion vencida e inexistente, dos guardas estaticas por ast y por texto, y una que exige que responsable_actual este definida una sola vez. Suite: 1394 verdes"
+    },
+    {
+      "gate": "ADVERSARIAL_REVIEW",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "3 hallazgos y el primero invalido parte del trabajo: yo habia parcheado una definicion de responsable_actual que estaba muerta -pisada por otra en el mismo scope- y mi prueba pasaba porque miraba el texto del archivo. Los otros dos: un contrato de RC5 que fijaba literalmente la expresion del entorno y quedo en rojo, y una degradacion silenciosa al vencer la sesion. El intento se descarto entero y se rehizo siguiendo el precedente de V1-019B"
+    },
+    {
+      "gate": "REGRESSION_BASELINE",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "1387 verdes antes; 1 roja en el primer intento, que era el contrato de RC5 y no un descuido; 1394 verdes al final"
+    },
+    {
+      "gate": "HONEST_LIMITS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "no se probo la interfaz: las pruebas verifican la decision, que por eso se saco del closure, y verifican por ast que ningun sitio se salga del carril. Que el dialogo desaparezca de la pantalla se sigue del codigo eliminado y no de una prueba que abra la ventana. Esta dicho en ARTIFACT_CONSISTENCY y no en una nota al pie"
+    },
+    {
+      "gate": "PACKAGING_PASSED",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "sin migracion. El cambio llega a la Optica con el proximo binario que se construya, y no hay ninguno pendiente"
+    },
+    {
+      "gate": "PRODUCTIVE_APPLY",
+      "estado": "N/A",
+      "mecanismo": "REAL",
+      "detalle": "nada que aplicar"
+    },
+    {
+      "gate": "LIBRARIAN_PASS",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "el SUMMARY dice el cambio visible en la Optica -el dialogo de la correccion de caja inicial deja de aparecer- en vez de dejarlo para que aparezca solo"
+    },
+    {
+      "gate": "ARTIFACT_CONSISTENCY_PASSED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "cada afirmacion al lado del comando o la linea que la produce, incluido el intento descartado y por que"
+    },
+    {
+      "gate": "SAFE_CLOSURE",
+      "estado": "PENDIENTE",
+      "mecanismo": "REAL",
+      "detalle": "se cierra despues del push con la salida real"
+    }
+  ]
+}

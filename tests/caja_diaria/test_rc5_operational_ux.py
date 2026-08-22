@@ -33,9 +33,22 @@ def test_rc5_observations_and_compact_visibility_contract():
 
 
 def test_rc5_responsible_identity_is_protected_and_audited():
+    """RC5 protegió que el responsable no fuera un campo del formulario.
+
+    Fijaba eso con la expresión que lo reemplazaba en su momento: la cuenta de
+    Windows. Era lo mejor disponible antes de que existieran las sesiones, y
+    dejó de serlo con V1-019B: en la Óptica esa cuenta es una sola y la
+    comparten todas, así que firmaba cada acción auditada con el mismo nombre
+    sin importar quién la hiciera. V1-027 la sacó de las cuatro acciones que
+    quedaban.
+
+    Lo que RC5 quería —que la identidad no la escriba ni la elija quien opera—
+    sigue vigente y sigue verificado acá; lo que cambió es de dónde sale.
+    """
     assert 'salida_usuario' not in SOURCE
     assert '"Responsable")' not in SOURCE
-    assert 'user=os.environ.get("USERNAME") or os.environ.get("USER") or ""' in SOURCE
+    assert 'os.environ.get("USERNAME")' not in SOURCE
+    assert 'user=actor_auditado()' in SOURCE
     controller = Path("modulos/caja_diaria/ui/controller.py").read_text(encoding="utf-8")
     service = Path("modulos/caja_diaria/application/services.py").read_text(encoding="utf-8")
     assert 'performed_by=existing.performed_by' in controller
