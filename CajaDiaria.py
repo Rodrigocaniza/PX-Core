@@ -1882,7 +1882,8 @@ def abrir_caja_diaria(ventana_padre, controller=None, usar_ventana_raiz=False):
             from modulos.historial_externo.history import HistoryQuery
             open_for_verified_session(
                 ventana, controller.service.repository.database_path, sesion,
-                HistoryQuery(document=documento, name=nombre))
+                HistoryQuery(document=documento, name=nombre),
+                verify_session=controller.admin.require_operator)
         except HistorialNoDisponible as exc:
             messagebox.showinfo(exc.titulo, exc.mensaje, parent=ventana)
 

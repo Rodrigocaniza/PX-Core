@@ -192,6 +192,7 @@ def test_caja_abre_historial_global_solo_despues_de_revalidar_sesion():
     assert "sesion = operadora_actual()" in cuerpo
     assert "open_for_verified_session" in cuerpo
     assert cuerpo.index("sesion = operadora_actual()") < cuerpo.index("open_for_verified_session")
+    assert "verify_session=controller.admin.require_operator" in cuerpo
     for inseguro in ("--role", "BC_HISTORIAL_ROLE", "authenticated=True"):
         assert inseguro not in cuerpo
 

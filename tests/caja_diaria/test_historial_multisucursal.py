@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from dataclasses import fields
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import bc_historial
+from modulos.historial_externo.launcher import HistorialNoDisponible
 
 from modulos.historial_externo.global_history import (
     GlobalHistoryService, HistoryAccessDenied, HistoryAccessPolicy,
-    HistoryPrincipal, VIEW_GLOBAL,
+    HistoryPrincipal, ROLE_FEDERATED_VIEWER, VIEW_GLOBAL, VIEW_LOCAL,
 )
 from modulos.historial_externo.history import HistoryEvent, HistoryQuery, PersonHistory
 from modulos.historial_externo.sqlite_reader import SQLiteHistoryReader
@@ -18,8 +20,9 @@ class FakeSource:
     def __init__(self, *events):
         self.events = events
 
-    def search(self, _query, *, limit=200):
-        return PersonHistory(events=tuple(self.events[:limit]))
+    def search(self, _query, *, limit=200, branch=""):
+        events = (item for item in self.events if not branch or item.branch.upper() == branch.upper())
+        return PersonHistory(events=tuple(list(events)[:limit]))
 
 
 def event(branch, reference, *, document="1234567", name="Ana López", phone="0981"):
@@ -30,19 +33,19 @@ def event(branch, reference, *, document="1234567", name="Ana López", phone="09
         source_reference=reference)
 
 
-def principal(branch, role="OPERADOR", permissions=frozenset({VIEW_GLOBAL})):
+def principal(branch, role="OPERADOR", permissions=frozenset({VIEW_LOCAL})):
     return HistoryPrincipal("persona-1", role, branch, permissions)
 
 
-def test_a_compra_asuncion_visible_desde_pilar():
+def test_a_admin_en_pilar_ve_compra_de_asuncion():
     result = GlobalHistoryService([FakeSource(event("ASUNCION", "A-1"))]).search(
-        principal("PILAR"), HistoryQuery(document="1234567"))
+        principal("PILAR", "ADMIN", frozenset({VIEW_GLOBAL})), HistoryQuery(document="1234567"))
     assert result.selected.events[0].branch == "ASUNCION"
 
 
-def test_b_compra_pilar_visible_desde_asuncion():
+def test_b_visor_federado_en_asuncion_ve_compra_de_pilar():
     result = GlobalHistoryService([FakeSource(event("PILAR", "P-1"))]).search(
-        principal("ASUNCION"), HistoryQuery(document="1234567"))
+        principal("ASUNCION", ROLE_FEDERATED_VIEWER, frozenset({VIEW_GLOBAL})), HistoryQuery(document="1234567"))
     assert result.selected.events[0].branch == "PILAR"
 
 
@@ -50,7 +53,7 @@ def test_c_identidad_fuerte_une_eventos_de_ambas_sucursales():
     service = GlobalHistoryService([
         FakeSource(event("ASUNCION", "A-1", document="1.234.567")),
         FakeSource(event("PILAR", "P-1", document="1234567"))])
-    result = service.search(principal("PILAR"), HistoryQuery(document="1234567"))
+    result = service.search(principal("PILAR", "ADMIN", frozenset({VIEW_GLOBAL})), HistoryQuery(document="1234567"))
     assert result.identity_resolution == "STRONG_DOCUMENT"
     assert len(result.candidates) == 1
     assert [item.branch for item in result.selected.events] == ["ASUNCION", "PILAR"]
@@ -59,7 +62,7 @@ def test_c_identidad_fuerte_une_eventos_de_ambas_sucursales():
 def test_d_cada_evento_conserva_sucursal_fecha_tipo_y_sobre():
     result = GlobalHistoryService([FakeSource(
         event("ASUNCION", "A-1"), event("PILAR", "P-1"))]).search(
-            principal("ASUNCION"), HistoryQuery(document="1234567"))
+            principal("ASUNCION", "ADMIN", frozenset({VIEW_GLOBAL})), HistoryQuery(document="1234567"))
     assert {(item.branch, item.occurred_at, item.kind, item.envelope)
             for item in result.selected.events} == {
                 ("ASUNCION", "2026-08-21T10:00:00", "VENTA", "A-1"),
@@ -74,9 +77,92 @@ def test_e_f_operador_no_modifica_sucursal_ajena(origin, target):
 
 
 def test_g_direccion_puede_operar_ambas_segun_rol_admin():
-    policy = HistoryAccessPolicy(); admin = principal("ASUNCION", "ADMIN")
+    policy = HistoryAccessPolicy(); admin = principal("ASUNCION", "ADMIN", frozenset({VIEW_GLOBAL}))
     assert policy.can_modify_branch(admin, "ASUNCION")
     assert policy.can_modify_branch(admin, "PILAR")
+
+
+def test_operadora_solo_ve_eventos_de_su_sucursal_aunque_reciba_claim_global():
+    service = GlobalHistoryService([FakeSource(
+        event("ASUNCION", "A-1"), event("PILAR", "P-1"))])
+    operator = principal("PILAR", permissions=frozenset({VIEW_LOCAL, VIEW_GLOBAL}))
+    result = service.search(operator, HistoryQuery(document="1234567"))
+    assert [item.branch for item in result.selected.events] == ["PILAR"]
+
+
+def test_alcance_local_se_aplica_en_la_fuente_antes_del_limite():
+    foreign = [event("ASUNCION", f"A-{number}") for number in range(250)]
+    service = GlobalHistoryService([FakeSource(*foreign, event("PILAR", "P-LOCAL"))])
+    result = service.search(principal("PILAR"), HistoryQuery(document="1234567"), limit=200)
+    assert [item.envelope for item in result.selected.events] == ["P-LOCAL"]
+
+
+@pytest.mark.parametrize("role", ["ADMIN", ROLE_FEDERATED_VIEWER])
+def test_consulta_global_descarta_hechos_sin_sucursal(role):
+    service = GlobalHistoryService([FakeSource(
+        event("", "SIN-ORIGEN"), event("PILAR", "P-1"))])
+    result = service.search(
+        principal("", role, frozenset({VIEW_GLOBAL})), HistoryQuery(document="1234567"))
+    assert [item.envelope for item in result.selected.events] == ["P-1"]
+
+
+def test_visor_federado_es_estrictamente_read_only():
+    viewer = principal("", ROLE_FEDERATED_VIEWER, frozenset({VIEW_GLOBAL, "operations.cross_branch.write"}))
+    policy = HistoryAccessPolicy()
+    assert policy.can_view_branch(viewer, "ASUNCION")
+    assert not policy.can_modify_branch(viewer, "ASUNCION")
+
+
+def test_rol_desconocido_no_escribe_aunque_tenga_claim():
+    unknown = principal("ASUNCION", "DESCONOCIDO", frozenset({"operations.cross_branch.write"}))
+    assert not HistoryAccessPolicy().can_modify_branch(unknown, "PILAR")
+
+
+def test_sucursales_vacias_nunca_autorizan_escritura_local():
+    assert not HistoryAccessPolicy().can_modify_branch(principal(""), "")
+
+
+def test_operadora_sin_sucursal_falla_cerrada():
+    service = GlobalHistoryService([FakeSource(event("ASUNCION", "A-1"))])
+    with pytest.raises(HistoryAccessDenied, match="sucursal local"):
+        service.search(principal(""), HistoryQuery(name="Ana"))
+
+
+@pytest.mark.parametrize("role", ["ADMIN", ROLE_FEDERATED_VIEWER])
+def test_consulta_global_sin_sujeto_falla_cerrada(role):
+    service = GlobalHistoryService([FakeSource(event("ASUNCION", "A-1"))])
+    anonymous = HistoryPrincipal("", role, "", frozenset({VIEW_GLOBAL}))
+    with pytest.raises(HistoryAccessDenied):
+        service.search(anonymous, HistoryQuery(name="Ana"))
+
+
+def test_busqueda_vacia_falla_cerrada():
+    service = GlobalHistoryService([FakeSource(event("ASUNCION", "A-1"))])
+    with pytest.raises(ValueError, match="al menos un dato"):
+        service.search(principal("ASUNCION"), HistoryQuery())
+
+
+@pytest.mark.parametrize("user_id,token,role", [
+    ("persona-1", "", "ADMIN"),
+    ("", "token-real", "ADMIN"),
+    ("persona-1", "token-real", "DESCONOCIDO"),
+])
+def test_apertura_rechaza_sesion_incompleta_o_rol_desconocido(user_id, token, role):
+    session = SimpleNamespace(user_id=user_id, token=token, role=role, branch="ASUNCION")
+    with pytest.raises(HistorialNoDisponible):
+        bc_historial.open_for_verified_session(
+            None, "no-se-abre.sqlite3", session, HistoryQuery(name="Ana"),
+            verify_session=lambda _token: session)
+
+
+def test_apertura_revalida_token_y_no_confia_en_objeto_fabricado():
+    forged = SimpleNamespace(user_id="x", token="inventado", role="ADMIN", branch="")
+    def reject(_token):
+        raise PermissionError("token ausente")
+    with pytest.raises(HistorialNoDisponible, match="no es válida"):
+        bc_historial.open_for_verified_session(
+            None, "no-se-abre.sqlite3", forged, HistoryQuery(name="Ana"),
+            verify_session=reject)
 
 
 def test_h_proyeccion_operativa_no_expone_campos_administrativos():
@@ -90,7 +176,7 @@ def test_identidad_debil_no_fusiona_homonimos():
     service = GlobalHistoryService([
         FakeSource(event("ASUNCION", "A-1", document="", name="Juan Pérez")),
         FakeSource(event("PILAR", "P-1", document="", name="Juan Pérez"))])
-    result = service.search(principal("ASUNCION"), HistoryQuery(name="Juan Pérez"))
+    result = service.search(principal("ASUNCION", "ADMIN", frozenset({VIEW_GLOBAL})), HistoryQuery(name="Juan Pérez"))
     assert result.identity_resolution == "AMBIGUOUS"
     assert result.selected is None
     assert len(result.candidates) == 2

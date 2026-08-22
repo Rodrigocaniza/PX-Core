@@ -50,4 +50,5 @@ class PersonHistory:
     events: tuple[HistoryEvent, ...] = field(default_factory=tuple)
 
 class HistoryReader(Protocol):
-    def search(self, query: HistoryQuery, *, limit: int = 200) -> PersonHistory: ...
+    def search(self, query: HistoryQuery, *, limit: int = 200,
+               branch: str = "") -> PersonHistory: ...

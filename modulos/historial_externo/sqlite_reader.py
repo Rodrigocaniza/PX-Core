@@ -35,20 +35,21 @@ class SQLiteHistoryReader:
         return connection.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)).fetchone() is not None
 
-    def search(self, query: HistoryQuery, *, limit: int = 200) -> PersonHistory:
+    def search(self, query: HistoryQuery, *, limit: int = 200,
+               branch: str = "") -> PersonHistory:
         query = query.cleaned()
         if not query.has_terms:
             return PersonHistory()
         limit = max(1, min(int(limit), 1000))
         with self._connect() as connection:
-            sales = self._sales(connection, query, limit)
+            sales = self._sales(connection, query, limit, branch)
             sale_ids = [row["id"] for row in sales]
             names = _unique(row["description"] for row in sales)
             documents = _unique(row["customer_document"] for row in sales)
             phones = _unique(row["customer_phone"] for row in sales)
             events = [self._sale_event(connection, row) for row in sales]
             documents_by_entry = {row["id"]: _text(row["customer_document"]) for row in sales}
-            jobs = self._jobs(connection, query, sale_ids, limit)
+            jobs = self._jobs(connection, query, sale_ids, limit, branch)
             events.extend(self._job_event(
                 connection, row, documents_by_entry.get(_text(row["cash_entry_id"]), ""))
                 for row in jobs)
@@ -60,7 +61,7 @@ class SQLiteHistoryReader:
                              phones or ((query.phone,) if query.phone else ()), tuple(events[:limit]))
 
     @staticmethod
-    def _sales(connection, query, limit):
+    def _sales(connection, query, limit, branch=""):
         clauses, params = [], []
         normalized_document = "".join(character for character in query.document.upper()
                                       if character.isalnum())
@@ -77,9 +78,13 @@ class SQLiteHistoryReader:
                     params.append(f"%{value}%")
         if not clauses:
             return []
+        branch_clause = ""
+        if _text(branch):
+            branch_clause = " AND upper(trim(COALESCE(cd.unit,''))) = upper(trim(?))"
+            params.append(_text(branch))
         return connection.execute(f"""SELECT ce.*, cd.business_date, cd.unit
             FROM cash_entries ce JOIN cash_days cd ON cd.id=ce.cash_day_id
-            WHERE {' OR '.join(clauses)}
+            WHERE ({' OR '.join(clauses)}){branch_clause}
             ORDER BY COALESCE(ce.updated_at, ce.created_at, cd.business_date) DESC LIMIT ?""",
                                   (*params, limit)).fetchall()
 
@@ -115,7 +120,7 @@ class SQLiteHistoryReader:
             _text(row["customer_document"]), _text(row["customer_phone"]),
             _text(row["description"]), _text(row["id"]))
 
-    def _jobs(self, connection, query, sale_ids, limit):
+    def _jobs(self, connection, query, sale_ids, limit, branch=""):
         if not self._has_table(connection, "service_jobs"):
             return []
         clauses, params = [], []
@@ -129,8 +134,13 @@ class SQLiteHistoryReader:
             params.extend(sale_ids)
         if not clauses:
             return []
-        return connection.execute(f"SELECT * FROM service_jobs WHERE {' OR '.join(clauses)} "
-                                  "ORDER BY updated_at DESC LIMIT ?", (*params, limit)).fetchall()
+        branch_clause = ""
+        if _text(branch):
+            branch_clause = " AND upper(trim(COALESCE(branch,''))) = upper(trim(?))"
+            params.append(_text(branch))
+        return connection.execute(f"SELECT * FROM service_jobs WHERE ({' OR '.join(clauses)})"
+                                  f"{branch_clause} ORDER BY updated_at DESC LIMIT ?",
+                                  (*params, limit)).fetchall()
 
     def _job_event(self, connection, row, identity_document=""):
         trace = []

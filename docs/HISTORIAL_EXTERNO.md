@@ -30,12 +30,19 @@ sucursales y se ordena de más reciente a más antiguo.
 no valida contraseñas ni guarda credenciales. Caja revalida su `CashSession`
 con `require_operator` inmediatamente antes de abrir la ventana y la entrega
 en memoria. La CLI falla cerrada: no acepta sujeto, rol o permisos libres.
-BC Seguridad sustituirá ese límite por sus claims autenticados sin cambiar la
-consulta.
+La apertura exige además un verificador de token: Caja entrega su
+`require_operator`; BC Seguridad podrá entregar el verificador de su installation
+binding. Historial consume ese contrato y no crea ni duplica el binding.
 
-- `history.customer.read.global`: Operadora y Admin pueden ver ficha global.
-- Operadora: puede operar su sucursal; `can_modify_branch` rechaza la ajena.
-- Admin/Dirección: puede operar ambas según su rol administrativo.
+- Operadora: consulta y opera únicamente su sucursal verificada, incluso si
+  recibe por error un claim global.
+- Admin/Dirección: consulta ambas sucursales y puede operarlas según su rol.
+- Visor federado: consulta ambas sucursales, pero `can_modify_branch` siempre
+  rechaza escritura, aun ante un claim de escritura accidental.
+- Roles desconocidos, operadora sin sucursal y búsquedas vacías fallan cerrados.
+- Hechos sin sucursal se descartan para todos los roles. Para operadora, el
+  filtro local baja al lector SQLite antes del `LIMIT`; datos ajenos no se
+  materializan ni desplazan coincidencias locales.
 - Historial no ofrece comandos de escritura, aun cuando el principal sea Admin.
 
 La proyección operativa contiene cliente, contacto, ventas, pagos, cristales,

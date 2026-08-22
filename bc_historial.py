@@ -7,8 +7,10 @@ from tkinter import messagebox, ttk
 from modulos.caja_diaria.config import resolve_data_paths
 from modulos.historial_externo.history import HistoryQuery
 from modulos.historial_externo.sqlite_reader import SQLiteHistoryReader
+from modulos.historial_externo.launcher import HistorialNoDisponible
 from modulos.historial_externo.global_history import (
-    GlobalHistoryService, HistoryAccessDenied, HistoryPrincipal, VIEW_GLOBAL,
+    GlobalHistoryService, HistoryAccessDenied, HistoryPrincipal,
+    ROLE_ADMIN, ROLE_FEDERATED_VIEWER, ROLE_OPERATOR, VIEW_GLOBAL, VIEW_LOCAL,
 )
 
 def _money(value) -> str:
@@ -48,7 +50,7 @@ class HistoryWindow(tk.Toplevel):
     def refresh(self):
         query = HistoryQuery(**{key: entry.get() for key, entry in self.fields.items()})
         try: result = self.service.search(self.principal, query)
-        except (OSError, sqlite3.Error, HistoryAccessDenied) as error:
+        except (OSError, sqlite3.Error, HistoryAccessDenied, ValueError) as error:
             messagebox.showerror("No se pudo consultar", str(error), parent=self); return
         history = result.selected
         if history is None:
@@ -82,18 +84,36 @@ def main(argv=None):
         "No acepta roles ni permisos por línea de comandos.")
 
 
-def open_for_verified_session(master, database, session, initial):
+def open_for_verified_session(master, database, session, initial, *, verify_session):
     """Abre Historial con una ``CashSession`` ya revalidada por Caja.
 
     No recibe strings de rol por CLI/entorno. El llamador obtiene ``session``
     de ``AdminOperations.require_operator`` inmediatamente antes de entrar.
     """
+    if session is None or not hasattr(session, "token") or not str(session.token or "").strip():
+        raise HistorialNoDisponible("BC Historial requiere una sesión verificada de Caja")
+    if not callable(verify_session):
+        raise HistorialNoDisponible("BC Historial no recibió un verificador de sesión")
+    try:
+        verified = verify_session(str(session.token))
+    except Exception as error:
+        raise HistorialNoDisponible("La sesión de Caja no es válida. Volvé a iniciar sesión.") from error
     required = ("user_id", "role", "branch", "token")
-    if session is None or any(not hasattr(session, name) for name in required):
-        raise HistoryAccessDenied("BC Historial requiere una sesión verificada de Caja")
+    if verified is None or any(not hasattr(verified, name) for name in required):
+        raise HistorialNoDisponible("El verificador no devolvió una sesión válida")
+    if not str(verified.user_id or "").strip() or not str(verified.token or "").strip():
+        raise HistorialNoDisponible("La sesión de Caja no es válida. Volvé a iniciar sesión.")
+    role = str(verified.role).upper()
+    permissions_by_role = {
+        ROLE_OPERATOR: frozenset({VIEW_LOCAL}),
+        ROLE_ADMIN: frozenset({VIEW_GLOBAL}),
+        ROLE_FEDERATED_VIEWER: frozenset({VIEW_GLOBAL}),
+    }
+    if role not in permissions_by_role:
+        raise HistorialNoDisponible("Tu rol no tiene acceso habilitado a BC Historial.")
     principal = HistoryPrincipal(
-        str(session.user_id), str(session.role), str(session.branch),
-        frozenset({VIEW_GLOBAL}), authenticated=True)
+        str(verified.user_id), role, str(verified.branch),
+        permissions_by_role.get(role, frozenset()), authenticated=True)
     service = GlobalHistoryService([SQLiteHistoryReader(database)])
     return HistoryWindow(master, service, principal, initial)
 

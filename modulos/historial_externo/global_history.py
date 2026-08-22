@@ -11,9 +11,13 @@ from typing import Iterable
 
 from .history import HistoryEvent, HistoryQuery, HistoryReader, PersonHistory
 
+VIEW_LOCAL = "history.customer.read.local"
 VIEW_GLOBAL = "history.customer.read.global"
 WRITE_CROSS_BRANCH = "operations.cross_branch.write"
-ALLOWED_ROLES = frozenset({"OPERADOR", "ADMIN"})
+ROLE_OPERATOR = "OPERADOR"
+ROLE_ADMIN = "ADMIN"
+ROLE_FEDERATED_VIEWER = "VISOR_FEDERADO"
+ALLOWED_ROLES = frozenset({ROLE_OPERATOR, ROLE_ADMIN, ROLE_FEDERATED_VIEWER})
 
 
 class HistoryAccessDenied(PermissionError):
@@ -26,23 +30,47 @@ class HistoryPrincipal:
     subject: str
     role: str
     branch: str
-    permissions: frozenset[str] = field(default_factory=lambda: frozenset({VIEW_GLOBAL}))
+    permissions: frozenset[str] = field(default_factory=frozenset)
     authenticated: bool = True
 
 
 class HistoryAccessPolicy:
-    def require_global_view(self, principal: HistoryPrincipal) -> None:
-        if (not principal.authenticated or principal.role.upper() not in ALLOWED_ROLES
-                or VIEW_GLOBAL not in principal.permissions):
-            raise HistoryAccessDenied("La sesión no permite consultar el historial global")
+    def require_view(self, principal: HistoryPrincipal) -> str:
+        """Valida claims y devuelve ``GLOBAL`` o ``LOCAL`` sin elevar roles.
+
+        Los permisos llegan de una sesión ya verificada. Aun si una operadora
+        recibiera por error el claim global, su rol conserva alcance local.
+        """
+        role = principal.role.upper()
+        if (not principal.authenticated or not str(principal.subject or "").strip()
+                or role not in ALLOWED_ROLES):
+            raise HistoryAccessDenied("La sesión no permite consultar BC Historial")
+        if role in {ROLE_ADMIN, ROLE_FEDERATED_VIEWER}:
+            if VIEW_GLOBAL not in principal.permissions:
+                raise HistoryAccessDenied("La sesión no permite consultar el historial federado")
+            return "GLOBAL"
+        if VIEW_LOCAL not in principal.permissions or not _branch(principal.branch):
+            raise HistoryAccessDenied("La operadora requiere una sucursal local verificada")
+        return "LOCAL"
+
+    def can_view_branch(self, principal: HistoryPrincipal, target_branch: str) -> bool:
+        scope = self.require_view(principal)
+        target = _branch(target_branch)
+        return bool(target) and (scope == "GLOBAL" or target == _branch(principal.branch))
 
     def can_modify_branch(self, principal: HistoryPrincipal, target_branch: str) -> bool:
         """Contrato para consumidores operativos; Historial nunca escribe."""
-        if not principal.authenticated:
+        role = principal.role.upper()
+        target = _branch(target_branch)
+        if (not principal.authenticated or role not in ALLOWED_ROLES or not target
+                or not str(principal.subject or "").strip()):
             return False
-        if principal.role.upper() == "ADMIN" or WRITE_CROSS_BRANCH in principal.permissions:
+        if role == ROLE_FEDERATED_VIEWER:
+            return False
+        if role == ROLE_ADMIN:
             return True
-        return _branch(principal.branch) == _branch(target_branch)
+        local = _branch(principal.branch)
+        return bool(local) and local == target
 
 
 @dataclass(frozen=True)
@@ -71,13 +99,22 @@ class GlobalHistoryService:
 
     def search(self, principal: HistoryPrincipal, query: HistoryQuery,
                *, limit: int = 200) -> GlobalHistoryResult:
-        self.policy.require_global_view(principal)
+        scope = self.policy.require_view(principal)
         query = query.cleaned()
+        if not query.has_terms:
+            raise ValueError("Ingresá al menos un dato para buscar")
         groups: dict[str, list[HistoryEvent]] = {}
         facts: dict[str, dict[str, list[str]]] = {}
         for source_number, source in enumerate(self.sources):
-            profile = source.search(query, limit=limit)
+            local_branch = principal.branch if scope == "LOCAL" else ""
+            profile = source.search(query, limit=limit, branch=local_branch)
             for event_number, event in enumerate(profile.events):
+                # Un hecho sin procedencia no puede formar parte de una vista
+                # multisucursal, tampoco para Admin o Visor Federado.
+                if not _branch(event.branch):
+                    continue
+                if scope == "LOCAL" and not self.policy.can_view_branch(principal, event.branch):
+                    continue
                 document = _document(event.identity_document)
                 if document:
                     key = "document:" + document

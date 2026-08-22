@@ -83,6 +83,16 @@ def test_conexion_es_query_only(history_db):
         connection.close()
 
 
+def test_filtro_de_sucursal_se_aplica_en_sqlite_antes_de_retornar(history_db):
+    reader = SQLiteHistoryReader(history_db)
+    asuncion = reader.search(HistoryQuery(name="Ana"), branch="ASUNCION")
+    pilar = reader.search(HistoryQuery(name="Ana"), branch="PILAR")
+    assert {event.branch for event in asuncion.events} == {"ASUNCION"}
+    assert {event.branch for event in pilar.events} == {"PILAR"}
+    assert {event.envelope for event in asuncion.events} == {"S-10", "C-77"}
+    assert {event.envelope for event in pilar.events} == {"S-11"}
+
+
 def test_documento_fuerte_no_trae_homonimo_aunque_coincida_el_nombre(history_db):
     connection = sqlite3.connect(history_db)
     connection.execute("""INSERT INTO cash_entries VALUES(
