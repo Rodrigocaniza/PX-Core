@@ -36,7 +36,11 @@ from modulos.seguridad.application import (  # noqa: E402
     keyring,
     verifier,
 )
-from modulos.seguridad.application.field_protection import FieldCipher  # noqa: E402
+from modulos.seguridad.application.field_protection import (  # noqa: E402
+    PREFIX,
+    PROTECTED_COLUMNS,
+    FieldCipher,
+)
 from modulos.seguridad.errors import SecurityError  # noqa: E402
 from modulos.seguridad.infrastructure import fingerprint as fingerprint_module  # noqa: E402
 from modulos.seguridad.infrastructure import security_db  # noqa: E402
@@ -287,6 +291,74 @@ def comando_estado(argumentos) -> int:
     return 0
 
 
+def comando_verificar_bcx1(argumentos) -> int:
+    """Comprueba una copia robada sin intentar abrir ninguna clave.
+
+    Es deliberadamente un lector SQLite crudo: en PC-B debe poder demostrar
+    que los campos sensibles siguen cifrados aunque DPAPI deniegue el acceso.
+    Nunca imprime valores de negocio, solo conteos por columna si algo falla.
+    """
+    import sqlite3
+    from contextlib import closing
+
+    base = _base(argumentos)
+    if not base.is_file():
+        print(f"BCX1_FAIL base_ausente={base}")
+        return 4
+
+    fallos: list[str] = []
+    total = 0
+    uri = f"{base.resolve().as_uri()}?mode=ro"
+    try:
+        with closing(sqlite3.connect(uri, uri=True)) as conexion:
+            integridad = str(conexion.execute("PRAGMA integrity_check").fetchone()[0])
+            if integridad.lower() != "ok":
+                print(f"BCX1_FAIL integrity_check={integridad}")
+                return 4
+
+            tablas = {
+                str(fila[0])
+                for fila in conexion.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                )
+            }
+            for tabla, columnas in PROTECTED_COLUMNS.items():
+                if tabla not in tablas:
+                    fallos.append(f"{tabla}:tabla_ausente")
+                    continue
+                existentes = {
+                    str(fila[1])
+                    for fila in conexion.execute(f'PRAGMA table_info("{tabla}")')
+                }
+                for columna in columnas:
+                    if columna not in existentes:
+                        fallos.append(f"{tabla}.{columna}:columna_ausente")
+                        continue
+                    consulta = (
+                        f'SELECT "{columna}" FROM "{tabla}" '
+                        f'WHERE "{columna}" IS NOT NULL AND "{columna}" <> \'\''
+                    )
+                    valores = [fila[0] for fila in conexion.execute(consulta)]
+                    total += len(valores)
+                    en_claro = sum(
+                        1 for valor in valores
+                        if not isinstance(valor, str) or not valor.startswith(PREFIX)
+                    )
+                    if en_claro:
+                        fallos.append(f"{tabla}.{columna}:en_claro={en_claro}")
+    except sqlite3.Error as error:
+        print(f"BCX1_FAIL sqlite={type(error).__name__}")
+        return 4
+
+    if total == 0:
+        fallos.append("valores_protegidos=0")
+    if fallos:
+        print(f"BCX1_FAIL valores={total} " + " ".join(fallos))
+        return 4
+    print(f"BCX1_OK valores={total} en_claro=0 integrity_check=ok")
+    return 0
+
+
 def construir_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="BC Seguridad — instalacion y diagnostico")
     parser.add_argument("--base", help="ruta de la base; por defecto la de BC Caja")
@@ -362,6 +434,13 @@ def construir_parser() -> argparse.ArgumentParser:
     estado = sub.add_parser("estado", help="resumen de la instalacion")
     comun(estado)
     estado.set_defaults(func=comando_estado)
+
+    bcx1 = sub.add_parser(
+        "verificar-bcx1",
+        help="valida en solo lectura que una copia mantiene cifrados todos los campos sensibles",
+    )
+    comun(bcx1)
+    bcx1.set_defaults(func=comando_verificar_bcx1)
     return parser
 
 

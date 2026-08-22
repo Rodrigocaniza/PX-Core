@@ -23,7 +23,7 @@
       "gate": "ARTIFACT_CONSISTENCY_PASSED",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "ARTIFACT_CONSISTENCY.md contrasta cada numero contra el comando que lo produce. El paquete congelado fue verificado con SMOKE_PAQUETE_OK pasos=31 y tools/verificar_paquete.py dio PAQUETE_OK archivos_verificados=5. Lo que NO se pudo verificar y no se afirma es el DENY en una segunda PC fisica ni el comportamiento contra la base productiva. Toda la evidencia de codigo y paquete se vincula al HEAD base 40749f9e968071df0a9e72399444310ab73cd3b7; el commit documental de cierre sera su descendiente para evitar una referencia Git circular."
+      "detalle": "ARTIFACT_CONSISTENCY.md contrasta cada numero contra el comando que lo produce. El paquete congelado fue verificado con SMOKE_PAQUETE_OK pasos=32 y tools/verificar_paquete.py dio PAQUETE_OK archivos_verificados=5. El paso nuevo ejecuta el checker BCX1 autocontenido contra la base temporal protegida. Lo que NO se pudo verificar y no se afirma es el DENY en una segunda PC fisica ni el comportamiento contra la base productiva."
     },
     {
       "gate": "LIBRARIAN_PASS",
@@ -35,7 +35,7 @@
       "gate": "QA_PASS",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "177 pruebas en tests/seguridad. Las de aceptacion A a L cubren las doce letras, con la letra en el nombre de la clase. Ademas: pruebas contra el DPAPI REAL de esta Windows; pruebas de contrato que verifican estaticamente que el cliente no importa el emisor, que no hay clave privada en el repositorio, que el almacen se ignora cuando el ejecutable esta congelado, que la 033 es aditiva y que ninguna consulta compara por una columna cifrada; un escaneo de canarios que recorre CADA BYTE de CADA archivo que BC deja en disco; pruebas de que el build declara todo lo que la capa lee en ejecucion; y una prueba que LEE el instructivo de la Optica y verifica que cada comando que aparece ahi realmente parsea. Fuera de pytest, una ceremonia de 31 pasos contra los .exe. En el cierre preinstalacion se agregaron ocho mas que inyectan el fallo a proposito (tests/seguridad/test_fallo_no_destruye.py): un cifrador que revienta a la mitad de proteger y de revertir, y un sellador que sella y no reabre. Verifican que la base vuelve al estado exacto anterior, que el disparador de stock se restaura, que BC sigue leyendo, que reintentar termina el trabajo, y que un enrolamiento fallido no escribe identidad ni secreto ni toca la base. Antes esto se deducia del codigo; ahora se ejerce."
+      "detalle": "184 pruebas en tests/seguridad. Las de aceptacion A a L cubren las doce letras. Se agregaron cuatro pruebas del checker crudo y tres contratos de los scripts PC-A/PC-B: fail-closed, resultado fisico exacto e inclusion en el paquete. Ademas hay pruebas DPAPI real, contratos, canarios, recursos congelados y ocho fallos inyectados. Fuera de pytest, una ceremonia de 32 pasos contra los .exe incluye el checker congelado."
     },
     {
       "gate": "AUDITOR_PASS",
@@ -52,7 +52,7 @@
       "gate": "FROZEN_PACKAGE_VERIFIED",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "tools/smoke_paquete_seguridad.py corre la ceremonia entera —arranque, enrolamiento, emision, instalacion, proteccion, escritura y lectura protegida, base robada, planilla sellada, reinicio, lease, licencia manipulada, archivos corruptos y rollback— contra los ejecutables de dist/BC-Caja, sobre directorios temporales propios. SMOKE_PAQUETE_OK pasos=31. Funcionar desde Python no decia nada sobre funcionar congelado, y este gate existe porque la diferencia resulto ser la que habria roto la instalacion."
+      "detalle": "tools/smoke_paquete_seguridad.py corre la ceremonia entera —arranque, enrolamiento, emision, instalacion, proteccion, escritura y lectura protegida, checker BCX1, base robada, planilla sellada, reinicio, lease, licencia manipulada, archivos corruptos y rollback— contra los ejecutables de dist/BC-Caja, sobre directorios temporales propios. SMOKE_PAQUETE_OK pasos=32."
     },
     {
       "gate": "READY_FOR_PHYSICAL_PILOT",
@@ -78,16 +78,16 @@
       "tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence"
     ],
     "despues_del_slice": {
-      "verdes": 1549,
+      "verdes": 1556,
       "rojas": 0
     },
     "rojas_despues": [],
-    "cuadra": "1369 de base + 2 que eran inestables y pasaron + 1 que estaba roja y se cerro + las nuevas de seguridad = 1541 al congelar el paquete; + 8 de fallo inyectado en el cierre preinstalacion = 1549. Ninguna roja.",
+    "cuadra": "1549 del cierre anterior + 4 pruebas del checker BCX1 + 3 contratos de scripts PC-A/PC-B = 1556. Ninguna roja.",
     "regresiones_atribuibles_al_slice": 0,
-    "suite_de_seguridad": 177,
+    "suite_de_seguridad": 184,
     "la_ultima_roja_de_la_base_se_cerro": "test_el_valor_de_respaldo_sigue_al_paquete estaba en rojo desde antes de este slice: CajaDiaria.VERSION_APLICACION decia 1.0.0-rc.32 y pilot/package_docs/VERSION.txt decia 1.0.0-rc.33, porque la V1-021 bumpeo uno y no el otro. Dejo de ser ajeno en el momento en que este slice construyo el paquete rc.33: la Optica habria visto rc.32 en el pie de la ventana y rc.33 en el zip. Se alineo la constante, que es exactamente lo que la prueba pedia.",
     "paquete": {
-      "smoke": "SMOKE_PAQUETE_OK pasos=31",
+      "smoke": "SMOKE_PAQUETE_OK pasos=32",
       "contra": "los .exe, no el codigo fuente"
     }
   },

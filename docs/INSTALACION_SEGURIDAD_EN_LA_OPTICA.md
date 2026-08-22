@@ -246,6 +246,14 @@ Se hace con la Optica mirando.
 
 3. Abrir el `bc_caja.sqlite3` copiado con cualquier visor de SQLite.
 
+O comprobar automaticamente, sin instalar Python ni SQLite:
+
+```
+Seguridad\BC-Seguridad.exe verificar-bcx1 --base C:\ruta\bc_caja.sqlite3
+```
+
+**Tiene que decir:** `BCX1_OK valores=<numero mayor que cero> en_claro=0 integrity_check=ok`.
+
 **Tiene que decir:** donde antes decia el nombre del paciente, ahora dice
 `bcx1:...`.
 

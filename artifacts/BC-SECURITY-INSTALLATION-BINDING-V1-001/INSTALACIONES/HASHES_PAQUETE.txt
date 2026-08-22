@@ -2,7 +2,7 @@ HASHES DEL PAQUETE CONGELADO — BC Seguridad V1
 ==============================================
 
 Rama   : feature/bc-security-installation-binding-v1-001
-HEAD DE CODIGO/PAQUETE: 40749f9e968071df0a9e72399444310ab73cd3b7
+HEAD BASE ANTES DEL CHECKER: eb3585c91e0ac348951ac24a06d428858bfe54cb
 Version: BC Caja 1.0.0-rc.33
 Fecha  : 2026-08-21
 
@@ -17,14 +17,14 @@ Se comprueba solo, en la PC de la Optica o antes de copiar:
 
 ZIP
 ---
-20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5  BC-CAJA-1.0.0-rc.33-win64.zip
-    tamano: 50117227 bytes
+f4f3092d928112e841b269083d8e020b62f9dba179d308ad944aead01286161b  BC-CAJA-1.0.0-rc.33-win64.zip
+    tamano: 51173955 bytes
     entradas: 1256
 
 DENTRO DEL PAQUETE
 ------------------
-0cf89f1b21613489f496faa612b8f4f8baa76fe6e0349f1ad22a90cf5d0d48e8  BC-Caja/BC-Caja.exe
-6999fd72803ca6a6d036c2ef40fb422b4704d971a5e2a5bb8168b3314111426f  BC-Caja/Seguridad/BC-Seguridad.exe
+69607022fc2d0be85c9b0eb11f6bdf8d6cc7cd06972664768031967629627b8a  BC-Caja/BC-Caja.exe
+84a1073a65366c6bbcdb9539cb880069aee511a94d2512c7dd7499ea08194332  BC-Caja/Seguridad/BC-Seguridad.exe
 00401066ba9c1385c8c7e39e147f917f429ee97c0a3ac6abfc71851ff27cca72  BC-Caja/_internal/modulos/seguridad/trusted_issuers.json
 00401066ba9c1385c8c7e39e147f917f429ee97c0a3ac6abfc71851ff27cca72  BC-Caja/Seguridad/_internal/modulos/seguridad/trusted_issuers.json
 

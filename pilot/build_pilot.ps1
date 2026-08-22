@@ -69,7 +69,9 @@ try {
     Copy-Item -LiteralPath `
         "pilot/package_docs/INSTALACION.txt", `
         "pilot/package_docs/GUIA_RAPIDA.txt", `
-        "pilot/package_docs/VERSION.txt" `
+        "pilot/package_docs/VERSION.txt", `
+        "pilot/package_docs/PREPARAR-PRUEBA-PC-B.ps1", `
+        "pilot/package_docs/EJECUTAR-PRUEBA-PC-B.ps1" `
         -Destination $package -Force
 
     # La version sale de VERSION.txt, no del nombre del script: cablearla

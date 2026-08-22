@@ -9,7 +9,7 @@ resultado anotado cuenta como no hecho.
 | Etiqueta de enrolamiento | `Optica ASUNCION - Caja 1` |
 | Organizacion | `optica` |
 | Lease / gracia | 365 / 180 dias |
-| Paquete | `BC-CAJA-1.0.0-rc.33-win64.zip` — sha256 `20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5` |
+| Paquete | `BC-CAJA-1.0.0-rc.33-win64.zip` — sha256 `f4f3092d928112e841b269083d8e020b62f9dba179d308ad944aead01286161b` |
 | Instructivo | `docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md` |
 | Fecha | ____________ |
 | Quien instala | ____________ |

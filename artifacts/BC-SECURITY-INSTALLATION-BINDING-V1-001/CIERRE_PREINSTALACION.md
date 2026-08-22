@@ -133,7 +133,7 @@ que fue como se destapo `source_reference`.
 
 ## Lo que ahora se puede afirmar y antes no
 
-`SMOKE_PAQUETE_OK pasos=31`, contra los `.exe` y no contra el codigo fuente:
+`SMOKE_PAQUETE_OK pasos=32`, contra los `.exe` y no contra el codigo fuente:
 
 * el ejecutable arranca y corre la migracion 033 adentro del paquete;
 * sin enrolar, BC funciona como siempre;

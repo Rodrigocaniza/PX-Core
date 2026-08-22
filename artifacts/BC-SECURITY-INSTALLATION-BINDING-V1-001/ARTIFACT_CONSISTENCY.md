@@ -8,7 +8,7 @@ redactado como si se hubiera podido.
 
 ## Git
 
-Revalidado para el cierre documental contra el HEAD de código y paquete `40749f9e968071df0a9e72399444310ab73cd3b7`: HEAD local y `origin/feature/bc-security-installation-binding-v1-001` identicos (`0/0`) y worktree limpio antes de regenerar estos artifacts. El commit que contiene este cierre documental es necesariamente descendiente de ese HEAD; no se intenta guardar el hash del propio commit dentro de sí mismo.
+La preparación del checker PC-B partió de `eb3585c91e0ac348951ac24a06d428858bfe54cb`, con HEAD local y origin idénticos (`0/0`) y worktree limpio. El commit que contiene el checker, scripts, pruebas y este cierre es necesariamente descendiente de esa base; no se intenta guardar el hash del propio commit dentro de sí mismo.
 
 | Afirmado | Fuente | Resultado |
 |---|---|---|
@@ -95,8 +95,8 @@ archivo dio `ninguna`.
 |---|---|---|
 | base antes de tocar nada | `python -m pytest` sobre la 021 sin cambios | 1369 pasan, 3 fallan |
 | las 3 rojas de la base | `grep FAILED` de esa corrida | `test_el_valor_de_respaldo_sigue_al_paquete`, y dos de `gestion_central/test_ui_interactions.py` |
-| suite de seguridad | `python -m pytest tests/seguridad` | 177 pasan (169 + 8 de fallo inyectado en el cierre preinstalacion) |
-| suite completa despues | `python -m pytest` | **1549 pasan, 0 fallan** (1541 al congelar + 8 del cierre preinstalacion) |
+| suite de seguridad | `python -m pytest tests/seguridad` | **184 pasan** |
+| suite completa despues | `python -m pytest` | **1556 pasan, 0 fallan** en 254.11 s; 5 warnings deprecados de SWIG |
 | sin regresiones atribuibles a este slice | comparacion nominal de las rojas contra la base | ninguna roja nueva |
 
 **Las tres rojas de la base, una por una:**
@@ -125,7 +125,7 @@ La notebook PC-B ya ejecuto el ZIP limpio: llego a login y `CONFIGURACION INICIA
 |---|---|
 | "el blob DPAPI no abre en otra PC" | No se puede ejercer desde una sola computadora. La suite lo prueba con un sellador **simulado**, declarado como tal en el encabezado de `conftest.py`, y hay pruebas contra el DPAPI **real** de esta Windows (`test_dpapi_real.py`) para que la simulacion no sea la unica evidencia. La verificacion contra dos PCs distintas es el paso 8 del HUMAN_GATE. |
 | "esto funciona contra la base productiva" | La base productiva vive solo en la Optica. Nada de esta sesion la abrio. |
-| ~~"el ejecutable empaquetado arranca con la capa"~~ | **Ya no aplica: se construyo y se verifico.** `SMOKE_PAQUETE_OK pasos=31` contra los `.exe`. Y no era una formalidad: el primer build salio sin errores y **no llevaba el almacen de confianza**, lo que habria dejado toda instalacion enrolada en DENY. |
+| ~~"el ejecutable empaquetado arranca con la capa"~~ | **Ya no aplica: se construyo y se verifico.** `SMOKE_PAQUETE_OK pasos=32` contra los `.exe`, incluido `BCX1_OK`. |
 | "corrieron Librarian, QA y Auditor como agentes independientes" | Fueron tres pasadas con criterios distintos dentro de la misma sesion. Se declara como es en `GATES.json`. |
 
 
@@ -141,7 +141,7 @@ La notebook PC-B ya ejecuto el ZIP limpio: llego a login y `CONFIGURACION INICIA
 | lleva `cryptography` con su binario nativo | idem, sobre `cryptography/hazmat/bindings/_rust.pyd` | idem |
 | lleva su propia herramienta de seguridad | `dist/BC-Caja/Seguridad/BC-Seguridad.exe` | `BC_SEGURIDAD_PACKAGE_OK` |
 | **no** lleva el emisor | `test_ningun_modulo_del_cliente_importa_el_emisor` y ausencia en el paquete | verde |
-| la ceremonia entera corre contra los `.exe` | `python tools/smoke_paquete_seguridad.py` | `SMOKE_PAQUETE_OK pasos=31` |
+| la ceremonia entera corre contra los `.exe` | `python tools/smoke_paquete_seguridad.py` | `SMOKE_PAQUETE_OK pasos=32` |
 | el build falla si falta algo | se probo quitando el `--add-data` antes de agregarlo | el primer build fallo justamente asi, en silencio |
 
 **Hashes del paquete verificado** (el zip pesa 50 MB y no se commitea, igual que
@@ -149,9 +149,9 @@ los rc anteriores; solo su hash viaja):
 
 | Archivo | SHA-256 |
 |---|---|
-| `BC-CAJA-1.0.0-rc.33-win64.zip` | `20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5` |
-| `BC-Caja.exe` | `0cf89f1b21613489f496faa612b8f4f8baa76fe6e0349f1ad22a90cf5d0d48e8` |
-| `Seguridad/BC-Seguridad.exe` | `6999fd72803ca6a6d036c2ef40fb422b4704d971a5e2a5bb8168b3314111426f` |
+| `BC-CAJA-1.0.0-rc.33-win64.zip` | `f4f3092d928112e841b269083d8e020b62f9dba179d308ad944aead01286161b` |
+| `BC-Caja.exe` | `69607022fc2d0be85c9b0eb11f6bdf8d6cc7cd06972664768031967629627b8a` |
+| `Seguridad/BC-Seguridad.exe` | `84a1073a65366c6bbcdb9539cb880069aee511a94d2512c7dd7499ea08194332` |
 
 ## Escaneo de PII
 

@@ -1,12 +1,14 @@
 # BC SEGURIDAD V1 — resumen
 
 **Rama:** `feature/bc-security-installation-binding-v1-001`
-**HEAD de código y paquete verificado:** `40749f9e968071df0a9e72399444310ab73cd3b7` (`origin` idéntico, `0/0`, worktree limpio antes del cierre documental)
+**HEAD base antes de preparar el checker PC-B:** `eb3585c91e0ac348951ac24a06d428858bfe54cb` (`origin` idéntico, `0/0`). El commit de este cierre contiene el código exacto usado para reconstruir el paquete y es necesariamente descendiente de esa base.
 **Base:** `origin/feature/bc-optica-comision-composturas-v1-021 @ 38ef01b`
-**Suite:** 1549 verdes, **0 rojas** (1369 verdes y 3 rojas antes de empezar; 1541 al congelar el paquete, +8 del cierre preinstalacion)
-**Paquete:** `BC-CAJA-1.0.0-rc.33-win64.zip`, verificado con `SMOKE_PAQUETE_OK pasos=31`
+**Suite:** 1556 verdes, **0 rojas** (1549 del cierre anterior +7 del checker y scripts PC-B)
+**Paquete:** `BC-CAJA-1.0.0-rc.33-win64.zip`, verificado con `SMOKE_PAQUETE_OK pasos=32`
 
 **PC-B fisica, ZIP limpio:** arranco hasta login y `CONFIGURACION INICIAL SEGURA`, sin crear credenciales. Es el comportamiento correcto de una instalacion sin enrolar y **no** constituye la prueba de clonacion. La evidencia esta en `EVIDENCIA_PC_B_LIMPIA.md`.
+
+**Preparacion del clon real:** el paquete incluye `PREPARAR-PRUEBA-PC-B.ps1`, que en PC-A exige `ALLOW / OK` y `BCX1_OK` antes de generar un unico ZIP con manifest y hashes, y `EJECUTAR-PRUEBA-PC-B.ps1`, que en notebook exige `DENY / MAQUINA_DISTINTA` con exit `2` y vuelve a exigir `BCX1_OK`.
 
 ---
 
@@ -61,7 +63,7 @@ pueda revisar.
 | `migrations/033_security_v1.sql` | tres tablas nuevas, estrictamente aditiva. Aplicarla no cifra nada |
 | `tools/bc_security.py` | lo que se corre en la Optica, empaquetado como `BC-Seguridad.exe`: enrolar, licencia, verificar, proteger, revertir, recuperar, abrir-informe, auditoria |
 | `tools/bc_security_issuer.py` | lo que se corre en la maquina de administracion. La clave privada no entra al repositorio |
-| `tests/seguridad/` | 177 pruebas: A a L, contratos, DPAPI real, escaneo de canarios, verificacion del paquete y fallo inyectado al enrolar y al proteger |
+| `tests/seguridad/` | 184 pruebas: A a L, contratos, DPAPI real, canarios, paquete, fallos inyectados, checker BCX1 y scripts PC-A/PC-B |
 | `docs/adr/` | siete decisiones, cada una con lo que se pierde al tomarla |
 | `docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md` | los pasos del lunes, con los ejecutables del paquete |
 | `tools/smoke_paquete_seguridad.py` | la ceremonia entera contra los `.exe`, repetible |
@@ -153,7 +155,7 @@ correccion y su prueba.
 **Lo que ahora se puede afirmar:** la ceremonia entera —arranque, enrolamiento,
 emision, instalacion, proteccion, escritura y lectura protegida, base robada,
 planilla sellada, reinicio, lease, licencia manipulada, archivos corruptos y
-rollback— corre contra los `.exe` y da `SMOKE_PAQUETE_OK pasos=31`.
+rollback y checker `BCX1_OK`— corre contra los `.exe` y da `SMOKE_PAQUETE_OK pasos=32`.
 
 **Lo que sigue sin poder afirmarse:** que el blob sellado con DPAPI no abra en
 otra PC. No hay una segunda computadora. Es la unica afirmacion del slice que no

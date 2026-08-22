@@ -196,6 +196,15 @@ class Ceremonia:
         )
 
     def sqlite_pelado_no_dice_nada(self) -> None:
+        checker = self._correr(
+            self.seguridad, "verificar-bcx1", "--base", str(self._base())
+        ).stdout
+        self.paso(
+            "el checker congelado valida todos los campos sensibles",
+            checker.startswith("BCX1_OK valores=")
+            and "en_claro=0 integrity_check=ok" in checker,
+            checker.strip(),
+        )
         conexion = sqlite3.connect(str(self._base()))
         try:
             filas = conexion.execute(

@@ -11,10 +11,10 @@
   },
   "base_git": {
     "branch": "feature/bc-security-installation-binding-v1-001",
-    "head_de_codigo_y_paquete_verificado": "40749f9e968071df0a9e72399444310ab73cd3b7",
-    "origin_head_al_verificar": "40749f9e968071df0a9e72399444310ab73cd3b7",
+    "head_base_antes_del_checker_pc_b": "eb3585c91e0ac348951ac24a06d428858bfe54cb",
+    "origin_head_al_iniciar": "eb3585c91e0ac348951ac24a06d428858bfe54cb",
     "ahead_behind": "0/0",
-    "worktree_limpio_antes_del_cierre_documental": true,
+    "worktree_limpio_al_iniciar": true,
     "parte_de": "origin/feature/bc-optica-comision-composturas-v1-021 @ 38ef01b",
     "worktree": "C:/PX/SEC1",
     "origin_main": "628749b",
@@ -242,13 +242,15 @@
   "paquete": {
     "version": "1.0.0-rc.33",
     "zip": "releases/BC-CAJA-1.0.0-rc.33-win64.zip",
-    "sha256_zip": "20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5",
-    "sha256_bc_caja_exe": "0cf89f1b21613489f496faa612b8f4f8baa76fe6e0349f1ad22a90cf5d0d48e8",
-    "sha256_bc_seguridad_exe": "6999fd72803ca6a6d036c2ef40fb422b4704d971a5e2a5bb8168b3314111426f",
+    "sha256_zip": "f4f3092d928112e841b269083d8e020b62f9dba179d308ad944aead01286161b",
+    "sha256_bc_caja_exe": "69607022fc2d0be85c9b0eb11f6bdf8d6cc7cd06972664768031967629627b8a",
+    "sha256_bc_seguridad_exe": "84a1073a65366c6bbcdb9539cb880069aee511a94d2512c7dd7499ea08194332",
     "binario_no_commiteado": "el zip pesa 50 MB y queda fuera de Git, igual que los rc anteriores. Solo su hash viaja en este MANIFEST.",
     "contiene": {
       "BC-Caja.exe": "la aplicacion, --windowed, con la puerta de seguridad antes de abrir la ventana",
-      "Seguridad/BC-Seguridad.exe": "la herramienta de instalacion, de CONSOLA. Va en el paquete porque la Optica no tiene Python y sin esto el instructivo pediria algo imposible en esa PC",
+      "Seguridad/BC-Seguridad.exe": "la herramienta de instalacion y checker BCX1, de CONSOLA. Va en el paquete porque la Optica no tiene Python",
+      "PREPARAR-PRUEBA-PC-B.ps1": "fail-closed en PC-A: exige ALLOW / OK y BCX1_OK antes de generar un bundle con hashes",
+      "EJECUTAR-PRUEBA-PC-B.ps1": "en notebook verifica hashes, DENY / MAQUINA_DISTINTA exit 2 y BCX1_OK",
       "_internal/modulos/seguridad/trusted_issuers.json": "el almacen de confianza",
       "_internal/modulos/caja_diaria/infrastructure/migrations/": "la cadena entera, 001 a 033",
       "_internal/cryptography/": "46.0.7, con hazmat/bindings/_rust.pyd (Ed25519 y AES-GCM)"
@@ -258,7 +260,7 @@
   },
   "smoke_del_paquete_congelado": {
     "herramienta": "tools/smoke_paquete_seguridad.py",
-    "resultado": "SMOKE_PAQUETE_OK pasos=31",
+    "resultado": "SMOKE_PAQUETE_OK pasos=32",
     "contra": "los .exe de dist/BC-Caja, no el codigo fuente",
     "sobre": "directorios temporales propios; no toca ninguna base productiva",
     "cubre": [
