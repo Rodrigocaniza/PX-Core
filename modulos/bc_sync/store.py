@@ -92,14 +92,15 @@ class SyncStore:
                        (self._now(), event.event_id))
             self._audit(db, "SEND_ACKNOWLEDGED", event)
 
-    def receive(self, event: SyncEvent, *, nonce: str) -> bool:
+    def receive(self, event: SyncEvent, *, nonce: str | None = None) -> bool:
         event.validate()
         with self.connect() as db:
-            try:
-                db.execute("INSERT INTO sync_nonces VALUES(?,?,?)",
-                           (event.installation_id, nonce, self._now()))
-            except sqlite3.IntegrityError as exc:
-                raise ReplayDetected("nonce ya recibido") from exc
+            if nonce is not None:  # Sólo adapter legado; BC Seguridad lleva su NonceLedger.
+                try:
+                    db.execute("INSERT INTO sync_nonces VALUES(?,?,?)",
+                               (event.installation_id, nonce, self._now()))
+                except sqlite3.IntegrityError as exc:
+                    raise ReplayDetected("nonce ya recibido") from exc
             existing = db.execute("SELECT event_id FROM sync_events WHERE event_id=? OR "
                                   "(installation_id=? AND idempotency_key=?)",
                                   (event.event_id, event.installation_id, event.idempotency_key)).fetchone()
