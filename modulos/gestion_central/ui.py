@@ -29,9 +29,10 @@ def build_ui_logger(data_root: Path) -> logging.Logger:
 class CentralPilotWindow:
     """Consola interactiva adaptable, priorizada para 24 pulgadas Full HD."""
 
-    def __init__(self, service, *, root=None, notifier=None, logger=None, confirmer=None):
+    def __init__(self, service, *, root=None, notifier=None, logger=None, confirmer=None, sync_database=None):
         self.service = service
         self.principal = service.authenticate("sol.piloto", "Piloto-Temporal-2026")
+        self.sync_database = Path(sync_database) if sync_database else service.repository.database_path.parent / "central-sync.sqlite3"
         self.root = root or tk.Tk()
         self.notifier = notifier or messagebox.showinfo
         self.confirmer = confirmer or messagebox.askyesno
@@ -88,6 +89,8 @@ class CentralPilotWindow:
         self.refresh_button.pack(side="right")
         self.review_button = tk.Button(toolbar, text="Revisión de ventas", command=self.show_review, bg=COLORS["navy"], fg="white", relief="flat", padx=18, pady=7)
         self.review_button.pack(side="right", padx=8)
+        self.sync_button = tk.Button(toolbar, text="Recepción Sync", command=self.show_sync_reception, bg=COLORS["navy"], fg="white", relief="flat", padx=18, pady=7)
+        self.sync_button.pack(side="right")
         self.cards = tk.Frame(self.body, bg=COLORS["surface"]); self.cards.pack(fill="both", expand=True, padx=18)
         self._dashboard_data = data; self._render_cards(data["cards"])
         section = tk.Frame(self.body, bg=COLORS["surface"]); section.pack(fill="x", padx=24, pady=(8, 4))
@@ -141,6 +144,21 @@ class CentralPilotWindow:
         )
         self.review_panel.pack(fill="both", expand=True)
         self.status_var.set("Revisión fila por fila · datos de copia local")
+
+    def show_sync_reception(self):
+        return self._guard(self._show_sync_reception, "abrir la recepción de BC Sync")
+
+    def _show_sync_reception(self):
+        from .sync_projection_ui import SyncProjectionPanel
+        from .sync_projection_view import SyncProjectionView
+        self.current_screen = "sync"
+        self._clear_body()
+        self.sync_panel = SyncProjectionPanel(
+            self.body, SyncProjectionView(self.sync_database), self.principal,
+            back=self.show_dashboard, notifier=self.notifier,
+        )
+        self.sync_panel.pack(fill="both", expand=True)
+        self.status_var.set("Recepción BC Sync · proyecciones en solo lectura")
 
     def show_detail(self, unit): return self._guard(lambda: self._show_detail(unit), f"abrir detalle de {unit.label}")
 
