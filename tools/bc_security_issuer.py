@@ -10,9 +10,11 @@ sellada por DPAPI en la maquina que emite, y su respaldo es papel.
     python tools/bc_security_issuer.py revocar --instalacion <id> --serial 2 --salida rev.bcrl
     python tools/bc_security_issuer.py respaldo-de-clave
 
-`respaldo-de-clave` imprime la clave privada en claro y por eso hay que
-pedirlo explicitamente: es el unico modo de que emitir siga siendo posible si
-la maquina de administracion se pierde.
+`respaldo-de-clave` escribe la clave privada a un archivo fuera del repositorio
+y **no la imprime**: lo que va a la pantalla queda en el historial de la
+consola y en cualquier registro de la sesion. El archivo se lleva a un pendrive
+o se pasa a papel, y despues se borra. Es el unico modo de que emitir y revocar
+sigan siendo posibles si la maquina de administracion se pierde.
 """
 
 from __future__ import annotations
@@ -74,11 +76,62 @@ def comando_generar_clave(argumentos) -> int:
 
 
 def comando_respaldo_de_clave(argumentos) -> int:
+    """Escribe el respaldo de la clave privada, o lo imprime si se pide explicito.
+
+    Por defecto **no imprime**: escribe un archivo. La razon es concreta — lo
+    que se manda a la pantalla termina en el historial de la consola, en el
+    scrollback de la terminal y, si alguien esta trabajando con una herramienta
+    que registra la sesion, en un log que nadie penso como secreto. Un archivo
+    se puede mover a un pendrive y borrar; una linea impresa, no.
+
+    `--mostrar` existe para cuando de verdad hace falta leerla en voz alta, y
+    tiene que pedirse a mano.
+    """
     clave = _cargar_clave(argumentos)
-    print("CLAVE PRIVADA DEL EMISOR — guardala fuera de linea y no la pegues en ningun repo")
+    material = issuer_module.export_private_plaintext(clave)
+
+    if argumentos.mostrar:
+        print("CLAVE PRIVADA DEL EMISOR — guardala fuera de linea y no la pegues en ningun repo")
+        print()
+        print(f"  key_id : {clave.key_id}")
+        print(f"  privada: {material}")
+        return 0
+
+    destino = Path(argumentos.salida) if argumentos.salida else (
+        Path.home() / f"BC-RESPALDO-EMISOR-{clave.key_id}.txt"
+    )
+    destino = destino.expanduser().resolve()
+    repositorio = Path(__file__).resolve().parents[1]
+    if repositorio == destino or repositorio in destino.parents:
+        raise SecurityError(
+            f"{destino} esta dentro del repositorio. El respaldo de la clave privada "
+            "no se escribe donde vive el codigo, ni siquiera para borrarlo despues"
+        )
+
+    destino.write_text(
+        "RESPALDO DE LA CLAVE PRIVADA DEL EMISOR DE BC\n"
+        "=============================================\n\n"
+        f"key_id         : {clave.key_id}\n"
+        f"etiqueta       : {clave.label}\n"
+        f"clave privada  : {material}\n\n"
+        "QUE HACER CON ESTE ARCHIVO\n"
+        "  1. Copiarlo a un pendrive que no viva en esta computadora, o\n"
+        "     transcribir la clave privada a papel y guardarla bajo llave.\n"
+        "  2. BORRAR ESTE ARCHIVO de esta computadora.\n\n"
+        "PARA QUE SIRVE\n"
+        "  Es lo unico que permite volver a emitir una licencia o revocar una\n"
+        "  instalacion si esta computadora se pierde o se formatea. Sin el, la\n"
+        "  unica salida seria generar una clave nueva y republicar BC entero.\n\n"
+        "QUE NO HACER\n"
+        "  No subirlo a Git, ni a Drive, ni mandarlo por correo o WhatsApp.\n"
+        "  Quien tenga esta clave puede autorizar cualquier computadora.\n",
+        encoding="utf-8",
+    )
+    print(f"respaldo escrito en: {destino}")
+    print(f"key_id: {clave.key_id}")
     print()
-    print(f"  key_id : {clave.key_id}")
-    print(f"  privada: {issuer_module.export_private_plaintext(clave)}")
+    print("La clave privada NO se imprimio a proposito: esta solo dentro de ese archivo.")
+    print("Llevatelo a un pendrive o pasalo a papel, y despues borralo de esta PC.")
     return 0
 
 
@@ -155,6 +208,11 @@ def construir_parser() -> argparse.ArgumentParser:
     generar.set_defaults(func=comando_generar_clave)
 
     respaldo = sub.add_parser("respaldo-de-clave")
+    respaldo.add_argument("--salida", help="archivo donde escribir el respaldo; nunca dentro del repo")
+    respaldo.add_argument(
+        "--mostrar", action="store_true",
+        help="imprime la clave en pantalla. Solo si de verdad hace falta leerla en voz alta",
+    )
     respaldo.set_defaults(func=comando_respaldo_de_clave)
 
     almacen = sub.add_parser("almacen-de-confianza")

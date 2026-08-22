@@ -66,6 +66,13 @@ PROTECTED_COLUMNS: Mapping[str, tuple[str, ...]] = {
         "customer_document",
         "customer_phone",
         "observations",
+        # `source_reference` guarda una COPIA de las observaciones: el formulario
+        # legacy hace `source_reference or notas` y los egresos hacen
+        # `source_reference=observations`. Proteger `observations` y dejar esta
+        # afuera era proteger nada — el mismo texto quedaba en claro una columna
+        # mas a la derecha. Lo destapo el escaneo de canarios sobre los bytes
+        # crudos de la base, no la revision del esquema.
+        "source_reference",
         "prescription_doctor",
     ),
     # La bitacora de revisiones guarda la entrada ENTERA como JSON. Sin esta

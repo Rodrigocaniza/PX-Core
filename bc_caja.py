@@ -64,7 +64,145 @@ def _arguments(argv=None):
         help=argparse.SUPPRESS,
     )
     parser.add_argument("--first-run-check", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--security-check", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
+
+
+def _dia_sintetico_libre(controller) -> str:
+    """Primer dia de 2099 que este sin abrir o abierto.
+
+    El diagnostico escribe una venta y despues cierra el dia. Correrlo dos veces
+    sobre la misma fecha fallaba, porque a un dia cerrado no se le puede agregar
+    una venta. Se usa 2099 para que sea inconfundiblemente sintetico y no se
+    mezcle nunca con la operacion real.
+    """
+    from datetime import date, timedelta
+
+    from modulos.caja_diaria.domain.models import CashDayStatus
+
+    dia = date(2099, 1, 1)
+    for _ in range(365):
+        existente = controller.service.repository.get_by_date_and_unit(dia, "PC")
+        if existente is None or existente.status is CashDayStatus.OPEN:
+            return dia.strftime("%d-%m-%Y")
+        dia += timedelta(days=1)
+    raise RuntimeError("no queda ningun dia sintetico libre en 2099")
+
+
+def security_check(data_directory: Path | None = None) -> int:
+    """Ciclo real con la seguridad puesta, sin abrir la interfaz.
+
+    Es lo que hay que poder correr **desde el ejecutable congelado**: escribe
+    una venta con datos de prueba, la vuelve a leer por el camino de siempre, y
+    despues mira la base con SQLite pelado para comprobar que ahi no dice lo
+    mismo. Funcionar desde Python no prueba nada sobre funcionar empaquetado, y
+    esta es la unica forma de verificarlo antes de llegar a la Optica.
+
+    No toca ninguna base existente mas alla de la que se le indique.
+    """
+    import sqlite3
+
+    if data_directory is not None:
+        os.environ["BC_CAJA_DATA_DIR"] = str(data_directory.resolve())
+
+    from modulos.caja_diaria.bootstrap import build_cash_day_controller
+    from modulos.caja_diaria.config import resolve_data_paths
+    from modulos.seguridad.application.field_protection import looks_protected
+
+    arranque = security_gate()
+    if arranque is None:
+        print("BC_CAJA_SECURITY_CHECK_DENY")
+        return 2
+
+    from uuid import uuid4
+
+    paths = resolve_data_paths().ensure()
+    # La marca lleva un sufijo distinto en cada corrida. Sin eso, buscarla en el
+    # archivo no distingue "la venta que acabo de escribir quedo en claro" de
+    # "hay datos viejos sin proteger de antes de enrolar", que son dos problemas
+    # distintos y solo el primero es una falla del camino de escritura.
+    marca = f"PACIENTE DE PRUEBA BC {uuid4().hex[:8]}"
+    telefono = "0900-000000"
+    controller = build_cash_day_controller(data_paths=paths)
+    try:
+        fecha = _dia_sintetico_libre(controller)
+        day, entrada_guardada = controller.add_manual_entry({
+            "fecha": fecha, "unidad": "PC", "caja_inicial": "0",
+            "descripcion": marca, "sobre": "PRUEBA-1", "arm_org": "", "cod": "",
+            "armazon": "", "cristal": "", "laboratorio": "LAB", "receta_dr": "DR PRUEBA",
+            "total": "100000", "efectivo": "100000", "tarjeta_cheque": "",
+            "ordenes": "", "cuotas": "", "saldo": "", "gastos": "",
+            "vendedora": "PRUEBA", "cliente_telefono": telefono,
+            "cliente_documento": "0-PRUEBA", "notas": "OBSERVACION DE PRUEBA",
+        })
+        # Se busca POR ID la venta que se acaba de escribir. `entries[0]` seria
+        # la primera del dia, que en una segunda corrida es la anterior: la
+        # comprobacion habria fallado por mirar la fila equivocada y no por un
+        # problema del cifrado.
+        guardadas = {
+            entrada.id: entrada
+            for entrada in controller.service.repository.get(day.id).entries
+        }
+        leido = guardadas.get(entrada_guardada.id)
+        if leido is None:
+            raise RuntimeError("BC no encontro la venta que acababa de guardar")
+        if leido.description != marca or leido.customer_phone != telefono:
+            raise RuntimeError(
+                "BC no recupero lo que acababa de guardar: "
+                f"descripcion={'igual' if leido.description == marca else 'distinta'}, "
+                f"telefono={'igual' if leido.customer_phone == telefono else 'distinto'}"
+            )
+        # Cerrar el dia es lo que genera la planilla, que es el otro archivo con
+        # datos del paciente. Sin este paso el diagnostico no lo tocaria, y la
+        # planilla es justamente lo que se descubrio en claro al auditar.
+        planilla_sellada = None
+        if day.status.value == "OPEN":
+            from modulos.seguridad.application import file_protection
+
+            cerrado, _cuenta, _correo = controller.admin.close_with_count(
+                # La clave idempotente NO lleva la marca: se guarda en claro en
+                # `cash_count_snapshots.idempotency_key`, y meter ahi el nombre
+                # del cliente habria filtrado por la puerta de atras justo lo
+                # que este diagnostico existe para vigilar.
+                day.id, {50_000: 2}, "Comprobacion", f"security-check:{day.id}"
+            )
+            informes = sorted((paths.root / "Reports").glob("*.pdf"))
+            if informes:
+                planilla_sellada = file_protection.is_sealed(informes[-1])
+    finally:
+        controller.service.repository.close()
+
+    connection = sqlite3.connect(str(paths.database))
+    try:
+        crudo = connection.execute(
+            "SELECT description, customer_phone FROM cash_entries WHERE id=?",
+            (entrada_guardada.id,),
+        ).fetchone()
+    finally:
+        connection.close()
+
+    protegido = arranque.data_protected and all(looks_protected(valor) for valor in crudo)
+    filtrado = marca.encode("utf-8") in paths.database.read_bytes()
+
+    # Restos de antes de proteger: no son una falla de este ciclo, pero hay que
+    # decirlos, porque significan que falta correr `proteger-datos`.
+    from modulos.seguridad.application import data_migration
+
+    restos = sum(data_migration.plaintext_leftovers(paths.database).values())
+
+    print(
+        f"BC_CAJA_SECURITY_CHECK_OK outcome={arranque.decision.outcome if arranque.decision else 'SIN_ENROLAR'}"
+        f" protegido={'si' if arranque.data_protected else 'no'}"
+        f" cifrado_en_disco={'si' if protegido else 'no'}"
+        f" filtracion={'SI' if filtrado else 'no'}"
+        f" restos_en_claro={restos}"
+        f" planilla={'sellada' if planilla_sellada else ('en_claro' if planilla_sellada is False else 'sin_generar')}"
+    )
+    if not arranque.data_protected:
+        return 0
+    if not protegido or filtrado:
+        return 1
+    return 0 if planilla_sellada is not False else 1
 
 
 def self_check(data_directory: Path | None = None) -> int:
@@ -153,8 +291,22 @@ def security_gate() -> "object | None":
     return None
 
 
+#: Modos que corren sin nadie delante de la pantalla. En cualquiera de ellos BC
+#: no puede abrir un dialogo: no hay quien lo cierre y el proceso queda colgado
+#: para siempre. Costo aprenderlo dos veces con un smoke que se quedo esperando
+#: una ventana que nadie iba a ver.
+MODOS_DE_DIAGNOSTICO = ("--self-check", "--first-run-check", "--security-check")
+
+
+def _sin_pantalla() -> bool:
+    return any(bandera in sys.argv for bandera in MODOS_DE_DIAGNOSTICO)
+
+
 def _avisar(titulo: str, mensaje: str, *, error: bool = False) -> None:
     if not mensaje:
+        return
+    if _sin_pantalla():
+        print(mensaje)
         return
     try:
         from tkinter import messagebox
@@ -173,6 +325,8 @@ def main(argv=None) -> int:
         return first_run_check(args.data_dir)
     if args.self_check:
         return self_check(args.data_dir)
+    if args.security_check:
+        return security_check(args.data_dir)
 
     if security_gate() is None:
         return 2
@@ -224,7 +378,7 @@ def report_fatal_error(error: BaseException) -> None:
         )
     except Exception:
         log = None
-    if "--self-check" not in sys.argv and "--first-run-check" not in sys.argv:
+    if not _sin_pantalla():
         try:
             from tkinter import messagebox
 

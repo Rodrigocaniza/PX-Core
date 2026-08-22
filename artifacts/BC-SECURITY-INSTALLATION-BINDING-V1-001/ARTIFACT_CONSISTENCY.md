@@ -50,7 +50,7 @@ queda dicho: aflojarla habria sido el arreglo facil y el equivocado.
 
 | Afirmado | Fuente | Resultado |
 |---|---|---|
-| 18 columnas en 6 tablas | `PROTECTED_COLUMNS` en `field_protection.py` | contadas: 5+1+4+1+3+4 |
+| 19 columnas en 6 tablas | `PROTECTED_COLUMNS` en `field_protection.py` | contadas: 6+1+4+1+3+4 |
 | todas existen en el esquema real | `test_el_registro_no_incluye_columnas_que_no_existen`, que corre la cadena y compara contra `PRAGMA table_info` | verde |
 | la base robada no dice el nombre del paciente | `test_los_datos_del_paciente_no_se_leen_con_sqlite_normal`, que busca los literales en los **bytes crudos** del archivo | verde |
 | el respaldo robado tampoco | `test_un_respaldo_robado_tampoco_los_revela`, sobre el respaldo que produce `backup_to` | verde |
@@ -93,16 +93,25 @@ archivo dio `ninguna`.
 |---|---|---|
 | base antes de tocar nada | `python -m pytest` sobre la 021 sin cambios | 1369 pasan, 3 fallan |
 | las 3 rojas de la base | `grep FAILED` de esa corrida | `test_el_valor_de_respaldo_sigue_al_paquete`, y dos de `gestion_central/test_ui_interactions.py` |
-| suite de seguridad | `python -m pytest tests/seguridad` | 148 pasan |
-| suite completa despues | `python -m pytest` | ver `GATES.json`, medido y no estimado |
+| suite de seguridad | `python -m pytest tests/seguridad` | 169 pasan |
+| suite completa despues | `python -m pytest` | **1541 pasan, 0 fallan** |
 | sin regresiones atribuibles a este slice | comparacion nominal de las rojas contra la base | ninguna roja nueva |
 
-**Declarado:** dos de las tres rojas de la base son **inestables**, no
-deterministas. `test_la_sesion_dura_la_jornada_y_no_veinte_minutos` se observo
-fallando a las 23:50 y pasando a las 20:25 y a las 00:15 con el mismo codigo:
-la sesion de operadora vence al fin de la jornada y la prueba afirma que dura
-mas de 20 minutos. Esta anotado en `FINDINGS.json` como defecto preexistente y
-**no se corrigio**, porque es de la V1-019B y la mision pide no mezclar.
+**Las tres rojas de la base, una por una:**
+
+* Dos eran **inestables**, no deterministas.
+  `test_la_sesion_dura_la_jornada_y_no_veinte_minutos` se observo fallando a las
+  23:50 y pasando a las 20:25 y a las 00:15 con el mismo codigo: la sesion de
+  operadora vence al fin de la jornada y la prueba afirma que dura mas de 20
+  minutos. Sigue anotado en `FINDINGS.json` como defecto preexistente y **no se
+  corrigio**, porque es de la V1-019B.
+* La tercera **se cerro, y no por prolijidad**.
+  `test_el_valor_de_respaldo_sigue_al_paquete` comparaba
+  `CajaDiaria.VERSION_APLICACION` (`1.0.0-rc.32`) con
+  `pilot/package_docs/VERSION.txt` (`1.0.0-rc.33`): la V1-021 bumpeo uno y no el
+  otro. Dejo de ser ajeno en el momento en que este slice **construyo el paquete
+  rc.33**: la Optica habria visto rc.32 en el pie de la ventana y rc.33 en el
+  zip. Se alineo la constante, que es exactamente lo que la prueba pedia.
 
 ---
 
@@ -110,7 +119,62 @@ mas de 20 minutos. Esta anotado en `FINDINGS.json` como defecto preexistente y
 
 | Afirmacion que seria natural hacer | Por que no se hace |
 |---|---|
-| "el blob DPAPI no abre en otra PC" | No se puede ejercer desde una sola computadora. La suite lo prueba con un sellador **simulado**, declarado como tal en el encabezado de `conftest.py`, y hay pruebas contra el DPAPI **real** de esta Windows (`test_dpapi_real.py`) para que la simulacion no sea la unica evidencia. La verificacion contra dos PCs distintas es el paso 7 del HUMAN_GATE. |
+| "el blob DPAPI no abre en otra PC" | No se puede ejercer desde una sola computadora. La suite lo prueba con un sellador **simulado**, declarado como tal en el encabezado de `conftest.py`, y hay pruebas contra el DPAPI **real** de esta Windows (`test_dpapi_real.py`) para que la simulacion no sea la unica evidencia. La verificacion contra dos PCs distintas es el paso 8 del HUMAN_GATE. |
 | "esto funciona contra la base productiva" | La base productiva vive solo en la Optica. Nada de esta sesion la abrio. |
-| "el ejecutable empaquetado arranca con la capa" | No se construyo el paquete en esta sesion. `cryptography` tiene rueda para Windows y hook de PyInstaller, pero afirmarlo sin haber corrido el build seria adivinar. Es el paso 1 del HUMAN_GATE. |
+| ~~"el ejecutable empaquetado arranca con la capa"~~ | **Ya no aplica: se construyo y se verifico.** `SMOKE_PAQUETE_OK pasos=31` contra los `.exe`. Y no era una formalidad: el primer build salio sin errores y **no llevaba el almacen de confianza**, lo que habria dejado toda instalacion enrolada en DENY. |
 | "corrieron Librarian, QA y Auditor como agentes independientes" | Fueron tres pasadas con criterios distintos dentro de la misma sesion. Se declara como es en `GATES.json`. |
+
+
+---
+
+## Paquete congelado (ronda de cierre preinstalacion)
+
+| Afirmado | Fuente | Resultado |
+|---|---|---|
+| el paquete se construye | `pilot/build_pilot.ps1` | `BC_CAJA_BUILD_OK version=1.0.0-rc.33` |
+| lleva el almacen de confianza | verificacion dentro del propio build | `BC_CAJA_PACKAGE_CONTENTS_OK` |
+| lleva la migracion 033 | idem | idem |
+| lleva `cryptography` con su binario nativo | idem, sobre `cryptography/hazmat/bindings/_rust.pyd` | idem |
+| lleva su propia herramienta de seguridad | `dist/BC-Caja/Seguridad/BC-Seguridad.exe` | `BC_SEGURIDAD_PACKAGE_OK` |
+| **no** lleva el emisor | `test_ningun_modulo_del_cliente_importa_el_emisor` y ausencia en el paquete | verde |
+| la ceremonia entera corre contra los `.exe` | `python tools/smoke_paquete_seguridad.py` | `SMOKE_PAQUETE_OK pasos=31` |
+| el build falla si falta algo | se probo quitando el `--add-data` antes de agregarlo | el primer build fallo justamente asi, en silencio |
+
+**Hashes del paquete verificado** (el zip pesa 50 MB y no se commitea, igual que
+los rc anteriores; solo su hash viaja):
+
+| Archivo | SHA-256 |
+|---|---|
+| `BC-CAJA-1.0.0-rc.33-win64.zip` | `20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5` |
+| `BC-Caja.exe` | `0cf89f1b21613489f496faa612b8f4f8baa76fe6e0349f1ad22a90cf5d0d48e8` |
+| `Seguridad/BC-Seguridad.exe` | `6999fd72803ca6a6d036c2ef40fb422b4704d971a5e2a5bb8168b3314111426f` |
+
+## Escaneo de PII
+
+| Afirmado | Fuente | Resultado |
+|---|---|---|
+| ningun archivo de BC dice el nombre del paciente | `test_ni_un_canario_en_ningun_archivo_de_bc`, sobre cada byte de cada archivo bajo la raiz de datos y la carpeta de seguridad | verde |
+| el escaneo detecta de verdad | `test_el_escaneo_detecta_de_verdad`, que planta un canario a mano | verde |
+| la prueba planta lo que dice plantar | assertion dentro de `_cerrar_un_dia_con_canarios`, **antes** de escanear | verde |
+| WAL y SHM tampoco | `test_el_wal_y_el_shm_tampoco_dicen_nada` | verde |
+| los respaldos tampoco | `test_los_respaldos_de_la_base_tampoco` | verde |
+| la planilla de cierre queda sellada | `test_la_planilla_de_cierre_queda_sellada` | verde |
+| pero BC la sigue abriendo | `test_pero_bc_la_sigue_pudiendo_abrir` | verde |
+| sin la clave, no | `test_sin_la_clave_el_informe_no_se_abre` | verde |
+| `movimientos.txt` no lleva PII | `test_la_linea_exportada_solo_lleva_plata` y `test_el_exportador_no_conoce_ningun_campo_de_persona` | verde |
+
+**Declarado:** el escaneo pasa hoy. Lo que **no** se puede afirmar es que ningun
+byte de Windows contenga nunca uno de esos valores: el sistema operativo copia,
+indexa y cachea por su cuenta, y eso queda fuera del alcance de BC. Lo que se
+afirma es lo que la mision pide: los artefactos persistentes **propios de BC** no
+exponen PII en claro fuera de los campos documentados.
+
+## Respaldo del emisor
+
+| Afirmado | Fuente | Resultado |
+|---|---|---|
+| el respaldo existe | `bc_security_issuer.py respaldo-de-clave` | archivo escrito fuera del repositorio |
+| la clave no se imprimio | el comando ya no imprime; escribe | verificado en la salida |
+| el respaldo reconstruye la clave | se leyo el archivo y se derivo el `key_id` | `bcfc68429311075f`, coincide con el almacen commiteado |
+| no esta en Git | busqueda del material literal en todo el arbol | no aparece |
+| **falta** llevarlo fuera de esta PC | — | es el paso 1 del HUMAN_GATE, y no lo puede hacer una herramienta |

@@ -65,6 +65,91 @@
       "detalle": "La lectura no sabe de que columna viene un valor, asi que probaba los datos asociados de las 21 combinaciones registradas hasta acertar. Una pantalla de historial descifra miles de valores; el trabajo desperdiciado se multiplicaba.",
       "correccion": "se usa cursor.description como PISTA para probar primero la columna que la consulta nombro. Es una optimizacion pura: si la consulta usa un alias —FactuFacil llama `cliente` a `description`— la pista no acierta y se recorre la lista completa igual. El resultado no depende de que la pista sea correcta, y hay una prueba que lo fija.",
       "prueba": "test_la_pista_de_columna_es_solo_una_optimizacion"
+    },
+    {
+      "id": "EL-PAQUETE-CONGELADO-NO-LLEVABA-EL-ALMACEN-DE-CONFIANZA",
+      "gravedad": "CRITICA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "El primer build salio 'bien': PyInstaller termino sin errores y el EXE arrancaba. Y no incluia modulos/seguridad/trusted_issuers.json, porque no es codigo y PyInstaller solo sigue imports. Un BC congelado sin almacen de confianza no puede verificar NINGUNA licencia: trust.load() levanta TrustStoreError y toda instalacion enrolada queda en DENY. Se habria descubierto en la Optica, el lunes, con la base ya cifrada y sin forma de abrir BC.",
+      "correccion": "--add-data del almacen en el build; verificacion dura al final del build que revienta si falta el almacen, la migracion 033 o el binario de cryptography; y una prueba que lee el script de build y el registro de recursos de ejecucion y exige que coincidan.",
+      "prueba": "test_el_build_declara_todo_lo_que_la_capa_lee_en_ejecucion, test_el_build_verifica_el_contenido_del_paquete, test_sin_almacen_no_se_puede_verificar_nada, y el smoke completo contra los .exe",
+      "como_se_encontro": "listando el contenido de dist/BC-Caja/_internal en vez de confiar en que el build habia salido bien"
+    },
+    {
+      "id": "LA-OPTICA-NO-TIENE-PYTHON-Y-EL-INSTRUCTIVO-LO-PEDIA",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "El instructivo mandaba correr 'python tools/bc_security.py ...' en la PC de la Optica. Esa PC recibe el paquete congelado y no tiene Python instalado: enrolar, instalar la licencia y proteger los datos habrian sido imposibles con lo que hay en la maquina.",
+      "correccion": "el build produce un segundo ejecutable de consola, BC-Seguridad.exe, dentro del mismo paquete (dist/BC-Caja/Seguridad/). Es de consola y no --windowed porque su salida —el installation_id, la frase de recuperacion, el veredicto— hay que poder leerla. El emisor NO se empaqueta: sigue viviendo en la maquina de administracion.",
+      "prueba": "el smoke corre la ceremonia entera contra ese .exe; BC_SEGURIDAD_PACKAGE_OK en el build"
+    },
+    {
+      "id": "LA-PLANILLA-DE-CIERRE-GUARDABA-AL-PACIENTE-EN-CLARO",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "Reports/cierre-*.pdf lleva nombre, telefono, receta y observaciones de cada cliente del dia, en claro, en la misma carpeta que la base cifrada, y se acumula una por cierre. Cifrar la base y dejar esa carpeta al lado no protege a nadie: quien copia %LOCALAPPDATA%\\BC se lleva lo mismo en un formato mas comodo de leer. Estaba asi desde antes de este slice.",
+      "correccion": "se sella con la MISMA DEK y el mismo AES-256-GCM que las columnas (file_protection.py, sin un segundo sistema criptografico). El nombre del archivo no cambia, para no romper las filas de mail_outbox que ya apuntan ahi. El correo sigue llevando el PDF legible, que es para lo que existe; lo que cambia es que en disco no queda una copia legible. 'abrir-informe' devuelve el doble clic a pedido.",
+      "prueba": "test_la_planilla_de_cierre_queda_sellada, test_pero_bc_la_sigue_pudiendo_abrir, test_sin_la_clave_el_informe_no_se_abre, y el smoke sobre el paquete",
+      "como_se_encontro": "auditando TODO lo que BC escribe en disco, no solo la base"
+    },
+    {
+      "id": "SOURCE-REFERENCE-DUPLICABA-LAS-OBSERVACIONES-EN-CLARO",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "cash_entries.source_reference guarda una COPIA de las observaciones: el formulario legacy hace 'source_reference or notas' y los egresos hacen 'source_reference=observations'. Proteger observations y dejar esa columna afuera era no proteger nada: el mismo texto clinico quedaba en claro una columna mas a la derecha, tambien en los respaldos.",
+      "correccion": "entra al registro de columnas protegidas. Se verifico que ninguna consulta la compara, ordena ni agrupa.",
+      "prueba": "el escaneo de canarios sobre los bytes crudos de la base y de los respaldos",
+      "como_se_encontro": "el canario de observacion aparecio en bc_caja.sqlite3 y en Backups/*.sqlite3 despues de arreglar la prueba (ver el hallazgo siguiente)"
+    },
+    {
+      "id": "MI-PROPIA-PRUEBA-DE-CANARIOS-NO-PLANTABA-TRES-DE-CINCO",
+      "gravedad": "ALTA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "El escaneo de PII cargaba la venta con las claves 'documento', 'telefono' y 'observaciones', pero el formulario legacy las llama 'cliente_documento', 'cliente_telefono' y 'notas'. Los tres valores se descartaban en silencio, asi que la prueba buscaba en el disco tres cadenas que nunca se habian escrito y pasaba en verde por vacio. Es el modo de fallo mas peligroso de una prueba de seguridad: la que tranquiliza sin verificar.",
+      "correccion": "claves correctas, y —sobre todo— la prueba ahora LEE lo que guardo y falla si lo guardado no es lo que quiso guardar, antes de escanear nada.",
+      "prueba": "la assertion 'la prueba no llego a plantar {faltantes}' dentro de _cerrar_un_dia_con_canarios",
+      "como_se_encontro": "el mismo error de claves rompio el diagnostico --security-check con 'BC no recupero lo que acababa de guardar', y al arreglarlo ahi salto que la prueba tenia el mismo defecto"
+    },
+    {
+      "id": "UN-DIAGNOSTICO-ABRIA-UN-DIALOGO-MODAL-Y-COLGABA-EL-PROCESO",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "--security-check con la licencia manipulada llegaba a DENY y llamaba a _avisar, que abre un messagebox de tkinter. En un diagnostico no hay nadie para cerrarlo: el proceso quedaba vivo para siempre. El smoke se colgo dos veces por esto, la segunda desde report_fatal_error.",
+      "correccion": "una sola constante MODOS_DE_DIAGNOSTICO y un _sin_pantalla() que usan las dos rutas. En modo diagnostico el mensaje va a stdout y nunca a una ventana.",
+      "prueba": "el smoke completo, que ejercita el camino DENY del ejecutable y termina"
+    },
+    {
+      "id": "EL-INSTRUCTIVO-PEDIA-UNA-FORMA-DE-COMANDO-QUE-EL-PROGRAMA-RECHAZABA",
+      "gravedad": "MEDIA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "El instructivo decia 'proteger-datos --confirmar --actor \"tu nombre\"' y argparse contestaba 'unrecognized arguments: --actor', porque --actor y --base estaban declarados solo ANTES del subcomando. Nadie escribe las opciones globales primero. Habria trabado el paso 5 en la Optica.",
+      "correccion": "los dos se aceptan tambien despues del subcomando, con default=SUPPRESS para que el valor global sobreviva si no se repite.",
+      "prueba": "test_todos_los_comandos_del_instructivo_parsean, que LEE el instructivo y prueba cada comando que aparece ahi, y test_las_opciones_globales_se_aceptan_despues_del_subcomando"
+    },
+    {
+      "id": "EL-DIAGNOSTICO-NO-ERA-REPETIBLE",
+      "gravedad": "BAJA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "--security-check escribia siempre sobre el dia 02-01-2099 y despues lo cerraba. La segunda corrida fallaba al intentar agregar una venta a un dia cerrado, y ademas entries[0] devolvia la venta de la corrida anterior en vez de la recien escrita.",
+      "correccion": "toma el primer dia de 2099 que este libre o abierto, y busca la venta POR ID. La fecha sigue siendo inconfundiblemente sintetica para que no se mezcle nunca con la operacion real.",
+      "prueba": "tres corridas seguidas del diagnostico, todas verdes"
+    },
+    {
+      "id": "EL-DIAGNOSTICO-FILTRABA-LO-QUE-VIGILABA",
+      "gravedad": "BAJA",
+      "estado": "CERRADO",
+      "ronda": "cierre preinstalacion",
+      "detalle": "--security-check pasaba su marca de prueba como clave idempotente del cierre, y esa clave se guarda en claro en cash_count_snapshots.idempotency_key. El propio diagnostico se reportaba filtracion=SI, y tenia razon.",
+      "correccion": "la clave idempotente se arma con el id del dia. Ademas la marca ahora lleva un sufijo aleatorio por corrida, para poder distinguir 'la venta que acabo de escribir quedo en claro' de 'hay datos viejos de antes de proteger'.",
+      "prueba": "el propio --security-check, que ahora reporta filtracion=no y restos_en_claro por separado"
     }
   ],
   "defectos_preexistentes_encontrados_y_no_corregidos": [
@@ -112,10 +197,10 @@
   ],
   "riesgos_residuales": [
     {
-      "id": "MOVIMIENTOS-TXT-EN-TEXTO-PLANO",
-      "gravedad": "MEDIA",
-      "detalle": "LegacyMovementsExporter escribe Datos/movimientos.txt en texto plano, fuera de la base. Este slice no lo toco. Un pendrive con ese archivo sigue diciendo lo que dice.",
-      "siguiente_paso": "decidir si el exportador legacy sigue haciendo falta; si sigue, protegerlo o restringir donde escribe"
+      "id": "MOVIMIENTOS-TXT-AUDITADO-Y-SIN-PII",
+      "gravedad": "CERRADO-NO-ERA-RIESGO",
+      "detalle": "En la ronda anterior se declaro como riesgo residual sin haberlo abierto. Se audito: publica una linea por concepto y por dia con la forma Tipo|Fecha|Origen|Destino|Importe|Si|BC_CAJA:<dia>:<concepto>. No hay nombre, ni telefono, ni documento, ni receta, ni observacion: hay plata agregada del dia. Cifrarlo habria roto el puente con Gestion —que lo lee como texto— para no proteger ningun dato personal. Se deja como esta y se agrego una prueba que fija la forma linea por linea y verifica que el exportador ni siquiera nombra las columnas del paciente, para que el dia que alguien quiera agregarle 'el cliente' a esa linea la prueba se ponga roja antes de produccion.",
+      "leccion": "declarar un riesgo sin abrirlo es tan malo como no verlo: exagera en un lado y puede tapar el de al lado, que aca era la planilla de cierre"
     },
     {
       "id": "BC-ABIERTO-EN-LA-PC-AUTORIZADA",
@@ -141,6 +226,16 @@
       "id": "REVOCACION-SIN-CANAL",
       "gravedad": "BAJA",
       "detalle": "Hoy la lista de revocacion se instala a mano. Hasta que exista el canal de sincronizacion, revocar una instalacion exige llegar a esa PC. El formato, la firma, el serial monotono y la persistencia ya estan; falta el transporte."
+    },
+    {
+      "id": "EL-PDF-EN-CLARO-EXISTE-UNOS-MILISEGUNDOS-EN-TEMP",
+      "gravedad": "BAJA",
+      "detalle": "El generador de informes escribe a una ruta, no a un buffer. Se genera en un directorio temporal propio que se borra en el acto y solo el resultado sellado llega al destino, pero el PDF legible toca %TEMP% un instante. Es la misma exposicion que produce abrirlo con cualquier visor. Reescribir el generador para que trabaje en memoria habria tocado el informe y sus pruebas de contrato visual por un motivo que no es el suyo."
+    },
+    {
+      "id": "EL-CORREO-DEL-CIERRE-LLEVA-EL-PDF-LEGIBLE",
+      "gravedad": "MEDIA",
+      "detalle": "Es deliberado: el informe existe para que la administradora lo lea. Lo que cambia con este slice es que en disco no queda una copia legible. Proteger el correo es otro problema —del canal, no del almacenamiento— y no es de este slice."
     }
   ]
 }

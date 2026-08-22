@@ -17,7 +17,7 @@
       "gate": "PACKAGING_PASSED",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "Migracion 033 creada y aplicada sobre base limpia dentro de la suite. Estrictamente aditiva, verificado por prueba que lee el .sql. `cryptography>=43,<47` agregada a requirements.txt con el motivo escrito al lado. NO se construyo el paquete PyInstaller en esta sesion: eso queda declarado como pendiente y como paso 1 del HUMAN_GATE, en vez de afirmar que el ejecutable arranca."
+      "detalle": "Migracion 033 creada y aplicada sobre base limpia. Estrictamente aditiva, verificado por prueba que lee el .sql. `cryptography>=43,<47` en requirements.txt con el motivo al lado. **Y ahora el paquete existe de verdad**: pilot/build_pilot.ps1 produce BC-Caja.exe y BC-Seguridad.exe, verifica su contenido y revienta si falta el almacen de confianza, la migracion 033 o el binario de cryptography. Ese control se agrego porque el primer build salio 'bien' sin llevar el almacen — el modo de fallo mas caro de todo el slice."
     },
     {
       "gate": "ARTIFACT_CONSISTENCY_PASSED",
@@ -35,34 +35,49 @@
       "gate": "QA_PASS",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "148 pruebas nuevas en tests/seguridad. Las de aceptacion A a L cubren las doce letras de la mision, con la letra en el nombre de la clase para que la trazabilidad no dependa de una tabla que alguien mantenga. Ademas: pruebas contra el DPAPI REAL de esta Windows para que el sellador simulado no sea la unica evidencia; pruebas de contrato que verifican estaticamente que el cliente no importa el emisor, que no hay clave privada en el repositorio, que el almacen de confianza se ignora cuando el ejecutable esta congelado, que la 033 es aditiva, y que ninguna consulta de produccion compara, ordena ni agrupa por una columna protegida. Suite completa: 1519 verdes, 1 roja preexistente."
+      "detalle": "169 pruebas en tests/seguridad. Las de aceptacion A a L cubren las doce letras, con la letra en el nombre de la clase. Ademas: pruebas contra el DPAPI REAL de esta Windows; pruebas de contrato que verifican estaticamente que el cliente no importa el emisor, que no hay clave privada en el repositorio, que el almacen se ignora cuando el ejecutable esta congelado, que la 033 es aditiva y que ninguna consulta compara por una columna cifrada; un escaneo de canarios que recorre CADA BYTE de CADA archivo que BC deja en disco; pruebas de que el build declara todo lo que la capa lee en ejecucion; y una prueba que LEE el instructivo de la Optica y verifica que cada comando que aparece ahi realmente parsea. Fuera de pytest, una ceremonia de 31 pasos contra los .exe."
     },
     {
       "gate": "AUDITOR_PASS",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "La revision encontro ocho defectos reales y se corrigieron antes del commit, cada uno con su prueba. Los cuatro graves comparten la misma forma y son los que importan: la proteccion parecia funcionar y no protegia. (1) La bitacora de revisiones guardaba la venta entera en claro, asi que cifrar las columnas era teatro — lo destapo la prueba que busca al paciente en los bytes crudos del archivo, no en las columnas. (2) Desactivar una fila del llavero apagaba el cifrado y BC habria abierto guardando datos nuevos en claro al lado de los viejos cifrados. (3) Copiar solo el .sqlite3 a una PC sin enrolar producia lo mismo. (4) Un INSERT con una funcion adentro no coincidia con el patron, y no coincidir significaba escribir en claro sin decir una palabra. Ver FINDINGS.json."
+      "detalle": "Diecisiete defectos reales encontrados y corregidos antes del commit, cada uno con su prueba. Los de la primera ronda compartian forma: la proteccion parecia funcionar y no protegia. Los de la segunda solo se ven al empaquetar y al usar: el paquete no llevaba el almacen de confianza (habria dejado la Optica sin BC despues de cifrar la base), la Optica no tiene Python y el instructivo lo pedia, la planilla de cierre guardaba al paciente en claro al lado de la base cifrada, source_reference duplicaba las observaciones, y —el mas incomodo— mi propia prueba de canarios no plantaba tres de los cinco valores que decia estar buscando. Ver FINDINGS.json y CIERRE_PREINSTALACION.md."
     },
     {
       "gate": "READY_FOR_COMMIT",
       "estado": "PASS",
       "mecanismo": "REAL"
+    },
+    {
+      "gate": "FROZEN_PACKAGE_VERIFIED",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "tools/smoke_paquete_seguridad.py corre la ceremonia entera —arranque, enrolamiento, emision, instalacion, proteccion, escritura y lectura protegida, base robada, planilla sellada, reinicio, lease, licencia manipulada, archivos corruptos y rollback— contra los ejecutables de dist/BC-Caja, sobre directorios temporales propios. SMOKE_PAQUETE_OK pasos=31. Funcionar desde Python no decia nada sobre funcionar congelado, y este gate existe porque la diferencia resulto ser la que habria roto la instalacion."
     }
   ],
   "suite": {
-    "base_antes_del_slice": {"verdes": 1369, "rojas": 3},
+    "base_antes_del_slice": {
+      "verdes": 1369,
+      "rojas": 3
+    },
     "rojas_de_la_base": [
       "tests/caja_diaria/test_rc18_rc20_integration.py::VersionDelPaqueteTests::test_el_valor_de_respaldo_sigue_al_paquete",
       "tests/gestion_central/test_ui_interactions.py::test_refresh_and_filters_have_visible_feedback",
       "tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence"
     ],
-    "despues_del_slice": {"verdes": 1519, "rojas": 1},
-    "rojas_despues": [
-      "tests/caja_diaria/test_rc18_rc20_integration.py::VersionDelPaqueteTests::test_el_valor_de_respaldo_sigue_al_paquete"
-    ],
-    "cuadra": "1369 de base + 2 que eran inestables y ahora pasaron + 148 nuevas = 1519. Ninguna roja nueva.",
+    "despues_del_slice": {
+      "verdes": 1541,
+      "rojas": 0
+    },
+    "rojas_despues": [],
+    "cuadra": "1369 de base + 2 que eran inestables y pasaron + 1 que estaba roja y se cerro + las nuevas de seguridad = 1541. Ninguna roja.",
     "regresiones_atribuibles_al_slice": 0,
-    "suite_de_seguridad": 148
+    "suite_de_seguridad": 169,
+    "la_ultima_roja_de_la_base_se_cerro": "test_el_valor_de_respaldo_sigue_al_paquete estaba en rojo desde antes de este slice: CajaDiaria.VERSION_APLICACION decia 1.0.0-rc.32 y pilot/package_docs/VERSION.txt decia 1.0.0-rc.33, porque la V1-021 bumpeo uno y no el otro. Dejo de ser ajeno en el momento en que este slice construyo el paquete rc.33: la Optica habria visto rc.32 en el pie de la ventana y rc.33 en el zip. Se alineo la constante, que es exactamente lo que la prueba pedia.",
+    "paquete": {
+      "smoke": "SMOKE_PAQUETE_OK pasos=31",
+      "contra": "los .exe, no el codigo fuente"
+    }
   },
   "mecanismos_no_disponibles": [
     {
@@ -74,12 +89,12 @@
       "detalle": "Librarian, QA y Auditor fueron tres pasadas con criterios distintos hechas en la misma sesion, no tres agentes independientes. Se declara como es."
     },
     {
-      "nombre": "segunda computadora fisica",
-      "detalle": "no hay una segunda PC en esta sesion. El caso PC A -> PC B se ejerce con un sellador simulado que reproduce una sola propiedad —lo sellado con una identidad de maquina no abre con otra— y esta declarado como simulacion en el encabezado del conftest. La verificacion real es el paso 7 del HUMAN_GATE."
-    },
-    {
       "nombre": "base productiva",
       "detalle": "vive solo en la Optica. Ningun comando de esta sesion la abrio."
+    },
+    {
+      "nombre": "segunda computadora fisica",
+      "detalle": "sigue sin haber una. El caso PC A -> PC B se ejerce con un sellador simulado que reproduce una sola propiedad —lo sellado con una identidad de maquina no abre con otra— y esta declarado como simulacion en el encabezado del conftest. Hay pruebas contra el DPAPI real de esta Windows para que la simulacion no sea la unica evidencia, y ahora tambien una ceremonia completa contra el paquete congelado. Lo que ninguna de las dos puede probar es que el blob no abra en OTRA PC: eso es el paso 8 del instructivo."
     }
   ]
 }

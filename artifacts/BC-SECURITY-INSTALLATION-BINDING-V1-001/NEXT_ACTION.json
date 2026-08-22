@@ -1,9 +1,9 @@
 {
   "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
-  "estado": "COMPLETADA_EN_CASA",
+  "estado": "COMPLETADA_EN_CASA - paquete construido, empaquetado y verificado contra los .exe",
   "requiere_migracion": true,
   "migracion": "033",
-  "next_action": "En la Optica: seguir docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md de punta a punta, por PC. Son ocho pasos y hasta el paso 5 no se toca un solo dato. El paso 3 muestra una frase de recuperacion UNA sola vez: hay que anotarla en papel antes de seguir.",
+  "next_action": "Paso 1 hoy, en esta PC: llevar el respaldo del emisor a un pendrive o a papel y borrarlo de aca. Despues, en la Optica, los pasos 2 a 9 siguiendo docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md, que ahora usa los ejecutables del paquete y no Python.",
   "advertencia": "la 033 va DETRAS de la 029, 030, 031 y 032, que siguen sin aplicarse en la Optica. Aplicarlas fuera de orden no esta contemplado. La 033 por si sola no cifra nada: crea tres tablas vacias y BC sigue funcionando igual hasta que alguien enrole la PC a proposito.",
   "orden_de_aplicacion": [
     "029 (FactuFacil, V1-016)",
@@ -13,18 +13,62 @@
     "033 (seguridad, este slice)"
   ],
   "human_gate": {
-    "por_que_existe": "los ocho pasos dependen del hardware de la PC real y de la base productiva. Ninguno se puede automatizar desde Casa: no hay una segunda computadora en esta sesion y la base productiva no viaja.",
+    "por_que_existe": "lo que queda depende del hardware de la PC real y de la base productiva. Ninguna de las dos cosas esta en esta computadora.",
+    "cuanto_se_redujo": "en la ronda anterior eran ocho pasos, dos de ellos por trabajo que faltaba hacer aca (construir el paquete y respaldar la clave del emisor). Los dos estan hechos: el paquete esta construido, empaquetado y verificado con una ceremonia de 31 pasos contra los .exe, y el respaldo del emisor esta escrito y comprobado. Lo que queda es solo lo fisico.",
     "pasos": [
-      {"n": 1, "que": "construir el paquete con `pilot/build_pilot.ps1` y comprobar que el EXE arranca", "por_que_no_se_hizo_aca": "no se corrio PyInstaller en esta sesion; `cryptography` tiene rueda para Windows y hook, pero afirmar que el ejecutable arranca sin haberlo construido seria adivinar"},
-      {"n": 2, "que": "instalar el paquete y abrir BC una vez para que corra la 033", "verificacion": "`bc_security.py estado` dice tablas de seguridad: si, enrolada: no"},
-      {"n": 3, "que": "respaldo manual de bc_caja.sqlite3 a un pendrive, aparte del que hace la herramienta"},
-      {"n": 4, "que": "`bc_security.py enrolar` y ANOTAR LA FRASE EN PAPEL", "critico": true},
-      {"n": 5, "que": "emitir la licencia en la maquina de administracion e instalarla; `verificar` tiene que dar ALLOW / OK"},
-      {"n": 6, "que": "`proteger-datos` primero como ensayo, despues con --confirmar"},
-      {"n": 7, "que": "prueba de copia delante del cliente: llevar la carpeta y la base a OTRA PC y comprobar que dice DENY y que el .sqlite3 muestra bcx1:", "es_la_verificacion_que_no_se_pudo_hacer_desde_casa": true},
-      {"n": 8, "que": "ensayo de rollback: revertir-datos, comprobar que todo vuelve a texto plano, y volver a proteger"}
+      {
+        "n": 1,
+        "que": "llevar el respaldo de la clave del emisor a un pendrive o a papel, y borrarlo de esta PC",
+        "donde": "en esta computadora, hoy",
+        "archivo": "%USERPROFILE%\\BC-RESPALDO-EMISOR-bcfc68429311075f.txt",
+        "por_que_no_lo_puede_hacer_una_herramienta": "el punto del respaldo es que salga de esta maquina. Un programa que lo copiara a otra carpeta de la misma PC no habria respaldado nada",
+        "critico": true
+      },
+      {
+        "n": 2,
+        "que": "copiar el paquete a la PC de la Optica y abrir BC una vez para que corra la 033",
+        "verificacion": "Seguridad\\BC-Seguridad.exe estado dice 'tablas de seguridad: si' y 'enrolada: no'"
+      },
+      {
+        "n": 3,
+        "que": "respaldo manual de bc_caja.sqlite3 a un pendrive, aparte del que hace la herramienta"
+      },
+      {
+        "n": 4,
+        "que": "Seguridad\\BC-Seguridad.exe enrolar, y ANOTAR LA FRASE EN PAPEL",
+        "por_que_no_lo_puede_hacer_una_herramienta": "la frase se muestra una sola vez y no se guarda en ningun lado. Guardarla en algun archivo seria dejar la llave al lado de la cerradura",
+        "critico": true
+      },
+      {
+        "n": 5,
+        "que": "emitir la licencia en la maquina de administracion con la solicitud que dejo el paso 4, instalarla, y ver ALLOW / OK"
+      },
+      {
+        "n": 6,
+        "que": "Seguridad\\BC-Seguridad.exe proteger-datos, primero como ensayo y despues con --confirmar"
+      },
+      {
+        "n": 7,
+        "que": "BC-Caja.exe --security-check, que escribe una venta de prueba, la vuelve a leer y mira la base con SQLite pelado. Tiene que decir cifrado_en_disco=si filtracion=no planilla=sellada"
+      },
+      {
+        "n": 8,
+        "que": "la prueba de copia delante del cliente: llevar la carpeta y la base a OTRA PC, comprobar el DENY y que el .sqlite3 muestra bcx1:",
+        "es_lo_unico_que_no_se_pudo_verificar_desde_casa": true,
+        "por_que": "no hay una segunda computadora en esta sesion. Que el blob de DPAPI no abra en otra PC es la unica afirmacion de todo el slice que no se pudo comprobar aca, y por eso no se afirma"
+      },
+      {
+        "n": 9,
+        "que": "ensayo de rollback: revertir-datos, comprobar que todo vuelve a texto plano, y volver a proteger"
+      }
     ],
-    "tambien_pendiente": "respaldar la clave privada del emisor fuera de linea con `bc_security_issuer.py respaldo-de-clave`. Sin ese respaldo, perder la maquina de administracion es perder la capacidad de emitir y de revocar. La clave ya existe: key_id bcfc68429311075f, sellada con DPAPI de usuario en %LOCALAPPDATA%/BC/Issuer/."
+    "lo_que_ya_no_hace_falta": [
+      "construir el paquete: hecho y verificado",
+      "comprobar que cryptography quedo adentro: verificado, y el build revienta si falta",
+      "comprobar que el almacen de confianza quedo adentro: verificado, y el build revienta si falta",
+      "instalar Python en la Optica: no hace falta, el paquete trae su propia herramienta",
+      "respaldar la clave del emisor: el archivo esta escrito y comprobado; solo falta moverlo"
+    ]
   },
   "lo_que_NO_hace_falta_pedirle_a_nadie": [
     "modelo, primitivas, adaptador de DPAPI, emisor, verificador, identidad, formato de licencia, lease, almacenamiento, integracion, contrato de autenticacion de sincronizacion, migracion y proteccion de datos: hechos",
@@ -41,7 +85,12 @@
   "siguiente_slice_sugerido": [
     "transporte de la lista de revocacion y endpoint de Gestion Central que verifique las credenciales de sincronizacion (el contrato ya esta y esta probado)",
     "indice ciego con clave para suppliers.document, que es lo que falta para poder cifrarlo sin romper su UNIQUE",
-    "decidir el futuro de Datos/movimientos.txt, que sigue escribiendo texto plano fuera de la base"
+    "el correo del cierre sigue llevando el PDF legible. Es deliberado —el informe existe para leerse— pero proteger ese canal es un problema abierto"
   ],
-  "no_iniciar_otra_mision": true
+  "no_iniciar_otra_mision": true,
+  "paquete": {
+    "zip": "releases/BC-CAJA-1.0.0-rc.33-win64.zip",
+    "sha256": "20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5",
+    "lleva_su_propia_herramienta": "Seguridad/BC-Seguridad.exe. La Optica no necesita Python para nada de esto"
+  }
 }

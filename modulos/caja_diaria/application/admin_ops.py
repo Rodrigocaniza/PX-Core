@@ -15,6 +15,9 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Mapping
 
+from modulos.seguridad import runtime as seguridad_runtime
+from modulos.seguridad.application import file_protection
+
 from ..domain.errors import CashDayClosedError, CashDayNotFoundError, InvalidCashDayError
 from ..domain.models import CashDay, DENOMINATIONS, parse_business_date, utc_now
 
@@ -862,9 +865,31 @@ class AdminOperations:
         template = str(mail.get("subject", "Cierre {fecha} - {sucursal}"))[:180]
         return template.replace("{fecha}", day.business_date.strftime("%d-%m-%Y")).replace("{sucursal}", day.unit)
 
+    def _cifrador(self):
+        """El cifrador activo para esta base, o None si la instalacion no esta protegida."""
+        return seguridad_runtime.cipher_for(self.repository.database_path)
+
     def generate_close_pdf(self, day: CashDay, count: CountResult, closure_id: str, destination: Path) -> Path:
+        """Genera la planilla de cierre y la deja sellada si la instalacion lo esta.
+
+        El informe lleva nombre, telefono, receta y observaciones de cada
+        cliente del dia. Dejarlo en claro al lado de una base cifrada habria
+        sido dejar la puerta de al lado abierta: quien copia la carpeta se
+        lleva lo mismo, y en un formato mas comodo de leer.
+
+        Sin cifrador activo escribe exactamente donde escribia antes, con el
+        mismo generador y el mismo resultado.
+        """
         from .continuous_report import generate_continuous_daily_control
-        return generate_continuous_daily_control(day, count, closure_id, destination)
+
+        destination = Path(destination)
+        with file_protection.GeneracionProtegida(self._cifrador(), destination) as salida:
+            generate_continuous_daily_control(day, count, closure_id, salida)
+        return destination
+
+    def read_close_pdf(self, path: str | Path) -> bytes:
+        """Bytes legibles del informe, este sellado o no."""
+        return file_protection.read_maybe_sealed(self._cifrador(), path)
 
     def mail_status(self, cash_day_id: str) -> str:
         with self.repository._connection() as connection:
@@ -908,7 +933,13 @@ class AdminOperations:
                 message["Subject"] = row["subject"]
                 message.set_content("Se adjunta el cierre de Caja y Arqueo.")
                 report = Path(row["report_path"])
-                message.add_attachment(report.read_bytes(), maintype="application", subtype="pdf", filename=report.name)
+                # El adjunto va en claro: el informe existe para que la
+                # administradora lo lea. Lo que cambia es que en disco no queda
+                # una copia legible.
+                message.add_attachment(
+                    self.read_close_pdf(report),
+                    maintype="application", subtype="pdf", filename=report.name,
+                )
                 context = ssl.create_default_context()
                 with smtplib.SMTP(str(mail.get("host", "")), int(mail.get("port", 587)), timeout=15) as smtp:
                     smtp.starttls(context=context)

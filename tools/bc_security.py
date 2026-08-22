@@ -32,6 +32,7 @@ from modulos.seguridad import bootstrap, runtime  # noqa: E402
 from modulos.seguridad.application import (  # noqa: E402
     data_migration,
     enrollment,
+    file_protection,
     keyring,
     verifier,
 )
@@ -183,9 +184,12 @@ def _cifrador(argumentos, base: Path) -> FieldCipher:
 
 def comando_proteger_datos(argumentos) -> int:
     base = _base(argumentos)
+    raiz = base.parent
     antes = data_migration.survey(base)
+    archivos = file_protection.survey(raiz)
     en_claro = sum(item["en_claro"] for item in antes.values())
-    print(f"valores en claro a proteger: {en_claro}")
+    print(f"valores en claro a proteger : {en_claro}")
+    print(f"informes en claro a sellar  : {archivos['en_claro']}")
     if not argumentos.confirmar:
         for nombre, conteo in sorted(antes.items()):
             print(f"  {nombre}: en claro {conteo['en_claro']}, protegidos {conteo['protegidos']}")
@@ -193,11 +197,16 @@ def comando_proteger_datos(argumentos) -> int:
         return 0
     respaldo = _respaldar(base)
     print(f"respaldo previo: {respaldo}")
-    reporte = data_migration.protect(base, _cifrador(argumentos, base), actor=argumentos.actor)
-    print(json.dumps(reporte.to_document(), ensure_ascii=False, indent=2))
+    cifrador = _cifrador(argumentos, base)
+    reporte = data_migration.protect(base, cifrador, actor=argumentos.actor)
+    sellados = file_protection.protect_files(raiz, cifrador)
+    print(json.dumps({**reporte.to_document(), "informes_sellados": sellados},
+                     ensure_ascii=False, indent=2))
     faltantes = data_migration.plaintext_leftovers(base)
+    sueltos = file_protection.plaintext_leftovers(raiz)
     print("quedan en claro:", faltantes or "nada")
-    return 0 if not faltantes else 1
+    print("informes en claro:", sueltos or "ninguno")
+    return 0 if not (faltantes or sueltos) else 1
 
 
 def comando_revertir_datos(argumentos) -> int:
@@ -207,8 +216,11 @@ def comando_revertir_datos(argumentos) -> int:
         return 0
     respaldo = _respaldar(base)
     print(f"respaldo previo: {respaldo}")
-    reporte = data_migration.rollback(base, _cifrador(argumentos, base), actor=argumentos.actor)
-    print(json.dumps(reporte.to_document(), ensure_ascii=False, indent=2))
+    cifrador = _cifrador(argumentos, base)
+    reporte = data_migration.rollback(base, cifrador, actor=argumentos.actor)
+    revertidos = file_protection.rollback_files(base.parent, cifrador)
+    print(json.dumps({**reporte.to_document(), "informes_revertidos": revertidos},
+                     ensure_ascii=False, indent=2))
     return 0
 
 
@@ -227,6 +239,26 @@ def comando_recuperar(argumentos) -> int:
         details={"actor": argumentos.actor, "dek_id": clave.dek_id},
     )
     print("la clave de datos quedo reatada a esta instalacion")
+    return 0
+
+
+def comando_abrir_informe(argumentos) -> int:
+    """Escribe una copia legible de un informe sellado.
+
+    El sellado le quita el doble clic al PDF; esto se lo devuelve, a pedido y
+    dejando la copia donde quien opera decida — no automaticamente al lado de
+    la original, que seria volver al problema.
+    """
+    base = _base(argumentos)
+    origen = Path(argumentos.archivo)
+    contenido = file_protection.read_maybe_sealed(_cifrador(argumentos, base), origen)
+    destino = (
+        Path(argumentos.salida) if argumentos.salida
+        else origen.with_name(f"legible-{origen.name}")
+    )
+    destino.write_bytes(contenido)
+    print(f"copia legible en: {destino}")
+    print("Es una copia SIN proteger. Borrala cuando termines de usarla.")
     return 0
 
 
@@ -250,6 +282,8 @@ def comando_estado(argumentos) -> int:
         print(f"clave de datos       : {'si' if keyring.has_data_key(base) else 'no'}")
         for nombre, conteo in sorted(data_migration.survey(base).items()):
             print(f"  {nombre}: en claro {conteo['en_claro']}, protegidos {conteo['protegidos']}")
+    archivos = file_protection.survey(base.parent)
+    print(f"informes             : en claro {archivos['en_claro']}, sellados {archivos['sellados']}")
     return 0
 
 
@@ -259,7 +293,21 @@ def construir_parser() -> argparse.ArgumentParser:
     parser.add_argument("--actor", default="", help="quien ejecuta, para la bitacora")
     sub = parser.add_subparsers(dest="comando", required=True)
 
+    def comun(subparser):
+        """`--base` y `--actor` tambien DESPUES del subcomando.
+
+        Nadie escribe `bc-seguridad --actor Rodrigo proteger-datos`: se escribe
+        `proteger-datos --actor Rodrigo`, que es donde la opcion se siente que
+        pertenece. Con argparse eso fallaba con "unrecognized arguments", y el
+        instructivo pedia justamente esa forma. `SUPPRESS` hace que, si no se
+        pasa aca, el valor de arriba sobreviva en vez de pisarse con el vacio.
+        """
+        subparser.add_argument("--base", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
+        subparser.add_argument("--actor", default=argparse.SUPPRESS, help=argparse.SUPPRESS)
+        return subparser
+
     enrolar = sub.add_parser("enrolar", help="crea identidad y secreto de esta PC")
+    comun(enrolar)
     enrolar.add_argument("--etiqueta", default="", help='por ejemplo "Optica - Caja 1"')
     enrolar.add_argument("--solicitud", help="donde escribir la solicitud para el emisor")
     enrolar.add_argument(
@@ -269,35 +317,50 @@ def construir_parser() -> argparse.ArgumentParser:
     enrolar.set_defaults(func=comando_enrolar)
 
     licencia = sub.add_parser("instalar-licencia", help="aplica una licencia firmada")
+    comun(licencia)
     licencia.add_argument("archivo")
     licencia.set_defaults(func=comando_instalar_licencia)
 
     revocaciones = sub.add_parser("instalar-revocaciones", help="aplica una lista de revocacion")
+    comun(revocaciones)
     revocaciones.add_argument("archivo")
     revocaciones.set_defaults(func=comando_instalar_revocaciones)
 
     verificar = sub.add_parser("verificar", help="dice si esta PC esta autorizada")
+    comun(verificar)
     verificar.set_defaults(func=comando_verificar)
 
     proteger = sub.add_parser("proteger-datos", help="cifra los datos sensibles existentes")
+    comun(proteger)
     proteger.add_argument("--confirmar", action="store_true")
     proteger.add_argument("--frase", default="", help="frase de recuperacion, si no hay secreto local")
     proteger.set_defaults(func=comando_proteger_datos)
 
     revertir = sub.add_parser("revertir-datos", help="devuelve los datos a texto plano")
+    comun(revertir)
     revertir.add_argument("--confirmar", action="store_true")
     revertir.add_argument("--frase", default="")
     revertir.set_defaults(func=comando_revertir_datos)
 
     recuperar = sub.add_parser("recuperar", help="reata la clave de datos a esta instalacion")
+    comun(recuperar)
     recuperar.add_argument("--frase", required=True)
     recuperar.set_defaults(func=comando_recuperar)
 
+    informe = sub.add_parser("abrir-informe", help="copia legible de un informe sellado")
+    comun(informe)
+    informe.add_argument("archivo")
+    informe.add_argument("--salida")
+    informe.add_argument("--frase", default="")
+    informe.set_defaults(func=comando_abrir_informe)
+
     auditoria = sub.add_parser("auditoria", help="ultimas lineas de la bitacora de seguridad")
+    comun(auditoria)
     auditoria.add_argument("--limite", type=int, default=50)
     auditoria.set_defaults(func=comando_auditoria)
 
     estado = sub.add_parser("estado", help="resumen de la instalacion")
+    comun(estado)
     estado.set_defaults(func=comando_estado)
     return parser
 

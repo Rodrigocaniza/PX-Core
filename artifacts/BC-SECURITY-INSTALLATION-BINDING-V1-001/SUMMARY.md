@@ -2,7 +2,8 @@
 
 **Rama:** `feature/bc-security-installation-binding-v1-001`
 **Base:** `origin/feature/bc-optica-comision-composturas-v1-021 @ 38ef01b`
-**Suite:** 1519 verdes, 1 roja preexistente (1369/3 antes de empezar)
+**Suite:** 1541 verdes, **0 rojas** (1369 verdes y 3 rojas antes de empezar)
+**Paquete:** `BC-CAJA-1.0.0-rc.33-win64.zip`, verificado con `SMOKE_PAQUETE_OK pasos=31`
 
 ---
 
@@ -23,10 +24,11 @@ punto: romper una no alcanza.
    negocio, la sucursal, el plazo, la huella— rompe la firma. Firmarse una
    propia no sirve: la clave privada no esta en el cliente y el cliente no
    acepta claves de confianza nuevas desde el disco.
-3. **Los datos estan cifrados.** 18 columnas con la identidad del paciente
+3. **Los datos estan cifrados.** 19 columnas con la identidad del paciente
    —nombre, telefono, cedula, receta, observaciones— guardan criptograma en la
    misma columna TEXT. Abrir el `.sqlite3` robado con cualquier visor muestra
-   `bcx1:...` donde antes decia el nombre.
+   `bcx1:...` donde antes decia el nombre. Y la planilla de cierre, que llevaba
+   todo eso en un PDF al lado de la base, ahora se sella con la misma clave.
 4. **Cada intento queda escrito.** La bitacora de seguridad es append-only por
    disparador y guarda el motivo con nombre propio: `MAQUINA_DISTINTA`,
    `LICENCIA_DE_OTRA_INSTALACION`, `REVOCADA`, `RELOJ_ATRASADO`.
@@ -54,16 +56,19 @@ pueda revisar.
 |---|---|
 | `modulos/seguridad/` | 22 archivos, la capa transversal. No importa Caja, Comercial ni Gestion Central — hay una prueba que lo verifica |
 | `migrations/033_security_v1.sql` | tres tablas nuevas, estrictamente aditiva. Aplicarla no cifra nada |
-| `tools/bc_security.py` | lo que se corre en la Optica: enrolar, licencia, verificar, proteger, revertir, recuperar, auditoria |
+| `tools/bc_security.py` | lo que se corre en la Optica, empaquetado como `BC-Seguridad.exe`: enrolar, licencia, verificar, proteger, revertir, recuperar, abrir-informe, auditoria |
 | `tools/bc_security_issuer.py` | lo que se corre en la maquina de administracion. La clave privada no entra al repositorio |
-| `tests/seguridad/` | 148 pruebas, incluidas las A a L y las de contrato |
-| `docs/adr/` | seis decisiones, cada una con lo que se pierde al tomarla |
-| `docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md` | los ocho pasos del lunes |
+| `tests/seguridad/` | 169 pruebas: A a L, contratos, DPAPI real, escaneo de canarios y verificacion del paquete |
+| `docs/adr/` | siete decisiones, cada una con lo que se pierde al tomarla |
+| `docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md` | los pasos del lunes, con los ejecutables del paquete |
+| `tools/smoke_paquete_seguridad.py` | la ceremonia entera contra los `.exe`, repetible |
 
-Lo que se toco de lo que ya existia son 85 lineas en cuatro archivos:
-`bc_caja.py` (la puerta antes de abrir la ventana), `sqlite_repository.py` (la
-conexion protegida y una busqueda), `factufacil.py` (un filtro) y
-`requirements.txt`.
+De lo que ya existia se toco poco y con motivo: `bc_caja.py` (la puerta antes
+de abrir la ventana y un diagnostico), `sqlite_repository.py` (la conexion
+protegida y una busqueda), `factufacil.py` (un filtro), `admin_ops.py` (sellar
+la planilla y abrirla para el correo), `pilot/build_pilot.ps1` (empaquetar el
+almacen de confianza y la herramienta, y verificar el paquete), `CajaDiaria.py`
+(una linea: la version del paquete) y `requirements.txt`.
 
 ---
 
@@ -82,7 +87,8 @@ funcionar y no protegia.**
 * Un `INSERT` con una funcion adentro no coincidia con el patron del mapeo, y
   no coincidir significaba escribir en claro sin decir una palabra.
 
-Los ocho estan en `FINDINGS.json` con su correccion y su prueba.
+Los ocho de esa ronda estan en `FINDINGS.json` con su correccion y su prueba.
+Los nueve de la segunda, tambien.
 
 ---
 
@@ -91,10 +97,13 @@ Los ocho estan en `FINDINGS.json` con su correccion y su prueba.
 * **Que el blob DPAPI no abra en otra PC.** No hay una segunda computadora. La
   suite lo ejerce con un sellador simulado, declarado como simulacion, y hay
   pruebas contra el DPAPI real de esta Windows para que la simulacion no sea la
-  unica evidencia. La verificacion real es el paso 7 del instructivo.
-* **Que el ejecutable empaquetado arranque.** No se corrio PyInstaller.
+  unica evidencia. La verificacion real es el paso 8 del instructivo.
 * **Nada sobre la base productiva.** Vive solo en la Optica y ningun comando de
   esta sesion la abrio.
+
+*(En la primera ronda esta lista tenia un tercer punto —"que el ejecutable
+empaquetado arranque"— que ya no aplica: se construyo y se verifico. Ver la
+seccion "Segunda ronda".)*
 
 ---
 
@@ -105,3 +114,44 @@ la huella real de esta maquina: se enrolo, se emitio, se instalo, `verificar`
 dio `ALLOW / OK`, se guardo una venta por el repositorio de produccion, BC la
 leyo entera, SQLite pelado mostro `bcx1:...`, y buscar los cinco literales del
 paciente en los bytes del archivo dio `ninguna`.
+
+
+---
+
+## Segunda ronda: el paquete
+
+La primera ronda dejo la capa escrita y probada **desde Python**. La segunda la
+puso a prueba **como se va a usar**, y ahi aparecio lo que ninguna prueba de
+unidad podia ver.
+
+**El paquete congelado no llevaba el almacen de confianza.** PyInstaller termino
+sin un error, el EXE arrancaba, y `trusted_issuers.json` no estaba adentro
+porque no es codigo. Un BC congelado sin almacen no verifica **ninguna**
+licencia: toda instalacion enrolada queda en DENY. La secuencia real habria sido
+instalar, enrolar, cifrar la base —irreversible sin la frase— y recien ahi
+descubrir que BC no abre.
+
+**La Optica no tiene Python**, y el instructivo mandaba correr
+`python tools/bc_security.py`. Ahora el paquete trae su propia herramienta de
+consola, `Seguridad\BC-Seguridad.exe`.
+
+**La planilla de cierre guardaba al paciente en claro** en la misma carpeta que
+la base cifrada. Ahora se sella con la misma DEK.
+
+Y el mas incomodo: **mi propia prueba de canarios no plantaba tres de los cinco
+valores** que decia estar buscando, porque usaba las claves equivocadas del
+formulario legacy. Pasaba en verde por vacio. Ahora verifica que planto lo que
+quiso plantar antes de escanear nada, y hay un caso que planta un canario a mano
+para comprobar que el buscador funciona.
+
+Los nueve defectos de esta ronda estan en `CIERRE_PREINSTALACION.md` con su
+correccion y su prueba.
+
+**Lo que ahora se puede afirmar:** la ceremonia entera —arranque, enrolamiento,
+emision, instalacion, proteccion, escritura y lectura protegida, base robada,
+planilla sellada, reinicio, lease, licencia manipulada, archivos corruptos y
+rollback— corre contra los `.exe` y da `SMOKE_PAQUETE_OK pasos=31`.
+
+**Lo que sigue sin poder afirmarse:** que el blob sellado con DPAPI no abra en
+otra PC. No hay una segunda computadora. Es la unica afirmacion del slice que no
+se pudo comprobar aca, y es el paso 8 del instructivo, con la Optica mirando.

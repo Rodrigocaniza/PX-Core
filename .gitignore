@@ -39,3 +39,7 @@ releases/BC-CAJA-1.0.0-rc.32-win64.zip
 *.bclic
 *.bcrl
 solicitud-de-enrolamiento.json
+
+# Paquete rc.33 (BC-SECURITY-INSTALLATION-BINDING-V1-001): binario local,
+# solo su hash viaja en el MANIFEST.
+releases/BC-CAJA-1.0.0-rc.33-win64.zip

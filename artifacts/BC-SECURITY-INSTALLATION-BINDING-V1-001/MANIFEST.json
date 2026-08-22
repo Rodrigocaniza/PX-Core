@@ -1,7 +1,7 @@
 {
   "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
   "titulo": "BC Seguridad V1: identidad de instalacion, licencia firmada, proteccion de datos y autenticacion de sincronizacion",
-  "estado": "COMPLETADA_EN_CASA - con migracion 033, sin apply productivo",
+  "estado": "COMPLETADA_EN_CASA - paquete construido y verificado, sin apply productivo",
   "base_git": {
     "branch": "feature/bc-security-installation-binding-v1-001",
     "parte_de": "origin/feature/bc-optica-comision-composturas-v1-021 @ 38ef01b",
@@ -20,7 +20,11 @@
     "aditiva_estricta": true,
     "verificado": "prueba que lee el .sql descartando comentarios: no hay ni un ALTER TABLE, ni un UPDATE, ni un DELETE, ni un DROP, ni un INSERT como sentencia; toda creacion es IF NOT EXISTS; y no nombra ninguna tabla de historia economica",
     "aplicada_en_produccion": false,
-    "tablas_nuevas": ["security_state", "security_keyring", "security_audit"],
+    "tablas_nuevas": [
+      "security_state",
+      "security_keyring",
+      "security_audit"
+    ],
     "tablas_eliminadas": [],
     "columnas_agregadas": {},
     "efecto_al_aplicarla": "crea tres tablas vacias y nada mas. No cifra, no migra datos, no cambia comportamiento. La proteccion de datos es un paso posterior, explicito y reversible.",
@@ -43,7 +47,12 @@
   },
   "identidad_de_instalacion": {
     "installation_id": "UUID aleatorio de 128 bits del CSPRNG del sistema",
-    "no_derivado_de": ["nombre de PC", "usuario de Windows", "MAC", "serial de CPU"],
+    "no_derivado_de": [
+      "nombre de PC",
+      "usuario de Windows",
+      "MAC",
+      "serial de CPU"
+    ],
     "por_que": "derivarlo del hardware permitiria recalcularlo en otra maquina conociendo los insumos, y haria que dos instalaciones legitimas en la misma PC fueran la misma cosa",
     "que_lo_convierte_en_identidad": "no el archivo que lo dice —eso se copia— sino lo que hay que tener ademas: el secreto sellado por el sistema operativo, y una licencia firmada que nombre ese identificador y esa maquina"
   },
@@ -55,8 +64,14 @@
     "adr": "ADR-0001"
   },
   "binding": {
-    "componentes_obligatorios": ["machine_guid"],
-    "componentes_secundarios": ["volume_serial", "windows_install", "computer_name"],
+    "componentes_obligatorios": [
+      "machine_guid"
+    ],
+    "componentes_secundarios": [
+      "volume_serial",
+      "windows_install",
+      "computer_name"
+    ],
     "regla": "todos los obligatorios tienen que coincidir; de los secundarios, la mitad redondeando hacia arriba y al menos uno",
     "tolerancia": "cambiar un disco no deja a la Optica sin Caja. Cambiar los tres secundarios a la vez ya es otra maquina y deniega.",
     "que_se_guarda": "hash de cada componente con el installation_id como sal. El valor en crudo no sale nunca — hay una prueba que lo verifica sobre los archivos escritos",
@@ -67,8 +82,31 @@
     "firma": "Ed25519 sobre el payload serializado canonicamente",
     "clave_privada": "fuera del cliente. Vive sellada con DPAPI de usuario en la maquina de administracion, en %LOCALAPPDATA%/BC/Issuer/. No esta en el repositorio y hay una prueba que lo verifica.",
     "clave_publica": "modulos/seguridad/trusted_issuers.json, key_id bcfc68429311075f, empaquetada con el cliente",
-    "campos": ["license_id", "installation_id", "organization_id", "branch_id", "business_name", "capabilities", "issued_at", "expires_at", "lease_days", "grace_days", "binding", "secondary_required", "security_schema_version", "app_version", "revocation_id", "issuer_key_id", "sync_public_key"],
-    "capacidades": ["bc.caja", "bc.historial", "bc.inventario", "bc.sync"],
+    "campos": [
+      "license_id",
+      "installation_id",
+      "organization_id",
+      "branch_id",
+      "business_name",
+      "capabilities",
+      "issued_at",
+      "expires_at",
+      "lease_days",
+      "grace_days",
+      "binding",
+      "secondary_required",
+      "security_schema_version",
+      "app_version",
+      "revocation_id",
+      "issuer_key_id",
+      "sync_public_key"
+    ],
+    "capacidades": [
+      "bc.caja",
+      "bc.historial",
+      "bc.inventario",
+      "bc.sync"
+    ],
     "almacen_de_confianza": "solo el del paquete. No se lee ninguna clave de confianza desde disco ni desde variable de entorno en produccion. Ver ADR-0004."
   },
   "lease_y_offline": {
@@ -85,25 +123,54 @@
     "sin_cambio_de_esquema": true,
     "dato_asociado": "ata el criptograma a (dek_id, tabla, columna). Mover un valor a otra columna o a otra base lo vuelve indescifrable.",
     "columnas_protegidas": {
-      "cash_entries": ["description", "customer_document", "customer_phone", "observations", "prescription_doctor"],
-      "cash_entry_revisions": ["snapshot_json"],
-      "orders": ["customer_name", "customer_document", "customer_phone", "observations"],
-      "sale_items": ["prescription_doctor"],
-      "tracked_works": ["customer_name", "observations", "confirmation_note"],
-      "service_jobs": ["customer_name", "customer_phone", "description", "observations"]
+      "cash_entries": [
+        "description",
+        "customer_document",
+        "customer_phone",
+        "observations",
+        "source_reference",
+        "prescription_doctor"
+      ],
+      "cash_entry_revisions": [
+        "snapshot_json"
+      ],
+      "orders": [
+        "customer_name",
+        "customer_document",
+        "customer_phone",
+        "observations"
+      ],
+      "sale_items": [
+        "prescription_doctor"
+      ],
+      "tracked_works": [
+        "customer_name",
+        "observations",
+        "confirmation_note"
+      ],
+      "service_jobs": [
+        "customer_name",
+        "customer_phone",
+        "description",
+        "observations"
+      ]
     },
-    "total_de_columnas": 18,
+    "total_de_columnas": 19,
     "afuera_a_proposito": {
       "suppliers": "hay un UNIQUE sobre document; cifrar con nonce por valor lo romperia. Declarado como riesgo residual.",
       "importes_y_estados": "cifrar dinero romperia totales, filtros y reportes sin proteger a ninguna persona"
     },
     "como_entra": "por la conexion, no por el SQL. Lectura: row_factory encadenado, agnostico de tabla, columna y alias — no se puede olvidar de descifrar un lugar. Escritura: mapeo explicito de los parametros contra el registro; lo que el mapeo no entiende y toca una tabla protegida ROMPE en vez de guardar en claro.",
     "cadena_vacia": "no se cifra. Varias tablas tienen CHECK(length(trim(columna)) > 0); cifrar '' habria cambiado el negocio.",
-    "adr": "ADR-0003 y ADR-0005"
+    "adr": "ADR-0003 y ADR-0005",
+    "source_reference": "entro en la segunda ronda: guarda una COPIA de las observaciones, asi que protegerlas y dejarla afuera era no proteger nada"
   },
   "llavero_y_recuperacion": {
     "dek": "una por base, aleatoria, nunca derivada",
-    "envolturas": ["installation (secreto sellado por DPAPI)", "recovery (scrypt de una frase de ~160 bits)"],
+    "envolturas": [
+      "installation (secreto sellado por DPAPI)",
+      "recovery (scrypt de una frase de ~160 bits)"
+    ],
     "frase": "se muestra UNA sola vez al enrolar y no se guarda en ningun lado",
     "por_que_no_derivar_la_dek_del_secreto": "re-enrolar la PC —o cambiarla, que es lo que pasa cuando se quema— dejaria la base ilegible para siempre",
     "recuperar_en_otra_pc": "enrolar la PC nueva, abrir con la frase, re-envolver. La DEK no cambia, asi que no se recifra un solo dato.",
@@ -122,8 +189,32 @@
   },
   "auditoria": {
     "tabla": "security_audit, append-only por disparador",
-    "eventos": ["ENROLAMIENTO", "LICENCIA_INSTALADA", "VALIDACION", "REVOCACION_INSTALADA", "DATOS_PROTEGIDOS", "DATOS_REVERTIDOS", "LLAVERO_RECUPERADO"],
-    "motivos_de_denegacion": ["SIN_ENROLAR", "SIN_LICENCIA", "LICENCIA_ILEGIBLE", "FIRMA_INVALIDA", "EMISOR_DESCONOCIDO", "LICENCIA_DE_OTRA_INSTALACION", "MAQUINA_DISTINTA", "SECRETO_NO_RECUPERABLE", "LICENCIA_VENCIDA", "LEASE_VENCIDO", "LEASE_EN_GRACIA", "REVOCADA", "RELOJ_ATRASADO", "ESQUEMA_NO_SOPORTADO", "ESTADO_MANIPULADO"],
+    "eventos": [
+      "ENROLAMIENTO",
+      "LICENCIA_INSTALADA",
+      "VALIDACION",
+      "REVOCACION_INSTALADA",
+      "DATOS_PROTEGIDOS",
+      "DATOS_REVERTIDOS",
+      "LLAVERO_RECUPERADO"
+    ],
+    "motivos_de_denegacion": [
+      "SIN_ENROLAR",
+      "SIN_LICENCIA",
+      "LICENCIA_ILEGIBLE",
+      "FIRMA_INVALIDA",
+      "EMISOR_DESCONOCIDO",
+      "LICENCIA_DE_OTRA_INSTALACION",
+      "MAQUINA_DISTINTA",
+      "SECRETO_NO_RECUPERABLE",
+      "LICENCIA_VENCIDA",
+      "LEASE_VENCIDO",
+      "LEASE_EN_GRACIA",
+      "REVOCADA",
+      "RELOJ_ATRASADO",
+      "ESQUEMA_NO_SOPORTADO",
+      "ESTADO_MANIPULADO"
+    ],
     "sin_secretos": "hay un filtro de codigo que RECHAZA escribir un campo cuyo nombre parezca material criptografico. No es una advertencia en un comentario: es un error de programa que aparece como prueba roja.",
     "no_bloquea": "un fallo de escritura de la bitacora nunca impide arrancar. Una auditoria que cierra la Optica convierte un problema de registro en un problema de negocio."
   },
@@ -136,5 +227,80 @@
     "sqlite_repository.py": "_new_connection usa open_protected. Sin cifrador activo es sqlite3.Connection y no cambia nada.",
     "factufacil.py": "el filtro por cliente pasa de SQL a Python, porque description es una columna protegida y un LIKE contra criptograma devuelve cero filas en silencio.",
     "sin_enrolar_no_cambia_nada": "probado. Es la condicion para poder instalar esto sin cortar la operacion."
+  },
+  "paquete": {
+    "version": "1.0.0-rc.33",
+    "zip": "releases/BC-CAJA-1.0.0-rc.33-win64.zip",
+    "sha256_zip": "20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5",
+    "sha256_bc_caja_exe": "0cf89f1b21613489f496faa612b8f4f8baa76fe6e0349f1ad22a90cf5d0d48e8",
+    "sha256_bc_seguridad_exe": "6999fd72803ca6a6d036c2ef40fb422b4704d971a5e2a5bb8168b3314111426f",
+    "binario_no_commiteado": "el zip pesa 50 MB y queda fuera de Git, igual que los rc anteriores. Solo su hash viaja en este MANIFEST.",
+    "contiene": {
+      "BC-Caja.exe": "la aplicacion, --windowed, con la puerta de seguridad antes de abrir la ventana",
+      "Seguridad/BC-Seguridad.exe": "la herramienta de instalacion, de CONSOLA. Va en el paquete porque la Optica no tiene Python y sin esto el instructivo pediria algo imposible en esa PC",
+      "_internal/modulos/seguridad/trusted_issuers.json": "el almacen de confianza",
+      "_internal/modulos/caja_diaria/infrastructure/migrations/": "la cadena entera, 001 a 033",
+      "_internal/cryptography/": "46.0.7, con hazmat/bindings/_rust.pyd (Ed25519 y AES-GCM)"
+    },
+    "no_contiene": "el emisor. `bc_security_issuer.py` no se empaqueta y hay una prueba que verifica que ningun modulo del cliente lo importa",
+    "verificacion_en_el_build": "el script revienta si falta el almacen de confianza, la migracion 033 o el binario de cryptography. Un build que sale 'bien' y no lleva el almacen es exactamente lo que paso la primera vez"
+  },
+  "smoke_del_paquete_congelado": {
+    "herramienta": "tools/smoke_paquete_seguridad.py",
+    "resultado": "SMOKE_PAQUETE_OK pasos=31",
+    "contra": "los .exe de dist/BC-Caja, no el codigo fuente",
+    "sobre": "directorios temporales propios; no toca ninguna base productiva",
+    "cubre": [
+      "arranque del ejecutable y migracion 033 dentro del paquete",
+      "sin enrolar, BC funciona como siempre",
+      "enrolamiento con DPAPI real dentro del paquete",
+      "emision (desde la maquina de administracion) e instalacion de licencia",
+      "proteccion de lo ya escrito: base y planillas",
+      "escritura y lectura de datos protegidos, con la base cifrada en disco",
+      "SQLite pelado sobre la base robada",
+      "la planilla de cierre queda sellada",
+      "persistencia al reiniciar el ejecutable",
+      "lease offline persistido",
+      "licencia manipulada -> DENY, y el ejecutable no abre",
+      "secreto corrupto -> DENY sin destruir",
+      "rollback: datos y planillas vuelven a texto plano, y se puede volver a proteger"
+    ]
+  },
+  "archivos_fuera_de_la_base": {
+    "auditados": "todos los que BC escribe bajo su raiz de datos",
+    "Reports/cierre-*.pdf": "SELLADOS con la misma DEK y el mismo AES-256-GCM que las columnas. Llevaban nombre, telefono, receta y observaciones en claro. El nombre del archivo no cambia. Se abren con `abrir-informe`",
+    "movimientos.txt": "auditado y SIN PII: Tipo|Fecha|Origen|Destino|Importe|Si|BC_CAJA:<dia>:<concepto>. Se deja como esta y se fija su forma con una prueba",
+    "Backups/*.sqlite3": "copias de la base; heredan el cifrado por columna",
+    "Logs/startup-error.log": "traceback, sin valores de negocio",
+    "credencial SMTP": "ya sellada con DPAPI desde RC.13",
+    "adr": "ADR-0007"
+  },
+  "escaneo_de_pii": {
+    "prueba": "tests/seguridad/test_no_pii_persistente.py",
+    "metodo": "carga un dia entero con cinco canarios que no existen en ninguna otra parte del sistema, lo cierra por el camino real, y recorre cada byte de cada archivo bajo la raiz de datos y bajo la carpeta de seguridad",
+    "cubre": [
+      "sqlite",
+      "wal",
+      "shm",
+      "backups",
+      "reports",
+      "txt",
+      "json",
+      "logs"
+    ],
+    "auto_verificacion": "la prueba comprueba que planto lo que quiso plantar ANTES de escanear, y hay un caso que planta un canario a mano para verificar que el buscador detecta de verdad. Un control que no puede fallar no es un control",
+    "campos_en_claro_documentados": {
+      "numero de sobre": "identificador operativo del trabajo, y clave de dos busquedas SQL",
+      "importes, fechas, sucursal, vendedora, estados": "contabilidad y operacion, no la persona",
+      "suppliers": "afuera en V1 por el UNIQUE sobre document (ADR-0005)"
+    }
+  },
+  "respaldo_del_emisor": {
+    "estado": "HECHO",
+    "key_id": "bcfc68429311075f",
+    "como": "`respaldo-de-clave` ahora ESCRIBE un archivo fuera del repositorio y no imprime la clave: lo que va a la pantalla queda en el historial de la consola y en cualquier registro de la sesion. `--mostrar` existe para cuando de verdad haga falta leerla en voz alta",
+    "verificado": "se reconstruyo la clave desde el archivo y su key_id coincide con el del almacen de confianza commiteado",
+    "no_esta_en_git": "comprobado buscando el material literal en todo el arbol",
+    "queda_para_el_propietario": "llevar ese archivo a un pendrive o pasarlo a papel, y borrarlo de esta PC. Es lo unico que no puede hacer una herramienta"
   }
 }
