@@ -22,5 +22,11 @@
       "reserva": "necesita migracion, y la Optica acaba de terminar de aplicar una cola de cuatro"
     }
   ],
-  "no_iniciar_otra_mision": true
+  "no_iniciar_otra_mision": true,
+  "publicada": {
+    "rama": "feature/bc-optica-comision-composturas-v1-021",
+    "commit": "d8b9ed6b4e1e6fde62e58bbb8aa1a37479cb6024",
+    "en_origin": true,
+    "divergencia": "0 0"
+  }
 }

@@ -71,9 +71,9 @@
     },
     {
       "gate": "SAFE_CLOSURE",
-      "estado": "PENDIENTE",
+      "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "se cierra despues del push con la salida real"
+      "detalle": "cerrado con evidencia real. Tras push y fetch: HEAD y @{u} dan los dos d8b9ed6b4e1e6fde62e58bbb8aa1a37479cb6024, `git rev-list --left-right --count @{u}...HEAD` da `0 0`, y `git status --porcelain` sale vacio. Suite en 1386 verdes, y el paquete verde con el reloj normal y con el reloj a las 22:30 UTC. El unico pendiente del frente sigue siendo el HUMAN_GATE de personas y tarifas"
     }
   ],
   "lo_que_esta_mision_no_hizo": [
