@@ -35,7 +35,7 @@
       "gate": "QA_PASS",
       "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "169 pruebas en tests/seguridad. Las de aceptacion A a L cubren las doce letras, con la letra en el nombre de la clase. Ademas: pruebas contra el DPAPI REAL de esta Windows; pruebas de contrato que verifican estaticamente que el cliente no importa el emisor, que no hay clave privada en el repositorio, que el almacen se ignora cuando el ejecutable esta congelado, que la 033 es aditiva y que ninguna consulta compara por una columna cifrada; un escaneo de canarios que recorre CADA BYTE de CADA archivo que BC deja en disco; pruebas de que el build declara todo lo que la capa lee en ejecucion; y una prueba que LEE el instructivo de la Optica y verifica que cada comando que aparece ahi realmente parsea. Fuera de pytest, una ceremonia de 31 pasos contra los .exe."
+      "detalle": "177 pruebas en tests/seguridad. Las de aceptacion A a L cubren las doce letras, con la letra en el nombre de la clase. Ademas: pruebas contra el DPAPI REAL de esta Windows; pruebas de contrato que verifican estaticamente que el cliente no importa el emisor, que no hay clave privada en el repositorio, que el almacen se ignora cuando el ejecutable esta congelado, que la 033 es aditiva y que ninguna consulta compara por una columna cifrada; un escaneo de canarios que recorre CADA BYTE de CADA archivo que BC deja en disco; pruebas de que el build declara todo lo que la capa lee en ejecucion; y una prueba que LEE el instructivo de la Optica y verifica que cada comando que aparece ahi realmente parsea. Fuera de pytest, una ceremonia de 31 pasos contra los .exe. En el cierre preinstalacion se agregaron ocho mas que inyectan el fallo a proposito (tests/seguridad/test_fallo_no_destruye.py): un cifrador que revienta a la mitad de proteger y de revertir, y un sellador que sella y no reabre. Verifican que la base vuelve al estado exacto anterior, que el disparador de stock se restaura, que BC sigue leyendo, que reintentar termina el trabajo, y que un enrolamiento fallido no escribe identidad ni secreto ni toca la base. Antes esto se deducia del codigo; ahora se ejerce."
     },
     {
       "gate": "AUDITOR_PASS",
@@ -53,6 +53,12 @@
       "estado": "PASS",
       "mecanismo": "REAL",
       "detalle": "tools/smoke_paquete_seguridad.py corre la ceremonia entera —arranque, enrolamiento, emision, instalacion, proteccion, escritura y lectura protegida, base robada, planilla sellada, reinicio, lease, licencia manipulada, archivos corruptos y rollback— contra los ejecutables de dist/BC-Caja, sobre directorios temporales propios. SMOKE_PAQUETE_OK pasos=31. Funcionar desde Python no decia nada sobre funcionar congelado, y este gate existe porque la diferencia resulto ser la que habria roto la instalacion."
+    },
+    {
+      "gate": "READY_FOR_PHYSICAL_PILOT",
+      "estado": "PASS",
+      "mecanismo": "REAL",
+      "detalle": "Cierre preinstalacion, sin funciones nuevas. Se reverificaron rama, HEAD y worktree (el trabajo vive en C:/PX/SEC1, no en .worktrees/); los hashes del zip y de los dos ejecutables contra dist/; que el almacen de confianza viaja en los dos bundles y es byte por byte el commiteado; y que la clave privada del emisor no esta en el worktree (2591 archivos), en git (4958 objetos de todas las refs), en el zip (1256 entradas) ni en artifacts o logs. El instructivo se reescribio como secuencia fail-safe de trece pasos con \"tiene que decir\" y \"si no dice eso\" en cada uno, punto de no retorno senalado y dos respaldos verificados antes de cifrar. Se agrego tools/verificar_paquete.py, que comprueba solo los hashes contra HASHES_PAQUETE.txt. Evidencia preparada para las dos instalaciones reales en INSTALACIONES/."
     }
   ],
   "suite": {
@@ -66,13 +72,13 @@
       "tests/gestion_central/test_ui_interactions.py::test_alert_selection_acknowledgement_and_restart_persistence"
     ],
     "despues_del_slice": {
-      "verdes": 1541,
+      "verdes": 1549,
       "rojas": 0
     },
     "rojas_despues": [],
-    "cuadra": "1369 de base + 2 que eran inestables y pasaron + 1 que estaba roja y se cerro + las nuevas de seguridad = 1541. Ninguna roja.",
+    "cuadra": "1369 de base + 2 que eran inestables y pasaron + 1 que estaba roja y se cerro + las nuevas de seguridad = 1541 al congelar el paquete; + 8 de fallo inyectado en el cierre preinstalacion = 1549. Ninguna roja.",
     "regresiones_atribuibles_al_slice": 0,
-    "suite_de_seguridad": 169,
+    "suite_de_seguridad": 177,
     "la_ultima_roja_de_la_base_se_cerro": "test_el_valor_de_respaldo_sigue_al_paquete estaba en rojo desde antes de este slice: CajaDiaria.VERSION_APLICACION decia 1.0.0-rc.32 y pilot/package_docs/VERSION.txt decia 1.0.0-rc.33, porque la V1-021 bumpeo uno y no el otro. Dejo de ser ajeno en el momento en que este slice construyo el paquete rc.33: la Optica habria visto rc.32 en el pie de la ventana y rc.33 en el zip. Se alineo la constante, que es exactamente lo que la prueba pedia.",
     "paquete": {
       "smoke": "SMOKE_PAQUETE_OK pasos=31",

@@ -2,7 +2,7 @@
 
 **Rama:** `feature/bc-security-installation-binding-v1-001`
 **Base:** `origin/feature/bc-optica-comision-composturas-v1-021 @ 38ef01b`
-**Suite:** 1541 verdes, **0 rojas** (1369 verdes y 3 rojas antes de empezar)
+**Suite:** 1549 verdes, **0 rojas** (1369 verdes y 3 rojas antes de empezar; 1541 al congelar el paquete, +8 del cierre preinstalacion)
 **Paquete:** `BC-CAJA-1.0.0-rc.33-win64.zip`, verificado con `SMOKE_PAQUETE_OK pasos=31`
 
 ---
@@ -58,7 +58,7 @@ pueda revisar.
 | `migrations/033_security_v1.sql` | tres tablas nuevas, estrictamente aditiva. Aplicarla no cifra nada |
 | `tools/bc_security.py` | lo que se corre en la Optica, empaquetado como `BC-Seguridad.exe`: enrolar, licencia, verificar, proteger, revertir, recuperar, abrir-informe, auditoria |
 | `tools/bc_security_issuer.py` | lo que se corre en la maquina de administracion. La clave privada no entra al repositorio |
-| `tests/seguridad/` | 169 pruebas: A a L, contratos, DPAPI real, escaneo de canarios y verificacion del paquete |
+| `tests/seguridad/` | 177 pruebas: A a L, contratos, DPAPI real, escaneo de canarios, verificacion del paquete y fallo inyectado al enrolar y al proteger |
 | `docs/adr/` | siete decisiones, cada una con lo que se pierde al tomarla |
 | `docs/INSTALACION_SEGURIDAD_EN_LA_OPTICA.md` | los pasos del lunes, con los ejecutables del paquete |
 | `tools/smoke_paquete_seguridad.py` | la ceremonia entera contra los `.exe`, repetible |

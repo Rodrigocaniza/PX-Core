@@ -1,0 +1,115 @@
+{
+  "mision": "BC-SECURITY-INSTALLATION-BINDING-V1-001",
+  "estado": "READY_FOR_PHYSICAL_PILOT",
+  "rama": "feature/bc-security-installation-binding-v1-001",
+  "head": "19ee0477a36b639115e2b495fdffe5db225a5fe6",
+  "worktree": "C:/PX/SEC1",
+  "paquete": {
+    "zip": "releases/BC-CAJA-1.0.0-rc.33-win64.zip",
+    "version": "1.0.0-rc.33",
+    "sha256": "20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5",
+    "bytes": 50117227,
+    "entradas": 1256,
+    "ejecutables": {
+      "BC-Caja/BC-Caja.exe": "0cf89f1b21613489f496faa612b8f4f8baa76fe6e0349f1ad22a90cf5d0d48e8",
+      "BC-Caja/Seguridad/BC-Seguridad.exe": "6999fd72803ca6a6d036c2ef40fb422b4704d971a5e2a5bb8168b3314111426f"
+    },
+    "almacen_de_confianza": {
+      "sha256": "00401066ba9c1385c8c7e39e147f917f429ee97c0a3ac6abfc71851ff27cca72",
+      "dentro_del_paquete": [
+        "BC-Caja/_internal/modulos/seguridad/trusted_issuers.json",
+        "BC-Caja/Seguridad/_internal/modulos/seguridad/trusted_issuers.json"
+      ],
+      "identico_al_commiteado": true,
+      "key_id": "bcfc68429311075f",
+      "solo_clave_publica": true
+    },
+    "verificable_con": "python tools/verificar_paquete.py releases/BC-CAJA-1.0.0-rc.33-win64.zip",
+    "verificado_el": "2026-08-21"
+  },
+  "secretos": {
+    "clave_privada_del_emisor_en_git": false,
+    "clave_privada_del_emisor_en_el_zip": false,
+    "clave_privada_del_emisor_en_artifacts": false,
+    "clave_privada_del_emisor_en_logs": false,
+    "frases_de_recuperacion_persistidas": false,
+    "alcance_del_escaneo": "2591 archivos del worktree, 4958 objetos de git (todas las refs), y las 1256 entradas del zip, buscando el valor literal de la clave privada del respaldo del emisor y patrones de clave/token/frase",
+    "unico_lugar_donde_existe_la_privada": "%USERPROFILE%\\BC-RESPALDO-EMISOR-bcfc68429311075f.txt en la PC de Casa, pendiente de salir de la maquina (HUMAN_GATE 1)",
+    "gitignore_cubre": ["*issuer*.key.json", "*.bclic", "*.bcrl", "solicitud-de-enrolamiento.json"]
+  },
+  "rollback": {
+    "respaldo_previo_obligatorio": "tools/bc_security.py lo hace el mismo con sqlite3.backup antes de proteger y antes de revertir; no depende de que alguien se acuerde",
+    "destino": "<carpeta de la base>/Backups/pre-seguridad-<marca>-bc_caja.sqlite3",
+    "proteger_es_atomico": "una sola transaccion BEGIN IMMEDIATE; un fallo deja la base exactamente como estaba",
+    "reversible": "revertir-datos devuelve columnas e informes a texto plano con la misma clave",
+    "ensayado_en_la_optica": "paso 11 del instructivo, el mismo dia de la instalacion",
+    "pruebas_de_fallo_inyectado": "tests/seguridad/test_fallo_no_destruye.py (8)"
+  },
+  "no_destruye_ante_fallo": {
+    "enrolamiento": "no abre la base en ningun momento, y si el sellado no reabre aborta antes de escribir identidad o secreto",
+    "re_enrolar_por_accidente": "AlreadyEnrolledError; no pisa identidad, secreto ni base",
+    "proteccion_a_la_mitad": "rollback de SQLite: ni un valor a medio camino, disparador de stock restaurado, BC sigue leyendo, y reintentar termina el trabajo",
+    "reversion_a_la_mitad": "los datos siguen cifrados y legibles por BC; el camino de vuelta sigue existiendo",
+    "archivos_perdidos_o_corruptos": "TestJ en tests/seguridad/test_aceptacion_a_l.py"
+  },
+  "instalaciones": [
+    {
+      "sucursal": "ASUNCION",
+      "organizacion": "optica",
+      "etiqueta": "Optica ASUNCION - Caja 1",
+      "lease_dias": 365,
+      "gracia_dias": 180,
+      "acta": "artifacts/BC-SECURITY-INSTALLATION-BINDING-V1-001/INSTALACIONES/ACTA_ASUNCION.md",
+      "comando_de_emision": "python tools/bc_security_issuer.py emitir --solicitud solicitud-de-enrolamiento.json --salida licencia.bclic --negocio \"Optica\" --organizacion optica --sucursal ASUNCION --lease-dias 365 --gracia-dias 180",
+      "orden": 1,
+      "estado": "PENDIENTE_FISICO"
+    },
+    {
+      "sucursal": "PILAR",
+      "organizacion": "optica",
+      "etiqueta": "Optica PILAR - Caja 1",
+      "lease_dias": 365,
+      "gracia_dias": 180,
+      "acta": "artifacts/BC-SECURITY-INSTALLATION-BINDING-V1-001/INSTALACIONES/ACTA_PILAR.md",
+      "comando_de_emision": "python tools/bc_security_issuer.py emitir --solicitud solicitud-de-enrolamiento.json --salida licencia.bclic --negocio \"Optica\" --organizacion optica --sucursal PILAR --lease-dias 365 --gracia-dias 180",
+      "orden": 2,
+      "condicion": "no se empieza si el paso 10 de ASUNCION no dio DENY",
+      "estado": "PENDIENTE_FISICO"
+    }
+  ],
+  "migraciones": {
+    "orden": ["029", "030", "031", "032", "033"],
+    "033": "estrictamente aditiva: crea tres tablas vacias y no cifra nada hasta que alguien enrole la PC a proposito"
+  },
+  "human_gate": [
+    {
+      "n": 1,
+      "que": "sacar %USERPROFILE%\\BC-RESPALDO-EMISOR-bcfc68429311075f.txt de esta PC a un pendrive o a papel, y borrarlo de aca",
+      "donde": "PC de Casa, hoy",
+      "por_que_no_se_automatiza": "el punto es que salga de esta maquina; copiarlo a otra carpeta de la misma PC no respalda nada",
+      "critico": true
+    },
+    {
+      "n": 2,
+      "que": "enrolar cada PC real (paso 5 del instructivo)",
+      "por_que_no_se_automatiza": "el secreto se sella contra el hardware de esa PC, que no esta aca"
+    },
+    {
+      "n": 3,
+      "que": "anotar la frase de recuperacion en papel, una por PC",
+      "por_que_no_se_automatiza": "se muestra una sola vez y no se guarda; escribirla en un archivo seria dejar la llave al lado de la cerradura",
+      "critico": true
+    },
+    {
+      "n": 4,
+      "que": "prueba de clonacion a una segunda PC y verificacion del DENY (paso 10)",
+      "por_que_no_se_automatiza": "no hay una segunda computadora fisica en esta sesion",
+      "es_lo_unico_no_verificado_desde_casa": true
+    }
+  ],
+  "produccion_no_tocada": {
+    "base_productiva_abierta": false,
+    "commits_nuevos": false,
+    "detalle": "ningun comando de esta sesion abrio la base de la Optica; el trabajo quedo en el worktree C:/PX/SEC1 sin commitear"
+  }
+}

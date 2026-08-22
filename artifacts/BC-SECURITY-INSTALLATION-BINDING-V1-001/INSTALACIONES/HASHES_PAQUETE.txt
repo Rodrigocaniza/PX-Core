@@ -1,0 +1,43 @@
+HASHES DEL PAQUETE CONGELADO — BC Seguridad V1
+==============================================
+
+Rama   : feature/bc-security-installation-binding-v1-001
+HEAD   : 19ee0477a36b639115e2b495fdffe5db225a5fe6
+Version: BC Caja 1.0.0-rc.33
+Fecha  : 2026-08-21
+
+Lo que se lleva a la Optica tiene que dar exactamente estos SHA-256. Si alguno
+no coincide, el paquete que se esta por instalar NO es el que se verifico:
+no se instala.
+
+Se comprueba solo, en la PC de la Optica o antes de copiar:
+
+    python tools/verificar_paquete.py releases/BC-CAJA-1.0.0-rc.33-win64.zip
+    python tools/verificar_paquete.py C:\ruta\a\BC-Caja        (carpeta ya descomprimida)
+
+ZIP
+---
+20c298f5948c97ed99583e74eec9434f045eda340379d9a375777638e127bfa5  BC-CAJA-1.0.0-rc.33-win64.zip
+    tamano: 50117227 bytes
+    entradas: 1256
+
+DENTRO DEL PAQUETE
+------------------
+0cf89f1b21613489f496faa612b8f4f8baa76fe6e0349f1ad22a90cf5d0d48e8  BC-Caja/BC-Caja.exe
+6999fd72803ca6a6d036c2ef40fb422b4704d971a5e2a5bb8168b3314111426f  BC-Caja/Seguridad/BC-Seguridad.exe
+00401066ba9c1385c8c7e39e147f917f429ee97c0a3ac6abfc71851ff27cca72  BC-Caja/_internal/modulos/seguridad/trusted_issuers.json
+00401066ba9c1385c8c7e39e147f917f429ee97c0a3ac6abfc71851ff27cca72  BC-Caja/Seguridad/_internal/modulos/seguridad/trusted_issuers.json
+
+ALMACEN DE CONFIANZA
+--------------------
+Los dos ejecutables llevan el MISMO almacen, y es byte por byte el que esta
+commiteado en modulos/seguridad/trusted_issuers.json.
+
+    key_id     : bcfc68429311075f
+    etiqueta   : BC Emisor V1 2026
+    clave      : publica unicamente (Ed25519). La privada NO esta en el
+                 paquete, ni en el repositorio, ni en ningun artifact.
+
+Un BC congelado sin este archivo no puede verificar ninguna licencia y toda
+instalacion enrolada queda en DENY. Por eso se verifica antes de salir de Casa
+y no despues de cifrar la base.

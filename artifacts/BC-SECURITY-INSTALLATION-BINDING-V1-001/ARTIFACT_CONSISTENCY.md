@@ -93,8 +93,8 @@ archivo dio `ninguna`.
 |---|---|---|
 | base antes de tocar nada | `python -m pytest` sobre la 021 sin cambios | 1369 pasan, 3 fallan |
 | las 3 rojas de la base | `grep FAILED` de esa corrida | `test_el_valor_de_respaldo_sigue_al_paquete`, y dos de `gestion_central/test_ui_interactions.py` |
-| suite de seguridad | `python -m pytest tests/seguridad` | 169 pasan |
-| suite completa despues | `python -m pytest` | **1541 pasan, 0 fallan** |
+| suite de seguridad | `python -m pytest tests/seguridad` | 177 pasan (169 + 8 de fallo inyectado en el cierre preinstalacion) |
+| suite completa despues | `python -m pytest` | **1549 pasan, 0 fallan** (1541 al congelar + 8 del cierre preinstalacion) |
 | sin regresiones atribuibles a este slice | comparacion nominal de las rojas contra la base | ninguna roja nueva |
 
 **Las tres rojas de la base, una por una:**
