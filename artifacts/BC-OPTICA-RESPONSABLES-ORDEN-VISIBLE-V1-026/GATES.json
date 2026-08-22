@@ -59,9 +59,9 @@
     },
     {
       "gate": "SAFE_CLOSURE",
-      "estado": "PENDIENTE",
+      "estado": "PASS",
       "mecanismo": "REAL",
-      "detalle": "se cierra despues del push con la salida real"
+      "detalle": "cerrado con evidencia real. Tras push y fetch: HEAD y @{u} dan los dos 5b809b0c754c9536b521239dced1b8df8d58b14d, divergencia `0 0`, arbol limpio. Suite en 1387 verdes. Con esto no queda ninguna mision de codigo avanzable desde casa sin decisiones humanas: lo que sigue abierto es el HUMAN_GATE de personas y tarifas, los dos dias de caja, el huso de LATE_OPEN y una tabla muerta que necesitaria migracion"
     }
   ]
 }

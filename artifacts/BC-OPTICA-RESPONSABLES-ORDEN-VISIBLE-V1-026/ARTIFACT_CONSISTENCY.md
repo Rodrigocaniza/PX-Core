@@ -37,4 +37,14 @@ responsable que la pantalla iba a ofrecer para elegir.
 
 ## Cierre
 
-Se registra abajo, después del push, con la salida real de los comandos.
+Tomado después del push, con la salida real:
+
+| Afirmación | Comando | Resultado |
+| --- | --- | --- |
+| commit de la misión | `git log -1 --format=%H` | `5b809b0c754c9536b521239dced1b8df8d58b14d` |
+| local y origin son el mismo commit | `git rev-parse HEAD` y `git rev-parse @{u}` tras `git fetch` | ambos `5b809b0c754c9536b521239dced1b8df8d58b14d` |
+| sin divergencia | `git rev-list --left-right --count @{u}...HEAD` | `0  0` |
+| árbol limpio | `git status --porcelain` | vacío |
+
+Esta sección se agrega en el commit siguiente a `5b809b0`, así que describe
+la publicación de `5b809b0`, ya ocurrida y verificada con los comandos de arriba.

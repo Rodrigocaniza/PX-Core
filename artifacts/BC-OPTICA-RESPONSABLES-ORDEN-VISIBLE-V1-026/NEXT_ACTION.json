@@ -20,5 +20,11 @@
       "motivo": "borrarla necesita migracion, o sea otro apply productivo en la Optica, y no hay motivo para agregar uno ahora"
     }
   ],
-  "no_iniciar_otra_mision": true
+  "no_iniciar_otra_mision": true,
+  "publicada": {
+    "rama": "feature/bc-optica-comision-composturas-v1-021",
+    "commit": "5b809b0c754c9536b521239dced1b8df8d58b14d",
+    "en_origin": true,
+    "divergencia": "0 0"
+  }
 }
